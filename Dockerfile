@@ -10,10 +10,15 @@ RUN npm install -g npm@latest
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f package-lock.json ]; then \
+    echo "Using npm ci with package-lock.json"; \
+    npm --version; \
+    node --version; \
+    npm ci --no-audit --no-fund --prefer-offline || \
+    (echo "npm ci failed, trying npm install" && npm install --no-audit --no-fund); \
   elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
   fi
