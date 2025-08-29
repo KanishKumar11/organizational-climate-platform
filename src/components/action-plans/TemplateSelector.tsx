@@ -159,7 +159,7 @@ export function TemplateSelector({
             {/* Templates Grid */}
             {loading ? (
               <div className="flex justify-center py-8">
-                <Loading />
+                <LoadingSpinner />
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">

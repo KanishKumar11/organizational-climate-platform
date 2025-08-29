@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { FormField } from '@/components/ui/FormField';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { AnimatedLineChart } from '@/components/charts/AnimatedLineChart';
 
 interface Survey {
@@ -152,7 +152,7 @@ export default function TrendAnalysisComponent({
   };
 
   if (loading) {
-    return <Loading message="Loading surveys..." />;
+    return <LoadingSpinner />;
   }
 
   return (
@@ -217,7 +217,8 @@ export default function TrendAnalysisComponent({
         {/* Metric Selection */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Select Metric</h2>
-          <FormField label="Metric to Analyze">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Metric to Analyze</Label>
             <select
               value={selectedMetric}
               onChange={(e) => setSelectedMetric(e.target.value)}
@@ -230,7 +231,7 @@ export default function TrendAnalysisComponent({
                 </option>
               ))}
             </select>
-          </FormField>
+          </div>
 
           <div className="mt-6">
             <Button

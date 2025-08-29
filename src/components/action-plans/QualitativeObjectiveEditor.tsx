@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, CheckCircle, Circle } from 'lucide-react';
 
@@ -125,7 +126,11 @@ export function QualitativeObjectiveEditor({
 
               {editingObjective === objective.id ? (
                 <div className="space-y-4">
-                  <FormField label="Objective Description" required>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Objective Description{' '}
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <textarea
                       value={objective.description}
                       onChange={(e) =>
@@ -137,9 +142,12 @@ export function QualitativeObjectiveEditor({
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
-                  </FormField>
+                  </div>
 
-                  <FormField label="Success Criteria" required>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Success Criteria <span className="text-red-500">*</span>
+                    </Label>
                     <textarea
                       value={objective.success_criteria}
                       onChange={(e) =>
@@ -151,10 +159,13 @@ export function QualitativeObjectiveEditor({
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
-                  </FormField>
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField label="Current Status">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Current Status
+                      </Label>
                       <textarea
                         value={objective.current_status}
                         onChange={(e) =>
@@ -166,9 +177,12 @@ export function QualitativeObjectiveEditor({
                         rows={2}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
-                    </FormField>
+                    </div>
 
-                    <FormField label="Completion Percentage">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Completion Percentage
+                      </Label>
                       <div className="space-y-2">
                         <Input
                           type="number"
@@ -198,7 +212,7 @@ export function QualitativeObjectiveEditor({
                           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                         />
                       </div>
-                    </FormField>
+                    </div>
                   </div>
                 </div>
               ) : (

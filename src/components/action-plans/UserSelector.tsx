@@ -198,7 +198,7 @@ export function UserSelector({
             <div className="max-h-64 overflow-y-auto">
               {loading ? (
                 <div className="flex justify-center py-4">
-                  <Loading size="sm" />
+                  <LoadingSpinner />
                 </div>
               ) : filteredUsers.length > 0 ? (
                 <div className="py-2">

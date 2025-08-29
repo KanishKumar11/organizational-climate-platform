@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import BenchmarkCreator from './BenchmarkCreator';
 
 interface Benchmark {
@@ -181,7 +181,7 @@ export default function BenchmarkManager({ userRole }: BenchmarkManagerProps) {
   };
 
   if (loading) {
-    return <Loading message="Loading benchmarks..." />;
+    return <LoadingSpinner />;
   }
 
   if (showCreator) {

@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { FormField } from '@/components/ui/FormField';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import GapAnalysisReport from './GapAnalysisReport';
 
 interface Survey {
@@ -145,7 +145,7 @@ export default function BenchmarkComparison({
   };
 
   if (loading) {
-    return <Loading message="Loading surveys and benchmarks..." />;
+    return <LoadingSpinner />;
   }
 
   if (showReport && selectedSurvey && selectedBenchmark) {
@@ -218,15 +218,17 @@ export default function BenchmarkComparison({
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <FormField label="Search">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Search</Label>
             <Input
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
               placeholder="Search benchmarks..."
             />
-          </FormField>
+          </div>
 
-          <FormField label="Type">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Type</Label>
             <select
               value={filters.type}
               onChange={(e) => handleFilterChange('type', e.target.value)}
@@ -236,23 +238,25 @@ export default function BenchmarkComparison({
               <option value="internal">Internal</option>
               <option value="industry">Industry</option>
             </select>
-          </FormField>
+          </div>
 
-          <FormField label="Category">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Category</Label>
             <Input
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
               placeholder="Filter by category..."
             />
-          </FormField>
+          </div>
 
-          <FormField label="Industry">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Industry</Label>
             <Input
               value={filters.industry}
               onChange={(e) => handleFilterChange('industry', e.target.value)}
               placeholder="Filter by industry..."
             />
-          </FormField>
+          </div>
         </div>
 
         {/* Benchmark List */}

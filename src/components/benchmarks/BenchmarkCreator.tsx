@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { FormField } from '@/components/ui/FormField';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface BenchmarkMetric {
   metric_name: string;
@@ -167,7 +167,7 @@ export default function BenchmarkCreator({
   };
 
   if (loadingData) {
-    return <Loading message="Loading benchmark data..." />;
+    return <LoadingSpinner />;
   }
 
   return (
@@ -177,15 +177,21 @@ export default function BenchmarkCreator({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField label="Name" required>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="Enter benchmark name"
             />
-          </FormField>
+          </div>
 
-          <FormField label="Type" required>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Type <span className="text-red-500">*</span>
+            </Label>
             <select
               value={formData.type}
               onChange={(e) => handleInputChange('type', e.target.value)}
@@ -194,20 +200,26 @@ export default function BenchmarkCreator({
               <option value="internal">Internal</option>
               <option value="industry">Industry</option>
             </select>
-          </FormField>
+          </div>
         </div>
 
-        <FormField label="Description" required>
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            Description <span className="text-red-500">*</span>
+          </Label>
           <textarea
             value={formData.description}
             onChange={(e) => handleInputChange('description', e.target.value)}
             placeholder="Enter benchmark description"
             className="w-full p-2 border border-gray-300 rounded-md h-24"
           />
-        </FormField>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField label="Category" required>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Category <span className="text-red-500">*</span>
+            </Label>
             <Input
               value={formData.category}
               onChange={(e) => handleInputChange('category', e.target.value)}
@@ -219,29 +231,32 @@ export default function BenchmarkCreator({
                 <option key={category} value={category} />
               ))}
             </datalist>
-          </FormField>
+          </div>
 
-          <FormField label="Source">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Source</Label>
             <Input
               value={formData.source}
               onChange={(e) => handleInputChange('source', e.target.value)}
               placeholder="Data source"
             />
-          </FormField>
+          </div>
         </div>
 
         {/* Industry-specific fields */}
         {formData.type === 'industry' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField label="Industry">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Industry</Label>
               <Input
                 value={formData.industry}
                 onChange={(e) => handleInputChange('industry', e.target.value)}
                 placeholder="e.g., Technology, Healthcare"
               />
-            </FormField>
+            </div>
 
-            <FormField label="Company Size">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Company Size</Label>
               <select
                 value={formData.company_size}
                 onChange={(e) =>
@@ -255,15 +270,16 @@ export default function BenchmarkCreator({
                 <option value="medium">Medium (201-1000)</option>
                 <option value="large">Large (1000+)</option>
               </select>
-            </FormField>
+            </div>
 
-            <FormField label="Region">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Region</Label>
               <Input
                 value={formData.region}
                 onChange={(e) => handleInputChange('region', e.target.value)}
                 placeholder="e.g., North America, Europe"
               />
-            </FormField>
+            </div>
           </div>
         )}
 
@@ -308,7 +324,8 @@ export default function BenchmarkCreator({
               {metrics.map((metric, index) => (
                 <Card key={index} className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <FormField label="Metric Name">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Metric Name</Label>
                       <Input
                         value={metric.metric_name}
                         onChange={(e) =>
@@ -316,9 +333,10 @@ export default function BenchmarkCreator({
                         }
                         placeholder="e.g., Engagement Rate"
                       />
-                    </FormField>
+                    </div>
 
-                    <FormField label="Value">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Value</Label>
                       <Input
                         type="number"
                         step="0.01"
@@ -332,9 +350,10 @@ export default function BenchmarkCreator({
                         }
                         placeholder="0.00"
                       />
-                    </FormField>
+                    </div>
 
-                    <FormField label="Unit">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Unit</Label>
                       <Input
                         value={metric.unit}
                         onChange={(e) =>
@@ -342,9 +361,10 @@ export default function BenchmarkCreator({
                         }
                         placeholder="e.g., percentage, scale_1_5"
                       />
-                    </FormField>
+                    </div>
 
-                    <FormField label="Sample Size">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Sample Size</Label>
                       <Input
                         type="number"
                         value={metric.sample_size || ''}
@@ -357,7 +377,7 @@ export default function BenchmarkCreator({
                         }
                         placeholder="0"
                       />
-                    </FormField>
+                    </div>
                   </div>
 
                   <div className="flex justify-end mt-2">

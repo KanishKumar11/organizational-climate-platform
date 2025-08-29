@@ -489,7 +489,10 @@ export function ProgressTracker({
                   </div>
 
                   <div className="space-y-4">
-                    <FormField label="Current Status">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Current Status
+                      </Label>
                       <textarea
                         value={currentStatus}
                         onChange={(e) =>
@@ -503,10 +506,13 @@ export function ProgressTracker({
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
-                    </FormField>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField label="Completion Percentage">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          Completion Percentage
+                        </Label>
                         <div className="space-y-2">
                           <Input
                             type="number"
@@ -539,9 +545,12 @@ export function ProgressTracker({
                             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                           />
                         </div>
-                      </FormField>
+                      </div>
 
-                      <FormField label="Notes (Optional)">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          Notes (Optional)
+                        </Label>
                         <Input
                           value={qualitativeUpdates[objective.id]?.notes ?? ''}
                           onChange={(e) =>
@@ -553,7 +562,7 @@ export function ProgressTracker({
                           }
                           placeholder="Add notes about this update..."
                         />
-                      </FormField>
+                      </div>
                     </div>
 
                     {/* Progress Bar */}
@@ -583,7 +592,8 @@ export function ProgressTracker({
 
       {/* Overall Notes */}
       <Card className="p-6">
-        <FormField label="Overall Progress Notes">
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Overall Progress Notes</Label>
           <textarea
             value={overallNotes}
             onChange={(e) => setOverallNotes(e.target.value)}
@@ -591,7 +601,7 @@ export function ProgressTracker({
             rows={4}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </FormField>
+        </div>
       </Card>
 
       {/* Save Button */}
