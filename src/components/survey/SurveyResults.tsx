@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loading } from '@/components/ui/Loading';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import AnimatedBarChart from '@/components/charts/AnimatedBarChart';
 import AnimatedPieChart from '@/components/charts/AnimatedPieChart';
 import HeatMap from '@/components/charts/HeatMap';
@@ -172,7 +172,7 @@ export default function SurveyResults({ surveyId }: SurveyResultsProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loading size="lg" />
+        <LoadingSpinner />
       </div>
     );
   }

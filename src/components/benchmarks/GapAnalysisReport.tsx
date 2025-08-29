@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Loading } from '@/components/ui/Loading';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { AnimatedBarChart } from '@/components/charts/AnimatedBarChart';
 import { KPIDisplay } from '@/components/charts/KPIDisplay';
 
@@ -165,9 +165,7 @@ export default function GapAnalysisReport({
   };
 
   if (loading) {
-    return (
-      <Loading message="Analyzing gaps and generating recommendations..." />
-    );
+    return <LoadingSpinner />;
   }
 
   if (!gapAnalysis) {

@@ -7,8 +7,8 @@ import WordCloud from '@/components/charts/WordCloud';
 import SentimentVisualization from '@/components/charts/SentimentVisualization';
 import ParticipationTracker from '@/components/charts/ParticipationTracker';
 import RealTimeChartContainer from '@/components/charts/RealTimeChartContainer';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Zap, Users, MessageCircle, TrendingUp } from 'lucide-react';
 
 interface MicroclimateData {
