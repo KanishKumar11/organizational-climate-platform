@@ -17,7 +17,10 @@ async function GET(request: NextRequest) {
     // Check permissions - only admins can generate compliance reports
     const userRole = (session.user as any).role;
     if (!['super_admin', 'company_admin'].includes(userRole)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -35,7 +38,9 @@ async function GET(request: NextRequest) {
     const auditService = AuditService.getInstance();
 
     // Generate compliance report
-    const report = await gdprService.generateComplianceReport(company_id || undefined);
+    const report = await gdprService.generateComplianceReport(
+      company_id || undefined
+    );
 
     // Log the report generation
     await auditService.logEvent({
@@ -66,4 +71,5 @@ async function GET(request: NextRequest) {
   }
 }
 
-export { withSecurity(GET) as GET };
+const secureGET = withSecurity(GET);
+export { secureGET as GET };

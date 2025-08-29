@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { FormField } from '@/components/ui/FormField';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+// FormField and Loading components removed - not implemented
 import { KPIEditor } from './KPIEditor';
 import { QualitativeObjectiveEditor } from './QualitativeObjectiveEditor';
 import { TemplateSelector } from './TemplateSelector';

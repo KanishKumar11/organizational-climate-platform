@@ -23,15 +23,24 @@ async function POST(request: NextRequest) {
     const requesterCompanyId = (session.user as any).company_id;
 
     if (!['super_admin', 'company_admin'].includes(userRole)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     // Require explicit confirmation for erasure requests
-    if (!confirmation || confirmation !== 'I understand this action cannot be undone') {
-      return NextResponse.json({ 
-        error: 'Explicit confirmation required for data erasure',
-        required_confirmation: 'I understand this action cannot be undone'
-      }, { status: 400 });
+    if (
+      !confirmation ||
+      confirmation !== 'I understand this action cannot be undone'
+    ) {
+      return NextResponse.json(
+        {
+          error: 'Explicit confirmation required for data erasure',
+          required_confirmation: 'I understand this action cannot be undone',
+        },
+        { status: 400 }
+      );
     }
 
     const gdprService = GDPRComplianceService.getInstance();
@@ -77,4 +86,5 @@ async function POST(request: NextRequest) {
   }
 }
 
-export { withSecurity(POST) as POST };
+const securePOST = withSecurity(POST);
+export { securePOST as POST };

@@ -17,18 +17,28 @@ async function POST(request: NextRequest) {
     // Check permissions - only super admins can perform retention cleanup
     const userRole = (session.user as any).role;
     if (userRole !== 'super_admin') {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();
     const { company_id, confirmation } = body;
 
     // Require explicit confirmation for cleanup
-    if (!confirmation || confirmation !== 'I understand this will permanently delete old data') {
-      return NextResponse.json({ 
-        error: 'Explicit confirmation required for data cleanup',
-        required_confirmation: 'I understand this will permanently delete old data'
-      }, { status: 400 });
+    if (
+      !confirmation ||
+      confirmation !== 'I understand this will permanently delete old data'
+    ) {
+      return NextResponse.json(
+        {
+          error: 'Explicit confirmation required for data cleanup',
+          required_confirmation:
+            'I understand this will permanently delete old data',
+        },
+        { status: 400 }
+      );
     }
 
     const requesterId = (session.user as any).id;
@@ -84,7 +94,10 @@ async function GET(request: NextRequest) {
     // Check permissions - only admins can check retention status
     const userRole = (session.user as any).role;
     if (!['super_admin', 'company_admin'].includes(userRole)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -102,7 +115,9 @@ async function GET(request: NextRequest) {
     const auditService = AuditService.getInstance();
 
     // Check retention compliance
-    const status = await gdprService.checkRetentionCompliance(company_id || undefined);
+    const status = await gdprService.checkRetentionCompliance(
+      company_id || undefined
+    );
 
     // Log the status check
     await auditService.logEvent({
@@ -133,4 +148,6 @@ async function GET(request: NextRequest) {
   }
 }
 
-export { withSecurity(POST) as POST, withSecurity(GET) as GET };
+const securePOST = withSecurity(POST);
+const secureGET = withSecurity(GET);
+export { securePOST as POST, secureGET as GET };

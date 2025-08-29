@@ -23,11 +23,20 @@ async function POST(request: NextRequest) {
     const requesterCompanyId = (session.user as any).company_id;
 
     if (userRole === 'employee' && user_id !== requesterId) {
-      return NextResponse.json({ error: 'Can only request your own data' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Can only request your own data' },
+        { status: 403 }
+      );
     }
 
-    if (!['super_admin', 'company_admin'].includes(userRole) && user_id !== requesterId) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    if (
+      !['super_admin', 'company_admin'].includes(userRole) &&
+      user_id !== requesterId
+    ) {
+      return NextResponse.json(
+        { error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const gdprService = GDPRComplianceService.getInstance();
@@ -62,8 +71,11 @@ async function POST(request: NextRequest) {
       const jsonData = JSON.stringify(exportPackage, null, 2);
       const headers = new Headers();
       headers.set('Content-Type', 'application/json');
-      headers.set('Content-Disposition', `attachment; filename="gdpr-data-export-${user_id}.json"`);
-      
+      headers.set(
+        'Content-Disposition',
+        `attachment; filename="gdpr-data-export-${user_id}.json"`
+      );
+
       return new NextResponse(jsonData, { headers });
     }
 
@@ -81,4 +93,5 @@ async function POST(request: NextRequest) {
   }
 }
 
-export { withSecurity(POST) as POST };
+const securePOST = withSecurity(POST);
+export { securePOST as POST };

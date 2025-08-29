@@ -16,7 +16,10 @@ async function GET(request: NextRequest) {
     // Check permissions - only admins can export audit logs
     const userRole = (session.user as any).role;
     if (!['super_admin', 'company_admin'].includes(userRole)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -24,30 +27,30 @@ async function GET(request: NextRequest) {
 
     // Build filters from query parameters
     const filters: AuditQueryFilters = {};
-    
+
     if (searchParams.get('user_id')) {
       filters.user_id = searchParams.get('user_id')!;
     }
-    
+
     if (searchParams.get('company_id')) {
       filters.company_id = searchParams.get('company_id')!;
     } else if (userRole === 'company_admin') {
       // Company admins can only export their company's logs
       filters.company_id = (session.user as any).company_id;
     }
-    
+
     if (searchParams.get('action')) {
       filters.action = searchParams.get('action') as any;
     }
-    
+
     if (searchParams.get('resource')) {
       filters.resource = searchParams.get('resource') as any;
     }
-    
+
     if (searchParams.get('start_date')) {
       filters.start_date = new Date(searchParams.get('start_date')!);
     }
-    
+
     if (searchParams.get('end_date')) {
       filters.end_date = new Date(searchParams.get('end_date')!);
     }
@@ -73,8 +76,14 @@ async function GET(request: NextRequest) {
 
     // Set appropriate headers for download
     const headers = new Headers();
-    headers.set('Content-Type', format === 'csv' ? 'text/csv' : 'application/json');
-    headers.set('Content-Disposition', `attachment; filename="audit-logs.${format}"`);
+    headers.set(
+      'Content-Type',
+      format === 'csv' ? 'text/csv' : 'application/json'
+    );
+    headers.set(
+      'Content-Disposition',
+      `attachment; filename="audit-logs.${format}"`
+    );
 
     return new NextResponse(exportData, { headers });
   } catch (error) {
@@ -86,4 +95,5 @@ async function GET(request: NextRequest) {
   }
 }
 
-export { withSecurity(GET) as GET };
+const secureGET = withSecurity(GET);
+export { secureGET as GET };

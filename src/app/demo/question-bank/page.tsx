@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import QuestionBankManager from '@/components/question-bank/QuestionBankManager';
 import QuestionRecommendations from '@/components/question-bank/QuestionRecommendations';
 import QuestionAnalytics from '@/components/question-bank/QuestionAnalytics';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export default function QuestionBankDemo() {
   const [activeTab, setActiveTab] = useState<

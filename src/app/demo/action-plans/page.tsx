@@ -6,9 +6,9 @@ import { BulkActionPlanCreator } from '@/components/action-plans/BulkActionPlanC
 import { ActionPlanDashboard } from '@/components/action-plans/ActionPlanDashboard';
 import { AlertsPanel } from '@/components/action-plans/AlertsPanel';
 import { CommitmentTracker } from '@/components/action-plans/CommitmentTracker';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import {
   Plus,

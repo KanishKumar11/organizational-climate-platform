@@ -16,7 +16,10 @@ async function GET(request: NextRequest) {
     // Check permissions - only admins can generate audit reports
     const userRole = (session.user as any).role;
     if (!['super_admin', 'company_admin'].includes(userRole)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -29,10 +32,10 @@ async function GET(request: NextRequest) {
       company_id = (session.user as any).company_id;
     }
 
-    const start_date = searchParams.get('start_date') 
+    const start_date = searchParams.get('start_date')
       ? new Date(searchParams.get('start_date')!)
       : undefined;
-    
+
     const end_date = searchParams.get('end_date')
       ? new Date(searchParams.get('end_date')!)
       : undefined;
@@ -52,10 +55,10 @@ async function GET(request: NextRequest) {
         (session.user as any).id,
         (session.user as any).company_id
       ),
-      details: { 
+      details: {
         report_type: 'audit_report',
         company_id,
-        date_range: { start_date, end_date }
+        date_range: { start_date, end_date },
       },
     });
 
@@ -72,4 +75,5 @@ async function GET(request: NextRequest) {
   }
 }
 
-export { withSecurity(GET) as GET };
+const secureGET = withSecurity(GET);
+export { secureGET as GET };

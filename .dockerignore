@@ -33,7 +33,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
 # IDE
 .vscode
@@ -61,8 +60,6 @@ jest.config.js
 # Development files
 .eslintrc.json
 .prettierrc
-tailwind.config.ts
-tsconfig.json
 
 # Logs
 logs

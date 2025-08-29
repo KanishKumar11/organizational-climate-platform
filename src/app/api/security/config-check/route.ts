@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { validateSecurityConfig, SecurityConfigChecker } from '../../../../middleware/security';
+import {
+  validateSecurityConfig,
+  SecurityConfigChecker,
+} from '../../../../middleware/security';
 import { validateEncryptionConfig } from '../../../../lib/encryption';
 import { DataPrivacyService } from '../../../../lib/data-privacy';
 import TLSValidationService from '../../../../lib/tls-validation';
@@ -19,24 +22,27 @@ async function GET(request: NextRequest) {
     // Check permissions - only super admins can check security config
     const userRole = (session.user as any).role;
     if (userRole !== 'super_admin') {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     // Validate overall security configuration
     const securityValidation = validateSecurityConfig();
-    
+
     // Validate encryption configuration
     const encryptionValidation = validateEncryptionConfig();
-    
+
     // Check TLS configuration
     const tlsService = TLSValidationService.getInstance();
     const tlsReport = tlsService.generateTLSReport();
     const tlsValidation = tlsService.validateRequest(request);
-    
+
     // Get security status
     const securityChecker = SecurityConfigChecker.getInstance();
     const securityStatus = securityChecker.getSecurityStatus();
-    
+
     // Check data privacy configurations
     const privacyService = new DataPrivacyService();
     const tlsConfigValidation = DataPrivacyService.validateTLSConfig();
@@ -44,21 +50,24 @@ async function GET(request: NextRequest) {
     // Compile comprehensive security report
     const report = {
       overall_status: {
-        is_secure: securityValidation.isValid && encryptionValidation.isValid && tlsConfigValidation.isValid,
+        is_secure:
+          securityValidation.isValid &&
+          encryptionValidation.isValid &&
+          tlsConfigValidation.isValid,
         environment: process.env.NODE_ENV,
         timestamp: new Date().toISOString(),
       },
-      
+
       security_config: {
         is_valid: securityValidation.isValid,
         errors: securityValidation.errors,
       },
-      
+
       encryption_config: {
         is_valid: encryptionValidation.isValid,
         errors: encryptionValidation.errors,
       },
-      
+
       tls_config: {
         is_valid: tlsConfigValidation.isValid,
         errors: tlsConfigValidation.errors,
@@ -70,15 +79,15 @@ async function GET(request: NextRequest) {
         },
         recommendations: tlsReport.recommendations,
       },
-      
+
       security_status: securityStatus,
-      
+
       environment_checks: {
         required_env_vars: this.checkRequiredEnvVars(),
         security_headers: tlsReport.securityHeaders,
         database_connection: await this.checkDatabaseSecurity(),
       },
-      
+
       recommendations: this.generateSecurityRecommendations({
         securityValidation,
         encryptionValidation,
@@ -126,25 +135,25 @@ function checkRequiredEnvVars(): {
   const weak: string[] = [];
   const configured: string[] = [];
 
-  [...required, ...optional].forEach(envVar => {
+  [...required, ...optional].forEach((envVar) => {
     const value = process.env[envVar];
-    
+
     if (!value) {
       if (required.includes(envVar)) {
         missing.push(envVar);
       }
     } else {
       configured.push(envVar);
-      
+
       // Check for weak configurations
       if (envVar.includes('KEY') && value.length < 32) {
         weak.push(`${envVar} (too short)`);
       }
-      
+
       if (envVar === 'NEXTAUTH_SECRET' && value.length < 32) {
         weak.push(`${envVar} (too short)`);
       }
-      
+
       if (envVar.includes('KEY') && value.includes('default')) {
         weak.push(`${envVar} (using default value)`);
       }
@@ -167,17 +176,20 @@ async function checkDatabaseSecurity(): Promise<{
   const recommendations: string[] = [];
 
   // Check if connection uses SSL/TLS
-  const connection_encrypted = mongoUri.includes('ssl=true') || 
-                              mongoUri.includes('tls=true') ||
-                              mongoUri.includes('mongodb+srv://');
+  const connection_encrypted =
+    mongoUri.includes('ssl=true') ||
+    mongoUri.includes('tls=true') ||
+    mongoUri.includes('mongodb+srv://');
 
   // Check if authentication is configured
-  const auth_enabled = mongoUri.includes('@') && !mongoUri.includes('localhost');
+  const auth_enabled =
+    mongoUri.includes('@') && !mongoUri.includes('localhost');
 
   // Check if connection string looks secure
-  const connection_string_secure = !mongoUri.includes('localhost') && 
-                                  !mongoUri.includes('127.0.0.1') &&
-                                  !mongoUri.includes('password');
+  const connection_string_secure =
+    !mongoUri.includes('localhost') &&
+    !mongoUri.includes('127.0.0.1') &&
+    !mongoUri.includes('password');
 
   if (!connection_encrypted) {
     recommendations.push('Enable SSL/TLS for database connections');
@@ -248,4 +260,5 @@ function generateSecurityRecommendations(validations: {
   return [...new Set(recommendations)]; // Remove duplicates
 }
 
-export { withSecurity(GET) as GET };
+const secureGET = withSecurity(GET);
+export { secureGET as GET };

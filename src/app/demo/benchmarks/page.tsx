@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import BenchmarkManager from '@/components/benchmarks/BenchmarkManager';
 import BenchmarkComparison from '@/components/benchmarks/BenchmarkComparison';
 import TrendAnalysis from '@/components/benchmarks/TrendAnalysis';
