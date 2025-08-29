@@ -892,3 +892,6 @@ export class ReportService {
     ];
   }
 }
+
+// Export a default instance for convenience
+export const reportService = new ReportService();

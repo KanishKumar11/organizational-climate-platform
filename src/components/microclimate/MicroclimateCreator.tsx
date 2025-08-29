@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { FormField } from '@/components/ui/FormField';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
@@ -381,7 +381,10 @@ export default function MicroclimateCreator() {
               </p>
             </div>
 
-            <FormField label="Title" required>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Title <span className="text-red-500">*</span>
+              </Label>
               <Input
                 value={microclimateData.title}
                 onChange={(e) =>
@@ -393,9 +396,10 @@ export default function MicroclimateCreator() {
                 placeholder="e.g., Weekly Team Pulse Check"
                 maxLength={150}
               />
-            </FormField>
+            </div>
 
-            <FormField label="Description">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Description</Label>
               <textarea
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows={3}
@@ -409,7 +413,7 @@ export default function MicroclimateCreator() {
                 placeholder="Brief description of what this microclimate is about..."
                 maxLength={500}
               />
-            </FormField>
+            </div>
           </div>
         );
 
@@ -425,7 +429,10 @@ export default function MicroclimateCreator() {
               </p>
             </div>
 
-            <FormField label="Departments" required>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Departments <span className="text-red-500">*</span>
+              </Label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {departments.map((dept) => (
                   <label
@@ -465,7 +472,7 @@ export default function MicroclimateCreator() {
                   </label>
                 ))}
               </div>
-            </FormField>
+            </div>
 
             <div className="flex items-center space-x-3">
               <input
@@ -491,7 +498,10 @@ export default function MicroclimateCreator() {
               </label>
             </div>
 
-            <FormField label="Maximum Participants (optional)">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Maximum Participants (optional)
+              </Label>
               <Input
                 type="number"
                 min="1"
@@ -509,7 +519,7 @@ export default function MicroclimateCreator() {
                 }
                 placeholder="Leave empty for no limit"
               />
-            </FormField>
+            </div>
           </div>
         );
 
@@ -526,7 +536,10 @@ export default function MicroclimateCreator() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField label="Start Time" required>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Start Time <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   type="datetime-local"
                   value={microclimateData.scheduling.start_time}
@@ -540,9 +553,12 @@ export default function MicroclimateCreator() {
                     }))
                   }
                 />
-              </FormField>
+              </div>
 
-              <FormField label="Duration (minutes)" required>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Duration (minutes) <span className="text-red-500">*</span>
+                </Label>
                 <select
                   value={microclimateData.scheduling.duration_minutes}
                   onChange={(e) =>
@@ -563,7 +579,7 @@ export default function MicroclimateCreator() {
                   <option value={90}>1.5 hours</option>
                   <option value={120}>2 hours</option>
                 </select>
-              </FormField>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -662,7 +678,10 @@ export default function MicroclimateCreator() {
                   </div>
 
                   <div className="space-y-4">
-                    <FormField label="Question Text" required>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Question Text <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         value={question.text}
                         onChange={(e) =>
@@ -671,9 +690,12 @@ export default function MicroclimateCreator() {
                         placeholder="Enter your question..."
                         maxLength={300}
                       />
-                    </FormField>
+                    </div>
 
-                    <FormField label="Question Type">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Question Type
+                      </Label>
                       <select
                         value={question.type}
                         onChange={(e) =>
@@ -693,10 +715,11 @@ export default function MicroclimateCreator() {
                           </option>
                         ))}
                       </select>
-                    </FormField>
+                    </div>
 
                     {question.type === 'multiple_choice' && (
-                      <FormField label="Options">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Options</Label>
                         <div className="space-y-2">
                           {(question.options || []).map((option, optIndex) => (
                             <div
@@ -750,7 +773,7 @@ export default function MicroclimateCreator() {
                             Add Option
                           </Button>
                         </div>
-                      </FormField>
+                      </div>
                     )}
                   </div>
                 </Card>
@@ -870,7 +893,7 @@ export default function MicroclimateCreator() {
                 className="flex-1"
               >
                 {loading ? (
-                  <Loading size="sm" />
+                  <LoadingSpinner />
                 ) : (
                   <Save className="w-4 h-4 mr-2" />
                 )}
@@ -882,7 +905,7 @@ export default function MicroclimateCreator() {
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
                 {loading ? (
-                  <Loading size="sm" />
+                  <LoadingSpinner />
                 ) : (
                   <Play className="w-4 h-4 mr-2" />
                 )}

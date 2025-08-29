@@ -1,81 +1,79 @@
 'use client';
 
+import React from 'react';
 import { motion } from 'framer-motion';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
 
-interface ChartData {
-  name: string;
-  value: number;
-  date?: string;
+interface DataPoint {
+  x: number;
+  y: number;
+  label?: string;
 }
 
 interface AnimatedLineChartProps {
-  data: ChartData[];
-  title?: string;
+  data: DataPoint[];
+  width?: number;
   height?: number;
   color?: string;
-  showDots?: boolean;
+  className?: string;
 }
 
-export default function AnimatedLineChart({
+export function AnimatedLineChart({
   data,
-  title,
-  height = 300,
-  color = '#10B981',
-  showDots = true,
+  width = 400,
+  height = 200,
+  color = '#3b82f6',
+  className = '',
 }: AnimatedLineChartProps) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full"
-    >
-      {title && (
-        <motion.h3
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-lg font-semibold mb-4 text-gray-900"
-        >
-          {title}
-        </motion.h3>
-      )}
+  if (!data.length) return null;
 
-      <ResponsiveContainer width="100%" height={height}>
-        <LineChart
-          data={data}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-          <XAxis dataKey="name" stroke="#6B7280" fontSize={12} />
-          <YAxis stroke="#6B7280" fontSize={12} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: 'white',
-              border: '1px solid #E5E7EB',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  const maxX = Math.max(...data.map((d) => d.x));
+  const maxY = Math.max(...data.map((d) => d.y));
+  const minY = Math.min(...data.map((d) => d.y));
+
+  const scaleX = (x: number) => (x / maxX) * (width - 40) + 20;
+  const scaleY = (y: number) =>
+    height - 20 - ((y - minY) / (maxY - minY)) * (height - 40);
+
+  const pathData = data
+    .map((point, index) => {
+      const x = scaleX(point.x);
+      const y = scaleY(point.y);
+      return index === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+    })
+    .join(' ');
+
+  return (
+    <div className={className}>
+      <svg width={width} height={height} className="overflow-visible">
+        <motion.path
+          d={pathData}
+          fill="none"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1.5, ease: 'easeInOut' }}
+        />
+        {data.map((point, index) => (
+          <motion.circle
+            key={index}
+            cx={scaleX(point.x)}
+            cy={scaleY(point.y)}
+            r="4"
+            fill={color}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{
+              duration: 0.3,
+              delay: (index / data.length) * 1.5 + 0.5,
             }}
           />
-          <Line
-            type="monotone"
-            dataKey="value"
-            stroke={color}
-            strokeWidth={3}
-            dot={showDots ? { fill: color, strokeWidth: 2, r: 4 } : false}
-            activeDot={{ r: 6, stroke: color, strokeWidth: 2 }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </motion.div>
+        ))}
+      </svg>
+    </div>
   );
 }
+
+export default AnimatedLineChart;

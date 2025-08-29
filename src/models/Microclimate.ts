@@ -396,5 +396,9 @@ MicroclimateSchema.pre('save', function (next) {
   next();
 });
 
-export default mongoose.models.Microclimate ||
+const Microclimate =
+  mongoose.models.Microclimate ||
   mongoose.model<IMicroclimate>('Microclimate', MicroclimateSchema);
+
+export default Microclimate;
+export { Microclimate };

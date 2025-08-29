@@ -1,85 +1,55 @@
 'use client';
 
+import React from 'react';
 import { motion } from 'framer-motion';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
 
-interface ChartData {
+interface DataPoint {
   name: string;
   value: number;
   color?: string;
 }
 
 interface AnimatedBarChartProps {
-  data: ChartData[];
-  title?: string;
+  data: DataPoint[];
   height?: number;
-  color?: string;
+  className?: string;
 }
 
-export default function AnimatedBarChart({
+export function AnimatedBarChart({
   data,
-  title,
   height = 300,
-  color = '#3B82F6',
+  className = '',
 }: AnimatedBarChartProps) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full"
-    >
-      {title && (
-        <motion.h3
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-lg font-semibold mb-4 text-gray-900"
-        >
-          {title}
-        </motion.h3>
-      )}
+  const maxValue = Math.max(...data.map((d) => d.value));
 
-      <ResponsiveContainer width="100%" height={height}>
-        <BarChart
-          data={data}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-          <XAxis dataKey="name" stroke="#6B7280" fontSize={12} />
-          <YAxis stroke="#6B7280" fontSize={12} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: 'white',
-              border: '1px solid #E5E7EB',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            }}
-          />
-          <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]}>
-            {data.map((entry, index) => (
-              <motion.rect
-                key={`bar-${index}`}
-                initial={{ height: 0 }}
-                animate={{ height: 'auto' }}
-                transition={{
-                  duration: 0.8,
-                  delay: index * 0.1,
-                  ease: 'easeOut',
-                }}
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </motion.div>
+  return (
+    <div className={`w-full ${className}`} style={{ height }}>
+      <div className="flex items-end justify-between h-full gap-2">
+        {data.map((item, index) => (
+          <div key={item.name} className="flex flex-col items-center flex-1">
+            <motion.div
+              className="w-full rounded-t-md"
+              style={{
+                backgroundColor: item.color || '#3b82f6',
+                height: `${(item.value / maxValue) * 80}%`,
+              }}
+              initial={{ height: 0 }}
+              animate={{ height: `${(item.value / maxValue) * 80}%` }}
+              transition={{
+                duration: 0.8,
+                delay: index * 0.1,
+                ease: 'easeOut',
+              }}
+            />
+            <div className="mt-2 text-xs text-center text-muted-foreground">
+              {item.name}
+            </div>
+            <div className="text-sm font-medium">{item.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
+
+export default AnimatedBarChart;

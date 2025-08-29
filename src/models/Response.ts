@@ -225,5 +225,9 @@ ResponseSchema.post(['find', 'findOne', 'findOneAndUpdate'], function (docs) {
   }
 });
 
-export default mongoose.models.Response ||
+const Response =
+  mongoose.models.Response ||
   mongoose.model<IResponse>('Response', ResponseSchema);
+
+export default Response;
+export { Response };

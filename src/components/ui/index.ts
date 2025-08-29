@@ -79,6 +79,7 @@ export {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -113,7 +114,7 @@ export {
 export { Avatar, AvatarFallback, AvatarImage } from './avatar';
 
 // Progress Components
-export { Progress, StepProgress, CircularProgress } from './Progress';
+export { Progress, StepProgress, CircularProgress } from './progress';
 
 // Loading Components
 export {
@@ -129,6 +130,18 @@ export { Toaster } from './sonner';
 
 // Tabs Components
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
+
+// Table Components
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './table';
 
 // Utility exports
 export { cn } from '@/lib/utils';

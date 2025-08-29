@@ -150,5 +150,8 @@ CompanySchema.statics.findByDomain = function (domain: string) {
   return this.findOne({ domain: domain.toLowerCase(), is_active: true });
 };
 
-export default mongoose.models.Company ||
-  mongoose.model<ICompany>('Company', CompanySchema);
+const Company =
+  mongoose.models.Company || mongoose.model<ICompany>('Company', CompanySchema);
+
+export default Company;
+export { Company };

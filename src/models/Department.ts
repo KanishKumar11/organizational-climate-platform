@@ -189,5 +189,9 @@ DepartmentSchema.pre('save', async function (next) {
   next();
 });
 
-export default mongoose.models.Department ||
+const Department =
+  mongoose.models.Department ||
   mongoose.model<IDepartment>('Department', DepartmentSchema);
+
+export default Department;
+export { Department };

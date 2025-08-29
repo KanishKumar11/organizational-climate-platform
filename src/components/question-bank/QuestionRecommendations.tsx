@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   Sparkles,
   TrendingUp,
@@ -151,7 +151,7 @@ export default function QuestionRecommendations({
   };
 
   if (loading) {
-    return <Loading />;
+    return <LoadingSpinner />;
   }
 
   return (

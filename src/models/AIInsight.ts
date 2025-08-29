@@ -91,6 +91,9 @@ AIInsightSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 
-export const AIInsight =
+const AIInsight =
   mongoose.models.AIInsight ||
   mongoose.model<IAIInsight>('AIInsight', AIInsightSchema);
+
+export default AIInsight;
+export { AIInsight };

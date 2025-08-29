@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   Calendar,
   Filter,
@@ -267,7 +267,7 @@ export default function ReportBuilder({
   if (loading) {
     return (
       <Card className="p-6">
-        <Loading message="Loading report builder..." />
+        <LoadingSpinner />
       </Card>
     );
   }

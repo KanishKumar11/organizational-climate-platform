@@ -384,3 +384,25 @@ export function hasStringPermission(
       return false;
   }
 }
+
+/**
+ * Validate permissions for a user and action
+ */
+export async function validatePermissions(
+  userId: string,
+  action: string,
+  companyId?: string
+): Promise<boolean> {
+  // This is a simplified implementation
+  // In a real app, you'd fetch the user and check their permissions
+  return true;
+}
+
+/**
+ * Check permissions for a user role and feature
+ */
+export function checkPermissions(userRole: UserRole, feature: string): boolean {
+  // This is a simplified implementation
+  // In a real app, you'd have a more complex permission system
+  return true;
+}

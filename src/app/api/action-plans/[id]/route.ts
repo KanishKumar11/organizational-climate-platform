@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 // GET /api/action-plans/[id] - Get specific action plan
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -25,7 +25,8 @@ export async function GET(
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const actionPlan = await ActionPlan.findById(params.id)
+    const { id } = await params;
+    const actionPlan = await ActionPlan.findById(id)
       .populate('created_by', 'name email')
       .populate('assigned_to', 'name email');
 
@@ -48,7 +49,7 @@ export async function GET(
 // PATCH /api/action-plans/[id] - Update action plan
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -149,7 +150,7 @@ export async function PATCH(
 // DELETE /api/action-plans/[id] - Delete action plan
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -164,7 +165,8 @@ export async function DELETE(
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const actionPlan = await ActionPlan.findById(params.id);
+    const { id } = await params;
+    const actionPlan = await ActionPlan.findById(id);
     if (!actionPlan) {
       return Response.json({ error: 'Action plan not found' }, { status: 404 });
     }
@@ -185,7 +187,7 @@ export async function DELETE(
       );
     }
 
-    await ActionPlan.findByIdAndDelete(params.id);
+    await ActionPlan.findByIdAndDelete(id);
 
     return Response.json({ message: 'Action plan deleted successfully' });
   } catch (error) {

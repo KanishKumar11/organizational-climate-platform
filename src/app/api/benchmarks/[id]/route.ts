@@ -6,9 +6,10 @@ import { validatePermissions } from '@/lib/permissions';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -27,7 +28,7 @@ export async function GET(
       );
     }
 
-    const benchmark = await BenchmarkService.getBenchmarkById(params.id);
+    const benchmark = await BenchmarkService.getBenchmarkById(id);
 
     if (!benchmark) {
       return NextResponse.json(
@@ -48,9 +49,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -70,7 +72,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const benchmark = await BenchmarkService.updateBenchmark(params.id, body);
+    const benchmark = await BenchmarkService.updateBenchmark(id, body);
 
     if (!benchmark) {
       return NextResponse.json(
@@ -91,9 +93,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -113,7 +116,7 @@ export async function DELETE(
     }
 
     // Soft delete by setting is_active to false
-    const benchmark = await BenchmarkService.updateBenchmark(params.id, {
+    const benchmark = await BenchmarkService.updateBenchmark(id, {
       is_active: false,
     });
 

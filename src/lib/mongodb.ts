@@ -54,3 +54,7 @@ async function connectDB() {
 }
 
 export default connectDB;
+export { connectDB };
+
+// Alias for compatibility
+export const connectToDatabase = connectDB;
