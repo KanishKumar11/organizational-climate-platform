@@ -6,10 +6,9 @@ import User from '@/models/User';
 import Survey from '@/models/Survey';
 import Company from '@/models/Company';
 import Department from '@/models/Department';
-import { withApiMiddleware } from '@/lib/api-middleware';
 
 export async function GET(request: NextRequest) {
-  return withApiMiddleware(request, async () => {
+  try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
@@ -111,7 +110,13 @@ export async function GET(request: NextRequest) {
         0
       ),
     });
-  });
+  } catch (error) {
+    console.error('Dashboard search error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }
 
 function buildSearchFilters(user: any, searchRegex: RegExp) {

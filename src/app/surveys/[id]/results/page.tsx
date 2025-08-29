@@ -7,7 +7,7 @@ import Survey from '@/models/Survey';
 import SurveyResults from '@/components/survey/SurveyResults';
 import RealTimeTracker from '@/components/survey/RealTimeTracker';
 import { Loading } from '@/components/ui/Loading';
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SurveyResultsPageProps {

@@ -8,7 +8,7 @@ import { connectDB } from '@/lib/mongodb';
 // GET /api/notifications/[id] - Get specific notification
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,8 +17,9 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const notification = await Notification.findById(params.id);
+    const notification = await Notification.findById(id);
     if (!notification) {
       return NextResponse.json(
         { error: 'Notification not found' },
@@ -50,7 +51,7 @@ export async function GET(
 // PATCH /api/notifications/[id] - Update notification status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -62,8 +63,9 @@ export async function PATCH(
     const { status, metadata } = body;
 
     await connectDB();
+    const { id } = await params;
 
-    const notification = await Notification.findById(params.id);
+    const notification = await Notification.findById(id);
     if (!notification) {
       return NextResponse.json(
         { error: 'Notification not found' },
@@ -115,7 +117,7 @@ export async function PATCH(
 // DELETE /api/notifications/[id] - Cancel notification
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -124,8 +126,9 @@ export async function DELETE(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const notification = await Notification.findById(params.id);
+    const notification = await Notification.findById(id);
     if (!notification) {
       return NextResponse.json(
         { error: 'Notification not found' },

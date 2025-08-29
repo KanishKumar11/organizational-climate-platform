@@ -8,7 +8,7 @@ import { hasPermission } from '@/lib/permissions';
 // GET /api/question-bank/[id]/variations - Get all variations of a question
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,8 +17,9 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const parentQuestion = await QuestionBank.findById(params.id);
+    const parentQuestion = await QuestionBank.findById(id);
     if (!parentQuestion) {
       return NextResponse.json(
         { error: 'Question not found' },
@@ -65,7 +66,7 @@ export async function GET(
 // POST /api/question-bank/[id]/variations - Create new variation of a question
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -81,8 +82,9 @@ export async function POST(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const parentQuestion = await QuestionBank.findById(params.id);
+    const parentQuestion = await QuestionBank.findById(id);
     if (!parentQuestion) {
       return NextResponse.json(
         { error: 'Question not found' },

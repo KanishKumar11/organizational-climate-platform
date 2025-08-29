@@ -8,7 +8,7 @@ import { hasPermission } from '@/lib/permissions';
 // GET /api/question-bank/[id] - Get specific question with variations
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,11 +17,12 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
     const { searchParams } = new URL(request.url);
     const includeVariations = searchParams.get('include_variations') === 'true';
 
-    const question = await QuestionBank.findById(params.id);
+    const question = await QuestionBank.findById(id);
     if (!question) {
       return NextResponse.json(
         { error: 'Question not found' },
@@ -58,7 +59,7 @@ export async function GET(
 // PUT /api/question-bank/[id] - Update question
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -74,8 +75,9 @@ export async function PUT(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const question = await QuestionBank.findById(params.id);
+    const question = await QuestionBank.findById(id);
     if (!question) {
       return NextResponse.json(
         { error: 'Question not found' },
@@ -142,7 +144,7 @@ export async function PUT(
 // DELETE /api/question-bank/[id] - Soft delete question
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -158,8 +160,9 @@ export async function DELETE(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const question = await QuestionBank.findById(params.id);
+    const question = await QuestionBank.findById(id);
     if (!question) {
       return NextResponse.json(
         { error: 'Question not found' },

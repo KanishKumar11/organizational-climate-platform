@@ -9,7 +9,7 @@ import { hasPermission } from '@/lib/permissions';
 // Get survey results and analytics
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,8 +18,9 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const surveyId = params.id;
+    const surveyId = id;
     const { searchParams } = new URL(request.url);
     const demographic = searchParams.get('demographic');
     const departmentId = searchParams.get('department');

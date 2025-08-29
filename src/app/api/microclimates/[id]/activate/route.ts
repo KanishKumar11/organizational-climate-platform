@@ -8,7 +8,7 @@ import User from '@/models/User';
 // POST /api/microclimates/[id]/activate - Activate a microclimate
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,8 +17,9 @@ export async function POST(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const microclimate = await Microclimate.findById(params.id);
+    const microclimate = await Microclimate.findById(id);
     if (!microclimate) {
       return NextResponse.json(
         { error: 'Microclimate not found' },

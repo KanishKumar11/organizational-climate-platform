@@ -6,10 +6,9 @@ import User from '@/models/User';
 import Survey from '@/models/Survey';
 import Company from '@/models/Company';
 import Department from '@/models/Department';
-import { withApiMiddleware } from '@/lib/api-middleware';
 
 export async function GET(request: NextRequest) {
-  return withApiMiddleware(request, async () => {
+  try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user || session.user.role !== 'super_admin') {
@@ -127,7 +126,13 @@ export async function GET(request: NextRequest) {
       ongoingSurveys,
       recentActivity,
     });
-  });
+  } catch (error) {
+    console.error('Super admin dashboard error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }
 
 async function getRecentActivity() {

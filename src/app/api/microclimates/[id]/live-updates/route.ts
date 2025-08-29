@@ -7,7 +7,7 @@ import { connectToDatabase } from '@/lib/mongodb';
 // GET /api/microclimates/[id]/live-updates - Get real-time microclimate data
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,8 +16,9 @@ export async function GET(
     }
 
     await connectToDatabase();
+    const { id } = await params;
 
-    const microclimate = await Microclimate.findById(params.id);
+    const microclimate = await Microclimate.findById(id);
     if (!microclimate) {
       return NextResponse.json(
         { error: 'Microclimate not found' },
@@ -70,7 +71,7 @@ export async function GET(
 // POST /api/microclimates/[id]/live-updates - Trigger live update (for testing)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -79,8 +80,9 @@ export async function POST(
     }
 
     await connectToDatabase();
+    const { id } = await params;
 
-    const microclimate = await Microclimate.findById(params.id);
+    const microclimate = await Microclimate.findById(id);
     if (!microclimate) {
       return NextResponse.json(
         { error: 'Microclimate not found' },

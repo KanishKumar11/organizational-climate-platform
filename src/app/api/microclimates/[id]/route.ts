@@ -72,7 +72,7 @@ const updateMicroclimateSchema = z.object({
 // GET /api/microclimates/[id] - Get specific microclimate
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -81,8 +81,9 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const microclimate = await Microclimate.findById(params.id)
+    const microclimate = await Microclimate.findById(id)
       .populate('created_by', 'name email')
       .lean();
 
@@ -125,7 +126,7 @@ export async function GET(
 // PATCH /api/microclimates/[id] - Update microclimate
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -134,8 +135,9 @@ export async function PATCH(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const microclimate = await Microclimate.findById(params.id);
+    const microclimate = await Microclimate.findById(id);
     if (!microclimate) {
       return NextResponse.json(
         { error: 'Microclimate not found' },
@@ -247,7 +249,7 @@ export async function PATCH(
 // DELETE /api/microclimates/[id] - Delete microclimate
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -256,8 +258,9 @@ export async function DELETE(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const microclimate = await Microclimate.findById(params.id);
+    const microclimate = await Microclimate.findById(id);
     if (!microclimate) {
       return NextResponse.json(
         { error: 'Microclimate not found' },

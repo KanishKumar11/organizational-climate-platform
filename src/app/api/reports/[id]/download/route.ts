@@ -8,7 +8,7 @@ import { checkPermissions } from '@/lib/permissions';
 // GET /api/reports/[id]/download - Download report file
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -25,9 +25,10 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
     // Build query based on user role
-    let query: any = { _id: params.id };
+    let query: any = { _id: id };
     if (session.user.role !== 'super_admin') {
       query.company_id = session.user.company_id;
     }

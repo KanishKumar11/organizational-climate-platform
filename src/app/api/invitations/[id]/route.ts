@@ -8,7 +8,7 @@ import { connectDB } from '@/lib/mongodb';
 // GET /api/invitations/[id] - Get specific invitation
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,8 +17,9 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const invitation = await SurveyInvitation.findById(params.id)
+    const invitation = await SurveyInvitation.findById(id)
       .populate('user_id', 'name email department_id')
       .populate('survey_id', 'title description');
 
@@ -53,7 +54,7 @@ export async function GET(
 // PATCH /api/invitations/[id] - Update invitation status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -65,8 +66,9 @@ export async function PATCH(
     const { status, metadata } = body;
 
     await connectDB();
+    const { id } = await params;
 
-    const invitation = await SurveyInvitation.findById(params.id);
+    const invitation = await SurveyInvitation.findById(id);
     if (!invitation) {
       return NextResponse.json(
         { error: 'Invitation not found' },
@@ -90,7 +92,7 @@ export async function PATCH(
     );
 
     // Fetch updated invitation
-    const updatedInvitation = await SurveyInvitation.findById(params.id);
+    const updatedInvitation = await SurveyInvitation.findById(id);
 
     return NextResponse.json({
       success: true,
@@ -108,7 +110,7 @@ export async function PATCH(
 // DELETE /api/invitations/[id] - Cancel invitation
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -127,8 +129,9 @@ export async function DELETE(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const invitation = await SurveyInvitation.findById(params.id);
+    const invitation = await SurveyInvitation.findById(id);
     if (!invitation) {
       return NextResponse.json(
         { error: 'Invitation not found' },
@@ -144,7 +147,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    await invitationService.cancelInvitation(params.id);
+    await invitationService.cancelInvitation(id);
 
     return NextResponse.json({
       success: true,

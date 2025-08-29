@@ -8,7 +8,7 @@ import { connectDB } from '@/lib/mongodb';
 // POST /api/invitations/[id]/resend - Resend invitation
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -28,7 +28,8 @@ export async function POST(
 
     await connectDB();
 
-    const invitation = await SurveyInvitation.findById(params.id);
+    const { id } = await params;
+    const invitation = await SurveyInvitation.findById(id);
     if (!invitation) {
       return NextResponse.json(
         { error: 'Invitation not found' },
@@ -59,7 +60,7 @@ export async function POST(
       );
     }
 
-    await invitationService.resendInvitation(params.id);
+    await invitationService.resendInvitation(id);
 
     return NextResponse.json({
       success: true,

@@ -7,7 +7,7 @@ import { connectDB } from '@/lib/db';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,6 +16,7 @@ export async function POST(
     }
 
     await connectDB();
+    const { id } = await params;
 
     const { content, section, position, parentId } = await request.json();
 
@@ -69,7 +70,7 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -78,15 +79,16 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
     // Check if user has access to this report
-    const report = await reportService.getReport(params.id, session.user.id);
+    const report = await reportService.getReport(id, session.user.id);
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
 
     // Get comments for this report
-    const comments = await reportSharingService.getComments(params.id);
+    const comments = await reportSharingService.getComments(id);
 
     // Group comments by parent (for threading)
     const commentTree = comments.reduce(

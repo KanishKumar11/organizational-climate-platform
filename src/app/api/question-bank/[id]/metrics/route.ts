@@ -8,7 +8,7 @@ import { hasPermission } from '@/lib/permissions';
 // GET /api/question-bank/[id]/metrics - Get question effectiveness metrics
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,8 +17,9 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const question = await QuestionBank.findById(params.id);
+    const question = await QuestionBank.findById(id);
     if (!question) {
       return NextResponse.json(
         { error: 'Question not found' },
@@ -59,7 +60,7 @@ export async function GET(
 // PUT /api/question-bank/[id]/metrics - Update question effectiveness metrics
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -79,8 +80,9 @@ export async function PUT(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const question = await QuestionBank.findById(params.id);
+    const question = await QuestionBank.findById(id);
     if (!question) {
       return NextResponse.json(
         { error: 'Question not found' },
@@ -124,7 +126,7 @@ export async function PUT(
 // POST /api/question-bank/[id]/metrics/usage - Increment usage count
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -133,8 +135,9 @@ export async function POST(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const question = await QuestionBank.findById(params.id);
+    const question = await QuestionBank.findById(id);
     if (!question) {
       return NextResponse.json(
         { error: 'Question not found' },
