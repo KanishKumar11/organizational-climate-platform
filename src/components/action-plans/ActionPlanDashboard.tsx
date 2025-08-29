@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { ActionPlanKanban } from './ActionPlanKanban';
 import { ActionPlanTimeline } from './ActionPlanTimeline';
 import { ProgressTracker } from './ProgressTracker';

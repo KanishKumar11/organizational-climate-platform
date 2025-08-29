@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users,
@@ -193,7 +193,7 @@ export function CommitmentTracker({
     return (
       <Card className="p-6">
         <div className="flex justify-center items-center h-32">
-          <Loading />
+          <LoadingSpinner />
         </div>
       </Card>
     );
@@ -565,7 +565,7 @@ export function CommitmentTracker({
                   className="flex items-center"
                 >
                   {sendingNudge ? (
-                    <Loading size="sm" />
+                    <LoadingSpinner size="sm" />
                   ) : (
                     <Send className="w-4 h-4 mr-2" />
                   )}

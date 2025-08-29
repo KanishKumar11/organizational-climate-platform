@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { FormField } from '@/components/ui/FormField';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Target,
@@ -281,7 +281,7 @@ export function ProgressTracker({
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loading />
+        <LoadingSpinner />
       </div>
     );
   }
@@ -388,7 +388,10 @@ export function ProgressTracker({
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                    <FormField label="Current Value">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Current Value
+                      </Label>
                       <Input
                         type="number"
                         value={currentValue}
@@ -401,9 +404,12 @@ export function ProgressTracker({
                         }
                         step="0.01"
                       />
-                    </FormField>
+                    </div>
 
-                    <FormField label="Notes (Optional)">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Notes (Optional)
+                      </Label>
                       <Input
                         value={kpiUpdates[kpi.id]?.notes ?? ''}
                         onChange={(e) =>
@@ -411,7 +417,7 @@ export function ProgressTracker({
                         }
                         placeholder="Add notes about this update..."
                       />
-                    </FormField>
+                    </div>
                   </div>
 
                   {/* Progress Bar */}
@@ -595,7 +601,11 @@ export function ProgressTracker({
           disabled={saving}
           className="bg-blue-600 hover:bg-blue-700"
         >
-          {saving ? <Loading size="sm" /> : <Save className="w-4 h-4 mr-2" />}
+          {saving ? (
+            <LoadingSpinner size="sm" />
+          ) : (
+            <Save className="w-4 h-4 mr-2" />
+          )}
           Save Progress Update
         </Button>
       </div>

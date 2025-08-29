@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { FormField } from '@/components/ui/FormField';
-import { Badge } from '@/components/ui/Badge';
-import { Loading } from '@/components/ui/Loading';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { UserSelector } from './UserSelector';
 import { TemplateSelector } from './TemplateSelector';
 import { useAuth } from '@/hooks/useAuth';
@@ -261,12 +261,12 @@ export function BulkActionPlanCreator({
 
           {/* Default Settings */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              label="Default Due Date"
-              error={errors.default_due_date}
-              required
-            >
+            <div className="space-y-2">
+              <Label htmlFor="default_due_date" className="text-sm font-medium">
+                Default Due Date <span className="text-red-500">*</span>
+              </Label>
               <Input
+                id="default_due_date"
                 type="date"
                 value={formData.default_due_date}
                 onChange={(e) =>
@@ -275,9 +275,17 @@ export function BulkActionPlanCreator({
                 min={new Date().toISOString().split('T')[0]}
                 className={errors.default_due_date ? 'border-red-500' : ''}
               />
-            </FormField>
+              {errors.default_due_date && (
+                <p className="text-sm text-red-500">
+                  {errors.default_due_date}
+                </p>
+              )}
+            </div>
 
-            <FormField label="Auto-assign by Department">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Auto-assign by Department
+              </Label>
               <div className="flex items-center space-x-3">
                 <input
                   type="checkbox"
@@ -295,15 +303,14 @@ export function BulkActionPlanCreator({
                   Automatically assign to department admins and leaders
                 </label>
               </div>
-            </FormField>
+            </div>
           </div>
 
           {!formData.auto_assign_by_department && (
-            <FormField
-              label="Default Assignees"
-              error={errors.default_assigned_to}
-              required
-            >
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Default Assignees <span className="text-red-500">*</span>
+              </Label>
               <UserSelector
                 selectedUsers={formData.default_assigned_to}
                 onChange={(users) =>
@@ -312,7 +319,12 @@ export function BulkActionPlanCreator({
                 companyId={user?.company_id}
                 placeholder="Select default assignees for all action plans"
               />
-            </FormField>
+              {errors.default_assigned_to && (
+                <p className="text-sm text-red-500">
+                  {errors.default_assigned_to}
+                </p>
+              )}
+            </div>
           )}
 
           {/* Insight Selection */}
@@ -426,7 +438,7 @@ export function BulkActionPlanCreator({
               className="bg-orange-600 hover:bg-orange-700"
             >
               {loading ? (
-                <Loading size="sm" />
+                <LoadingSpinner size="sm" />
               ) : (
                 <>
                   <Zap className="w-4 h-4 mr-2" />

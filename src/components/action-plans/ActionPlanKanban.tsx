@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Loading } from '@/components/ui/Loading';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
@@ -185,7 +185,7 @@ export function ActionPlanKanban({
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loading />
+        <LoadingSpinner />
       </div>
     );
   }

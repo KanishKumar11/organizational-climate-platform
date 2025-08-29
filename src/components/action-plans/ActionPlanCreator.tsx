@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-// FormField and Loading components removed - not implemented
+import { Label } from '@/components/ui/label';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { KPIEditor } from './KPIEditor';
 import { QualitativeObjectiveEditor } from './QualitativeObjectiveEditor';
 import { TemplateSelector } from './TemplateSelector';
@@ -206,17 +207,28 @@ export function ActionPlanCreator({
 
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField label="Title" error={errors.title} required>
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-sm font-medium">
+                Title <span className="text-red-500">*</span>
+              </Label>
               <Input
+                id="title"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 placeholder="Enter action plan title"
                 className={errors.title ? 'border-red-500' : ''}
               />
-            </FormField>
+              {errors.title && (
+                <p className="text-sm text-red-500">{errors.title}</p>
+              )}
+            </div>
 
-            <FormField label="Priority" error={errors.priority}>
+            <div className="space-y-2">
+              <Label htmlFor="priority" className="text-sm font-medium">
+                Priority
+              </Label>
               <select
+                id="priority"
                 value={formData.priority}
                 onChange={(e) => handleInputChange('priority', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -226,11 +238,18 @@ export function ActionPlanCreator({
                 <option value="high">High</option>
                 <option value="critical">Critical</option>
               </select>
-            </FormField>
+              {errors.priority && (
+                <p className="text-sm text-red-500">{errors.priority}</p>
+              )}
+            </div>
           </div>
 
-          <FormField label="Description" error={errors.description} required>
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-sm font-medium">
+              Description <span className="text-red-500">*</span>
+            </Label>
             <textarea
+              id="description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Describe the action plan objectives and approach"
@@ -239,28 +258,44 @@ export function ActionPlanCreator({
                 errors.description ? 'border-red-500' : ''
               }`}
             />
-          </FormField>
+            {errors.description && (
+              <p className="text-sm text-red-500">{errors.description}</p>
+            )}
+          </div>
 
           {/* Assignment and Timeline */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField label="Assign To" error={errors.assigned_to} required>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Assign To <span className="text-red-500">*</span>
+              </Label>
               <UserSelector
                 selectedUsers={formData.assigned_to}
                 onChange={(users) => handleInputChange('assigned_to', users)}
                 companyId={user?.company_id}
                 departmentId={formData.department_id}
               />
-            </FormField>
+              {errors.assigned_to && (
+                <p className="text-sm text-red-500">{errors.assigned_to}</p>
+              )}
+            </div>
 
-            <FormField label="Due Date" error={errors.due_date} required>
+            <div className="space-y-2">
+              <Label htmlFor="due_date" className="text-sm font-medium">
+                Due Date <span className="text-red-500">*</span>
+              </Label>
               <Input
+                id="due_date"
                 type="date"
                 value={formData.due_date}
                 onChange={(e) => handleInputChange('due_date', e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
                 className={errors.due_date ? 'border-red-500' : ''}
               />
-            </FormField>
+              {errors.due_date && (
+                <p className="text-sm text-red-500">{errors.due_date}</p>
+              )}
+            </div>
           </div>
 
           {/* KPIs */}
@@ -362,7 +397,7 @@ export function ActionPlanCreator({
               disabled={loading}
               className="bg-orange-600 hover:bg-orange-700"
             >
-              {loading ? <Loading size="sm" /> : 'Create Action Plan'}
+              {loading ? <LoadingSpinner size="sm" /> : 'Create Action Plan'}
             </Button>
           </div>
         </form>

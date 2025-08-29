@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { FormField } from '@/components/ui/FormField';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Target } from 'lucide-react';
 
@@ -100,7 +100,10 @@ export function KPIEditor({ kpis, onChange }: KPIEditorProps) {
 
               {editingKPI === kpi.id ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField label="KPI Name" required>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      KPI Name <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       value={kpi.name}
                       onChange={(e) =>
@@ -108,9 +111,10 @@ export function KPIEditor({ kpis, onChange }: KPIEditorProps) {
                       }
                       placeholder="e.g., Employee Satisfaction Score"
                     />
-                  </FormField>
+                  </div>
 
-                  <FormField label="Unit">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Unit</Label>
                     <Input
                       value={kpi.unit}
                       onChange={(e) =>
@@ -118,9 +122,12 @@ export function KPIEditor({ kpis, onChange }: KPIEditorProps) {
                       }
                       placeholder="e.g., %, points, hours"
                     />
-                  </FormField>
+                  </div>
 
-                  <FormField label="Target Value" required>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Target Value <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       type="number"
                       value={kpi.target_value}
@@ -132,9 +139,10 @@ export function KPIEditor({ kpis, onChange }: KPIEditorProps) {
                       placeholder="0"
                       step="0.01"
                     />
-                  </FormField>
+                  </div>
 
-                  <FormField label="Current Value">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Current Value</Label>
                     <Input
                       type="number"
                       value={kpi.current_value}
@@ -146,12 +154,12 @@ export function KPIEditor({ kpis, onChange }: KPIEditorProps) {
                       placeholder="0"
                       step="0.01"
                     />
-                  </FormField>
+                  </div>
 
-                  <FormField
-                    label="Measurement Frequency"
-                    className="md:col-span-2"
-                  >
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-sm font-medium">
+                      Measurement Frequency
+                    </Label>
                     <select
                       value={kpi.measurement_frequency}
                       onChange={(e) =>
@@ -168,7 +176,7 @@ export function KPIEditor({ kpis, onChange }: KPIEditorProps) {
                         </option>
                       ))}
                     </select>
-                  </FormField>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
