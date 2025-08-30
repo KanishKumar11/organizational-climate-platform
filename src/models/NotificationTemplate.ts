@@ -42,7 +42,8 @@ export interface INotificationTemplate extends Document {
 }
 
 // Model interface with static methods
-export interface INotificationTemplateModel extends mongoose.Model<INotificationTemplate> {
+export interface INotificationTemplateModel
+  extends mongoose.Model<INotificationTemplate> {
   findByTypeAndChannel(
     type: NotificationType,
     channel: NotificationChannel,
@@ -300,5 +301,3 @@ export default (mongoose.models.NotificationTemplate ||
     'NotificationTemplate',
     NotificationTemplateSchema
   )) as INotificationTemplateModel;
-
-

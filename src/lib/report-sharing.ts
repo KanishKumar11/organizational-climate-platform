@@ -293,7 +293,9 @@ export class ReportSharingService {
 
     for (const recipient of sharedReport.sharedWith) {
       // TODO: Implement email sending functionality
-      console.log(`Sending email to ${recipient} about shared report: ${shareUrl}`);
+      console.log(
+        `Sending email to ${recipient} about shared report: ${shareUrl}`
+      );
       // Email functionality would be implemented here
     }
   }
@@ -401,5 +403,3 @@ export class ReportSharingService {
 }
 
 export const reportSharingService = new ReportSharingService();
-
-

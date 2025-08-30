@@ -120,7 +120,10 @@ export default function MicroclimateLiveDemo() {
           ];
 
           newInsights.unshift({
-            type: (Math.random() > 0.6 ? 'pattern' : 'recommendation') as 'alert' | 'pattern' | 'recommendation',
+            type: (Math.random() > 0.6 ? 'pattern' : 'recommendation') as
+              | 'alert'
+              | 'pattern'
+              | 'recommendation',
             message:
               insightMessages[
                 Math.floor(Math.random() * insightMessages.length)

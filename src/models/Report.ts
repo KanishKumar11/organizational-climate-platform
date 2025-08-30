@@ -368,5 +368,3 @@ ReportSchema.methods.isExpired = function (): boolean {
 
 export default (mongoose.models.Report ||
   mongoose.model<IReport>('Report', ReportSchema)) as mongoose.Model<IReport>;
-
-

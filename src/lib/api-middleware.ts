@@ -48,7 +48,10 @@ export function withApiMiddleware(
   handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse>
 ): (req: NextRequest, context: { params: any }) => Promise<NextResponse>;
 export function withApiMiddleware(
-  handler: (req: NextRequest, context?: { params: any }) => Promise<NextResponse>
+  handler: (
+    req: NextRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>
 ) {
   return async (req: NextRequest, context?: { params: any }) => {
     try {
@@ -142,27 +145,35 @@ export function withAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ): (req: NextRequest) => Promise<NextResponse>;
 export function withAuth(
-  handler: (req: AuthenticatedRequest, context: { params: any }) => Promise<NextResponse>
+  handler: (
+    req: AuthenticatedRequest,
+    context: { params: any }
+  ) => Promise<NextResponse>
 ): (req: NextRequest, context: { params: any }) => Promise<NextResponse>;
 export function withAuth(
-  handler: (req: AuthenticatedRequest, context?: { params: any }) => Promise<NextResponse>
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>
 ) {
-  return withApiMiddleware(async (req: NextRequest, context?: { params: any }) => {
-    const user = await getCurrentUser(req);
+  return withApiMiddleware(
+    async (req: NextRequest, context?: { params: any }) => {
+      const user = await getCurrentUser(req);
 
-    if (!user) {
-      return NextResponse.json(
-        createApiResponse(false, null, 'Authentication required'),
-        { status: 401 }
-      );
+      if (!user) {
+        return NextResponse.json(
+          createApiResponse(false, null, 'Authentication required'),
+          { status: 401 }
+        );
+      }
+
+      // Add user to request context
+      const authenticatedReq = req as AuthenticatedRequest;
+      authenticatedReq.user = user;
+
+      return await handler(authenticatedReq, context);
     }
-
-    // Add user to request context
-    const authenticatedReq = req as AuthenticatedRequest;
-    authenticatedReq.user = user;
-
-    return await handler(authenticatedReq, context);
-  });
+  );
 }
 
 // Role-based authorization middleware
@@ -172,24 +183,32 @@ export function withRoleAuth(
 ): (req: NextRequest) => Promise<NextResponse>;
 export function withRoleAuth(
   requiredRole: UserRole,
-  handler: (req: AuthenticatedRequest, context: { params: any }) => Promise<NextResponse>
+  handler: (
+    req: AuthenticatedRequest,
+    context: { params: any }
+  ) => Promise<NextResponse>
 ): (req: NextRequest, context: { params: any }) => Promise<NextResponse>;
 export function withRoleAuth(
   requiredRole: UserRole,
-  handler: (req: AuthenticatedRequest, context?: { params: any }) => Promise<NextResponse>
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>
 ) {
-  return withAuth(async (req: AuthenticatedRequest, context?: { params: any }) => {
-    const user = req.user!; // User is guaranteed to exist due to withAuth
+  return withAuth(
+    async (req: AuthenticatedRequest, context?: { params: any }) => {
+      const user = req.user!; // User is guaranteed to exist due to withAuth
 
-    if (!user.hasPermission(requiredRole)) {
-      return NextResponse.json(
-        createApiResponse(false, null, 'Insufficient permissions'),
-        { status: 403 }
-      );
+      if (!user.hasPermission(requiredRole)) {
+        return NextResponse.json(
+          createApiResponse(false, null, 'Insufficient permissions'),
+          { status: 403 }
+        );
+      }
+
+      return await handler(req, context);
     }
-
-    return await handler(req, context);
-  });
+  );
 }
 
 // Feature-based authorization middleware
@@ -199,28 +218,36 @@ export function withFeatureAuth(
 ): (req: NextRequest) => Promise<NextResponse>;
 export function withFeatureAuth(
   feature: keyof typeof ROLE_PERMISSIONS,
-  handler: (req: AuthenticatedRequest, context: { params: any }) => Promise<NextResponse>
+  handler: (
+    req: AuthenticatedRequest,
+    context: { params: any }
+  ) => Promise<NextResponse>
 ): (req: NextRequest, context: { params: any }) => Promise<NextResponse>;
 export function withFeatureAuth(
   feature: keyof typeof ROLE_PERMISSIONS,
-  handler: (req: AuthenticatedRequest, context?: { params: any }) => Promise<NextResponse>
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>
 ) {
-  return withAuth(async (req: AuthenticatedRequest, context?: { params: any }) => {
-    const user = req.user!; // User is guaranteed to exist due to withAuth
+  return withAuth(
+    async (req: AuthenticatedRequest, context?: { params: any }) => {
+      const user = req.user!; // User is guaranteed to exist due to withAuth
 
-    if (!hasFeaturePermission(user.role, feature)) {
-      return NextResponse.json(
-        createApiResponse(
-          false,
-          null,
-          `Access denied: ${feature} permission required`
-        ),
-        { status: 403 }
-      );
+      if (!hasFeaturePermission(user.role, feature)) {
+        return NextResponse.json(
+          createApiResponse(
+            false,
+            null,
+            `Access denied: ${feature} permission required`
+          ),
+          { status: 403 }
+        );
+      }
+
+      return await handler(req, context);
     }
-
-    return await handler(req, context);
-  });
+  );
 }
 
 // Company access authorization middleware
@@ -366,45 +393,50 @@ export function withRateLimit(
   windowMs: number = 15 * 60 * 1000
 ) {
   return function (
-    handler: (req: NextRequest, context?: { params: any }) => Promise<NextResponse>
+    handler: (
+      req: NextRequest,
+      context?: { params: any }
+    ) => Promise<NextResponse>
   ) {
-    return withApiMiddleware(async (req: NextRequest, context?: { params: any }) => {
-      const identifier =
-        req.headers.get('x-forwarded-for') ||
-        req.headers.get('x-real-ip') ||
-        'unknown';
-      const rateLimit = checkRateLimit(identifier, maxRequests, windowMs);
+    return withApiMiddleware(
+      async (req: NextRequest, context?: { params: any }) => {
+        const identifier =
+          req.headers.get('x-forwarded-for') ||
+          req.headers.get('x-real-ip') ||
+          'unknown';
+        const rateLimit = checkRateLimit(identifier, maxRequests, windowMs);
 
-      if (!rateLimit.allowed) {
-        return NextResponse.json(
-          createApiResponse(false, null, 'Rate limit exceeded'),
-          {
-            status: 429,
-            headers: {
-              'X-RateLimit-Limit': maxRequests.toString(),
-              'X-RateLimit-Remaining': '0',
-              'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString(),
-            },
-          }
+        if (!rateLimit.allowed) {
+          return NextResponse.json(
+            createApiResponse(false, null, 'Rate limit exceeded'),
+            {
+              status: 429,
+              headers: {
+                'X-RateLimit-Limit': maxRequests.toString(),
+                'X-RateLimit-Remaining': '0',
+                'X-RateLimit-Reset': new Date(
+                  rateLimit.resetTime
+                ).toISOString(),
+              },
+            }
+          );
+        }
+
+        const response = await handler(req, context);
+
+        // Add rate limit headers to successful responses
+        response.headers.set('X-RateLimit-Limit', maxRequests.toString());
+        response.headers.set(
+          'X-RateLimit-Remaining',
+          rateLimit.remaining.toString()
         );
+        response.headers.set(
+          'X-RateLimit-Reset',
+          new Date(rateLimit.resetTime).toISOString()
+        );
+
+        return response;
       }
-
-      const response = await handler(req, context);
-
-      // Add rate limit headers to successful responses
-      response.headers.set('X-RateLimit-Limit', maxRequests.toString());
-      response.headers.set(
-        'X-RateLimit-Remaining',
-        rateLimit.remaining.toString()
-      );
-      response.headers.set(
-        'X-RateLimit-Reset',
-        new Date(rateLimit.resetTime).toISOString()
-      );
-
-      return response;
-    });
+    );
   };
 }
-
-

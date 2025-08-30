@@ -92,9 +92,10 @@ AIInsightSchema.virtual('id').get(function () {
 });
 
 const AIInsight = (mongoose.models.AIInsight ||
-  mongoose.model<IAIInsight>('AIInsight', AIInsightSchema)) as mongoose.Model<IAIInsight>;
+  mongoose.model<IAIInsight>(
+    'AIInsight',
+    AIInsightSchema
+  )) as mongoose.Model<IAIInsight>;
 
 export default AIInsight;
 export { AIInsight };
-
-

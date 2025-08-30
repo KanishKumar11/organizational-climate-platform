@@ -308,11 +308,15 @@ AIInsightSchema.methods.isExpired = function (): boolean {
 };
 
 export const AnalyticsInsight = (mongoose.models.AnalyticsInsight ||
-  mongoose.model<IAnalyticsInsight>('AnalyticsInsight', AnalyticsInsightSchema)) as mongoose.Model<IAnalyticsInsight>;
+  mongoose.model<IAnalyticsInsight>(
+    'AnalyticsInsight',
+    AnalyticsInsightSchema
+  )) as mongoose.Model<IAnalyticsInsight>;
 export const AIInsight = (mongoose.models.AIInsight ||
-  mongoose.model<IAIInsight>('AIInsight', AIInsightSchema)) as mongoose.Model<IAIInsight>;
+  mongoose.model<IAIInsight>(
+    'AIInsight',
+    AIInsightSchema
+  )) as mongoose.Model<IAIInsight>;
 
 const AnalyticsModels = { AnalyticsInsight, AIInsight };
 export default AnalyticsModels;
-
-

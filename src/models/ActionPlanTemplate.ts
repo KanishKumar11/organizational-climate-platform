@@ -68,5 +68,3 @@ export const ActionPlanTemplate = (mongoose.models.ActionPlanTemplate ||
     'ActionPlanTemplate',
     ActionPlanTemplateSchema
   )) as mongoose.Model<IActionPlanTemplate>;
-
-

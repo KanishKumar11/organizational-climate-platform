@@ -31,7 +31,12 @@ export function Skeleton({ className, animate = true, style }: SkeletonProps) {
     );
   }
 
-  return <div className={cn('bg-muted rounded animate-pulse', className)} style={style} />;
+  return (
+    <div
+      className={cn('bg-muted rounded animate-pulse', className)}
+      style={style}
+    />
+  );
 }
 
 /**
@@ -62,9 +67,16 @@ export function SkeletonText({
 /**
  * Card skeleton
  */
-export function SkeletonCard({ className, animate = true, style }: SkeletonProps) {
+export function SkeletonCard({
+  className,
+  animate = true,
+  style,
+}: SkeletonProps) {
   return (
-    <div className={cn('p-6 border rounded-lg space-y-4', className)} style={style}>
+    <div
+      className={cn('p-6 border rounded-lg space-y-4', className)}
+      style={style}
+    >
       <div className="flex items-center space-x-4">
         <Skeleton animate={animate} className="h-12 w-12 rounded-full" />
         <div className="space-y-2 flex-1">
@@ -121,7 +133,10 @@ export function SkeletonChart({
 }: SkeletonProps & { type?: 'bar' | 'line' | 'pie' | 'area' }) {
   if (type === 'pie') {
     return (
-      <div className={cn('flex items-center justify-center', className)} style={style}>
+      <div
+        className={cn('flex items-center justify-center', className)}
+        style={style}
+      >
         <Skeleton animate={animate} className="h-48 w-48 rounded-full" />
       </div>
     );
@@ -324,7 +339,11 @@ export function SkeletonButton({
 /**
  * Badge skeleton
  */
-export function SkeletonBadge({ className, animate = true, style }: SkeletonProps) {
+export function SkeletonBadge({
+  className,
+  animate = true,
+  style,
+}: SkeletonProps) {
   return (
     <Skeleton
       animate={animate}

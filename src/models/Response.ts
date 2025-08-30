@@ -228,9 +228,10 @@ ResponseSchema.post(['find', 'findOne', 'findOneAndUpdate'], function (docs) {
 });
 
 const Response = (mongoose.models.Response ||
-  mongoose.model<IResponse>('Response', ResponseSchema)) as mongoose.Model<IResponse>;
+  mongoose.model<IResponse>(
+    'Response',
+    ResponseSchema
+  )) as mongoose.Model<IResponse>;
 
 export default Response;
 export { Response };
-
-

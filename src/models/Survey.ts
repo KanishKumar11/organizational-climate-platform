@@ -330,9 +330,8 @@ SurveySchema.methods.removeQuestion = function (questionId: string): boolean {
   return false;
 };
 
-const Survey = (mongoose.models.Survey || mongoose.model<ISurvey>('Survey', SurveySchema)) as mongoose.Model<ISurvey>;
+const Survey = (mongoose.models.Survey ||
+  mongoose.model<ISurvey>('Survey', SurveySchema)) as mongoose.Model<ISurvey>;
 
 export default Survey;
 export { Survey };
-
-

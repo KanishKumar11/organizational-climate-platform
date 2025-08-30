@@ -533,5 +533,3 @@ export const focusEffects = {
   scale: 'focus-visible:scale-105',
   outline: 'focus-visible:outline-2 focus-visible:outline-primary',
 } as const;
-
-

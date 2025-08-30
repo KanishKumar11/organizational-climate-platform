@@ -209,6 +209,7 @@ AuditLogSchema.pre('save', function (next) {
 });
 
 export default (mongoose.models.AuditLog ||
-  mongoose.model<IAuditLog>('AuditLog', AuditLogSchema)) as mongoose.Model<IAuditLog>;
-
-
+  mongoose.model<IAuditLog>(
+    'AuditLog',
+    AuditLogSchema
+  )) as mongoose.Model<IAuditLog>;

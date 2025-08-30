@@ -83,6 +83,7 @@ BenchmarkSchema.index({ industry: 1, company_size: 1 });
 BenchmarkSchema.index({ validation_status: 1 });
 
 export default (mongoose.models.Benchmark ||
-  mongoose.model<IBenchmark>('Benchmark', BenchmarkSchema)) as mongoose.Model<IBenchmark>;
-
-
+  mongoose.model<IBenchmark>(
+    'Benchmark',
+    BenchmarkSchema
+  )) as mongoose.Model<IBenchmark>;

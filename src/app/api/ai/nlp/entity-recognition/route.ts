@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     // Extract text content
     const texts = responses
-      .flatMap((r) => 
+      .flatMap((r) =>
         (r.responses || []).map((qr) => ({
           ...qr,
           created_at: r.created_at,
@@ -220,7 +220,7 @@ export async function GET(request: NextRequest) {
 
     // Extract text content
     const texts = responses
-      .flatMap((r) => 
+      .flatMap((r) =>
         (r.responses || []).map((qr) => ({
           ...qr,
           created_at: r.created_at,
@@ -265,7 +265,7 @@ export async function GET(request: NextRequest) {
     const monthlyEntities = new Map();
 
     responses
-      .flatMap((r) => 
+      .flatMap((r) =>
         (r.responses || []).map((qr) => ({
           ...qr,
           created_at: r.created_at,
@@ -354,5 +354,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-

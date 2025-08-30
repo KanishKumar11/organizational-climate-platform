@@ -31,14 +31,19 @@ export function AnimatedBarChart({
   // Handle multi-series case
   if (xKey && yKeys && yKeys.length > 0) {
     const xAxisKey = xKey || 'name';
-    const allValues = data.flatMap(item => yKeys.map(key => item[key] || 0));
+    const allValues = data.flatMap((item) =>
+      yKeys.map((key) => item[key] || 0)
+    );
     const maxValue = Math.max(...allValues);
 
     return (
       <div className={`w-full ${className}`} style={{ height }}>
         <div className="flex items-end justify-between h-full gap-2">
           {data.map((item, index) => (
-            <div key={item[xAxisKey] || item.name} className="flex flex-col items-center flex-1 gap-1">
+            <div
+              key={item[xAxisKey] || item.name}
+              className="flex flex-col items-center flex-1 gap-1"
+            >
               {yKeys.map((key, keyIndex) => {
                 const value = item[key] || 0;
                 const barColor = colors?.[keyIndex] || color;

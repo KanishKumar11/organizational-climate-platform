@@ -268,6 +268,7 @@ QuestionBankSchema.methods.getVariations = function () {
 };
 
 export default (mongoose.models.QuestionBank ||
-  mongoose.model<IQuestionBankItem>('QuestionBank', QuestionBankSchema)) as mongoose.Model<IQuestionBankItem>;
-
-
+  mongoose.model<IQuestionBankItem>(
+    'QuestionBank',
+    QuestionBankSchema
+  )) as mongoose.Model<IQuestionBankItem>;

@@ -175,9 +175,9 @@ DepartmentSchema.pre('save', async function (next) {
   if (this.isModified('hierarchy.parent_department_id') || this.isNew) {
     const doc = this as unknown as IDepartment;
     if (doc.hierarchy.parent_department_id) {
-      const parent = await (this.constructor as mongoose.Model<IDepartment>).findById(
-        doc.hierarchy.parent_department_id
-      );
+      const parent = await (
+        this.constructor as mongoose.Model<IDepartment>
+      ).findById(doc.hierarchy.parent_department_id);
       if (parent) {
         doc.hierarchy.level = parent.hierarchy.level + 1;
         doc.hierarchy.path = `${parent.hierarchy.path}/${doc.name.toLowerCase().replace(/\s+/g, '-')}`;
@@ -191,9 +191,10 @@ DepartmentSchema.pre('save', async function (next) {
 });
 
 const Department = (mongoose.models.Department ||
-  mongoose.model<IDepartment>('Department', DepartmentSchema)) as mongoose.Model<IDepartment>;
+  mongoose.model<IDepartment>(
+    'Department',
+    DepartmentSchema
+  )) as mongoose.Model<IDepartment>;
 
 export default Department;
 export { Department };
-
-

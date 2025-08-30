@@ -192,5 +192,3 @@ function calculateGrowthRate(current: number, type: string): number {
   // this would compare with previous period data
   return Math.random() * 20 + 5; // 5-25% growth
 }
-
-

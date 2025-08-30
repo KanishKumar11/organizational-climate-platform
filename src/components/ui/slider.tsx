@@ -13,7 +13,10 @@ interface SliderProps {
 }
 
 const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
-  ({ value, onValueChange, max = 100, min = 0, step = 1, className, ...props }, ref) => {
+  (
+    { value, onValueChange, max = 100, min = 0, step = 1, className, ...props },
+    ref
+  ) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = parseFloat(e.target.value);
       onValueChange?.([newValue]);

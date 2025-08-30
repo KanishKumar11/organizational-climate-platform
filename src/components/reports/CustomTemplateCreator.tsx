@@ -384,24 +384,16 @@ export default function CustomTemplateCreator({
               <span className="font-medium mr-2">Includes:</span>
               <div className="flex flex-wrap gap-1">
                 {template.config.include_charts && (
-                  <Badge variant="outline">
-                    Charts
-                  </Badge>
+                  <Badge variant="outline">Charts</Badge>
                 )}
                 {template.config.include_raw_data && (
-                  <Badge variant="outline">
-                    Raw Data
-                  </Badge>
+                  <Badge variant="outline">Raw Data</Badge>
                 )}
                 {template.config.include_ai_insights && (
-                  <Badge variant="outline">
-                    AI Insights
-                  </Badge>
+                  <Badge variant="outline">AI Insights</Badge>
                 )}
                 {template.config.include_recommendations && (
-                  <Badge variant="outline">
-                    Recommendations
-                  </Badge>
+                  <Badge variant="outline">Recommendations</Badge>
                 )}
               </div>
             </div>

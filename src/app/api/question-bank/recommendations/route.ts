@@ -257,5 +257,3 @@ async function getQuestionsForSurveyType(
     .limit(Math.ceil(limit * 0.3))
     .lean();
 }
-
-

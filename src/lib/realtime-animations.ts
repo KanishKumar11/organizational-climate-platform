@@ -246,5 +246,3 @@ export const EASING = {
   BOUNCE: [0.25, 0.25, 0, 1],
   SPRING: { type: 'spring', stiffness: 300, damping: 30 },
 };
-
-

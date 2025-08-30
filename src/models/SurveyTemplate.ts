@@ -163,6 +163,7 @@ SurveyTemplateSchema.methods.updateRating = function (newRating: number) {
 };
 
 export default (mongoose.models.SurveyTemplate ||
-  mongoose.model<ISurveyTemplate>('SurveyTemplate', SurveyTemplateSchema)) as mongoose.Model<ISurveyTemplate>;
-
-
+  mongoose.model<ISurveyTemplate>(
+    'SurveyTemplate',
+    SurveyTemplateSchema
+  )) as mongoose.Model<ISurveyTemplate>;

@@ -36,12 +36,15 @@ export function AnimatedLineChart({
   // Handle multi-series case
   if (xKey && yKeys && yKeys.length > 0) {
     const xAxisKey = xKey;
-    const allYValues = data.flatMap(item => yKeys.map(key => item[key] || 0));
+    const allYValues = data.flatMap((item) =>
+      yKeys.map((key) => item[key] || 0)
+    );
     const maxY = Math.max(...allYValues);
     const minY = Math.min(...allYValues);
 
     // Convert x values to indices for simplicity
-    const scaleX = (index: number) => (index / (data.length - 1)) * (width - 40) + 20;
+    const scaleX = (index: number) =>
+      (index / (data.length - 1)) * (width - 40) + 20;
     const scaleY = (y: number) =>
       height - 20 - ((y - minY) / (maxY - minY)) * (height - 40);
 
@@ -75,7 +78,11 @@ export function AnimatedLineChart({
                   strokeLinejoin="round"
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
-                  transition={{ duration: 1.5, ease: 'easeInOut', delay: keyIndex * 0.2 }}
+                  transition={{
+                    duration: 1.5,
+                    ease: 'easeInOut',
+                    delay: keyIndex * 0.2,
+                  }}
                 />
                 {seriesData.map((point, index) => (
                   <motion.circle
@@ -88,7 +95,10 @@ export function AnimatedLineChart({
                     animate={{ scale: 1 }}
                     transition={{
                       duration: 0.3,
-                      delay: (index / seriesData.length) * 1.5 + keyIndex * 0.2 + 0.5,
+                      delay:
+                        (index / seriesData.length) * 1.5 +
+                        keyIndex * 0.2 +
+                        0.5,
                     }}
                   />
                 ))}

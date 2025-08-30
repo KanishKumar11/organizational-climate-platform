@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare text data with dates
     const textData = responses
-      .flatMap((r) => 
+      .flatMap((r) =>
         (r.responses || []).map((qr) => ({
           ...qr,
           created_at: r.created_at,
@@ -350,7 +350,7 @@ export async function GET(request: NextRequest) {
 
     // Prepare text data
     const textData = responses
-      .flatMap((r) => 
+      .flatMap((r) =>
         (r.responses || []).map((qr) => ({
           ...qr,
           created_at: r.created_at,
@@ -467,5 +467,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-

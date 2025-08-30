@@ -227,5 +227,3 @@ function calculateUserCompletionRate(
   const completed = Math.floor(Math.random() * totalAssigned) + 1;
   return (completed / totalAssigned) * 100;
 }
-
-

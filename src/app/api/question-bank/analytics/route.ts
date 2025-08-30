@@ -264,5 +264,3 @@ async function generateOptimizationSuggestions(baseQuery: any) {
 
   return suggestions;
 }
-
-

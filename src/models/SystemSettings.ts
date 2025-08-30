@@ -91,7 +91,7 @@ const SystemSettingsSchema = new Schema(
       from_email: {
         type: String,
         validate: {
-          validator: function(v: string) {
+          validator: function (v: string) {
             return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
           },
           message: 'Invalid email format',
@@ -116,7 +116,7 @@ const SystemSettingsSchema = new Schema(
 SystemSettingsSchema.index({}, { unique: true });
 
 // Static method to get or create settings
-SystemSettingsSchema.statics.getSettings = async function() {
+SystemSettingsSchema.statics.getSettings = async function () {
   let settings = await this.findOne();
   if (!settings) {
     settings = await this.create({});
@@ -125,7 +125,9 @@ SystemSettingsSchema.statics.getSettings = async function() {
 };
 
 // Static method to update settings
-SystemSettingsSchema.statics.updateSettings = async function(updates: Partial<ISystemSettings>) {
+SystemSettingsSchema.statics.updateSettings = async function (
+  updates: Partial<ISystemSettings>
+) {
   let settings = await this.findOne();
   if (!settings) {
     settings = await this.create(updates);
@@ -136,8 +138,10 @@ SystemSettingsSchema.statics.updateSettings = async function(updates: Partial<IS
   return settings;
 };
 
-const SystemSettings = (mongoose.models.SystemSettings || mongoose.model<ISystemSettings>('SystemSettings', SystemSettingsSchema)) as ISystemSettingsModel;
+const SystemSettings = (mongoose.models.SystemSettings ||
+  mongoose.model<ISystemSettings>(
+    'SystemSettings',
+    SystemSettingsSchema
+  )) as ISystemSettingsModel;
 
 export default SystemSettings;
-
-

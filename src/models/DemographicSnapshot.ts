@@ -316,5 +316,3 @@ export default (mongoose.models.DemographicSnapshot ||
     'DemographicSnapshot',
     DemographicSnapshotSchema
   )) as mongoose.Model<IDemographicSnapshot>;
-
-

@@ -363,7 +363,13 @@ function KPIDisplay(props: KPIDisplayProps) {
   }
 
   // Original multi-KPI functionality
-  const { kpis, title, columns = 3, animated = true, showTrends = true } = props;
+  const {
+    kpis,
+    title,
+    columns = 3,
+    animated = true,
+    showTrends = true,
+  } = props;
   const gridCols = {
     1: 'grid-cols-1',
     2: 'grid-cols-1 md:grid-cols-2',

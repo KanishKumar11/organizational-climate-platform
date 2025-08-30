@@ -312,7 +312,8 @@ export class ReportService {
       .filter((insight) => insight.category === 'sentiment')
       .reduce(
         (acc, insight) => {
-          const sentiment = (insight.supporting_data?.sentiment as string) || 'neutral';
+          const sentiment =
+            (insight.supporting_data?.sentiment as string) || 'neutral';
           acc[sentiment] = (acc[sentiment] || 0) + 1;
           return acc;
         },
@@ -953,5 +954,3 @@ export class ReportService {
 
 // Export a default instance for convenience
 export const reportService = new ReportService();
-
-

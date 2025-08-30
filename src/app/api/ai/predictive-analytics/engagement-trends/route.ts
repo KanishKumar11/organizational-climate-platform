@@ -237,7 +237,7 @@ export async function GET(request: NextRequest) {
     const monthlyEngagement = new Map();
 
     engagementData
-      .flatMap((r) => 
+      .flatMap((r) =>
         (r.responses || []).map((qr) => ({
           ...qr,
           created_at: r.created_at,
@@ -254,7 +254,8 @@ export async function GET(request: NextRequest) {
             date: new Date(r.created_at),
           });
         }
-        const score = typeof r.response_value === 'number' ? r.response_value : 5;
+        const score =
+          typeof r.response_value === 'number' ? r.response_value : 5;
         monthlyEngagement.get(monthKey).scores.push(score);
         monthlyEngagement.get(monthKey).responses++;
       });
@@ -334,5 +335,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-

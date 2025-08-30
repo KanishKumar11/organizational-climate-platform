@@ -44,7 +44,8 @@ export interface ISurveyInvitation extends Document {
 }
 
 // Static methods interface
-export interface ISurveyInvitationModel extends mongoose.Model<ISurveyInvitation> {
+export interface ISurveyInvitationModel
+  extends mongoose.Model<ISurveyInvitation> {
   findPendingReminders(): Promise<ISurveyInvitation[]>;
   findExpired(): Promise<ISurveyInvitation[]>;
 }
@@ -224,27 +225,35 @@ SurveyInvitationSchema.methods.canSendReminder = function (): boolean {
 };
 
 // Static methods
-SurveyInvitationSchema.statics.findPendingReminders = async function (): Promise<ISurveyInvitation[]> {
-  const now = new Date();
-  return this.find({
-    status: { $in: ['sent', 'opened'] },
-    expires_at: { $gt: now },
-    $or: [
-      { last_reminder_sent: { $exists: false } },
-      { last_reminder_sent: { $lt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000) } }
-    ],
-    reminder_count: { $lt: 3 }
-  });
-};
+SurveyInvitationSchema.statics.findPendingReminders =
+  async function (): Promise<ISurveyInvitation[]> {
+    const now = new Date();
+    return this.find({
+      status: { $in: ['sent', 'opened'] },
+      expires_at: { $gt: now },
+      $or: [
+        { last_reminder_sent: { $exists: false } },
+        {
+          last_reminder_sent: {
+            $lt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+          },
+        },
+      ],
+      reminder_count: { $lt: 3 },
+    });
+  };
 
-SurveyInvitationSchema.statics.findExpired = async function (): Promise<ISurveyInvitation[]> {
+SurveyInvitationSchema.statics.findExpired = async function (): Promise<
+  ISurveyInvitation[]
+> {
   return this.find({
     status: { $nin: ['completed', 'expired'] },
-    expires_at: { $lt: new Date() }
+    expires_at: { $lt: new Date() },
   });
 };
 
 export default (mongoose.models.SurveyInvitation ||
-  mongoose.model<ISurveyInvitation>('SurveyInvitation', SurveyInvitationSchema)) as ISurveyInvitationModel;
-
-
+  mongoose.model<ISurveyInvitation>(
+    'SurveyInvitation',
+    SurveyInvitationSchema
+  )) as ISurveyInvitationModel;

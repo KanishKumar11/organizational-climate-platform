@@ -278,5 +278,3 @@ export default (mongoose.models.MicroclimateTemplate ||
     'MicroclimateTemplate',
     MicroclimateTemplateSchema
   )) as mongoose.Model<IMicroclimateTemplate>;
-
-

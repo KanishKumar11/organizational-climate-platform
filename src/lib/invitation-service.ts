@@ -509,7 +509,10 @@ class InvitationService {
     let bestRate = 0;
 
     for (const [hour, data] of Object.entries(historicalData.hourly_response)) {
-      const rate = (data as any).sent > 0 ? (data as any).completed / (data as any).sent : 0;
+      const rate =
+        (data as any).sent > 0
+          ? (data as any).completed / (data as any).sent
+          : 0;
       if (rate > bestRate) {
         bestRate = rate;
         bestHour = parseInt(hour);
@@ -521,7 +524,10 @@ class InvitationService {
     let bestDayRate = 0;
 
     for (const [day, data] of Object.entries(historicalData.daily_response)) {
-      const rate = (data as any).sent > 0 ? (data as any).completed / (data as any).sent : 0;
+      const rate =
+        (data as any).sent > 0
+          ? (data as any).completed / (data as any).sent
+          : 0;
       if (rate > bestDayRate && parseInt(day) >= 1 && parseInt(day) <= 4) {
         // Mon-Thu
         bestDayRate = rate;
@@ -705,5 +711,3 @@ class InvitationService {
 }
 
 export const invitationService = new InvitationService();
-
-

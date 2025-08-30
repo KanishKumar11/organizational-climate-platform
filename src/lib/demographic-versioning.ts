@@ -479,5 +479,3 @@ export class DemographicVersioningService {
 }
 
 export default DemographicVersioningService;
-
-

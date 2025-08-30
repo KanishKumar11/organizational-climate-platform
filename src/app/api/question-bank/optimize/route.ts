@@ -474,5 +474,3 @@ function generateQuestionsForCategory(category: string): any[] {
     scale_labels: { min: 'Strongly Disagree', max: 'Strongly Agree' },
   }));
 }
-
-

@@ -62,5 +62,3 @@ export interface AuthUser {
   isActive: boolean;
   image?: string;
 }
-
-

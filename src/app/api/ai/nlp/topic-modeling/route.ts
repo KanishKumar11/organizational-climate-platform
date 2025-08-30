@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     // Extract text content
     const documents = responses
-      .flatMap((r) => 
+      .flatMap((r) =>
         (r.responses || []).map((qr) => ({
           ...qr,
           created_at: r.created_at,
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
     const monthlyTopics = new Map();
 
     responses
-      .flatMap((r) => 
+      .flatMap((r) =>
         (r.responses || []).map((qr) => ({
           ...qr,
           created_at: r.created_at,
@@ -275,5 +275,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-

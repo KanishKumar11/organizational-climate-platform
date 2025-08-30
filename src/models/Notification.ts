@@ -282,6 +282,7 @@ NotificationSchema.methods.scheduleRetry = function (delayMinutes = 30) {
 };
 
 export default (mongoose.models.Notification ||
-  mongoose.model<INotification>('Notification', NotificationSchema)) as mongoose.Model<INotification>;
-
-
+  mongoose.model<INotification>(
+    'Notification',
+    NotificationSchema
+  )) as mongoose.Model<INotification>;

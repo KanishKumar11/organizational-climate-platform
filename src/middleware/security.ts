@@ -302,11 +302,8 @@ export function withRateLimit(
     const forwarded = req.headers.get('x-forwarded-for');
     const realIp = req.headers.get('x-real-ip');
     const clientIp = req.headers.get('x-client-ip');
-    
-    return forwarded?.split(',')[0]?.trim() || 
-           realIp || 
-           clientIp || 
-           'unknown';
+
+    return forwarded?.split(',')[0]?.trim() || realIp || clientIp || 'unknown';
   }
 ) {
   return function <T extends any[]>(
@@ -350,5 +347,3 @@ export function withRateLimit(
 }
 
 export default securityMiddleware;
-
-

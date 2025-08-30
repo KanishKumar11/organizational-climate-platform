@@ -270,16 +270,18 @@ export function ReportViewer({ report, readonly = false }: ReportViewerProps) {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">AI Recommendations</h3>
             <div className="space-y-4">
-              {report?.recommendations?.map((rec: Recommendation, index: number) => (
-                <div key={index} className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-medium">{rec.title}</h4>
-                  <p className="text-gray-700 mt-1">{rec.description}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline">Impact: {rec.impact}</Badge>
-                    <Badge variant="outline">Effort: {rec.effort}</Badge>
+              {report?.recommendations?.map(
+                (rec: Recommendation, index: number) => (
+                  <div key={index} className="border-l-4 border-blue-500 pl-4">
+                    <h4 className="font-medium">{rec.title}</h4>
+                    <p className="text-gray-700 mt-1">{rec.description}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="outline">Impact: {rec.impact}</Badge>
+                      <Badge variant="outline">Effort: {rec.effort}</Badge>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           </Card>
         )}

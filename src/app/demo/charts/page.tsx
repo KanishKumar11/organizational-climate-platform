@@ -200,10 +200,7 @@ export default function ChartsDemo() {
                 <CardTitle>Animated Bar Chart</CardTitle>
               </CardHeader>
               <CardContent>
-                <AnimatedBarChart
-                  data={barChartData}
-                  color="#3B82F6"
-                />
+                <AnimatedBarChart data={barChartData} color="#3B82F6" />
               </CardContent>
             </Card>
 

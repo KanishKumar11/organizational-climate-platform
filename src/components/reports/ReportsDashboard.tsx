@@ -134,9 +134,7 @@ export default function ReportsDashboard() {
         )}
 
         {viewMode === 'view' && selectedReport && (
-          <ReportViewer
-            report={selectedReport}
-          />
+          <ReportViewer report={selectedReport} />
         )}
       </div>
     </div>
