@@ -114,7 +114,7 @@ export {
 export { Avatar, AvatarFallback, AvatarImage } from './avatar';
 
 // Progress Components
-export { Progress, StepProgress, CircularProgress } from './progress';
+export { Progress, StepProgress, CircularProgress } from './Progress';
 
 // Loading Components
 export {
