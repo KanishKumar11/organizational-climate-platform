@@ -149,5 +149,3 @@ export { theme, a11y, variants, breakpoints, components } from '@/lib/theme';
 
 // Types
 export type { Theme, ThemeColors, Variants } from '@/lib/theme';
-
-

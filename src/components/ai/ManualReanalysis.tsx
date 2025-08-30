@@ -7,7 +7,7 @@ import { Textarea } from '../ui/textarea';
 import { Switch } from '../ui/switch';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Badge } from '../ui/badge';
-import { Progress } from '../ui/progress';
+import { Progress } from '../ui/Progress';
 import {
   Zap,
   Play,
