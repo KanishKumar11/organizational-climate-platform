@@ -4,13 +4,14 @@
 
 'use client';
 
-import React from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import React, { Suspense } from 'react';
 import { GlobalSearch } from '@/components/dashboard/GlobalSearch';
 import { SearchResults } from '@/components/dashboard/SearchResults';
 import { SearchResult } from '@/types/search';
 
-export default function SearchPage() {
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function SearchPageContent() {
+  const { useSearchParams, useRouter } = require('next/navigation');
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -80,5 +81,29 @@ export default function SearchPage() {
         onResultClick={handleResultClick}
       />
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function SearchPageLoading() {
+  return (
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="flex flex-col items-center space-y-4">
+        <h1 className="text-3xl font-bold text-center">Search</h1>
+        <div className="w-full max-w-3xl h-12 bg-gray-200 animate-pulse rounded-lg"></div>
+      </div>
+      <div className="space-y-4">
+        <div className="h-8 bg-gray-200 animate-pulse rounded"></div>
+        <div className="h-32 bg-gray-200 animate-pulse rounded"></div>
+      </div>
+    </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<SearchPageLoading />}>
+      <SearchPageContent />
+    </Suspense>
   );
 }

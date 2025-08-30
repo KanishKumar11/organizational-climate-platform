@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
@@ -37,13 +37,14 @@ export async function GET(request: NextRequest) {
     const timeframeDate = new Date();
     timeframeDate.setDate(timeframeDate.getDate() - parseInt(timeframe));
 
-    const actionPlans = await ActionPlan.find({
-      ...query,
-      $or: [
-        { due_date: { $gte: timeframeDate } },
-        { created_at: { $gte: timeframeDate } },
-      ],
-    })
+    const actionPlans = await (ActionPlan as any)
+      .find({
+        ...query,
+        $or: [
+          { due_date: { $gte: timeframeDate } },
+          { created_at: { $gte: timeframeDate } },
+        ],
+      })
       .populate('created_by', 'name email')
       .populate('assigned_to', 'name email');
 
@@ -177,7 +178,7 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
@@ -192,7 +193,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate action plan exists and user has access
-    const actionPlan = await ActionPlan.findById(action_plan_id);
+    const actionPlan = await (ActionPlan as any).findById(action_plan_id);
     if (!actionPlan) {
       return Response.json({ error: 'Action plan not found' }, { status: 404 });
     }
@@ -426,3 +427,5 @@ function generateInterventions(
 
   return interventions;
 }
+
+

@@ -379,8 +379,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Feedback loop control error:', error);
     return NextResponse.json(
-      { error: `Failed to ${request.json().action} feedback loop` },
+      { error: `Failed to control feedback loop` },
       { status: 500 }
     );
   }
 }
+
+

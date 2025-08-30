@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import DemographicSnapshot from '../../../../../models/DemographicSnapshot';
 import { validatePermissions } from '../../../../../lib/permissions';
 
@@ -29,8 +29,7 @@ export async function GET(
     const hasPermission = await validatePermissions(
       session.user.id,
       'read',
-      'demographic_snapshots',
-      { company_id: snapshot.company_id }
+      snapshot.company_id
     );
 
     if (!hasPermission) {
@@ -75,8 +74,7 @@ export async function DELETE(
     const hasPermission = await validatePermissions(
       session.user.id,
       'delete',
-      'demographic_snapshots',
-      { company_id: snapshot.company_id }
+      snapshot.company_id
     );
 
     if (!hasPermission) {

@@ -31,35 +31,42 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // Get user responses
-    const userResponses = await Response.find({
-      user_id: userId,
-      created_at: { $gte: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000) }, // Last 6 months
-    }).lean();
+    const userResponses = await (Response as any)
+      .find({
+        user_id: userId,
+        created_at: {
+          $gte: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000),
+        }, // Last 6 months
+      })
+      .lean();
 
     // Get historical data for similar users (same department/role)
-    const user = await User.findById(userId).lean();
+    const user = await (User as any).findById(userId).lean();
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     let historicalData = [];
     if (includeHistorical) {
-      const similarUsers = await User.find({
-        company_id: companyId,
-        department_id: user.department_id,
-        role: user.role,
-        _id: { $ne: userId },
-      })
+      const similarUsers = await (User as any)
+        .find({
+          company_id: companyId,
+          department_id: user.department_id,
+          role: user.role,
+          _id: { $ne: userId },
+        })
         .limit(50)
         .lean();
 
       const similarUserIds = similarUsers.map((u) => u._id);
-      historicalData = await Response.find({
-        user_id: { $in: similarUserIds },
-        created_at: {
-          $gte: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000),
-        }, // Last 12 months
-      }).lean();
+      historicalData = await (Response as any)
+        .find({
+          user_id: { $in: similarUserIds },
+          created_at: {
+            $gte: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000),
+          }, // Last 12 months
+        })
+        .lean();
     }
 
     // Prepare context
@@ -137,14 +144,18 @@ export async function GET(request: NextRequest) {
     const userFilter: any = { company_id: companyId };
     if (departmentId) userFilter.department_id = departmentId;
 
-    const users = await User.find(userFilter).lean();
+    const users = await (User as any).find(userFilter).lean();
     const userIds = users.map((u) => u._id);
 
     // Get recent responses for all users
-    const responses = await Response.find({
-      user_id: { $in: userIds },
-      created_at: { $gte: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000) }, // Last 3 months
-    }).lean();
+    const responses = await (Response as any)
+      .find({
+        user_id: { $in: userIds },
+        created_at: {
+          $gte: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000),
+        }, // Last 3 months
+      })
+      .lean();
 
     // Group responses by user
     const userResponseMap = new Map();
@@ -221,3 +232,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

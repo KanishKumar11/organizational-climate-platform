@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
     // Build scope filter based on user role
     let scopeFilter = {};
     if (session.user.role !== 'super_admin') {
-      if (session.user.company_id) {
-        scopeFilter = { company_id: session.user.company_id };
+      if (session.user.companyId) {
+        scopeFilter = { company_id: session.user.companyId };
       }
     }
 
@@ -249,3 +249,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

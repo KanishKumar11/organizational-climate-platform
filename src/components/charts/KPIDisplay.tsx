@@ -27,11 +27,17 @@ interface KPIData {
 }
 
 interface KPIDisplayProps {
-  kpis: KPIData[];
+  kpis?: KPIData[];
   title?: string;
   columns?: 1 | 2 | 3 | 4;
   animated?: boolean;
   showTrends?: boolean;
+  // Single KPI props for backward compatibility
+  value?: number;
+  suffix?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  trend?: string;
+  color?: 'blue' | 'green' | 'purple' | 'orange';
 }
 
 interface SingleKPIProps {
@@ -341,13 +347,23 @@ export function SimpleKPICard({
   );
 }
 
-function KPIDisplay({
-  kpis,
-  title,
-  columns = 3,
-  animated = true,
-  showTrends = true,
-}: KPIDisplayProps) {
+function KPIDisplay(props: KPIDisplayProps) {
+  // Check if single KPI props are provided
+  if (props.value !== undefined && props.icon) {
+    return (
+      <SimpleKPICard
+        title={props.title || ''}
+        value={props.value}
+        suffix={props.suffix}
+        icon={props.icon}
+        trend={props.trend}
+        color={props.color || 'blue'}
+      />
+    );
+  }
+
+  // Original multi-KPI functionality
+  const { kpis, title, columns = 3, animated = true, showTrends = true } = props;
   const gridCols = {
     1: 'grid-cols-1',
     2: 'grid-cols-1 md:grid-cols-2',

@@ -13,12 +13,13 @@ import { validateSurveyResponse } from '@/lib/validation';
 // Submit survey response
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
     const body = await request.json();
-    const surveyId = params.id;
+    const { id } = await params;
+    const surveyId = id;
 
     const {
       responses,
@@ -181,7 +182,7 @@ export async function POST(
 // Get survey responses (for admins)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -190,8 +191,9 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const surveyId = params.id;
+    const surveyId = id;
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');

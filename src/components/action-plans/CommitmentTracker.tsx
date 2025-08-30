@@ -17,7 +17,7 @@ import {
   MessageSquare,
   Calendar,
   Filter,
-  Refresh,
+  RefreshCw,
   Send,
   User,
 } from 'lucide-react';
@@ -234,7 +234,7 @@ export function CommitmentTracker({
           size="sm"
           className="flex items-center"
         >
-          <Refresh className="w-4 h-4 mr-2" />
+          <RefreshCw className="w-4 h-4 mr-2" />
           Refresh
         </Button>
       </div>

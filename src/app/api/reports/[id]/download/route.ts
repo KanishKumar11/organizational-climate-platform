@@ -30,7 +30,7 @@ export async function GET(
     // Build query based on user role
     let query: any = { _id: id };
     if (session.user.role !== 'super_admin') {
-      query.company_id = session.user.company_id;
+      query.company_id = session.user.companyId;
     }
 
     const report = await Report.findOne(query);
@@ -59,7 +59,7 @@ export async function GET(
       report.shared_with?.includes(session.user.id) ||
       session.user.role === 'super_admin' ||
       (session.user.role === 'company_admin' &&
-        report.company_id === session.user.company_id);
+        report.company_id === session.user.companyId);
 
     if (!hasAccess) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });

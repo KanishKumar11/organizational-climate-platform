@@ -73,3 +73,5 @@ async function GET(request: NextRequest) {
 
 const secureGET = withSecurity(GET);
 export { secureGET as GET };
+
+

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
@@ -86,12 +86,14 @@ export async function POST(request: NextRequest) {
 
         if (auto_assign_by_department && affected_departments.length > 0) {
           // Find department admins and leaders for affected departments
-          const departmentUsers = await User.find({
-            company_id: user.company_id,
-            department_id: { $in: affected_departments },
-            role: { $in: ['department_admin', 'leader'] },
-            is_active: true,
-          }).select('_id');
+          const departmentUsers = await (User as any)
+            .find({
+              company_id: user.company_id,
+              department_id: { $in: affected_departments },
+              role: { $in: ['department_admin', 'leader'] },
+              is_active: true,
+            })
+            .select('_id');
 
           assigned_to = [
             ...new Set([
@@ -111,7 +113,9 @@ export async function POST(request: NextRequest) {
         let ai_recommendations = recommended_actions;
 
         if (template_id) {
-          const template = await ActionPlanTemplate.findById(template_id);
+          const template = await (ActionPlanTemplate as any).findById(
+            template_id
+          );
           if (template) {
             kpis = template.kpi_templates.map((kpi) => ({
               ...kpi.toObject(),
@@ -166,7 +170,7 @@ export async function POST(request: NextRequest) {
 
         // Increment template usage if used
         if (template_id) {
-          await ActionPlanTemplate.findByIdAndUpdate(template_id, {
+          await (ActionPlanTemplate as any).findByIdAndUpdate(template_id, {
             $inc: { usage_count: 1 },
           });
         }
@@ -192,3 +196,5 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+

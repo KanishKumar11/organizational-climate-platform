@@ -60,4 +60,7 @@ export interface AuthUser {
   companyId: string;
   departmentId: string;
   isActive: boolean;
+  image?: string;
 }
+
+

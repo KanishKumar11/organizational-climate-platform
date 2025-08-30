@@ -32,26 +32,31 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // Get company information
-    const company = await Company.findById(companyId).lean();
+    const company = await (Company as any).findById(companyId).lean();
     if (!company) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 });
     }
 
     // Get all surveys for the company
-    const surveys = await Survey.find({
-      company_id: companyId,
-      status: { $in: ['completed', 'active'] },
-    })
+    const surveys = await (Survey as any)
+      .find({
+        company_id: companyId,
+        status: { $in: ['completed', 'active'] },
+      })
       .sort({ created_at: -1 })
       .lean();
 
     const surveyIds = surveys.map((s) => s._id);
 
     // Get comprehensive organizational data (last 6 months)
-    const organizationData = await Response.find({
-      survey_id: { $in: surveyIds },
-      created_at: { $gte: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000) },
-    }).lean();
+    const organizationData = await (Response as any)
+      .find({
+        survey_id: { $in: surveyIds },
+        created_at: {
+          $gte: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000),
+        },
+      })
+      .lean();
 
     // Get benchmark data (industry averages, similar companies)
     const benchmarkData = await this.getBenchmarkData(
@@ -140,17 +145,21 @@ export async function GET(request: NextRequest) {
     );
 
     // Get historical health data
-    const surveys = await Survey.find({
-      company_id: companyId,
-      created_at: { $gte: startDate },
-    }).lean();
+    const surveys = await (Survey as any)
+      .find({
+        company_id: companyId,
+        created_at: { $gte: startDate },
+      })
+      .lean();
 
     const surveyIds = surveys.map((s) => s._id);
 
-    const healthData = await Response.find({
-      survey_id: { $in: surveyIds },
-      created_at: { $gte: startDate },
-    }).lean();
+    const healthData = await (Response as any)
+      .find({
+        survey_id: { $in: surveyIds },
+        created_at: { $gte: startDate },
+      })
+      .lean();
 
     // Group data by month and calculate health scores
     const monthlyHealth = new Map();
@@ -234,3 +243,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

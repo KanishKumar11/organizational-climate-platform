@@ -236,3 +236,5 @@ export type StatusType = keyof typeof STATUS_COLORS;
 export function getStatusClasses(status: StatusType): Record<string, string> {
   return STATUS_COLORS[status];
 }
+
+

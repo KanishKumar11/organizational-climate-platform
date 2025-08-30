@@ -20,3 +20,5 @@ declare module 'sentiment' {
 
   export = sentiment;
 }
+
+

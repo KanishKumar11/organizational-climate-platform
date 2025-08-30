@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const companyId = query.company_id || session.user.company_id;
+    const companyId = query.company_id || session.user.companyId;
 
     // Generate participation forecast
     const forecast = await notificationService.generateParticipationForecast(
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -52,3 +52,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

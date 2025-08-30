@@ -36,6 +36,8 @@ export interface IResponse extends Document {
   user_agent?: string;
   created_at: Date;
   updated_at: Date;
+  // Instance methods
+  complete(): void;
 }
 
 // Question response schema
@@ -225,9 +227,10 @@ ResponseSchema.post(['find', 'findOne', 'findOneAndUpdate'], function (docs) {
   }
 });
 
-const Response =
-  mongoose.models.Response ||
-  mongoose.model<IResponse>('Response', ResponseSchema);
+const Response = (mongoose.models.Response ||
+  mongoose.model<IResponse>('Response', ResponseSchema)) as mongoose.Model<IResponse>;
 
 export default Response;
 export { Response };
+
+

@@ -16,7 +16,7 @@ const mockMicroclimateData = {
   participation_rate: 48,
   live_results: {
     sentiment_score: 0.3,
-    engagement_level: 'medium' as const,
+    engagement_level: 'medium' as 'high' | 'medium' | 'low',
     top_themes: [
       'collaboration',
       'workload',
@@ -44,14 +44,14 @@ const mockMicroclimateData = {
   },
   ai_insights: [
     {
-      type: 'pattern' as const,
+      type: 'pattern' as 'alert' | 'pattern' | 'recommendation',
       message:
         'Increased mentions of "workload" suggest team capacity concerns',
       confidence: 0.85,
       timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
     },
     {
-      type: 'recommendation' as const,
+      type: 'recommendation' as 'alert' | 'pattern' | 'recommendation',
       message:
         'Consider scheduling a team discussion about collaboration tools',
       confidence: 0.72,
@@ -120,7 +120,7 @@ export default function MicroclimateLiveDemo() {
           ];
 
           newInsights.unshift({
-            type: Math.random() > 0.6 ? 'pattern' : 'recommendation',
+            type: (Math.random() > 0.6 ? 'pattern' : 'recommendation') as 'alert' | 'pattern' | 'recommendation',
             message:
               insightMessages[
                 Math.floor(Math.random() * insightMessages.length)
@@ -145,10 +145,10 @@ export default function MicroclimateLiveDemo() {
             word_cloud_data: newWordCloudData,
             engagement_level:
               newParticipationRate > 70
-                ? 'high'
+                ? ('high' as const)
                 : newParticipationRate > 40
-                  ? 'medium'
-                  : 'low',
+                  ? ('medium' as const)
+                  : ('low' as const),
           },
           ai_insights: newInsights,
           time_remaining: Math.max(0, prev.time_remaining! - 1),

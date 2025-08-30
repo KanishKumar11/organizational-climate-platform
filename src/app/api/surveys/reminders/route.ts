@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
         const reminderData: SurveyInvitationData = {
           survey,
-          recipient: user,
+          recipient: user as any,
           invitationLink,
           companyName: company.name,
           expiryDate: survey.end_date,
@@ -139,3 +139,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

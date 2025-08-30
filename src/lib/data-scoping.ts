@@ -729,3 +729,5 @@ export class ScopedQuery {
 }
 
 export default DataScopingService;
+
+

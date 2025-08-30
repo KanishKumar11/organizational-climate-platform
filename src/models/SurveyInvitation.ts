@@ -32,6 +32,21 @@ export interface ISurveyInvitation extends Document {
   };
   created_at: Date;
   updated_at: Date;
+  // Instance methods
+  markSent(): void;
+  markOpened(metadata?: any): void;
+  markStarted(): void;
+  markCompleted(): void;
+  markExpired(): void;
+  sendReminder(): void;
+  isExpired(): boolean;
+  canSendReminder(): boolean;
+}
+
+// Static methods interface
+export interface ISurveyInvitationModel extends mongoose.Model<ISurveyInvitation> {
+  findPendingReminders(): Promise<ISurveyInvitation[]>;
+  findExpired(): Promise<ISurveyInvitation[]>;
 }
 
 // Survey invitation schema
@@ -208,5 +223,28 @@ SurveyInvitationSchema.methods.canSendReminder = function (): boolean {
   return this.last_reminder_sent < threeDaysAgo;
 };
 
-export default mongoose.models.SurveyInvitation ||
-  mongoose.model<ISurveyInvitation>('SurveyInvitation', SurveyInvitationSchema);
+// Static methods
+SurveyInvitationSchema.statics.findPendingReminders = async function (): Promise<ISurveyInvitation[]> {
+  const now = new Date();
+  return this.find({
+    status: { $in: ['sent', 'opened'] },
+    expires_at: { $gt: now },
+    $or: [
+      { last_reminder_sent: { $exists: false } },
+      { last_reminder_sent: { $lt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000) } }
+    ],
+    reminder_count: { $lt: 3 }
+  });
+};
+
+SurveyInvitationSchema.statics.findExpired = async function (): Promise<ISurveyInvitation[]> {
+  return this.find({
+    status: { $nin: ['completed', 'expired'] },
+    expires_at: { $lt: new Date() }
+  });
+};
+
+export default (mongoose.models.SurveyInvitation ||
+  mongoose.model<ISurveyInvitation>('SurveyInvitation', SurveyInvitationSchema)) as ISurveyInvitationModel;
+
+

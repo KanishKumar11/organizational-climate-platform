@@ -296,7 +296,6 @@ export default function ActionPlansDemo() {
                           ${insight.priority === 'critical' ? 'bg-red-100 text-red-800' : ''}
                           ${insight.priority === 'high' ? 'bg-orange-100 text-orange-800' : ''}
                           ${insight.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : ''}
-                          ${insight.priority === 'low' ? 'bg-green-100 text-green-800' : ''}
                         `}
                         >
                           {insight.priority}

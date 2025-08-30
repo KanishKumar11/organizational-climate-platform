@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     let query: any = {};
 
     // Apply role-based scoping
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
@@ -51,13 +51,14 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     const [actionPlans, total] = await Promise.all([
-      ActionPlan.find(query)
+      (ActionPlan as any)
+        .find(query)
         .sort({ created_at: -1 })
         .skip(skip)
         .limit(limit)
         .populate('created_by', 'name email')
         .populate('assigned_to', 'name email'),
-      ActionPlan.countDocuments(query),
+      (ActionPlan as any).countDocuments(query),
     ]);
 
     return Response.json({
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
@@ -131,7 +132,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate assigned users exist and are in scope
-    const assignedUsers = await User.find({
+    const assignedUsers = await (User as any).find({
       _id: { $in: assigned_to },
       company_id: user.company_id,
     });
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
       current_value: kpi.current_value || 0,
     }));
 
-    const processedObjectives = qualitative_objectives.map((obj: unknown) => ({
+    const processedObjectives = qualitative_objectives.map((obj: any) => ({
       ...obj,
       id: uuidv4(),
       current_status: obj.current_status || '',
@@ -181,7 +182,7 @@ export async function POST(request: NextRequest) {
 
     // If created from template, increment usage count
     if (template_id) {
-      await ActionPlanTemplate.findByIdAndUpdate(template_id, {
+      await (ActionPlanTemplate as any).findByIdAndUpdate(template_id, {
         $inc: { usage_count: 1 },
       });
     }
@@ -202,3 +203,5 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+

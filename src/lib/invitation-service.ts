@@ -71,17 +71,19 @@ class InvitationService {
   async createInvitations(data: InvitationData): Promise<ISurveyInvitation[]> {
     await connectDB();
 
-    const survey = await Survey.findById(data.survey_id).populate('company_id');
+    const survey = await (Survey as any)
+      .findById(data.survey_id)
+      .populate('company_id');
     if (!survey) {
       throw new Error('Survey not found');
     }
 
-    const users = await User.find({ _id: { $in: data.user_ids } });
+    const users = await (User as any).find({ _id: { $in: data.user_ids } });
     if (users.length === 0) {
       throw new Error('No valid users found');
     }
 
-    const company = await Company.findById(survey.company_id);
+    const company = await (Company as any).findById(survey.company_id);
     const expiresAt =
       data.expires_at || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days default
 
@@ -89,7 +91,7 @@ class InvitationService {
 
     for (const user of users) {
       // Check if invitation already exists
-      const existingInvitation = await SurveyInvitation.findOne({
+      const existingInvitation = await (SurveyInvitation as any).findOne({
         survey_id: data.survey_id,
         user_id: user._id.toString(),
       });
@@ -171,7 +173,7 @@ class InvitationService {
     surveyId: string,
     invitations: ISurveyInvitation[]
   ): Promise<void> {
-    const survey = await Survey.findById(surveyId);
+    const survey = await (Survey as any).findById(surveyId);
     if (!survey) return;
 
     // Default reminder schedule: 3 days, 7 days, 1 day before expiry
@@ -183,7 +185,7 @@ class InvitationService {
     };
 
     for (const invitation of invitations) {
-      const user = await User.findById(invitation.user_id);
+      const user = await (User as any).findById(invitation.user_id);
       if (!user) continue;
 
       // Schedule reminders
@@ -262,7 +264,7 @@ class InvitationService {
   ): Promise<void> {
     await connectDB();
 
-    const invitation = await SurveyInvitation.findByToken(token);
+    const invitation = await (SurveyInvitation as any).findByToken(token);
     if (!invitation) return;
 
     switch (status) {
@@ -289,8 +291,10 @@ class InvitationService {
   ): Promise<ParticipationTracking> {
     await connectDB();
 
-    const invitations = await SurveyInvitation.find({ survey_id: surveyId });
-    const users = await User.find({
+    const invitations = await (SurveyInvitation as any).find({
+      survey_id: surveyId,
+    });
+    const users = await (User as any).find({
       _id: { $in: invitations.map((inv) => inv.user_id) },
     });
 
@@ -386,13 +390,15 @@ class InvitationService {
   ): Promise<CommunicationStrategy> {
     await connectDB();
 
-    const survey = await Survey.findById(surveyId);
+    const survey = await (Survey as any).findById(surveyId);
     if (!survey) {
       throw new Error('Survey not found');
     }
 
-    const invitations = await SurveyInvitation.find({ survey_id: surveyId });
-    const users = await User.find({
+    const invitations = await (SurveyInvitation as any).find({
+      survey_id: surveyId,
+    });
+    const users = await (User as any).find({
       _id: { $in: invitations.map((inv) => inv.user_id) },
     });
 
@@ -454,7 +460,7 @@ class InvitationService {
   private async analyzeHistoricalResponsePatterns(
     companyId: string
   ): Promise<any> {
-    const historicalInvitations = await SurveyInvitation.find({
+    const historicalInvitations = await (SurveyInvitation as any).find({
       company_id: companyId,
       created_at: { $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) }, // Last year
     });
@@ -503,7 +509,7 @@ class InvitationService {
     let bestRate = 0;
 
     for (const [hour, data] of Object.entries(historicalData.hourly_response)) {
-      const rate = data.sent > 0 ? data.completed / data.sent : 0;
+      const rate = (data as any).sent > 0 ? (data as any).completed / (data as any).sent : 0;
       if (rate > bestRate) {
         bestRate = rate;
         bestHour = parseInt(hour);
@@ -515,7 +521,7 @@ class InvitationService {
     let bestDayRate = 0;
 
     for (const [day, data] of Object.entries(historicalData.daily_response)) {
-      const rate = data.sent > 0 ? data.completed / data.sent : 0;
+      const rate = (data as any).sent > 0 ? (data as any).completed / (data as any).sent : 0;
       if (rate > bestDayRate && parseInt(day) >= 1 && parseInt(day) <= 4) {
         // Mon-Thu
         bestDayRate = rate;
@@ -564,7 +570,9 @@ class InvitationService {
     survey: ISurvey
   ): Promise<number> {
     // Simple prediction based on historical data
-    const userInvitations = await SurveyInvitation.find({ user_id: userId });
+    const userInvitations = await (SurveyInvitation as any).find({
+      user_id: userId,
+    });
 
     if (userInvitations.length === 0) {
       return 0.3; // Default 30% for new users
@@ -632,21 +640,21 @@ class InvitationService {
   // Get survey invitations
   async getSurveyInvitations(surveyId: string): Promise<ISurveyInvitation[]> {
     await connectDB();
-    return await SurveyInvitation.findBySurvey(surveyId);
+    return await (SurveyInvitation as any).findBySurvey(surveyId);
   }
 
   // Resend invitation
   async resendInvitation(invitationId: string): Promise<void> {
     await connectDB();
 
-    const invitation = await SurveyInvitation.findById(invitationId);
+    const invitation = await (SurveyInvitation as any).findById(invitationId);
     if (!invitation) {
       throw new Error('Invitation not found');
     }
 
-    const user = await User.findById(invitation.user_id);
-    const survey = await Survey.findById(invitation.survey_id);
-    const company = await Company.findById(invitation.company_id);
+    const user = await (User as any).findById(invitation.user_id);
+    const survey = await (Survey as any).findById(invitation.survey_id);
+    const company = await (Company as any).findById(invitation.company_id);
 
     if (!user || !survey || !company) {
       throw new Error('Required data not found');
@@ -686,7 +694,7 @@ class InvitationService {
   async cancelInvitation(invitationId: string): Promise<void> {
     await connectDB();
 
-    const invitation = await SurveyInvitation.findById(invitationId);
+    const invitation = await (SurveyInvitation as any).findById(invitationId);
     if (!invitation) {
       throw new Error('Invitation not found');
     }
@@ -697,3 +705,5 @@ class InvitationService {
 }
 
 export const invitationService = new InvitationService();
+
+

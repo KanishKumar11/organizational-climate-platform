@@ -123,16 +123,17 @@ export class AIReanalysisTriggerService {
 
     try {
       // Get survey and existing responses
-      const survey = await Survey.findById(surveyId);
+      const survey = await (Survey as any).findById(surveyId);
       if (!survey) {
         throw new Error('Survey not found');
       }
 
-      const responses = await Response.find({ survey_id: surveyId });
+      const responses = await (Response as any).find({ survey_id: surveyId });
 
       // Get current demographic snapshot
-      const currentSnapshot =
-        await DemographicSnapshot.findLatestBySurvey(surveyId);
+      const currentSnapshot = await (
+        DemographicSnapshot as any
+      ).findLatestBySurvey(surveyId);
       if (!currentSnapshot) {
         throw new Error('No demographic snapshot found for survey');
       }
@@ -219,7 +220,7 @@ export class AIReanalysisTriggerService {
       }
 
       // Update existing insights that are no longer valid
-      const existingInsights = await AIInsight.find({
+      const existingInsights = await (AIInsight as any).find({
         survey_id: surveyId,
         'metadata.segment': { $in: affectedSegments },
       });
@@ -235,11 +236,14 @@ export class AIReanalysisTriggerService {
       const processingTime = Date.now() - startTime;
 
       // Log the reanalysis
-      await auditLog({
-        user_id: triggeredBy,
+      await auditLog.logEvent({
         action: 'ai_reanalysis_triggered',
-        resource_type: 'survey',
+        resource: 'survey',
         resource_id: surveyId,
+        context: {
+          user_id: triggeredBy,
+          company_id: survey.company_id,
+        },
         details: {
           reason,
           impact_score: impactAnalysis?.impact_score || 0,
@@ -249,8 +253,6 @@ export class AIReanalysisTriggerService {
           processing_time_ms: processingTime,
           incremental: incrementalOnly,
         },
-        ip_address: '',
-        user_agent: '',
       });
 
       return {
@@ -268,18 +270,19 @@ export class AIReanalysisTriggerService {
       const processingTime = Date.now() - startTime;
 
       // Log the error
-      await auditLog({
-        user_id: triggeredBy,
+      await auditLog.logEvent({
         action: 'ai_reanalysis_failed',
-        resource_type: 'survey',
+        resource: 'survey',
         resource_id: surveyId,
+        context: {
+          user_id: triggeredBy,
+          company_id: 'unknown',
+        },
         details: {
           reason,
           error: error instanceof Error ? error.message : 'Unknown error',
           processing_time_ms: processingTime,
         },
-        ip_address: '',
-        user_agent: '',
       });
 
       throw error;
@@ -354,17 +357,18 @@ export class AIReanalysisTriggerService {
     // In a real implementation, this would save to database
     const newConfig = { ...this.DEFAULT_CONFIG, ...config };
 
-    await auditLog({
-      user_id: updatedBy,
+    await auditLog.logEvent({
       action: 'reanalysis_config_updated',
-      resource_type: 'survey',
+      resource: 'survey',
       resource_id: surveyId,
+      context: {
+        user_id: updatedBy,
+        company_id: companyId,
+      },
       details: {
         old_config: this.DEFAULT_CONFIG,
         new_config: newConfig,
       },
-      ip_address: '',
-      user_agent: '',
     });
 
     return newConfig;
@@ -380,14 +384,15 @@ export class AIReanalysisTriggerService {
     console.log('Demographic change notification:', notification);
 
     // Log the notification
-    await auditLog({
-      user_id: 'system',
+    await auditLog.logEvent({
       action: 'demographic_change_notification',
-      resource_type: 'survey',
+      resource: 'survey',
       resource_id: notification.survey_id,
-      details: notification,
-      ip_address: '',
-      user_agent: '',
+      context: {
+        user_id: 'system',
+        company_id: 'unknown',
+      },
+      details: { ...notification } as Record<string, unknown>,
     });
   }
 
@@ -532,3 +537,5 @@ export class AIReanalysisTriggerService {
 }
 
 export default AIReanalysisTriggerService;
+
+

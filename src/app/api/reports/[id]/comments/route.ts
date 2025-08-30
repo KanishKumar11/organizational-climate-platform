@@ -33,14 +33,14 @@ export async function POST(
     }
 
     // Check if user has access to this report
-    const report = await reportService.getReport(params.id, session.user.id);
+    const report = await reportService.getReport(id, session.user.id);
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
 
     // Add the comment
     const comment = await reportSharingService.addComment(
-      params.id,
+      id,
       session.user.id,
       content.trim(),
       section,

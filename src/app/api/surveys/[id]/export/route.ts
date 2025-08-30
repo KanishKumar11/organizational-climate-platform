@@ -9,7 +9,7 @@ import Response from '@/models/Response';
 // Export survey results
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,8 +18,9 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const surveyId = params.id;
+    const surveyId = id;
     const { searchParams } = new URL(request.url);
     const format = searchParams.get('format') || 'csv';
     const includeOpenText = searchParams.get('include_open_text') === 'true';
@@ -208,10 +209,10 @@ function generateJSON(survey: any, responses: any[], includeOpenText: boolean) {
       responses: includeOpenText
         ? response.responses
         : response.responses.map((r: unknown) => ({
-            question_id: r.question_id,
-            response_value: r.response_value,
+            question_id: (r as any).question_id,
+            response_value: (r as any).response_value,
             // Exclude response_text for non-open-ended questions unless specifically requested
-            ...(includeOpenText && { response_text: r.response_text }),
+            ...(includeOpenText && { response_text: (r as any).response_text }),
           })),
     })),
     export_metadata: {

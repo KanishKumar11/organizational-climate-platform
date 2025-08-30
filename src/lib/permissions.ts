@@ -406,3 +406,5 @@ export function checkPermissions(userRole: UserRole, feature: string): boolean {
   // In a real app, you'd have a more complex permission system
   return true;
 }
+
+

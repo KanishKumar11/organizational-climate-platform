@@ -14,7 +14,7 @@ import {
   Calendar,
   Users,
   Filter,
-  Refresh,
+  RefreshCw,
   Bell,
   X,
   ChevronRight,
@@ -193,7 +193,7 @@ export function AlertsPanel({
           size="sm"
           className="flex items-center"
         >
-          <Refresh className="w-4 h-4 mr-2" />
+          <RefreshCw className="w-4 h-4 mr-2" />
           Refresh
         </Button>
       </div>

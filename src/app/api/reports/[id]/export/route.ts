@@ -8,7 +8,7 @@ import { AIInsight } from '@/models/AIInsight';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,6 +17,7 @@ export async function POST(
     }
 
     await connectDB();
+    const { id } = await params;
 
     const {
       format,
@@ -48,7 +49,7 @@ export async function POST(
     }
 
     // Get the report
-    const report = await reportService.getReport(params.id, session.user.id);
+    const report = await reportService.getReport(id, session.user.id);
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
@@ -57,7 +58,7 @@ export async function POST(
     let executiveSummary;
     if (exportOptions.includeExecutiveSummary) {
       const insights = await AIInsight.find({
-        surveyId: { $in: report.surveyIds || [] },
+        surveyId: { $in: report.filters.survey_ids || [] },
         companyId: session.user.companyId,
       }).lean();
 
@@ -109,7 +110,7 @@ export async function POST(
 
     // Log the export activity
     await reportService.logActivity({
-      reportId: params.id,
+      reportId: id,
       userId: session.user.id,
       action: 'export',
       details: {
@@ -119,7 +120,7 @@ export async function POST(
     });
 
     // Return the file
-    return new NextResponse(exportBuffer, {
+    return new NextResponse(exportBuffer as any, {
       status: 200,
       headers: {
         'Content-Type': contentType,
@@ -138,7 +139,7 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -147,9 +148,10 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
     // Get export options and formats available for this report
-    const report = await reportService.getReport(params.id, session.user.id);
+    const report = await reportService.getReport(id, session.user.id);
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import DemographicVersioningService from '../../../../lib/demographic-versioning';
 import { validatePermissions } from '../../../../lib/permissions';
 
@@ -26,8 +26,7 @@ export async function POST(request: NextRequest) {
     const hasPermission = await validatePermissions(
       session.user.id,
       'update',
-      'demographic_snapshots',
-      { company_id, require_admin: true }
+      company_id
     );
 
     if (!hasPermission) {
@@ -57,3 +56,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

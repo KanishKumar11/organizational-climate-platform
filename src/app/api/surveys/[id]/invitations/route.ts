@@ -7,13 +7,13 @@ import User from '@/models/User';
 import SurveyInvitation from '@/models/SurveyInvitation';
 import Company from '@/models/Company';
 import { emailService, SurveyInvitationData } from '@/lib/email';
-import { hasPermission } from '@/lib/permissions';
+import { hasPermission, hasStringPermission } from '@/lib/permissions';
 import crypto from 'crypto';
 
 // Send survey invitations
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -22,8 +22,9 @@ export async function POST(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const surveyId = params.id;
+    const surveyId = id;
     const body = await request.json();
     const { user_ids, department_ids, send_immediately = true } = body;
 
@@ -104,7 +105,7 @@ export async function POST(
 
           const invitationData: SurveyInvitationData = {
             survey,
-            recipient: user,
+            recipient: user as any,
             invitationLink,
             companyName: company.name,
             expiryDate: survey.end_date,
@@ -150,7 +151,7 @@ export async function POST(
 // Get survey invitations
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -159,8 +160,9 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const surveyId = params.id;
+    const surveyId = id;
 
     // Get survey
     const survey = await Survey.findById(surveyId);
@@ -170,8 +172,8 @@ export async function GET(
 
     // Check permissions
     if (
-      !hasPermission(session.user.role, 'view_surveys') ||
-      survey.company_id !== session.user.company_id
+      !hasStringPermission(session.user.role, 'view_surveys') ||
+      survey.company_id !== session.user.companyId
     ) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

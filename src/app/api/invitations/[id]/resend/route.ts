@@ -40,7 +40,7 @@ export async function POST(
     // Check access permissions
     if (
       session.user.role !== 'super_admin' &&
-      invitation.company_id !== session.user.company_id
+      invitation.company_id !== session.user.companyId
     ) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -31,10 +31,9 @@ export async function GET(request: NextRequest) {
     const companyId = user.company_id;
 
     // Get department information
-    const department = await Department.findById(departmentId).populate(
-      'company_id',
-      'name'
-    );
+    const department = await (Department as any)
+      .findById(departmentId)
+      .populate('company_id', 'name');
     if (!department) {
       return NextResponse.json(
         { error: 'Department not found' },
@@ -95,10 +94,11 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Get team member details
-    const teamMembers = await User.find({
-      department_id: departmentId,
-      is_active: true,
-    })
+    const teamMembers = await (User as any)
+      .find({
+        department_id: departmentId,
+        is_active: true,
+      })
       .select('name email role last_login created_at')
       .sort({ name: 1 });
 
@@ -106,13 +106,14 @@ export async function GET(request: NextRequest) {
     const departmentInsights = await getDepartmentAIInsights(departmentId);
 
     // Get ongoing surveys for the department
-    const ongoingSurveys = await Survey.find({
-      company_id: companyId,
-      target_departments: departmentId,
-      status: 'active',
-      start_date: { $lte: new Date() },
-      end_date: { $gte: new Date() },
-    })
+    const ongoingSurveys = await (Survey as any)
+      .find({
+        company_id: companyId,
+        target_departments: departmentId,
+        status: 'active',
+        start_date: { $lte: new Date() },
+        end_date: { $gte: new Date() },
+      })
       .populate('created_by', 'name')
       .select('title type start_date end_date response_count target_responses')
       .sort({ start_date: -1 })
@@ -184,7 +185,6 @@ async function getDepartmentRecentActivity(
       company_id: companyId,
       target_departments: departmentId,
     })
-      .populate('created_by', 'name')
       .sort({ created_at: -1 })
       .limit(3)
       .select('title type created_at'),
@@ -201,7 +201,7 @@ async function getDepartmentRecentActivity(
     ...recentSurveys.map((survey) => ({
       type: 'survey_assigned',
       title: `Survey "${survey.title}" assigned to department`,
-      description: `${survey.type} survey by ${survey.created_by?.name}`,
+      description: `${survey.type} survey created`,
       timestamp: survey.created_at,
       category: 'survey',
     })),
@@ -297,3 +297,5 @@ function getDepartmentActionPlans(departmentId: string) {
     },
   ];
 }
+
+

@@ -16,7 +16,7 @@ const updateMicroclimateSchema = z.object({
       department_ids: z.array(z.string()).min(1),
       role_filters: z.array(z.string()).optional(),
       tenure_filters: z.array(z.string()).optional(),
-      custom_filters: z.record(z.any()).optional(),
+      custom_filters: z.record(z.string(), z.any()).optional(),
       include_managers: z.boolean().default(true),
       max_participants: z.number().min(1).optional(),
     })
@@ -234,7 +234,7 @@ export async function PATCH(
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: 'Validation error', details: error.issues },
         { status: 400 }
       );
     }
@@ -292,7 +292,7 @@ export async function DELETE(
       );
     }
 
-    await Microclimate.findByIdAndDelete(params.id);
+    await Microclimate.findByIdAndDelete(id);
 
     return NextResponse.json({ message: 'Microclimate deleted successfully' });
   } catch (error) {

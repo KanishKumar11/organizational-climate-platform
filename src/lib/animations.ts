@@ -352,7 +352,7 @@ export const alertVariants: Variants = {
     scale: 1,
     transition: {
       duration: DURATIONS.normal,
-      ease: EASINGS.springBouncy,
+      ease: EASINGS.springBouncy as any,
     },
   },
   exit: {
@@ -533,3 +533,5 @@ export const focusEffects = {
   scale: 'focus-visible:scale-105',
   outline: 'focus-visible:outline-2 focus-visible:outline-primary',
 } as const;
+
+

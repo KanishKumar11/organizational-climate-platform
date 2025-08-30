@@ -70,6 +70,14 @@ export async function POST(request: NextRequest) {
 
     // Extract text content
     const texts = responses
+      .flatMap((r) => 
+        (r.responses || []).map((qr) => ({
+          ...qr,
+          created_at: r.created_at,
+          survey_id: r.survey_id,
+          user_id: r.user_id,
+        }))
+      )
       .map((r) => {
         if (
           typeof r.response_value === 'string' &&
@@ -212,6 +220,14 @@ export async function GET(request: NextRequest) {
 
     // Extract text content
     const texts = responses
+      .flatMap((r) => 
+        (r.responses || []).map((qr) => ({
+          ...qr,
+          created_at: r.created_at,
+          survey_id: r.survey_id,
+          user_id: r.user_id,
+        }))
+      )
       .map((r) => {
         if (
           typeof r.response_value === 'string' &&
@@ -248,18 +264,27 @@ export async function GET(request: NextRequest) {
     // Group entities by month for trend analysis
     const monthlyEntities = new Map();
 
-    responses.forEach((r) => {
-      if (
-        typeof r.response_value === 'string' &&
-        r.response_value.trim().length > 5
-      ) {
-        const monthKey = new Date(r.created_at).toISOString().substring(0, 7);
-        if (!monthlyEntities.has(monthKey)) {
-          monthlyEntities.set(monthKey, []);
+    responses
+      .flatMap((r) => 
+        (r.responses || []).map((qr) => ({
+          ...qr,
+          created_at: r.created_at,
+          survey_id: r.survey_id,
+          user_id: r.user_id,
+        }))
+      )
+      .forEach((r) => {
+        if (
+          typeof r.response_value === 'string' &&
+          r.response_value.trim().length > 5
+        ) {
+          const monthKey = new Date(r.created_at).toISOString().substring(0, 7);
+          if (!monthlyEntities.has(monthKey)) {
+            monthlyEntities.set(monthKey, []);
+          }
+          monthlyEntities.get(monthKey).push(r.response_value.trim());
         }
-        monthlyEntities.get(monthKey).push(r.response_value.trim());
-      }
-    });
+      });
 
     // Analyze entities for each month
     const entityTrends = [];
@@ -329,3 +354,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

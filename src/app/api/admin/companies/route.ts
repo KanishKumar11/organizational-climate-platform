@@ -29,7 +29,7 @@ export const GET = withAuth(async (req) => {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
         { domain: { $regex: search, $options: 'i' } },
-        { industry: { $regex: search, $options: 'i' } }
+        { industry: { $regex: search, $options: 'i' } },
       ];
     }
     if (status === 'active') {
@@ -41,12 +41,15 @@ export const GET = withAuth(async (req) => {
     const skip = (page - 1) * limit;
 
     const [companies, total] = await Promise.all([
-      Company.find(query)
-        .select('name domain industry size country is_active subscription_tier created_at updated_at')
+      (Company as any)
+        .find(query)
+        .select(
+          'name domain industry size country is_active subscription_tier created_at updated_at'
+        )
         .sort({ created_at: -1 })
         .skip(skip)
         .limit(limit),
-      Company.countDocuments(query)
+      (Company as any).countDocuments(query),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -60,8 +63,8 @@ export const GET = withAuth(async (req) => {
           total,
           totalPages,
           hasNext: page < totalPages,
-          hasPrev: page > 1
-        }
+          hasPrev: page > 1,
+        },
       })
     );
   } catch (error) {
@@ -98,7 +101,8 @@ export const POST = withAuth(async (req) => {
     }
 
     // Validate domain format
-    const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
+    const domainRegex =
+      /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
     if (!domainRegex.test(domain)) {
       return NextResponse.json(
         createApiResponse(false, null, 'Invalid domain format'),
@@ -107,7 +111,9 @@ export const POST = withAuth(async (req) => {
     }
 
     // Check if domain already exists
-    const existingCompany = await Company.findOne({ domain: domain.toLowerCase() });
+    const existingCompany = await (Company as any).findOne({
+      domain: domain.toLowerCase(),
+    });
     if (existingCompany) {
       return NextResponse.json(
         createApiResponse(false, null, 'Domain already exists'),
@@ -123,7 +129,7 @@ export const POST = withAuth(async (req) => {
       size,
       country: country.trim(),
       subscription_tier: subscription_tier || 'basic',
-      is_active: true
+      is_active: true,
     });
 
     // Log the action
@@ -136,8 +142,8 @@ export const POST = withAuth(async (req) => {
       details: {
         company_name: company.name,
         domain: company.domain,
-        industry: company.industry
-      }
+        industry: company.industry,
+      },
     });
 
     return NextResponse.json(
@@ -152,3 +158,5 @@ export const POST = withAuth(async (req) => {
     );
   }
 });
+
+

@@ -91,7 +91,7 @@ const SUBSCRIPTION_TIERS = [
 ];
 
 export default function CompaniesPage() {
-  const { user, loading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
@@ -123,10 +123,10 @@ export default function CompaniesPage() {
 
   // Redirect if not super admin
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'super_admin')) {
+    if (!authLoading && (!user || user.role !== 'super_admin')) {
       router.push('/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
 
   // Fetch companies
   const fetchCompanies = async (page = 1) => {
@@ -184,13 +184,19 @@ export default function CompaniesPage() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success(data.message || `Company ${selectedCompany ? 'updated' : 'created'} successfully`);
+        toast.success(
+          data.message ||
+            `Company ${selectedCompany ? 'updated' : 'created'} successfully`
+        );
         setIsCreateDialogOpen(false);
         setIsEditDialogOpen(false);
         resetForm();
         fetchCompanies(pagination.page);
       } else {
-        toast.error(data.message || `Failed to ${selectedCompany ? 'update' : 'create'} company`);
+        toast.error(
+          data.message ||
+            `Failed to ${selectedCompany ? 'update' : 'create'} company`
+        );
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -202,7 +208,11 @@ export default function CompaniesPage() {
 
   // Handle delete
   const handleDelete = async (company: Company) => {
-    if (!confirm(`Are you sure you want to deactivate ${company.name}? This will prevent users from this domain from signing in.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to deactivate ${company.name}? This will prevent users from this domain from signing in.`
+      )
+    ) {
       return;
     }
 
@@ -254,7 +264,7 @@ export default function CompaniesPage() {
     setIsEditDialogOpen(true);
   };
 
-  if (loading || !user) {
+  if (authLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <RefreshCw className="h-8 w-8 animate-spin" />
@@ -283,7 +293,10 @@ export default function CompaniesPage() {
               Manage authorized companies and email domains for platform access
             </p>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button onClick={resetForm}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -303,7 +316,9 @@ export default function CompaniesPage() {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     placeholder="Acme Corporation"
                     required
                   />
@@ -313,7 +328,9 @@ export default function CompaniesPage() {
                   <Input
                     id="domain"
                     value={formData.domain}
-                    onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, domain: e.target.value })
+                    }
                     placeholder="acme.com"
                     required
                   />
@@ -326,7 +343,9 @@ export default function CompaniesPage() {
                   <Input
                     id="industry"
                     value={formData.industry}
-                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, industry: e.target.value })
+                    }
                     placeholder="Technology"
                     required
                   />
@@ -336,7 +355,9 @@ export default function CompaniesPage() {
                     <Label htmlFor="size">Company Size</Label>
                     <Select
                       value={formData.size}
-                      onValueChange={(value: Company['size']) => setFormData({ ...formData, size: value })}
+                      onValueChange={(value: Company['size']) =>
+                        setFormData({ ...formData, size: value })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -355,7 +376,9 @@ export default function CompaniesPage() {
                     <Input
                       id="country"
                       value={formData.country}
-                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, country: e.target.value })
+                      }
                       placeholder="United States"
                       required
                     />
@@ -365,7 +388,7 @@ export default function CompaniesPage() {
                   <Label htmlFor="subscription_tier">Subscription Tier</Label>
                   <Select
                     value={formData.subscription_tier}
-                    onValueChange={(value: Company['subscription_tier']) => 
+                    onValueChange={(value: Company['subscription_tier']) =>
                       setFormData({ ...formData, subscription_tier: value })
                     }
                   >
@@ -407,8 +430,9 @@ export default function CompaniesPage() {
       <Alert>
         <Globe className="h-4 w-4" />
         <AlertDescription>
-          Only users with email addresses from authorized company domains can sign in to the platform.
-          Add companies here to allow their employees access.
+          Only users with email addresses from authorized company domains can
+          sign in to the platform. Add companies here to allow their employees
+          access.
         </AlertDescription>
       </Alert>
 
@@ -448,7 +472,9 @@ export default function CompaniesPage() {
                 onClick={() => fetchCompanies(pagination.page)}
                 disabled={isLoading}
               >
-                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+                />
               </Button>
             </div>
           </div>
@@ -488,7 +514,9 @@ export default function CompaniesPage() {
                       <TableCell>
                         <div>
                           <div className="font-medium">{company.name}</div>
-                          <div className="text-sm text-muted-foreground">{company.country}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {company.country}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -499,7 +527,8 @@ export default function CompaniesPage() {
                       <TableCell>{company.industry}</TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {COMPANY_SIZES.find(s => s.value === company.size)?.label || company.size}
+                          {COMPANY_SIZES.find((s) => s.value === company.size)
+                            ?.label || company.size}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -509,17 +538,29 @@ export default function CompaniesPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={company.is_active ? 'default' : 'secondary'}>
+                        <Badge
+                          variant={company.is_active ? 'default' : 'secondary'}
+                        >
                           {company.is_active ? (
-                            <><CheckCircle className="h-3 w-3 mr-1" />Active</>
+                            <>
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Active
+                            </>
                           ) : (
-                            <><XCircle className="h-3 w-3 mr-1" />Inactive</>
+                            <>
+                              <XCircle className="h-3 w-3 mr-1" />
+                              Inactive
+                            </>
                           )}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant={company.subscription_tier === 'enterprise' ? 'default' : 'outline'}
+                        <Badge
+                          variant={
+                            company.subscription_tier === 'enterprise'
+                              ? 'default'
+                              : 'outline'
+                          }
                         >
                           {company.subscription_tier}
                         </Badge>
@@ -552,9 +593,12 @@ export default function CompaniesPage() {
               {pagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="text-sm text-muted-foreground">
-                    Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                    {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                    {pagination.total} companies
+                    Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+                    {Math.min(
+                      pagination.page * pagination.limit,
+                      pagination.total
+                    )}{' '}
+                    of {pagination.total} companies
                   </p>
                   <div className="flex items-center gap-2">
                     <Button
@@ -599,7 +643,9 @@ export default function CompaniesPage() {
               <Input
                 id="edit-name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 required
               />
             </div>
@@ -608,7 +654,9 @@ export default function CompaniesPage() {
               <Input
                 id="edit-domain"
                 value={formData.domain}
-                onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, domain: e.target.value })
+                }
                 required
               />
             </div>
@@ -617,7 +665,9 @@ export default function CompaniesPage() {
               <Input
                 id="edit-industry"
                 value={formData.industry}
-                onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, industry: e.target.value })
+                }
                 required
               />
             </div>
@@ -626,7 +676,9 @@ export default function CompaniesPage() {
                 <Label htmlFor="edit-size">Company Size</Label>
                 <Select
                   value={formData.size}
-                  onValueChange={(value: Company['size']) => setFormData({ ...formData, size: value })}
+                  onValueChange={(value: Company['size']) =>
+                    setFormData({ ...formData, size: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -645,7 +697,9 @@ export default function CompaniesPage() {
                 <Input
                   id="edit-country"
                   value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, country: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -654,7 +708,7 @@ export default function CompaniesPage() {
               <Label htmlFor="edit-subscription_tier">Subscription Tier</Label>
               <Select
                 value={formData.subscription_tier}
-                onValueChange={(value: Company['subscription_tier']) => 
+                onValueChange={(value: Company['subscription_tier']) =>
                   setFormData({ ...formData, subscription_tier: value })
                 }
               >
@@ -674,7 +728,9 @@ export default function CompaniesPage() {
               <Switch
                 id="edit-is_active"
                 checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_active: checked })
+                }
               />
               <Label htmlFor="edit-is_active">Company Active</Label>
             </div>

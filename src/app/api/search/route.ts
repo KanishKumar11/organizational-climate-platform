@@ -32,9 +32,9 @@ export async function GET(request: NextRequest) {
     const userScope: UserScope = {
       user_id: session.user.id,
       role: session.user.role,
-      company_access: session.user.company_id ? [session.user.company_id] : [],
-      department_access: session.user.department_id
-        ? [session.user.department_id]
+      company_access: session.user.companyId ? [session.user.companyId] : [],
+      department_access: session.user.departmentId
+        ? [session.user.departmentId]
         : [],
       survey_access: [], // This would be populated based on user permissions
       insight_access: [], // This would be populated based on user permissions
@@ -115,9 +115,9 @@ export async function POST(request: NextRequest) {
     const userScope: UserScope = {
       user_id: session.user.id,
       role: session.user.role,
-      company_access: session.user.company_id ? [session.user.company_id] : [],
-      department_access: session.user.department_id
-        ? [session.user.department_id]
+      company_access: session.user.companyId ? [session.user.companyId] : [],
+      department_access: session.user.departmentId
+        ? [session.user.departmentId]
         : [],
       survey_access: [], // This would be populated based on user permissions
       insight_access: [], // This would be populated based on user permissions
@@ -149,3 +149,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

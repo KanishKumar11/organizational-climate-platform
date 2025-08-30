@@ -86,6 +86,8 @@ export interface ISurvey extends Document {
   template_id?: string;
   created_at: Date;
   updated_at: Date;
+  // Instance methods
+  canAcceptResponses(): boolean;
 }
 
 // Question schema
@@ -328,8 +330,9 @@ SurveySchema.methods.removeQuestion = function (questionId: string): boolean {
   return false;
 };
 
-const Survey =
-  mongoose.models.Survey || mongoose.model<ISurvey>('Survey', SurveySchema);
+const Survey = (mongoose.models.Survey || mongoose.model<ISurvey>('Survey', SurveySchema)) as mongoose.Model<ISurvey>;
 
 export default Survey;
 export { Survey };
+
+

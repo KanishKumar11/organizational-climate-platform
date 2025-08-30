@@ -28,9 +28,9 @@ export async function GET(request: NextRequest) {
     const Benchmark = (await import('@/models/Benchmark')).default;
 
     // Build query based on user role
-    let companyFilter: unknown = {};
+    const companyFilter: any = {};
     if (session.user.role !== 'super_admin') {
-      companyFilter.company_id = session.user.company_id;
+      companyFilter.company_id = session.user.companyId;
     }
 
     // Get available surveys
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     // Get available benchmarks
     const benchmarks = await Benchmark.find({
-      $or: [{ company_id: session.user.company_id }, { type: 'industry' }],
+      $or: [{ company_id: session.user.companyId }, { type: 'industry' }],
     })
       .select('_id name type category')
       .sort({ name: 1 })
@@ -247,3 +247,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

@@ -67,12 +67,12 @@ export class BenchmarkComparisonService {
   ): Promise<GapAnalysis> {
     await connectDB();
 
-    const benchmark = await Benchmark.findById(benchmarkId);
+    const benchmark = await (Benchmark as any).findById(benchmarkId);
     if (!benchmark) {
       throw new Error('Benchmark not found');
     }
 
-    const survey = await Survey.findById(surveyId);
+    const survey = await (Survey as any).findById(surveyId);
     if (!survey) {
       throw new Error('Survey not found');
     }
@@ -109,7 +109,10 @@ export class BenchmarkComparisonService {
     if (companySize) query.company_size = companySize;
     if (category) query.category = category;
 
-    return await Benchmark.find(query).sort({ quality_score: -1 }).limit(10);
+    return await (Benchmark as any)
+      .find(query)
+      .sort({ quality_score: -1 })
+      .limit(10);
   }
 
   static async generateStrategicRecommendations(
@@ -176,7 +179,7 @@ export class BenchmarkComparisonService {
     const historicalData: Array<{ date: string; value: number }> = [];
 
     for (const surveyId of surveyIds) {
-      const survey = await Survey.findById(surveyId);
+      const survey = await (Survey as any).findById(surveyId);
       if (!survey) continue;
 
       const metrics = await this.calculateSurveyMetrics(surveyId);
@@ -213,8 +216,8 @@ export class BenchmarkComparisonService {
   private static async calculateSurveyMetrics(
     surveyId: string
   ): Promise<BenchmarkMetric[]> {
-    const responses = await Response.find({ survey_id: surveyId });
-    const survey = await Survey.findById(surveyId);
+    const responses = await (Response as any).find({ survey_id: surveyId });
+    const survey = await (Survey as any).findById(surveyId);
 
     if (!survey || responses.length === 0) {
       return [];
@@ -535,3 +538,5 @@ export class BenchmarkComparisonService {
     return forecast;
   }
 }
+
+

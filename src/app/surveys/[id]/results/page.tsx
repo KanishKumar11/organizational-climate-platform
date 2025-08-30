@@ -11,9 +11,9 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SurveyResultsPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 async function getSurvey(surveyId: string, userCompanyId: string) {
@@ -44,7 +44,8 @@ export default async function SurveyResultsPage({
     redirect('/auth/signin');
   }
 
-  const survey = await getSurvey(params.id, session.user.companyId);
+  const { id } = await params;
+  const survey = await getSurvey(id, session.user.companyId);
 
   if (!survey) {
     return (
@@ -102,7 +103,7 @@ export default async function SurveyResultsPage({
                 </Card>
               }
             >
-              <RealTimeTracker surveyId={params.id} />
+              <RealTimeTracker surveyId={id} />
             </Suspense>
           </TabsContent>
         )}
@@ -117,7 +118,7 @@ export default async function SurveyResultsPage({
               </Card>
             }
           >
-            <SurveyResults surveyId={params.id} />
+            <SurveyResults surveyId={id} />
           </Suspense>
         </TabsContent>
       </Tabs>
@@ -134,7 +135,8 @@ export async function generateMetadata({ params }: SurveyResultsPageProps) {
     };
   }
 
-  const survey = await getSurvey(params.id, session.user.companyId);
+  const { id } = await params;
+  const survey = await getSurvey(id, session.user.companyId);
 
   return {
     title: survey ? `Results: ${survey.title}` : 'Survey Not Found',

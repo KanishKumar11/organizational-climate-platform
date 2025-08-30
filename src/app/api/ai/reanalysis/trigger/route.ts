@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import AIReanalysisTriggerService from '../../../../../lib/ai-reanalysis-triggers';
-import { validatePermissions } from '../../../../../lib/permissions';
+import { hasStringPermission } from '../../../../../lib/permissions';
 
 // POST /api/ai/reanalysis/trigger - Manually trigger AI re-analysis
 export async function POST(request: NextRequest) {
@@ -23,14 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate permissions - only company admins and super admins can trigger reanalysis
-    const hasPermission = await validatePermissions(
-      session.user.id,
-      'update',
-      'ai_insights',
-      { company_id, require_admin: true }
-    );
-
-    if (!hasPermission) {
+    if (!hasStringPermission(session.user.role, 'manage_ai_insights')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -57,3 +50,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

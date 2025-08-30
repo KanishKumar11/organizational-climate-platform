@@ -15,7 +15,7 @@ interface TypographyProps {
   variant?: TypographyVariant;
   className?: string;
   children: React.ReactNode;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
 }
 
 /**
@@ -27,10 +27,11 @@ export function Typography({
   children,
   as: Component = 'p',
 }: TypographyProps) {
+  const ComponentElement = Component as React.ElementType;
   return (
-    <Component className={getTypographyClasses(variant, className)}>
+    <ComponentElement className={getTypographyClasses(variant, className)}>
       {children}
-    </Component>
+    </ComponentElement>
   );
 }
 

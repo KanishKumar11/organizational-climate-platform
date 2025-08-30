@@ -236,19 +236,28 @@ export async function GET(request: NextRequest) {
     // Group data by month
     const monthlyEngagement = new Map();
 
-    engagementData.forEach((r) => {
-      const monthKey = new Date(r.created_at).toISOString().substring(0, 7); // YYYY-MM
-      if (!monthlyEngagement.has(monthKey)) {
-        monthlyEngagement.set(monthKey, {
-          scores: [],
-          responses: 0,
-          date: new Date(r.created_at),
-        });
-      }
-      const score = typeof r.response_value === 'number' ? r.response_value : 5;
-      monthlyEngagement.get(monthKey).scores.push(score);
-      monthlyEngagement.get(monthKey).responses++;
-    });
+    engagementData
+      .flatMap((r) => 
+        (r.responses || []).map((qr) => ({
+          ...qr,
+          created_at: r.created_at,
+          survey_id: r.survey_id,
+          user_id: r.user_id,
+        }))
+      )
+      .forEach((r) => {
+        const monthKey = new Date(r.created_at).toISOString().substring(0, 7); // YYYY-MM
+        if (!monthlyEngagement.has(monthKey)) {
+          monthlyEngagement.set(monthKey, {
+            scores: [],
+            responses: 0,
+            date: new Date(r.created_at),
+          });
+        }
+        const score = typeof r.response_value === 'number' ? r.response_value : 5;
+        monthlyEngagement.get(monthKey).scores.push(score);
+        monthlyEngagement.get(monthKey).responses++;
+      });
 
     // Calculate monthly averages and trends
     const monthlyTrends = Array.from(monthlyEngagement.entries())
@@ -325,3 +334,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

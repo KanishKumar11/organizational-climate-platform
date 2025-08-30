@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
@@ -36,7 +36,8 @@ export async function GET(request: NextRequest) {
       query.category = category;
     }
 
-    const templates = await ActionPlanTemplate.find(query)
+    const templates = await (ActionPlanTemplate as any)
+      .find(query)
       .sort({ usage_count: -1, created_at: -1 })
       .populate('created_by', 'name email');
 
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
@@ -133,3 +134,5 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+

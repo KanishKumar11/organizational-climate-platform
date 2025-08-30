@@ -173,25 +173,27 @@ DepartmentSchema.statics.findByLevel = function (
 // Pre-save middleware to update hierarchy path
 DepartmentSchema.pre('save', async function (next) {
   if (this.isModified('hierarchy.parent_department_id') || this.isNew) {
-    if (this.hierarchy.parent_department_id) {
-      const parent = await this.constructor.findById(
-        this.hierarchy.parent_department_id
+    const doc = this as unknown as IDepartment;
+    if (doc.hierarchy.parent_department_id) {
+      const parent = await (this.constructor as mongoose.Model<IDepartment>).findById(
+        doc.hierarchy.parent_department_id
       );
       if (parent) {
-        this.hierarchy.level = parent.hierarchy.level + 1;
-        this.hierarchy.path = `${parent.hierarchy.path}/${this.name.toLowerCase().replace(/\s+/g, '-')}`;
+        doc.hierarchy.level = parent.hierarchy.level + 1;
+        doc.hierarchy.path = `${parent.hierarchy.path}/${doc.name.toLowerCase().replace(/\s+/g, '-')}`;
       }
     } else {
-      this.hierarchy.level = 0;
-      this.hierarchy.path = this.name.toLowerCase().replace(/\s+/g, '-');
+      doc.hierarchy.level = 0;
+      doc.hierarchy.path = doc.name.toLowerCase().replace(/\s+/g, '-');
     }
   }
   next();
 });
 
-const Department =
-  mongoose.models.Department ||
-  mongoose.model<IDepartment>('Department', DepartmentSchema);
+const Department = (mongoose.models.Department ||
+  mongoose.model<IDepartment>('Department', DepartmentSchema)) as mongoose.Model<IDepartment>;
 
 export default Department;
 export { Department };
+
+

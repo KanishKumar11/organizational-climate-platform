@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     // Apply company scoping for non-super admins
     if (session.user.role !== 'super_admin') {
-      filter.company_id = session.user.company_id;
+      filter.company_id = session.user.companyId;
     }
 
     const invitations = await SurveyInvitation.find(filter)
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -149,3 +149,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

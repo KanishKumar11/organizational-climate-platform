@@ -20,6 +20,7 @@ export function useAuth() {
         companyId: session.user.companyId,
         departmentId: session.user.departmentId,
         isActive: session.user.isActive,
+        image: session.user.image,
       }
     : null;
 
@@ -96,3 +97,5 @@ export function useAuth() {
     canExportReports,
   };
 }
+
+

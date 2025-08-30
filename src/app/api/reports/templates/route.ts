@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       default_filters,
       is_system_template: false,
       created_by: session.user.id,
-      company_id: session.user.company_id,
+      company_id: session.user.companyId,
     };
 
     // In a real implementation, you would save this to a database
@@ -83,3 +83,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

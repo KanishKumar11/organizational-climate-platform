@@ -392,13 +392,14 @@ MicroclimateSchema.statics.findByDepartment = function (departmentId: string) {
 
 // Pre-save middleware to update participation rate
 MicroclimateSchema.pre('save', function (next) {
-  this.participation_rate = this.calculateParticipationRate();
+  (this as unknown as IMicroclimate).participation_rate = (this as unknown as IMicroclimate).calculateParticipationRate();
   next();
 });
 
-const Microclimate =
-  mongoose.models.Microclimate ||
-  mongoose.model<IMicroclimate>('Microclimate', MicroclimateSchema);
+const Microclimate = (mongoose.models.Microclimate ||
+  mongoose.model<IMicroclimate>('Microclimate', MicroclimateSchema)) as mongoose.Model<IMicroclimate>;
 
 export default Microclimate;
 export { Microclimate };
+
+

@@ -202,7 +202,6 @@ export default function ChartsDemo() {
               <CardContent>
                 <AnimatedBarChart
                   data={barChartData}
-                  title="Department Satisfaction Scores"
                   color="#3B82F6"
                 />
               </CardContent>
@@ -214,8 +213,11 @@ export default function ChartsDemo() {
               </CardHeader>
               <CardContent>
                 <AnimatedLineChart
-                  data={lineChartData}
-                  title="Engagement Trend Over Time"
+                  data={lineChartData.map((point, index) => ({
+                    x: index,
+                    y: point.value,
+                    label: point.name,
+                  }))}
                   color="#10B981"
                 />
               </CardContent>

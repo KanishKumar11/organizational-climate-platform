@@ -53,14 +53,16 @@ export const authOptions: NextAuthOptions = {
           console.log('Attempting credentials login for:', credentials.email);
 
           // Find user by email (include password_hash for verification)
-          const user = await User.findOne(
-            {
-              email: credentials.email.toLowerCase(),
-              is_active: true,
-            },
-            null,
-            { skipPrivacy: true }
-          ).select('+password_hash');
+          const user = await (User as any)
+            .findOne(
+              {
+                email: credentials.email.toLowerCase(),
+                is_active: true,
+              },
+              null,
+              { skipPrivacy: true }
+            )
+            .select('+password_hash');
 
           if (!user) {
             console.log('User not found:', credentials.email);
@@ -134,7 +136,7 @@ export const authOptions: NextAuthOptions = {
         providerAccountId: account?.providerAccountId,
       });
       console.log('Profile:', {
-        id: (profile as unknown)?.id || (profile as unknown)?.sub,
+        id: (profile as any)?.id || (profile as any)?.sub,
         name: profile?.name,
         email: profile?.email,
       });
@@ -154,7 +156,7 @@ export const authOptions: NextAuthOptions = {
         console.log('Extracted domain:', domain);
 
         // Find company by domain
-        let company = await Company.findOne({
+        let company = await (Company as any).findOne({
           domain: domain.toLowerCase(),
           is_active: true,
         });
@@ -169,7 +171,7 @@ export const authOptions: NextAuthOptions = {
         if (!company) {
           console.log('Creating new company for domain:', domain);
           try {
-            company = await Company.create({
+            company = await (Company as any).create({
               name: `${domain.charAt(0).toUpperCase() + domain.slice(1)} Organization`,
               domain: domain.toLowerCase(),
               industry: 'General',
@@ -186,7 +188,7 @@ export const authOptions: NextAuthOptions = {
           } catch (companyError) {
             console.error('Error creating company:', companyError);
             // Try to find the company again in case it was created by another request
-            company = await Company.findOne({
+            company = await (Company as any).findOne({
               domain: domain.toLowerCase(),
               is_active: true,
             });
@@ -204,7 +206,7 @@ export const authOptions: NextAuthOptions = {
         const searchEmail = user.email.toLowerCase();
         console.log('Searching for user with email:', searchEmail);
 
-        let existingUser = await User.findOne(
+        let existingUser = await (User as any).findOne(
           {
             email: searchEmail,
           },
@@ -227,9 +229,11 @@ export const authOptions: NextAuthOptions = {
         console.log('Total users in database:', userCount);
 
         // Let's also try to find any user with similar email
-        const similarUsers = await User.find({
-          email: { $regex: searchEmail.split('@')[0], $options: 'i' },
-        }).limit(5);
+        const similarUsers = await (User as any)
+          .find({
+            email: { $regex: searchEmail.split('@')[0], $options: 'i' },
+          })
+          .limit(5);
         console.log(
           'Similar users found:',
           similarUsers.map((u) => ({ email: u.email, id: u._id }))
@@ -239,7 +243,7 @@ export const authOptions: NextAuthOptions = {
           console.log('Creating new user for email:', user.email);
           try {
             // Create new user with default employee role
-            existingUser = await User.create({
+            existingUser = await (User as any).create({
               name: user.name || 'Unknown User',
               email: user.email.toLowerCase(),
               role: 'employee',
@@ -255,7 +259,7 @@ export const authOptions: NextAuthOptions = {
           } catch (userError) {
             console.error('Error creating user:', userError);
             // Try to find the user again in case it was created by another request
-            existingUser = await User.findOne(
+            existingUser = await (User as any).findOne(
               {
                 email: user.email.toLowerCase(),
               },
@@ -269,7 +273,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Log user creation
-          await AuditLog.create({
+          await (AuditLog as any).create({
             user_id: existingUser._id.toString(),
             company_id: company._id.toString(),
             action: 'create',
@@ -290,7 +294,7 @@ export const authOptions: NextAuthOptions = {
         await existingUser.save();
 
         // Log successful login
-        await AuditLog.create({
+        await (AuditLog as any).create({
           user_id: existingUser._id.toString(),
           company_id: existingUser.company_id,
           action: 'login',
@@ -325,7 +329,7 @@ export const authOptions: NextAuthOptions = {
         // Ensure MongoDB connection is established
         await connectDB();
         // Fetch user data from our database
-        const dbUser = await User.findOne(
+        const dbUser = await (User as any).findOne(
           { email: user.email.toLowerCase() },
           null,
           { skipPrivacy: true }
@@ -364,7 +368,7 @@ export const authOptions: NextAuthOptions = {
       if (token?.userId && token?.companyId) {
         try {
           // Log successful logout
-          await AuditLog.create({
+          await (AuditLog as any).create({
             user_id: token.userId,
             company_id: token.companyId,
             action: 'logout',
@@ -395,7 +399,13 @@ export async function getCurrentUser() {
     return null;
   }
 
-  return await User.findOne({ email: session.user.email.toLowerCase() }, null, {
-    skipPrivacy: true,
-  });
+  return await (User as any).findOne(
+    { email: session.user.email.toLowerCase() },
+    null,
+    {
+      skipPrivacy: true,
+    }
+  );
 }
+
+

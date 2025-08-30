@@ -89,7 +89,7 @@ export default function RealTimeChartContainer({
       }
       transition={
         hasUpdate && isRealTime
-          ? realTimePresets.newResponse.transition
+          ? (realTimePresets.newResponse.transition as any)
           : undefined
       }
     >
@@ -107,7 +107,7 @@ export default function RealTimeChartContainer({
             {isRealTime && (
               <motion.div
                 className="flex items-center space-x-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium"
-                {...realTimeAnimations.livePulse}
+                {...(realTimeAnimations.livePulse as any)}
               >
                 <motion.div
                   className="w-2 h-2 bg-green-500 rounded-full"
@@ -117,7 +117,7 @@ export default function RealTimeChartContainer({
                   transition={{
                     duration: 1.5,
                     repeat: Infinity,
-                    ease: 'easeInOut',
+                    ease: 'easeInOut' as any,
                   }}
                 />
                 <span>LIVE</span>
@@ -161,7 +161,7 @@ export default function RealTimeChartContainer({
         {showUpdateNotification && (
           <motion.div
             className="absolute top-2 right-2 z-10"
-            {...realTimeAnimations.newDataNotification}
+            {...(realTimeAnimations.newDataNotification as any)}
           >
             <Badge className={`${getUpdateColor()} shadow-lg`}>
               <motion.div
@@ -172,7 +172,7 @@ export default function RealTimeChartContainer({
                 transition={{
                   duration: 0.5,
                   repeat: 2,
-                  ease: 'easeInOut',
+                  ease: 'easeInOut' as any,
                 }}
               >
                 {getUpdateIcon()}

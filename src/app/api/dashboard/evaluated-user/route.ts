@@ -27,7 +27,7 @@ export const GET = withApiMiddleware(async (request: NextRequest) => {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  const userId = user._id;
+  const userId = user._id.toString();
   const departmentId = user.department_id;
   const companyId = user.company_id;
 
@@ -100,8 +100,8 @@ export const GET = withApiMiddleware(async (request: NextRequest) => {
     user: {
       name: user.name,
       email: user.email,
-      department: user.department_id?.name,
-      company: user.company_id?.name,
+      department: (user.department_id as any)?.name,
+      company: (user.company_id as any)?.name,
       role: user.role,
     },
     engagementMetrics,
@@ -227,3 +227,5 @@ function calculateUserCompletionRate(
   const completed = Math.floor(Math.random() * totalAssigned) + 1;
   return (completed / totalAssigned) * 100;
 }
+
+

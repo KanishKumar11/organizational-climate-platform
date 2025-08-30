@@ -307,7 +307,7 @@ View Action Plan: {{actionPlanLink}}`,
   ];
 
   for (const templateData of templates) {
-    const existingTemplate = await NotificationTemplate.findOne({
+    const existingTemplate = await (NotificationTemplate as any).findOne({
       type: templateData.type,
       channel: templateData.channel,
       is_default: true,
@@ -335,3 +335,5 @@ if (require.main === module) {
       process.exit(1);
     });
 }
+
+

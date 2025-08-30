@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
 import { IReport } from '@/models/Report';
-import { AIInsight } from '@/models/AIInsight';
+import { IAIInsight } from '@/models/AIInsight';
 
 export interface ExportOptions {
   format: 'pdf' | 'excel' | 'csv';
@@ -32,7 +32,7 @@ export class ExportService {
    * Export report to PDF with charts and executive summary
    */
   async exportToPDF(
-    report: Report,
+    report: IReport,
     options: ExportOptions,
     executiveSummary?: ExecutiveSummary
   ): Promise<Buffer> {
@@ -54,7 +54,7 @@ export class ExportService {
     // Title
     pdf.setFontSize(20);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(report.title, 20, yPosition);
+    pdf.text(report.title || 'Report', 20, yPosition);
     yPosition += 15;
 
     // Report metadata
@@ -62,7 +62,7 @@ export class ExportService {
     pdf.setFont('helvetica', 'normal');
     pdf.text(`Generated: ${new Date().toLocaleDateString()}`, 20, yPosition);
     pdf.text(
-      `Period: ${report.dateRange.start} - ${report.dateRange.end}`,
+      `Period: ${report.dateRange?.start || 'N/A'} - ${report.dateRange?.end || 'N/A'}`,
       20,
       yPosition + 5
     );
@@ -101,7 +101,7 @@ export class ExportService {
    * Export report to Excel with multiple sheets
    */
   async exportToExcel(
-    report: Report,
+    report: IReport,
     options: ExportOptions,
     executiveSummary?: ExecutiveSummary
   ): Promise<Buffer> {
@@ -132,8 +132,8 @@ export class ExportService {
       ['Report Title', report.title],
       ['Generated', new Date().toISOString()],
       ['Date Range', `${report.dateRange.start} - ${report.dateRange.end}`],
-      ['Company', report.companyId],
-      ['Created By', report.createdBy],
+      ['Company', report.company_id],
+      ['Created By', report.created_by],
     ]);
     XLSX.utils.book_append_sheet(workbook, metadataSheet, 'Metadata');
 
@@ -145,13 +145,13 @@ export class ExportService {
   /**
    * Export report to CSV
    */
-  async exportToCSV(report: Report, options: ExportOptions): Promise<Buffer> {
+  async exportToCSV(report: IReport, options: ExportOptions): Promise<Buffer> {
     let csvContent = '';
 
     // Header
-    csvContent += `Report: ${report.title}\n`;
+    csvContent += `Report: ${report.title || 'Report'}\n`;
     csvContent += `Generated: ${new Date().toISOString()}\n`;
-    csvContent += `Period: ${report.dateRange.start} - ${report.dateRange.end}\n\n`;
+    csvContent += `Period: ${report.dateRange?.start || 'N/A'} - ${report.dateRange?.end || 'N/A'}\n\n`;
 
     // Data from each section
     for (const sectionName of options.sections) {
@@ -334,10 +334,10 @@ export class ExportService {
     return data;
   }
 
-  private extractKeyMetrics(report: Report): Record<string, any> {
+  private extractKeyMetrics(report: IReport): Record<string, any> {
     const metrics: Record<string, any> = {};
 
-    for (const section of report.sections) {
+    for (const section of report.sections || []) {
       if (section.metrics) {
         Object.assign(metrics, section.metrics);
       }
@@ -346,7 +346,7 @@ export class ExportService {
     return metrics;
   }
 
-  private identifyPatterns(insights: AIInsight[]): string[] {
+  private identifyPatterns(insights: IAIInsight[]): string[] {
     const patterns: string[] = [];
 
     // Group insights by category
@@ -358,12 +358,13 @@ export class ExportService {
         acc[insight.category].push(insight);
         return acc;
       },
-      {} as Record<string, AIInsight[]>
+      {} as Record<string, IAIInsight[]>
     );
 
     // Identify patterns within categories
     for (const [category, categoryInsights] of Object.entries(categories)) {
-      if (categoryInsights.length > 1) {
+      const insights = categoryInsights as IAIInsight[];
+      if (insights.length > 1) {
         patterns.push(
           `Multiple ${category} insights detected across different segments`
         );
@@ -374,14 +375,14 @@ export class ExportService {
   }
 
   private generateOverview(
-    report: Report,
+    report: IReport,
     metrics: Record<string, any>
   ): string {
     const responseCount = metrics.totalResponses || 0;
     const engagementScore = metrics.averageEngagement || 0;
 
     return (
-      `This report analyzes organizational climate data from ${report.dateRange.start} to ${report.dateRange.end}. ` +
+      `This report analyzes organizational climate data from ${report.dateRange?.start || 'N/A'} to ${report.dateRange?.end || 'N/A'}. ` +
       `Based on ${responseCount} responses, the overall engagement score is ${engagementScore.toFixed(1)}%. ` +
       `The analysis reveals key insights across multiple organizational dimensions including culture, ` +
       `communication, and leadership effectiveness.`
@@ -410,7 +411,7 @@ export class ExportService {
     return findings.slice(0, 5); // Limit to top 5 findings
   }
 
-  private generateRecommendations(insights: AIInsight[]): string[] {
+  private generateRecommendations(insights: IAIInsight[]): string[] {
     const recommendations: string[] = [];
 
     // Extract recommendations from high-priority insights
@@ -427,7 +428,7 @@ export class ExportService {
     return recommendations;
   }
 
-  private generateNextSteps(insights: AIInsight[]): string[] {
+  private generateNextSteps(insights: IAIInsight[]): string[] {
     const nextSteps: string[] = [
       'Review and discuss findings with leadership team',
       'Prioritize action items based on impact and feasibility',
@@ -450,8 +451,8 @@ export class ExportService {
   }
 
   private calculateConfidenceScore(
-    report: Report,
-    insights: AIInsight[]
+    report: IReport,
+    insights: IAIInsight[]
   ): number {
     let totalConfidence = 0;
     let count = 0;
@@ -463,7 +464,7 @@ export class ExportService {
     }
 
     // Factor in data quality (response rate, completeness)
-    const responseRate = report.metadata?.responseRate || 0.5;
+    const responseRate = (report.metadata as any)?.responseRate || 0.5;
     const dataQualityScore = Math.min(responseRate * 100, 100);
 
     if (count === 0) return dataQualityScore;
@@ -476,3 +477,5 @@ export class ExportService {
 }
 
 export const exportService = new ExportService();
+
+

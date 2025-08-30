@@ -159,16 +159,16 @@ async function getRecentActivity() {
     ...recentSurveys.map((survey) => ({
       type: 'survey_created',
       title: `Survey "${survey.title}" created`,
-      description: `${survey.type} survey by ${survey.created_by?.name}`,
+      description: `${survey.type} survey by ${(survey.created_by as any)?.name}`,
       timestamp: survey.created_at,
-      company: survey.company_id?.name,
+      company: (survey.company_id as any)?.name,
     })),
     ...recentUsers.map((user) => ({
       type: 'user_registered',
       title: `New ${user.role} registered`,
-      description: `${user.name} joined ${user.company_id?.name}`,
+      description: `${user.name} joined ${(user.company_id as any)?.name}`,
       timestamp: user.created_at,
-      company: user.company_id?.name,
+      company: (user.company_id as any)?.name,
     })),
     ...recentCompanies.map((company) => ({
       type: 'company_created',
@@ -192,3 +192,5 @@ function calculateGrowthRate(current: number, type: string): number {
   // this would compare with previous period data
   return Math.random() * 20 + 5; // 5-25% growth
 }
+
+

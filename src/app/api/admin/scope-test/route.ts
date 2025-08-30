@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userRole = token.user.role;
+    const userRole = (token.user as any).role;
     if (userRole !== 'super_admin') {
       return NextResponse.json(
         { error: 'Insufficient permissions - Super Admin required' },
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userRole = token.user.role;
+    const userRole = (token.user as any).role;
     if (userRole !== 'super_admin') {
       return NextResponse.json(
         { error: 'Insufficient permissions - Super Admin required' },
@@ -136,3 +136,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

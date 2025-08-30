@@ -236,7 +236,7 @@ export default function GapAnalysisReport({
             <KPIDisplay
               title="Overall Score"
               value={gapAnalysis.overall_score}
-              unit="%"
+              suffix="%"
               trend={
                 gapAnalysis.overall_score >= 75
                   ? 'up'
@@ -248,30 +248,30 @@ export default function GapAnalysisReport({
                 gapAnalysis.overall_score >= 75
                   ? 'green'
                   : gapAnalysis.overall_score >= 50
-                    ? 'yellow'
-                    : 'red'
+                    ? 'orange'
+                    : 'purple'
               }
             />
             <KPIDisplay
               title="Above Benchmark"
               value={gapAnalysis.above_benchmark}
-              unit="metrics"
+              suffix=" metrics"
               trend="up"
               color="green"
             />
             <KPIDisplay
               title="At Benchmark"
               value={gapAnalysis.at_benchmark}
-              unit="metrics"
+              suffix=" metrics"
               trend="stable"
               color="blue"
             />
             <KPIDisplay
               title="Below Benchmark"
               value={gapAnalysis.below_benchmark}
-              unit="metrics"
+              suffix=" metrics"
               trend="down"
-              color="red"
+              color="purple"
             />
           </div>
 

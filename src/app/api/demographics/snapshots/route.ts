@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import DemographicVersioningService from '../../../../lib/demographic-versioning';
 import { validatePermissions } from '../../../../lib/permissions';
 
@@ -27,8 +27,7 @@ export async function GET(request: NextRequest) {
     const hasPermission = await validatePermissions(
       session.user.id,
       'read',
-      'demographic_snapshots',
-      { company_id: companyId }
+      companyId
     );
 
     if (!hasPermission) {
@@ -73,8 +72,7 @@ export async function POST(request: NextRequest) {
     const hasPermission = await validatePermissions(
       session.user.id,
       'create',
-      'demographic_snapshots',
-      { company_id }
+      company_id
     );
 
     if (!hasPermission) {
@@ -104,3 +102,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

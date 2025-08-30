@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const hasPermission = await validatePermissions(
       session.user.id,
       'benchmark:read',
-      session.user.company_id
+      session.user.companyId
     );
 
     if (!hasPermission) {
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     const hasPermission = await validatePermissions(
       session.user.id,
       'benchmark:create',
-      session.user.company_id
+      session.user.companyId
     );
 
     if (!hasPermission) {
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
         name,
         description,
         session.user.id,
-        session.user.company_id
+        session.user.companyId
       );
     } else {
       // Create benchmark with provided metrics
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         company_size,
         region,
         created_by: session.user.id,
-        company_id: type === 'internal' ? session.user.company_id : undefined,
+        company_id: type === 'internal' ? session.user.companyId : undefined,
         metrics,
       });
     }
@@ -149,3 +149,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

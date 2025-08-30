@@ -89,6 +89,14 @@ export async function POST(request: NextRequest) {
 
     // Prepare text data with dates and metadata
     const textData = responses
+      .flatMap((r) => 
+        (r.responses || []).map((qr) => ({
+          ...qr,
+          created_at: r.created_at,
+          survey_id: r.survey_id,
+          user_id: r.user_id,
+        }))
+      )
       .map((r) => {
         if (
           typeof r.response_value === 'string' &&
@@ -101,7 +109,7 @@ export async function POST(request: NextRequest) {
               surveyId: r.survey_id,
               userId: r.user_id,
               questionId: r.question_id,
-              category: r.category,
+              // category: r.category, // Removed as category doesn't exist on flattened response
             },
           };
         }
@@ -184,3 +192,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

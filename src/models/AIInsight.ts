@@ -88,12 +88,13 @@ AIInsightSchema.index({ category: 1, type: 1 });
 
 // Virtual for ID
 AIInsightSchema.virtual('id').get(function () {
-  return this._id.toHexString();
+  return (this._id as mongoose.Types.ObjectId).toHexString();
 });
 
-const AIInsight =
-  mongoose.models.AIInsight ||
-  mongoose.model<IAIInsight>('AIInsight', AIInsightSchema);
+const AIInsight = (mongoose.models.AIInsight ||
+  mongoose.model<IAIInsight>('AIInsight', AIInsightSchema)) as mongoose.Model<IAIInsight>;
 
 export default AIInsight;
 export { AIInsight };
+
+

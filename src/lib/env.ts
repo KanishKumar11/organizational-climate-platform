@@ -38,3 +38,5 @@ export function validateEnv() {
 // Check if we're in development mode
 export const isDevelopment = env.NODE_ENV === 'development';
 export const isProduction = env.NODE_ENV === 'production';
+
+

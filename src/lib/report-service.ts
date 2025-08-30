@@ -5,6 +5,7 @@ import {
   ReportType,
   ReportFormat,
 } from '@/models/Report';
+import Report from '@/models/Report';
 import { ISurvey } from '@/models/Survey';
 import { IResponse } from '@/models/Response';
 import { IAnalyticsInsight, IAIInsight } from '@/models/Analytics';
@@ -88,7 +89,7 @@ export class ReportService {
     }
 
     // Fetch surveys
-    const surveys = await Survey.find(surveyQuery).lean();
+    const surveys = await (Survey as any).find(surveyQuery).lean();
     const surveyIds = surveys.map((s) => s._id.toString());
 
     // Build response query
@@ -122,14 +123,16 @@ export class ReportService {
     }
 
     // Fetch responses
-    const responses = await Response.find(responseQuery).lean();
+    const responses = await (Response as any).find(responseQuery).lean();
 
     // Fetch analytics insights
     const analyticsQuery: any = { company_id: companyId, is_current: true };
     if (surveyIds.length) {
       analyticsQuery.survey_id = { $in: surveyIds };
     }
-    const analytics = await AnalyticsInsight.find(analyticsQuery).lean();
+    const analytics = await (AnalyticsInsight as any)
+      .find(analyticsQuery)
+      .lean();
 
     // Fetch AI insights if configured
     let ai_insights: IAIInsight[] = [];
@@ -144,15 +147,17 @@ export class ReportService {
           $lte: filters.time_filter.end_date,
         };
       }
-      ai_insights = await AIInsight.find(aiQuery).lean();
+      ai_insights = await (AIInsight as any).find(aiQuery).lean();
     }
 
     // Fetch benchmarks if needed
     let benchmarks: IBenchmark[] = [];
     if (filters.benchmark_ids?.length) {
-      benchmarks = await Benchmark.find({
-        _id: { $in: filters.benchmark_ids },
-      }).lean();
+      benchmarks = await (Benchmark as any)
+        .find({
+          _id: { $in: filters.benchmark_ids },
+        })
+        .lean();
     }
 
     // Fetch users for demographic analysis
@@ -164,7 +169,10 @@ export class ReportService {
           $in: filters.department_filter.department_ids,
         };
       }
-      users = await User.find(userQuery).select('-password_hash').lean();
+      users = await (User as any)
+        .find(userQuery)
+        .select('-password_hash')
+        .lean();
     }
 
     // Generate metadata
@@ -304,7 +312,7 @@ export class ReportService {
       .filter((insight) => insight.category === 'sentiment')
       .reduce(
         (acc, insight) => {
-          const sentiment = insight.supporting_data?.sentiment || 'neutral';
+          const sentiment = (insight.supporting_data?.sentiment as string) || 'neutral';
           acc[sentiment] = (acc[sentiment] || 0) + 1;
           return acc;
         },
@@ -507,9 +515,9 @@ export class ReportService {
         }
 
         acc[response.department_id].total_responses += 1;
-        if (response.numeric_value) {
+        if ((response as any).numeric_value) {
           acc[response.department_id].sentiment_scores.push(
-            response.numeric_value
+            (response as any).numeric_value
           );
         }
 
@@ -691,8 +699,8 @@ export class ReportService {
 
     // Calculate engagement score
     const engagementScores = reportData.responses
-      .filter((r) => r.numeric_value !== undefined)
-      .map((r) => r.numeric_value!);
+      .filter((r) => (r as any).numeric_value !== undefined)
+      .map((r) => (r as any).numeric_value!);
 
     if (engagementScores.length > 0) {
       metrics.engagement =
@@ -711,7 +719,7 @@ export class ReportService {
     if (sentimentInsights.length > 0) {
       const sentimentScores = sentimentInsights
         .map((insight) => insight.supporting_data?.sentiment_score)
-        .filter((score) => score !== undefined);
+        .filter((score) => score !== undefined) as number[];
       if (sentimentScores.length > 0) {
         metrics.sentiment =
           sentimentScores.reduce((sum, score) => sum + score, 0) /
@@ -891,7 +899,59 @@ export class ReportService {
       },
     ];
   }
+
+  /**
+   * Get a report by ID with permission checking
+   */
+  async getReport(reportId: string, userId: string): Promise<IReport | null> {
+    try {
+      const report = await Report.findById(reportId);
+      if (!report) return null;
+
+      // Check if user has access to this report
+      if (report.created_by.toString() !== userId) {
+        // Additional permission checks can be added here
+        return null;
+      }
+
+      return report;
+    } catch (error) {
+      console.error('Error fetching report:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get a report by ID without permission checking (for internal use)
+   */
+  async getReportById(reportId: string): Promise<IReport | null> {
+    try {
+      return await Report.findById(reportId);
+    } catch (error) {
+      console.error('Error fetching report by ID:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Log activity for a report
+   */
+  async logActivity(activity: {
+    reportId: string;
+    userId: string;
+    action: string;
+    details?: any;
+  }): Promise<void> {
+    try {
+      // This could be implemented to log to a database or external service
+      console.log('Report activity logged:', activity);
+    } catch (error) {
+      console.error('Error logging report activity:', error);
+    }
+  }
 }
 
 // Export a default instance for convenience
 export const reportService = new ReportService();
+
+

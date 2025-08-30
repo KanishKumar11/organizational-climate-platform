@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Template, Search, Star, Users } from 'lucide-react';
+import { FileText, Search, Star, Users } from 'lucide-react';
 
 interface ActionPlanTemplate {
   id: string;
@@ -98,14 +98,14 @@ export function TemplateSelector({
           onClick={() => setShowTemplates(!showTemplates)}
           className="flex items-center"
         >
-          <Template className="w-4 h-4 mr-2" />
+          <FileText className="w-4 h-4 mr-2" />
           {showTemplates ? 'Hide Templates' : 'Browse Templates'}
         </Button>
 
         {selected && (
           <div className="flex items-center space-x-2">
             <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              <Template className="w-3 h-3 mr-1" />
+              <FileText className="w-3 h-3 mr-1" />
               {selected.name}
             </Badge>
             <Button
@@ -262,7 +262,7 @@ export function TemplateSelector({
 
             {!loading && filteredTemplates.length === 0 && (
               <div className="text-center py-8 text-gray-500">
-                <Template className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                 <p>No templates found</p>
                 <p className="text-sm">
                   Try adjusting your search or category filter

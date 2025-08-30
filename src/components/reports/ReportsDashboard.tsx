@@ -3,7 +3,14 @@
 import React, { useState } from 'react';
 import ReportList from './ReportList';
 import ReportBuilder from './ReportBuilder';
-import ReportViewer from './ReportViewer';
+import { ReportViewer } from './ReportViewer';
+
+interface Recommendation {
+  title: string;
+  description: string;
+  impact: string;
+  effort: string;
+}
 
 interface Report {
   _id: string;
@@ -18,6 +25,19 @@ interface Report {
   download_count: number;
   expires_at?: string;
   shared_with?: string[];
+  recommendations?: Recommendation[];
+  comparative_analysis?: any;
+}
+
+interface ReportGenerationData {
+  title: string;
+  description?: string;
+  type: string;
+  filters: any;
+  config: any;
+  format: string;
+  comparison_type?: string;
+  comparative_analysis?: any;
 }
 
 type ViewMode = 'list' | 'create' | 'view';
@@ -36,7 +56,7 @@ export default function ReportsDashboard() {
     setViewMode('view');
   };
 
-  const handleGenerateReport = async (reportData: unknown) => {
+  const handleGenerateReport = async (reportData: ReportGenerationData) => {
     try {
       // If comparative analysis is requested, use the comparative analysis endpoint
       if (reportData.comparison_type) {
@@ -116,8 +136,6 @@ export default function ReportsDashboard() {
         {viewMode === 'view' && selectedReport && (
           <ReportViewer
             report={selectedReport}
-            onBack={handleBackToList}
-            onEdit={() => setViewMode('create')}
           />
         )}
       </div>

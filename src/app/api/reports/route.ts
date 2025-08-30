@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       // Super admin can see all reports
     } else {
       // Other roles see only their company's reports
-      query.company_id = session.user.company_id;
+      query.company_id = session.user.companyId;
     }
 
     if (type) query.type = type;
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       title,
       description,
       type,
-      company_id: session.user.company_id,
+      company_id: session.user.companyId,
       created_by: session.user.id,
       template_id,
       filters,
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
           const reportData = await ReportService.generateReportData(
             filters,
             config,
-            session.user.company_id
+            session.user.companyId
           );
 
           // In a real implementation, you would generate the actual file here
@@ -183,3 +183,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

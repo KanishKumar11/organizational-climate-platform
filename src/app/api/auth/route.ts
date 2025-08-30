@@ -6,3 +6,5 @@ export async function GET() {
 export async function POST() {
   return Response.json({ message: "Auth API endpoint" });
 }
+
+

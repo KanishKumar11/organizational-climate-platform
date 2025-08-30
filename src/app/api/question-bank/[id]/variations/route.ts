@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import QuestionBank from '@/models/QuestionBank';
 import { connectDB } from '@/lib/db';
-import { hasPermission } from '@/lib/permissions';
+import { hasPermission, hasStringPermission } from '@/lib/permissions';
 
 // GET /api/question-bank/[id]/variations - Get all variations of a question
 export async function GET(
@@ -74,7 +74,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!hasPermission(session.user.role, 'manage_questions')) {
+    if (!hasStringPermission(session.user.role, 'manage_questions')) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }

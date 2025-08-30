@@ -316,7 +316,7 @@ export default function ReportBuilder({
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">{template.name}</h4>
                     {template.is_system_template && (
-                      <Badge variant="secondary" size="sm">
+                      <Badge variant="secondary">
                         System
                       </Badge>
                     )}

@@ -28,7 +28,7 @@ export async function GET(
 
     // Check if user has access to this microclimate
     if (
-      microclimate.company_id !== session.user.company_id &&
+      microclimate.company_id !== session.user.companyId &&
       session.user.role !== 'super_admin'
     ) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
@@ -92,7 +92,7 @@ export async function POST(
 
     // Check if user has access to this microclimate
     if (
-      microclimate.company_id !== session.user.company_id &&
+      microclimate.company_id !== session.user.companyId &&
       session.user.role !== 'super_admin'
     ) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });

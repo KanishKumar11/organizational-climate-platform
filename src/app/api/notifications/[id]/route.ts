@@ -30,7 +30,7 @@ export async function GET(
     // Check if user has access to this notification
     if (
       notification.user_id !== session.user.id &&
-      notification.company_id !== session.user.company_id
+      notification.company_id !== session.user.companyId
     ) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
@@ -76,7 +76,7 @@ export async function PATCH(
     // Check if user has access to this notification
     if (
       notification.user_id !== session.user.id &&
-      notification.company_id !== session.user.company_id
+      notification.company_id !== session.user.companyId
     ) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
@@ -139,7 +139,7 @@ export async function DELETE(
     // Check if user has access to this notification
     if (
       notification.user_id !== session.user.id &&
-      notification.company_id !== session.user.company_id
+      notification.company_id !== session.user.companyId
     ) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }

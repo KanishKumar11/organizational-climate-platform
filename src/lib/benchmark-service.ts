@@ -89,12 +89,12 @@ export class BenchmarkService {
     if (filter.validation_status)
       query.validation_status = filter.validation_status;
 
-    return await Benchmark.find(query).sort({ created_at: -1 });
+    return await (Benchmark as any).find(query).sort({ created_at: -1 });
   }
 
   static async getBenchmarkById(id: string): Promise<IBenchmark | null> {
     await connectDB();
-    return await Benchmark.findById(id);
+    return await (Benchmark as any).findById(id);
   }
 
   static async updateBenchmark(
@@ -107,7 +107,9 @@ export class BenchmarkService {
       updates.metrics = await this.validateMetrics(updates.metrics);
     }
 
-    return await Benchmark.findByIdAndUpdate(id, updates, { new: true });
+    return await (Benchmark as any).findByIdAndUpdate(id, updates, {
+      new: true,
+    });
   }
 
   static async validateBenchmark(
@@ -116,7 +118,7 @@ export class BenchmarkService {
   ): Promise<IBenchmark | null> {
     await connectDB();
 
-    const benchmark = await Benchmark.findByIdAndUpdate(
+    const benchmark = await (Benchmark as any).findByIdAndUpdate(
       id,
       {
         validation_status: status,
@@ -154,7 +156,7 @@ export class BenchmarkService {
       query.company_size = companySize;
     }
 
-    return await Benchmark.find(query).sort({ quality_score: -1 });
+    return await (Benchmark as any).find(query).sort({ quality_score: -1 });
   }
 
   private static async generateMetricsFromSurveys(
@@ -165,11 +167,11 @@ export class BenchmarkService {
     const metrics: BenchmarkMetric[] = [];
 
     for (const surveyId of surveyIds) {
-      const survey = await Survey.findById(surveyId);
+      const survey = await (Survey as any).findById(surveyId);
       if (!survey) continue;
 
       // Get all responses for this survey
-      const responses = await Response.find({ survey_id: surveyId });
+      const responses = await (Response as any).find({ survey_id: surveyId });
 
       // Calculate engagement rate
       const totalInvited = survey.total_invited || responses.length;
@@ -255,3 +257,5 @@ export class BenchmarkService {
     return Math.min(score, 100);
   }
 }
+
+

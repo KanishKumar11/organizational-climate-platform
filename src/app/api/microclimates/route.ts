@@ -16,7 +16,7 @@ const createMicroclimateSchema = z.object({
     department_ids: z.array(z.string()).min(1),
     role_filters: z.array(z.string()).optional(),
     tenure_filters: z.array(z.string()).optional(),
-    custom_filters: z.record(z.any()).optional(),
+    custom_filters: z.record(z.string(), z.any()).optional(),
     include_managers: z.boolean().default(true),
     max_participants: z.number().min(1).optional(),
   }),
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
     if (session.user.role === 'super_admin') {
       // Super admin can see all microclimates
     } else if (session.user.role === 'company_admin') {
-      query.company_id = session.user.company_id;
+      query.company_id = session.user.companyId;
     } else if (
       session.user.role === 'leader' ||
       session.user.role === 'supervisor'
@@ -96,14 +96,14 @@ export async function GET(request: NextRequest) {
       query.$or = [
         { created_by: session.user.id },
         {
-          company_id: session.user.company_id,
-          'targeting.department_ids': session.user.department_id,
+          company_id: session.user.companyId,
+          'targeting.department_ids': session.user.departmentId,
         },
       ];
     } else {
       // Employees can only see microclimates that target their department
-      query.company_id = session.user.company_id;
-      query['targeting.department_ids'] = session.user.department_id;
+      query.company_id = session.user.companyId;
+      query['targeting.department_ids'] = session.user.departmentId;
     }
 
     // Apply filters
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: 'Validation error', details: error.issues },
         { status: 400 }
       );
     }
@@ -250,3 +250,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

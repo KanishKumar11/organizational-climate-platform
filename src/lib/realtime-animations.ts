@@ -1,4 +1,4 @@
-import { Variants } from 'framer-motion';
+import { Variants, Easing } from 'framer-motion';
 
 // Animation variants for real-time components
 export const realTimeAnimations = {
@@ -246,3 +246,5 @@ export const EASING = {
   BOUNCE: [0.25, 0.25, 0, 1],
   SPRING: { type: 'spring', stiffness: 300, damping: 30 },
 };
+
+

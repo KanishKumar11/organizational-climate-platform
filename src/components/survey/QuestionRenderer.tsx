@@ -193,7 +193,7 @@ export function QuestionRenderer({
                 <motion.div
                   key={item}
                   draggable
-                  onDragStart={(e: React.DragEvent) => handleDragStart(e, item)}
+                  onDragStart={(e: any) => handleDragStart(e, item)}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, item)}
                   className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-move"

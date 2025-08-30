@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       userFilter.department_id = departmentId;
     }
 
-    const teamMembers = await User.find(userFilter).lean();
+    const teamMembers = await (User as any).find(userFilter).lean();
     const teamMemberIds = teamMembers.map((u) => u._id);
 
     if (teamMembers.length === 0) {
@@ -51,36 +51,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get current team performance data (last 3 months)
-    const currentData = await Response.find({
-      user_id: { $in: teamMemberIds },
-      created_at: { $gte: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000) },
-      $or: [
-        {
-          category: {
-            $in: [
-              'collaboration',
-              'communication',
-              'productivity',
-              'innovation',
-            ],
-          },
-        },
-        {
-          question_text: {
-            $regex: /collaborate|communication|productive|innovation|teamwork/i,
-          },
-        },
-      ],
-    }).lean();
-
-    // Get historical performance data
-    let historicalData = [];
-    if (includeHistorical) {
-      historicalData = await Response.find({
+    const currentData = await (Response as any)
+      .find({
         user_id: { $in: teamMemberIds },
         created_at: {
-          $gte: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000),
-          $lt: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000),
+          $gte: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000),
         },
         $or: [
           {
@@ -100,7 +75,39 @@ export async function POST(request: NextRequest) {
             },
           },
         ],
-      }).lean();
+      })
+      .lean();
+
+    // Get historical performance data
+    let historicalData = [];
+    if (includeHistorical) {
+      historicalData = await (Response as any)
+        .find({
+          user_id: { $in: teamMemberIds },
+          created_at: {
+            $gte: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000),
+            $lt: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000),
+          },
+          $or: [
+            {
+              category: {
+                $in: [
+                  'collaboration',
+                  'communication',
+                  'productivity',
+                  'innovation',
+                ],
+              },
+            },
+            {
+              question_text: {
+                $regex:
+                  /collaborate|communication|productive|innovation|teamwork/i,
+              },
+            },
+          ],
+        })
+        .lean();
     }
 
     // Transform data to expected format
@@ -121,7 +128,7 @@ export async function POST(request: NextRequest) {
 
     // Get department info for context
     const department = departmentId
-      ? await Department.findById(departmentId).lean()
+      ? await (Department as any).findById(departmentId).lean()
       : null;
 
     // Prepare context
@@ -204,46 +211,50 @@ export async function GET(request: NextRequest) {
       departmentFilter._id = departmentId;
     }
 
-    const departments = await Department.find(departmentFilter).lean();
+    const departments = await (Department as any).find(departmentFilter).lean();
     const teamPredictions = [];
 
     for (const dept of departments) {
       try {
         // Get team members
-        const teamMembers = await User.find({
-          company_id: companyId,
-          department_id: dept._id,
-        }).lean();
+        const teamMembers = await (User as any)
+          .find({
+            company_id: companyId,
+            department_id: dept._id,
+          })
+          .lean();
 
         if (teamMembers.length === 0) continue;
 
         const teamMemberIds = teamMembers.map((u) => u._id);
 
         // Get recent performance data
-        const performanceData = await Response.find({
-          user_id: { $in: teamMemberIds },
-          created_at: {
-            $gte: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000),
-          },
-          $or: [
-            {
-              category: {
-                $in: [
-                  'collaboration',
-                  'communication',
-                  'productivity',
-                  'innovation',
-                ],
-              },
+        const performanceData = await (Response as any)
+          .find({
+            user_id: { $in: teamMemberIds },
+            created_at: {
+              $gte: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000),
             },
-            {
-              question_text: {
-                $regex:
-                  /collaborate|communication|productive|innovation|teamwork/i,
+            $or: [
+              {
+                category: {
+                  $in: [
+                    'collaboration',
+                    'communication',
+                    'productivity',
+                    'innovation',
+                  ],
+                },
               },
-            },
-          ],
-        }).lean();
+              {
+                question_text: {
+                  $regex:
+                    /collaborate|communication|productive|innovation|teamwork/i,
+                },
+              },
+            ],
+          })
+          .lean();
 
         // Transform and predict
         const transformedData = performanceData.map((r) => ({
@@ -340,3 +351,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

@@ -258,6 +258,20 @@ export class SecurityRateLimiter {
   }
 
   /**
+   * Get max requests limit
+   */
+  getMaxRequests(): number {
+    return this.maxRequests;
+  }
+
+  /**
+   * Get window duration in milliseconds
+   */
+  getWindowMs(): number {
+    return this.windowMs;
+  }
+
+  /**
    * Clear old entries periodically
    */
   cleanup(): void {
@@ -283,7 +297,17 @@ const globalRateLimiter = new SecurityRateLimiter();
  * Rate limiting middleware
  */
 export function withRateLimit(
-  identifier: (req: NextRequest) => string = (req) => req.ip || 'unknown'
+  identifier: (req: NextRequest) => string = (req) => {
+    // Get IP from various headers (prioritize X-Forwarded-For for proxies)
+    const forwarded = req.headers.get('x-forwarded-for');
+    const realIp = req.headers.get('x-real-ip');
+    const clientIp = req.headers.get('x-client-ip');
+    
+    return forwarded?.split(',')[0]?.trim() || 
+           realIp || 
+           clientIp || 
+           'unknown';
+  }
 ) {
   return function <T extends any[]>(
     handler: (...args: T) => Promise<Response> | Response
@@ -297,10 +321,10 @@ export function withRateLimit(
           status: 429,
           headers: {
             'Retry-After': '900', // 15 minutes
-            'X-RateLimit-Limit': globalRateLimiter.maxRequests.toString(),
+            'X-RateLimit-Limit': globalRateLimiter.getMaxRequests().toString(),
             'X-RateLimit-Remaining': '0',
             'X-RateLimit-Reset': (
-              Date.now() + globalRateLimiter.windowMs
+              Date.now() + globalRateLimiter.getWindowMs()
             ).toString(),
           },
         });
@@ -312,7 +336,7 @@ export function withRateLimit(
       if (response instanceof Response) {
         response.headers.set(
           'X-RateLimit-Limit',
-          globalRateLimiter.maxRequests.toString()
+          globalRateLimiter.getMaxRequests().toString()
         );
         response.headers.set(
           'X-RateLimit-Remaining',
@@ -326,3 +350,5 @@ export function withRateLimit(
 }
 
 export default securityMiddleware;
+
+

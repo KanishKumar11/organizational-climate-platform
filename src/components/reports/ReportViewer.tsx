@@ -21,8 +21,49 @@ import {
   Activity,
 } from 'lucide-react';
 
+interface Recommendation {
+  title: string;
+  description: string;
+  impact: string;
+  effort: string;
+}
+
+interface Report {
+  _id: string;
+  id?: string; // Alternative id property
+  title: string;
+  description?: string;
+  type: string;
+  status: 'generating' | 'completed' | 'failed' | 'scheduled';
+  format: string;
+  file_size?: number;
+  generation_completed_at?: string;
+  created_at: string;
+  download_count: number;
+  expires_at?: string;
+  shared_with?: string[];
+  recommendations?: Recommendation[];
+  sections?: any[];
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  metadata?: {
+    responseCount?: number;
+  };
+  metrics?: {
+    engagementScore?: number;
+    responseRate?: number;
+    satisfaction?: number;
+  };
+  demographics?: {
+    departments?: any[];
+  };
+  insights?: any[];
+}
+
 interface ReportViewerProps {
-  report: any;
+  report: Report;
   readonly?: boolean;
 }
 
@@ -229,7 +270,7 @@ export function ReportViewer({ report, readonly = false }: ReportViewerProps) {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">AI Recommendations</h3>
             <div className="space-y-4">
-              {report?.recommendations?.map((rec: unknown, index: number) => (
+              {report?.recommendations?.map((rec: Recommendation, index: number) => (
                 <div key={index} className="border-l-4 border-blue-500 pl-4">
                   <h4 className="font-medium">{rec.title}</h4>
                   <p className="text-gray-700 mt-1">{rec.description}</p>

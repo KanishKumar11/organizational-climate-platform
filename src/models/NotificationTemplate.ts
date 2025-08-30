@@ -30,6 +30,25 @@ export interface INotificationTemplate extends Document {
   created_by: string;
   created_at: Date;
   updated_at: Date;
+  // Instance methods
+  renderContent(variables: Record<string, any>): {
+    title: string;
+    content: string;
+    subject?: string;
+    html_content?: string;
+  };
+  evaluateCondition(condition: string, variables: Record<string, any>): boolean;
+  validateVariables(variables: Record<string, any>): string[];
+}
+
+// Model interface with static methods
+export interface INotificationTemplateModel extends mongoose.Model<INotificationTemplate> {
+  findByTypeAndChannel(
+    type: NotificationType,
+    channel: NotificationChannel,
+    companyId?: string
+  ): Promise<INotificationTemplate | null>;
+  findByCompany(companyId: string): Promise<INotificationTemplate[]>;
 }
 
 // Notification template schema
@@ -276,8 +295,10 @@ NotificationTemplateSchema.methods.validateVariables = function (
   return errors;
 };
 
-export default mongoose.models.NotificationTemplate ||
+export default (mongoose.models.NotificationTemplate ||
   mongoose.model<INotificationTemplate>(
     'NotificationTemplate',
     NotificationTemplateSchema
-  );
+  )) as INotificationTemplateModel;
+
+

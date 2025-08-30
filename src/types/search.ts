@@ -125,3 +125,5 @@ export function isDepartmentResult(
 ): result is SearchResult & { type: 'department' } {
   return result.type === 'department';
 }
+
+

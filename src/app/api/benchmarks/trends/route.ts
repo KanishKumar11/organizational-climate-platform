@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const hasPermission = await validatePermissions(
       session.user.id,
       'benchmark:read',
-      session.user.company_id
+      session.user.companyId
     );
 
     if (!hasPermission) {
@@ -55,3 +55,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

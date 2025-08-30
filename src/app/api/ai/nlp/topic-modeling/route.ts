@@ -74,6 +74,14 @@ export async function POST(request: NextRequest) {
 
     // Extract text content
     const documents = responses
+      .flatMap((r) => 
+        (r.responses || []).map((qr) => ({
+          ...qr,
+          created_at: r.created_at,
+          survey_id: r.survey_id,
+          user_id: r.user_id,
+        }))
+      )
       .map((r) => {
         if (
           typeof r.response_value === 'string' &&
@@ -179,18 +187,27 @@ export async function GET(request: NextRequest) {
     // Group responses by month for trend analysis
     const monthlyTopics = new Map();
 
-    responses.forEach((r) => {
-      if (
-        typeof r.response_value === 'string' &&
-        r.response_value.trim().length > 10
-      ) {
-        const monthKey = new Date(r.created_at).toISOString().substring(0, 7);
-        if (!monthlyTopics.has(monthKey)) {
-          monthlyTopics.set(monthKey, []);
+    responses
+      .flatMap((r) => 
+        (r.responses || []).map((qr) => ({
+          ...qr,
+          created_at: r.created_at,
+          survey_id: r.survey_id,
+          user_id: r.user_id,
+        }))
+      )
+      .forEach((r) => {
+        if (
+          typeof r.response_value === 'string' &&
+          r.response_value.trim().length > 10
+        ) {
+          const monthKey = new Date(r.created_at).toISOString().substring(0, 7);
+          if (!monthlyTopics.has(monthKey)) {
+            monthlyTopics.set(monthKey, []);
+          }
+          monthlyTopics.get(monthKey).push(r.response_value.trim());
         }
-        monthlyTopics.get(monthKey).push(r.response_value.trim());
-      }
-    });
+      });
 
     // Analyze topics for each month
     const topicTrends = [];
@@ -258,3 +275,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

@@ -7,7 +7,7 @@ import { connectDB } from '@/lib/db';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,17 +16,18 @@ export async function POST(
     }
 
     await connectDB();
+    const { id } = await params;
 
     const { expiresAt, requireLogin, allowDownload } = await request.json();
 
     // Check if user has permission to create public link
-    const report = await reportService.getReport(params.id, session.user.id);
+    const report = await reportService.getReport(id, session.user.id);
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
 
     const canCreateLink =
-      report.createdBy === session.user.id ||
+      report.created_by === session.user.id ||
       session.user.role === 'super_admin' ||
       session.user.role === 'company_admin';
 
@@ -38,7 +39,7 @@ export async function POST(
     }
 
     const publicLink = await reportSharingService.createPublicLink(
-      params.id,
+      id,
       session.user.id,
       {
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,

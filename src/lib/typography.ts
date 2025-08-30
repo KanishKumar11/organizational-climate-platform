@@ -254,3 +254,5 @@ export type TransitionVariant = keyof typeof transitionVariants;
 export function getTransitionClasses(variant: TransitionVariant): string {
   return transitionVariants[variant];
 }
+
+

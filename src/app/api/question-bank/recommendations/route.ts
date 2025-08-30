@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         { company_id: session.user.companyId },
         { company_id: { $exists: false } },
       ];
-    } else if (session.user.role === 'evaluated_user') {
+    } else {
       query.company_id = { $exists: false };
     }
 
@@ -257,3 +257,5 @@ async function getQuestionsForSurveyType(
     .limit(Math.ceil(limit * 0.3))
     .lean();
 }
+
+

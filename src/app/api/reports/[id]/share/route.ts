@@ -7,7 +7,7 @@ import { connectDB } from '@/lib/db';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,6 +16,7 @@ export async function POST(
     }
 
     await connectDB();
+    const { id } = await params;
 
     const {
       recipients,
@@ -42,14 +43,14 @@ export async function POST(
     }
 
     // Check if user has permission to share this report
-    const report = await reportService.getReport(params.id, session.user.id);
+    const report = await reportService.getReport(id, session.user.id);
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
 
     // Check if user can share (must be owner or have edit permissions)
     const canShare =
-      report.createdBy === session.user.id ||
+      report.created_by === session.user.id ||
       session.user.role === 'super_admin' ||
       session.user.role === 'company_admin';
 
@@ -70,7 +71,7 @@ export async function POST(
     };
 
     const sharedReport = await reportSharingService.shareReport(
-      params.id,
+      id,
       session.user.id,
       shareOptions
     );
@@ -93,7 +94,7 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -102,9 +103,10 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
     // Get sharing analytics for this report
-    const analytics = await reportSharingService.getSharingAnalytics(params.id);
+    const analytics = await reportSharingService.getSharingAnalytics(id);
 
     return NextResponse.json(analytics);
   } catch (error) {
@@ -118,7 +120,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -127,6 +129,7 @@ export async function DELETE(
     }
 
     await connectDB();
+    const { id } = await params;
 
     const { searchParams } = new URL(request.url);
     const shareToken = searchParams.get('token');
@@ -139,13 +142,13 @@ export async function DELETE(
     }
 
     // Check permissions
-    const report = await reportService.getReport(params.id, session.user.id);
+    const report = await reportService.getReport(id, session.user.id);
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
 
     const canRevoke =
-      report.createdBy === session.user.id ||
+      report.created_by === session.user.id ||
       session.user.role === 'super_admin' ||
       session.user.role === 'company_admin';
 

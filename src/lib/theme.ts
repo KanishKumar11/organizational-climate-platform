@@ -320,3 +320,5 @@ export const components = {
 export type Theme = typeof theme;
 export type ThemeColors = typeof theme.colors;
 export type Variants = typeof variants;
+
+

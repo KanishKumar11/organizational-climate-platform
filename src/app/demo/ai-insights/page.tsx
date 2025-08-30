@@ -149,7 +149,7 @@ export default function AIInsightsDemoPage() {
                       <p className="text-gray-500">
                         {response.type === 'likert'
                           ? `Rating: ${response.value}/5`
-                          : `"${response.value.substring(0, 50)}..."`}
+                          : `"${String(response.value).substring(0, 50)}..."`}
                       </p>
                     </div>
                   ))}

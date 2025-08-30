@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
     const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const actionPlans = await ActionPlan.find(query)
+    const actionPlans = await (ActionPlan as any)
+      .find(query)
       .populate('created_by', 'name email')
       .populate('assigned_to', 'name email');
 
@@ -327,3 +328,5 @@ function generateRiskMitigationActions(
 
   return actions;
 }
+
+

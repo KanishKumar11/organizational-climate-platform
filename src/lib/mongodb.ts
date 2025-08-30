@@ -58,3 +58,5 @@ export { connectDB };
 
 // Alias for compatibility
 export const connectToDatabase = connectDB;
+
+

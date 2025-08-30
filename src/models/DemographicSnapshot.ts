@@ -170,7 +170,7 @@ DemographicSnapshotSchema.methods.compareWith = function (
 
   // Check for changes in existing users
   for (const [userId, thisData] of thisUserMap) {
-    const otherData = otherUserMap.get(userId);
+    const otherData = otherUserMap.get(userId as string);
     if (otherData) {
       // Compare each field
       const fields = [
@@ -279,7 +279,7 @@ DemographicSnapshotSchema.statics.findByVersion = function (
 DemographicSnapshotSchema.statics.getNextVersion = async function (
   surveyId: string
 ): Promise<number> {
-  const latest = await this.findLatestBySurvey(surveyId);
+  const latest = await (this as any).findLatestBySurvey(surveyId);
   return latest ? latest.version + 1 : 1;
 };
 
@@ -311,8 +311,10 @@ DemographicSnapshotSchema.pre('save', function (next) {
   next();
 });
 
-export default mongoose.models.DemographicSnapshot ||
+export default (mongoose.models.DemographicSnapshot ||
   mongoose.model<IDemographicSnapshot>(
     'DemographicSnapshot',
     DemographicSnapshotSchema
-  );
+  )) as mongoose.Model<IDemographicSnapshot>;
+
+

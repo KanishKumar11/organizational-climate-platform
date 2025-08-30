@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Suspense } from 'react';
 import { Button } from '../../../components/ui/button';
 import {
   Card,
@@ -12,7 +13,8 @@ import {
 } from '../../../components/ui/card';
 import { AlertTriangle, ArrowLeft, RefreshCw, HelpCircle } from 'lucide-react';
 
-export default function AuthError() {
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -210,5 +212,33 @@ export default function AuthError() {
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function AuthErrorLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full">
+        <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-xl">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-2xl font-bold text-center text-gray-900">
+              Loading...
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <AlertTriangle className="w-8 h-8 animate-pulse text-red-600" />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+export default function AuthError() {
+  return (
+    <Suspense fallback={<AuthErrorLoading />}>
+      <AuthErrorContent />
+    </Suspense>
   );
 }

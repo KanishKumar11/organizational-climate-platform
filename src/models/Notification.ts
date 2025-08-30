@@ -54,6 +54,14 @@ export interface INotification extends Document {
   };
   created_at: Date;
   updated_at: Date;
+  // Instance methods
+  markSent(): void;
+  markDelivered(metadata?: any): void;
+  markOpened(metadata?: any): void;
+  markFailed(reason: string): void;
+  markCancelled(): void;
+  canRetry(): boolean;
+  scheduleRetry(delayMinutes?: number): void;
 }
 
 // Notification schema
@@ -170,7 +178,7 @@ NotificationSchema.statics.findPendingNotifications = function (limit = 100) {
   return this.find({
     status: 'pending',
     scheduled_for: { $lte: new Date() },
-    retry_count: { $lt: this.max_retries },
+    retry_count: { $lt: 3 }, // Use default max_retries value
   })
     .sort({ priority: -1, scheduled_for: 1 })
     .limit(limit);
@@ -273,5 +281,7 @@ NotificationSchema.methods.scheduleRetry = function (delayMinutes = 30) {
   }
 };
 
-export default mongoose.models.Notification ||
-  mongoose.model<INotification>('Notification', NotificationSchema);
+export default (mongoose.models.Notification ||
+  mongoose.model<INotification>('Notification', NotificationSchema)) as mongoose.Model<INotification>;
+
+

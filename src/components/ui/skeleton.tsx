@@ -13,23 +13,25 @@ import { skeletonVariants } from '@/lib/animations';
 interface SkeletonProps {
   className?: string;
   animate?: boolean;
+  style?: React.CSSProperties;
 }
 
 /**
  * Base skeleton component
  */
-export function Skeleton({ className, animate = true }: SkeletonProps) {
+export function Skeleton({ className, animate = true, style }: SkeletonProps) {
   if (animate) {
     return (
       <motion.div
         variants={skeletonVariants}
         animate="loading"
         className={cn('bg-muted rounded animate-pulse', className)}
+        style={style}
       />
     );
   }
 
-  return <div className={cn('bg-muted rounded animate-pulse', className)} />;
+  return <div className={cn('bg-muted rounded animate-pulse', className)} style={style} />;
 }
 
 /**
@@ -39,9 +41,10 @@ export function SkeletonText({
   lines = 1,
   className,
   animate = true,
+  style,
 }: SkeletonProps & { lines?: number }) {
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('space-y-2', className)} style={style}>
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton
           key={i}
@@ -59,9 +62,9 @@ export function SkeletonText({
 /**
  * Card skeleton
  */
-export function SkeletonCard({ className, animate = true }: SkeletonProps) {
+export function SkeletonCard({ className, animate = true, style }: SkeletonProps) {
   return (
-    <div className={cn('p-6 border rounded-lg space-y-4', className)}>
+    <div className={cn('p-6 border rounded-lg space-y-4', className)} style={style}>
       <div className="flex items-center space-x-4">
         <Skeleton animate={animate} className="h-12 w-12 rounded-full" />
         <div className="space-y-2 flex-1">
@@ -114,10 +117,11 @@ export function SkeletonChart({
   type = 'bar',
   className,
   animate = true,
+  style,
 }: SkeletonProps & { type?: 'bar' | 'line' | 'pie' | 'area' }) {
   if (type === 'pie') {
     return (
-      <div className={cn('flex items-center justify-center', className)}>
+      <div className={cn('flex items-center justify-center', className)} style={style}>
         <Skeleton animate={animate} className="h-48 w-48 rounded-full" />
       </div>
     );
@@ -125,7 +129,7 @@ export function SkeletonChart({
 
   if (type === 'line' || type === 'area') {
     return (
-      <div className={cn('space-y-4', className)}>
+      <div className={cn('space-y-4', className)} style={style}>
         <div className="flex items-end space-x-2 h-48">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="flex-1 flex flex-col justify-end">
@@ -148,7 +152,7 @@ export function SkeletonChart({
 
   // Bar chart (default)
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('space-y-4', className)} style={style}>
       <div className="flex items-end space-x-2 h-48">
         {Array.from({ length: 8 }).map((_, i) => (
           <Skeleton
@@ -174,9 +178,10 @@ export function SkeletonChart({
 export function SkeletonDashboard({
   className,
   animate = true,
+  style,
 }: SkeletonProps) {
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('space-y-6', className)} style={style}>
       {/* Header */}
       <div className="flex justify-between items-center">
         <Skeleton animate={animate} className="h-8 w-48" />
@@ -299,6 +304,7 @@ export function SkeletonButton({
   size = 'md',
   className,
   animate = true,
+  style,
 }: SkeletonProps & { size?: 'sm' | 'md' | 'lg' }) {
   const sizes = {
     sm: 'h-8 w-20',
@@ -310,6 +316,7 @@ export function SkeletonButton({
     <Skeleton
       animate={animate}
       className={cn('rounded-md', sizes[size], className)}
+      style={style}
     />
   );
 }
@@ -317,11 +324,12 @@ export function SkeletonButton({
 /**
  * Badge skeleton
  */
-export function SkeletonBadge({ className, animate = true }: SkeletonProps) {
+export function SkeletonBadge({ className, animate = true, style }: SkeletonProps) {
   return (
     <Skeleton
       animate={animate}
       className={cn('h-5 w-16 rounded-full', className)}
+      style={style}
     />
   );
 }

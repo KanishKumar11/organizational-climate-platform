@@ -7,10 +7,11 @@ import { connectDB } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     await connectDB();
+    const { token } = await params;
 
     // Get shared report by token
     // This would fetch from database
@@ -49,7 +50,7 @@ export async function GET(
 
     // Track access
     const session = await getServerSession(authOptions);
-    await reportSharingService.trackAccess(params.token, session?.user?.id);
+    await reportSharingService.trackAccess(token, session?.user?.id);
 
     // Get the actual report
     const report = await reportService.getReportById(sharedReport.reportId);
@@ -83,10 +84,11 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     await connectDB();
+    const { token } = await params;
 
     const { action } = await request.json();
 
@@ -109,11 +111,11 @@ export async function POST(
       }
 
       // Track download
-      await reportSharingService.trackAccess(params.token, session?.user?.id);
+      await reportSharingService.trackAccess(token, session?.user?.id);
 
       return NextResponse.json({
         success: true,
-        downloadUrl: `/api/reports/${sharedReport.reportId}/export?token=${params.token}`,
+        downloadUrl: `/api/reports/${sharedReport.reportId}/export?token=${token}`,
       });
     }
 

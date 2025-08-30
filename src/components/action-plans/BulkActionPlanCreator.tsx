@@ -316,7 +316,7 @@ export function BulkActionPlanCreator({
                 onChange={(users) =>
                   handleInputChange('default_assigned_to', users)
                 }
-                companyId={user?.company_id}
+                companyId={user?.companyId}
                 placeholder="Select default assignees for all action plans"
               />
               {errors.default_assigned_to && (

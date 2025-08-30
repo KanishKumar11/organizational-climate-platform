@@ -265,7 +265,7 @@ export default function ReportList({
                       {report.title}
                     </h3>
                     {getStatusBadge(report.status)}
-                    <Badge variant="outline" size="sm">
+                    <Badge variant="outline">
                       {getTypeLabel(report.type)}
                     </Badge>
                   </div>

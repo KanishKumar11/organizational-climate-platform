@@ -22,10 +22,11 @@ const createNotificationSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
   title: z.string().optional(),
   message: z.string().optional(),
-  data: z.record(z.any()).optional(),
+  data: z.record(z.string(), z.any()).optional(),
   template_id: z.string().optional(),
   scheduled_for: z.string().datetime().optional(),
-  variables: z.record(z.any()).optional(),
+  variables: z.record(z.string(), z.any()).optional(),
+  company_id: z.string().optional(),
 });
 
 const querySchema = z.object({
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
     // Add company_id from session if not provided
     const notificationData = {
       ...validatedData,
-      company_id: validatedData.company_id || session.user.company_id,
+      company_id: validatedData.company_id || session.user.companyId,
       scheduled_for: validatedData.scheduled_for
         ? new Date(validatedData.scheduled_for)
         : undefined,
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -143,3 +144,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

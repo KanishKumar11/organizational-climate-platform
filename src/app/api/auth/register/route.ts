@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const domain = email.split('@')[1].toLowerCase();
 
     // Find company by domain or create one
-    let company = await Company.findOne({
+    let company = await (Company as any).findOne({
       domain: domain,
       is_active: true,
     });
@@ -71,7 +71,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await (User as any).findOne({
+      email: email.toLowerCase(),
+    });
     if (existingUser) {
       return NextResponse.json(
         { error: 'User with this email already exists' },
@@ -133,3 +135,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

@@ -31,6 +31,11 @@ export interface IQuestionBankItem extends Document {
   parent_question_id?: string; // for question variations
   created_at: Date;
   updated_at: Date;
+  // Instance methods
+  incrementUsage(): void;
+  updateMetrics(responseRate: number, insightScore: number): void;
+  createVariation(text: string, createdBy: string): Promise<IQuestionBankItem>;
+  getVariations(): Promise<IQuestionBankItem[]>;
 }
 
 // Question metrics schema
@@ -262,5 +267,7 @@ QuestionBankSchema.methods.getVariations = function () {
   });
 };
 
-export default mongoose.models.QuestionBank ||
-  mongoose.model<IQuestionBankItem>('QuestionBank', QuestionBankSchema);
+export default (mongoose.models.QuestionBank ||
+  mongoose.model<IQuestionBankItem>('QuestionBank', QuestionBankSchema)) as mongoose.Model<IQuestionBankItem>;
+
+

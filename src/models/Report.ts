@@ -84,6 +84,31 @@ export interface IReport extends Document {
   expires_at?: Date;
   created_at: Date;
   updated_at: Date;
+  // Additional properties used in components
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  sections?: any[];
+  metadata?: {
+    responseCount?: number;
+  };
+  metrics?: {
+    engagementScore?: number;
+    responseRate?: number;
+    satisfaction?: number;
+  };
+  demographics?: {
+    departments?: any[];
+  };
+  insights?: any[];
+  companyId?: string;
+  // Instance methods
+  markAsStarted(): void;
+  markAsCompleted(filePath: string, fileSize: number): void;
+  markAsFailed(error: string): void;
+  incrementDownloadCount(): void;
+  isExpired(): boolean;
 }
 
 // Time filter schema
@@ -341,5 +366,7 @@ ReportSchema.methods.isExpired = function (): boolean {
   return this.expires_at && this.expires_at < new Date();
 };
 
-export default mongoose.models.Report ||
-  mongoose.model<IReport>('Report', ReportSchema);
+export default (mongoose.models.Report ||
+  mongoose.model<IReport>('Report', ReportSchema)) as mongoose.Model<IReport>;
+
+

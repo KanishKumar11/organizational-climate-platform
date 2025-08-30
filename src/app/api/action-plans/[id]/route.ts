@@ -20,13 +20,14 @@ export async function GET(
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { id } = await params;
-    const actionPlan = await ActionPlan.findById(id)
+    const actionPlan = await (ActionPlan as any)
+      .findById(id)
       .populate('created_by', 'name email')
       .populate('assigned_to', 'name email');
 
@@ -51,6 +52,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -59,12 +61,12 @@ export async function PATCH(
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const actionPlan = await ActionPlan.findById(params.id);
+    const actionPlan = await (ActionPlan as any).findById(id);
     if (!actionPlan) {
       return Response.json({ error: 'Action plan not found' }, { status: 404 });
     }
@@ -93,7 +95,7 @@ export async function PATCH(
     if (description !== undefined) actionPlan.description = description;
     if (assigned_to !== undefined) {
       // Validate assigned users exist and are in scope
-      const assignedUsers = await User.find({
+      const assignedUsers = await (User as any).find({
         _id: { $in: assigned_to },
         company_id: user.company_id,
       });
@@ -160,13 +162,13 @@ export async function DELETE(
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { id } = await params;
-    const actionPlan = await ActionPlan.findById(id);
+    const actionPlan = await (ActionPlan as any).findById(id);
     if (!actionPlan) {
       return Response.json({ error: 'Action plan not found' }, { status: 404 });
     }
@@ -187,7 +189,7 @@ export async function DELETE(
       );
     }
 
-    await ActionPlan.findByIdAndDelete(id);
+    await (ActionPlan as any).findByIdAndDelete(id);
 
     return Response.json({ message: 'Action plan deleted successfully' });
   } catch (error) {

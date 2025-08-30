@@ -130,7 +130,7 @@ CompanySchema.index({ subscription_tier: 1 });
 // Ensure unique constraint is enforced
 CompanySchema.pre('save', async function (next) {
   if (this.isModified('domain')) {
-    const existing = await this.constructor.findOne({
+    const existing = await (this.constructor as mongoose.Model<ICompany>).findOne({
       domain: this.domain,
       _id: { $ne: this._id },
     });
@@ -150,8 +150,9 @@ CompanySchema.statics.findByDomain = function (domain: string) {
   return this.findOne({ domain: domain.toLowerCase(), is_active: true });
 };
 
-const Company =
-  mongoose.models.Company || mongoose.model<ICompany>('Company', CompanySchema);
+const Company = (mongoose.models.Company || mongoose.model<ICompany>('Company', CompanySchema)) as mongoose.Model<ICompany>;
 
 export default Company;
 export { Company };
+
+

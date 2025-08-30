@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -122,12 +122,13 @@ export async function GET(request: NextRequest) {
     const aiInsights = await getCompanyAIInsights(companyId);
 
     // Get ongoing surveys
-    const ongoingSurveys = await Survey.find({
-      company_id: companyId,
-      status: 'active',
-      start_date: { $lte: new Date() },
-      end_date: { $gte: new Date() },
-    })
+    const ongoingSurveys = await (Survey as any)
+      .find({
+        company_id: companyId,
+        status: 'active',
+        start_date: { $lte: new Date() },
+        end_date: { $gte: new Date() },
+      })
       .populate('created_by', 'name')
       .select(
         'title type start_date end_date response_count target_responses target_departments'
@@ -136,10 +137,11 @@ export async function GET(request: NextRequest) {
       .limit(10);
 
     // Get past surveys
-    const pastSurveys = await Survey.find({
-      company_id: companyId,
-      status: { $in: ['completed', 'archived'] },
-    })
+    const pastSurveys = await (Survey as any)
+      .find({
+        company_id: companyId,
+        status: { $in: ['completed', 'archived'] },
+      })
       .populate('created_by', 'name')
       .select(
         'title type start_date end_date response_count target_responses completion_rate'
@@ -178,7 +180,7 @@ export async function GET(request: NextRequest) {
 }
 
 async function calculateCompletionRate(companyId: string): Promise<number> {
-  const surveys = await Survey.find({
+  const surveys = await (Survey as any).find({
     company_id: companyId,
     status: 'completed',
   });
@@ -193,12 +195,14 @@ async function calculateCompletionRate(companyId: string): Promise<number> {
 
 async function getCompanyRecentActivity(companyId: string) {
   const [recentSurveys, recentUsers] = await Promise.all([
-    Survey.find({ company_id: companyId })
+    (Survey as any)
+      .find({ company_id: companyId })
       .populate('created_by', 'name')
       .sort({ created_at: -1 })
       .limit(5)
       .select('title type created_at'),
-    User.find({ company_id: companyId, is_active: true })
+    (User as any)
+      .find({ company_id: companyId, is_active: true })
       .populate('department_id', 'name')
       .sort({ created_at: -1 })
       .limit(5)
@@ -312,3 +316,5 @@ function calculateEngagementTrend(companyId: string): number {
   // Mock engagement trend calculation
   return Math.random() * 20 - 10; // -10% to +10%
 }
+
+

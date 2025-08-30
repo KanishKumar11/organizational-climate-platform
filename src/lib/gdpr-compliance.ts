@@ -111,16 +111,17 @@ export class GDPRComplianceService {
       });
 
       // Get user data
-      const user = await User.findById(user_id).lean();
+      const user = await (User as any).findById(user_id).lean();
       if (!user) {
         throw new Error('User not found');
       }
 
       // Get survey responses
-      const responses = await Response.find({ user_id }).lean();
+      const responses = await (Response as any).find({ user_id }).lean();
 
       // Get audit logs (limited to user's own actions)
-      const auditLogs = await AuditLog.find({ user_id })
+      const auditLogs = await (AuditLog as any)
+        .find({ user_id })
         .sort({ timestamp: -1 })
         .limit(1000)
         .lean();
@@ -179,7 +180,7 @@ export class GDPRComplianceService {
       });
 
       // Check if user exists
-      const user = await User.findById(user_id);
+      const user = await (User as any).findById(user_id);
       if (!user) {
         result.errors.push('User not found');
         return result;
@@ -191,7 +192,7 @@ export class GDPRComplianceService {
         const anonymizedData = this.privacyService.anonymizeForAnalytics(
           user.toObject()
         );
-        await User.findByIdAndUpdate(user_id, {
+        await (User as any).findByIdAndUpdate(user_id, {
           ...anonymizedData,
           is_active: false,
           gdpr_erased: true,
@@ -200,17 +201,17 @@ export class GDPRComplianceService {
         result.records_anonymized++;
       } else {
         // Complete deletion
-        await User.findByIdAndDelete(user_id);
+        await (User as any).findByIdAndDelete(user_id);
         result.records_deleted++;
       }
       result.records_processed++;
 
       // Handle survey responses
-      const responses = await Response.find({ user_id });
+      const responses = await (Response as any).find({ user_id });
       for (const response of responses) {
         if (preserve_analytics) {
           // Anonymize responses
-          await Response.findByIdAndUpdate(response._id, {
+          await (Response as any).findByIdAndUpdate(response._id, {
             user_id: null, // Remove user association
             is_anonymous: true,
             response_text: response.response_text ? '[ANONYMIZED]' : undefined,
@@ -220,16 +221,16 @@ export class GDPRComplianceService {
           result.records_anonymized++;
         } else {
           // Delete responses
-          await Response.findByIdAndDelete(response._id);
+          await (Response as any).findByIdAndDelete(response._id);
           result.records_deleted++;
         }
         result.records_processed++;
       }
 
       // Handle audit logs - keep for compliance but anonymize user info
-      const auditLogs = await AuditLog.find({ user_id });
+      const auditLogs = await (AuditLog as any).find({ user_id });
       for (const log of auditLogs) {
-        await AuditLog.findByIdAndUpdate(log._id, {
+        await (AuditLog as any).findByIdAndUpdate(log._id, {
           user_id: null,
           details: {
             ...log.details,
@@ -274,7 +275,7 @@ export class GDPRComplianceService {
       });
 
       // Update user data
-      const user = await User.findById(user_id);
+      const user = await (User as any).findById(user_id);
       if (!user) {
         throw new Error('User not found');
       }
@@ -406,20 +407,20 @@ export class GDPRComplianceService {
       const query = company_id ? { company_id } : {};
 
       // Clean up inactive users
-      const userResult = await User.deleteMany({
+      const userResult = await (User as any).deleteMany({
         ...query,
         created_at: { $lt: userCutoff },
         is_active: false,
       });
 
       // Clean up old responses
-      const responseResult = await Response.deleteMany({
+      const responseResult = await (Response as any).deleteMany({
         ...query,
         created_at: { $lt: responseCutoff },
       });
 
       // Clean up old audit logs
-      const auditResult = await AuditLog.deleteMany({
+      const auditResult = await (AuditLog as any).deleteMany({
         ...query,
         timestamp: { $lt: auditCutoff },
       });
@@ -480,11 +481,12 @@ export class GDPRComplianceService {
         await this.checkRetentionCompliance(company_id);
 
       // Get recent GDPR requests from audit logs
-      const recent_requests = await AuditLog.find({
-        ...query,
-        'details.gdpr_right': { $exists: true },
-        timestamp: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, // Last 30 days
-      })
+      const recent_requests = await (AuditLog as any)
+        .find({
+          ...query,
+          'details.gdpr_right': { $exists: true },
+          timestamp: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, // Last 30 days
+        })
         .sort({ timestamp: -1 })
         .limit(10)
         .lean();
@@ -585,3 +587,5 @@ export class GDPRComplianceService {
 }
 
 export default GDPRComplianceService;
+
+

@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import QuestionBank from '@/models/QuestionBank';
 import { connectDB } from '@/lib/db';
-import { hasPermission } from '@/lib/permissions';
+import { hasPermission, hasStringPermission } from '@/lib/permissions';
 
 // POST /api/question-bank/optimize - Optimize question bank based on AI insights
 export async function POST(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Only admins can optimize question bank
-    if (!hasPermission(session.user.role, 'manage_questions')) {
+    if (!hasStringPermission(session.user.role, 'manage_questions')) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
@@ -474,3 +474,5 @@ function generateQuestionsForCategory(category: string): any[] {
     scale_labels: { min: 'Strongly Disagree', max: 'Strongly Agree' },
   }));
 }
+
+

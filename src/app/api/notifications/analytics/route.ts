@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const companyId = query.company_id || session.user.company_id;
+    const companyId = query.company_id || session.user.companyId;
     const startDate = new Date(query.start_date);
     const endDate = new Date(query.end_date);
 
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -64,3 +64,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

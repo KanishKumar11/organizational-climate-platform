@@ -16,7 +16,13 @@ export type AuditAction =
   | 'survey_complete'
   | 'response_submit'
   | 'insight_generate'
-  | 'action_plan_create';
+  | 'action_plan_create'
+  | 'ai_reanalysis_triggered'
+  | 'ai_reanalysis_failed'
+  | 'reanalysis_config_updated'
+  | 'demographic_snapshot_created'
+  | 'demographic_snapshot_rollback'
+  | 'demographic_change_notification';
 
 // Audit resource types
 export type AuditResource =
@@ -27,7 +33,8 @@ export type AuditResource =
   | 'response'
   | 'insight'
   | 'action_plan'
-  | 'template';
+  | 'template'
+  | 'audit_log';
 
 // Audit log interface
 export interface IAuditLog extends Document {
@@ -201,5 +208,7 @@ AuditLogSchema.pre('save', function (next) {
   next();
 });
 
-export default mongoose.models.AuditLog ||
-  mongoose.model<IAuditLog>('AuditLog', AuditLogSchema);
+export default (mongoose.models.AuditLog ||
+  mongoose.model<IAuditLog>('AuditLog', AuditLogSchema)) as mongoose.Model<IAuditLog>;
+
+

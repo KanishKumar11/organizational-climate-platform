@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate action plan exists and user has access
-    const actionPlan = await ActionPlan.findById(action_plan_id)
+    const actionPlan = await (ActionPlan as any)
+      .findById(action_plan_id)
       .populate('assigned_to', 'name email department_id')
       .populate('created_by', 'name email department_id');
 
@@ -91,18 +92,22 @@ export async function POST(request: NextRequest) {
         break;
       case 'department':
         if (actionPlan.department_id) {
-          const deptUsers = await User.find({
-            department_id: actionPlan.department_id,
-            is_active: true,
-          }).select('_id');
+          const deptUsers = await (User as any)
+            .find({
+              department_id: actionPlan.department_id,
+              is_active: true,
+            })
+            .select('_id');
           targetUsers = deptUsers.map((u) => u._id);
         }
         break;
       case 'company':
-        const companyUsers = await User.find({
-          company_id: actionPlan.company_id,
-          is_active: true,
-        }).select('_id');
+        const companyUsers = await (User as any)
+          .find({
+            company_id: actionPlan.company_id,
+            is_active: true,
+          })
+          .select('_id');
         targetUsers = companyUsers.map((u) => u._id);
         break;
     }
@@ -181,7 +186,7 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
@@ -196,7 +201,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const actionPlan = await ActionPlan.findById(actionPlanId);
+    const actionPlan = await (ActionPlan as any).findById(actionPlanId);
     if (!actionPlan) {
       return Response.json({ error: 'Action plan not found' }, { status: 404 });
     }
@@ -495,3 +500,5 @@ function generateMicroclimateSuggestions(
 
   return suggestions;
 }
+
+

@@ -63,9 +63,10 @@ ActionPlanTemplateSchema.index({ company_id: 1, category: 1 });
 ActionPlanTemplateSchema.index({ is_active: 1 });
 ActionPlanTemplateSchema.index({ usage_count: -1 });
 
-export const ActionPlanTemplate =
-  mongoose.models.ActionPlanTemplate ||
+export const ActionPlanTemplate = (mongoose.models.ActionPlanTemplate ||
   mongoose.model<IActionPlanTemplate>(
     'ActionPlanTemplate',
     ActionPlanTemplateSchema
-  );
+  )) as mongoose.Model<IActionPlanTemplate>;
+
+

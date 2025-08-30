@@ -214,3 +214,5 @@ function canSearchDepartments(user: any): boolean {
     user.role
   );
 }
+
+

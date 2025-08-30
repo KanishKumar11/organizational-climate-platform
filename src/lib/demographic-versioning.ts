@@ -43,13 +43,15 @@ export class DemographicVersioningService {
   ): Promise<IDemographicSnapshot> {
     try {
       // Verify survey exists
-      const survey = await Survey.findById(surveyId);
+      const survey = await (Survey as any).findById(surveyId);
       if (!survey) {
         throw new Error('Survey not found');
       }
 
       // Get next version number
-      const version = await DemographicSnapshot.getNextVersion(surveyId);
+      const version = await (DemographicSnapshot as any).getNextVersion(
+        surveyId
+      );
 
       // Collect demographic data
       const demographics = await this.collectDemographicData(
@@ -70,8 +72,9 @@ export class DemographicVersioningService {
       });
 
       // Compare with previous version if exists
-      const previousSnapshot =
-        await DemographicSnapshot.findLatestBySurvey(surveyId);
+      const previousSnapshot = await (
+        DemographicSnapshot as any
+      ).findLatestBySurvey(surveyId);
       if (previousSnapshot && previousSnapshot.version < version) {
         snapshot.changes = snapshot.compareWith(previousSnapshot);
       }
@@ -97,20 +100,16 @@ export class DemographicVersioningService {
       }
 
       // Log audit trail
-      await auditLog({
-        user_id: createdBy,
+      await auditLog.logEvent({
         action: 'demographic_snapshot_created',
-        resource_type: 'demographic_snapshot',
+        resource: 'survey',
         resource_id: snapshot._id.toString(),
-        details: {
-          survey_id: surveyId,
-          version,
-          reason,
-          total_users: demographics.length,
-          changes_count: snapshot.changes.length,
+        context: {
+          user_id: createdBy,
+          company_id: companyId,
+          ip_address: '', // Will be populated by middleware
+          user_agent: '', // Will be populated by middleware
         },
-        ip_address: '', // Will be populated by middleware
-        user_agent: '', // Will be populated by middleware
       });
 
       return snapshot;
@@ -139,9 +138,9 @@ export class DemographicVersioningService {
       query.department_id = { $in: departmentIds };
     }
 
-    const users = await User.find(query).select(
-      'name email role department_id preferences created_at'
-    );
+    const users = await (User as any)
+      .find(query)
+      .select('name email role department_id preferences created_at');
 
     return users.map((user) => {
       const createdAt = new Date(user.created_at);
@@ -188,8 +187,8 @@ export class DemographicVersioningService {
     snapshot2Id: string
   ): Promise<DemographicComparisonResult> {
     const [snapshot1, snapshot2] = await Promise.all([
-      DemographicSnapshot.findById(snapshot1Id),
-      DemographicSnapshot.findById(snapshot2Id),
+      (DemographicSnapshot as any).findById(snapshot1Id),
+      (DemographicSnapshot as any).findById(snapshot2Id),
     ]);
 
     if (!snapshot1 || !snapshot2) {
@@ -350,7 +349,7 @@ export class DemographicVersioningService {
   ): Promise<IDemographicSnapshot> {
     try {
       // Find target snapshot
-      const targetSnapshot = await DemographicSnapshot.findByVersion(
+      const targetSnapshot = await (DemographicSnapshot as any).findByVersion(
         surveyId,
         targetVersion
       );
@@ -359,7 +358,9 @@ export class DemographicVersioningService {
       }
 
       // Create new snapshot based on target
-      const newVersion = await DemographicSnapshot.getNextVersion(surveyId);
+      const newVersion = await (DemographicSnapshot as any).getNextVersion(
+        surveyId
+      );
       const rollbackSnapshot = new DemographicSnapshot({
         survey_id: surveyId,
         company_id: targetSnapshot.company_id,
@@ -371,8 +372,9 @@ export class DemographicVersioningService {
       });
 
       // Compare with current latest to show rollback changes
-      const currentSnapshot =
-        await DemographicSnapshot.findLatestBySurvey(surveyId);
+      const currentSnapshot = await (
+        DemographicSnapshot as any
+      ).findLatestBySurvey(surveyId);
       if (currentSnapshot && currentSnapshot.version !== targetVersion) {
         rollbackSnapshot.changes =
           rollbackSnapshot.compareWith(currentSnapshot);
@@ -380,21 +382,23 @@ export class DemographicVersioningService {
 
       await rollbackSnapshot.save();
 
+      // Get survey for company_id
+      const survey = await Survey.findById(surveyId);
+      if (!survey) {
+        throw new Error(`Survey ${surveyId} not found`);
+      }
+
       // Log audit trail
-      await auditLog({
-        user_id: rolledBackBy,
+      await auditLog.logEvent({
         action: 'demographic_snapshot_rollback',
-        resource_type: 'demographic_snapshot',
+        resource: 'survey',
         resource_id: rollbackSnapshot._id.toString(),
-        details: {
-          survey_id: surveyId,
-          target_version: targetVersion,
-          new_version: newVersion,
-          reason,
-          changes_count: rollbackSnapshot.changes.length,
+        context: {
+          user_id: rolledBackBy,
+          company_id: survey.company_id.toString(),
+          ip_address: '',
+          user_agent: '',
         },
-        ip_address: '',
-        user_agent: '',
       });
 
       return rollbackSnapshot;
@@ -411,7 +415,7 @@ export class DemographicVersioningService {
   static async getDemographicHistory(
     surveyId: string
   ): Promise<IDemographicSnapshot[]> {
-    return DemographicSnapshot.findBySurvey(surveyId);
+    return (DemographicSnapshot as any).findBySurvey(surveyId);
   }
 
   /**
@@ -421,7 +425,7 @@ export class DemographicVersioningService {
     surveyId: string,
     currentVersion?: number
   ): Promise<DemographicImpactAnalysis | null> {
-    const snapshots = await DemographicSnapshot.findBySurvey(surveyId);
+    const snapshots = await (DemographicSnapshot as any).findBySurvey(surveyId);
 
     if (snapshots.length < 2) {
       return null; // Need at least 2 snapshots to compare
@@ -455,7 +459,7 @@ export class DemographicVersioningService {
     surveyId: string,
     keepVersions: number = 10
   ): Promise<number> {
-    const snapshots = await DemographicSnapshot.findBySurvey(surveyId);
+    const snapshots = await (DemographicSnapshot as any).findBySurvey(surveyId);
 
     if (snapshots.length <= keepVersions) {
       return 0; // Nothing to archive
@@ -475,3 +479,5 @@ export class DemographicVersioningService {
 }
 
 export default DemographicVersioningService;
+
+

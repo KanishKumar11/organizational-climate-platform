@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import QuestionBank from '@/models/QuestionBank';
 import { connectDB } from '@/lib/db';
-import { hasPermission } from '@/lib/permissions';
+import { hasPermission, hasStringPermission } from '@/lib/permissions';
 
 // GET /api/question-bank - Retrieve questions with filtering and search
 export async function GET(request: NextRequest) {
@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
         { company_id: session.user.companyId },
         { company_id: { $exists: false } },
       ];
-    } else if (session.user.role === 'evaluated_user') {
-      // Evaluated users can only see global questions
+    } else {
+      // Regular users can only see global questions
       query.company_id = { $exists: false };
     }
 
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check permissions - only admins can create questions
-    if (!hasPermission(session.user.role, 'manage_questions')) {
+    if (!hasStringPermission(session.user.role, 'manage_questions')) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
@@ -182,3 +182,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

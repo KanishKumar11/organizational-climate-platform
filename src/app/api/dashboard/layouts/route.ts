@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       .find({
         $or: [
           { user_id: session.user.id },
-          { is_shared: true, company_id: session.user.company_id },
+          { is_shared: true, company_id: session.user.companyId },
         ],
       })
       .sort({ updated_at: -1 })
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       columns: columns || 3,
       theme: theme || 'default',
       user_id: session.user.id,
-      company_id: session.user.company_id,
+      company_id: session.user.companyId,
       is_default,
       is_shared,
       created_at: new Date(),
@@ -171,7 +171,7 @@ export async function PUT(request: NextRequest) {
       _id: id,
       $or: [
         { user_id: session.user.id },
-        { is_shared: true, company_id: session.user.company_id },
+        { is_shared: true, company_id: session.user.companyId },
       ],
     });
 
@@ -294,3 +294,5 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
+

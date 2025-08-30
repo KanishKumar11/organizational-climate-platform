@@ -20,16 +20,15 @@ export async function GET(
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { id } = await params;
-    const actionPlan = await ActionPlan.findById(id).populate(
-      'progress_updates.updated_by',
-      'name email'
-    );
+    const actionPlan = await (ActionPlan as any)
+      .findById(id)
+      .populate('progress_updates.updated_by', 'name email');
 
     if (!actionPlan) {
       return Response.json({ error: 'Action plan not found' }, { status: 404 });
@@ -99,13 +98,13 @@ export async function POST(
 
     await connectDB();
 
-    const user = await User.findById(session.user.id);
+    const user = await (User as any).findById(session.user.id);
     if (!user) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { id } = await params;
-    const actionPlan = await ActionPlan.findById(id);
+    const actionPlan = await (ActionPlan as any).findById(id);
     if (!actionPlan) {
       return Response.json({ error: 'Action plan not found' }, { status: 404 });
     }

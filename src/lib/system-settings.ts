@@ -30,7 +30,7 @@ export async function getSystemSettings() {
           .default;
 
         await connectDB();
-        const settings = await SystemSettings.getSettings();
+        const settings = await (SystemSettings as any).getSettings();
 
         // Update cache
         settingsCache = settings;
@@ -111,3 +111,5 @@ export async function isMaintenanceMode(): Promise<boolean> {
   const settings = await getSystemSettings();
   return settings.maintenance_mode;
 }
+
+

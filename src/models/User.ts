@@ -226,7 +226,9 @@ UserSchema.post(['find', 'findOne', 'findOneAndUpdate'], function (docs) {
 });
 
 // Export the model
-const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+const User = (mongoose.models.User || mongoose.model<IUser>('User', UserSchema)) as mongoose.Model<IUser>;
 
 export default User;
 export { User };
+
+

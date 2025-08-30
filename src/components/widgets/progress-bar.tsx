@@ -233,7 +233,7 @@ export function CircularProgress({
 /**
  * Multi-segment Progress Bar
  */
-interface ProgressSegment {
+export interface ProgressSegment {
   value: number;
   color: string;
   label?: string;

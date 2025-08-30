@@ -32,3 +32,5 @@ async function healthHandler(req: NextRequest) {
 }
 
 export const GET = withApiMiddleware(healthHandler);
+
+

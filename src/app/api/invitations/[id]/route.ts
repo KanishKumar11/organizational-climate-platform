@@ -33,7 +33,7 @@ export async function GET(
     // Check access permissions
     if (
       session.user.role !== 'super_admin' &&
-      invitation.company_id !== session.user.company_id
+      invitation.company_id !== session.user.companyId
     ) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
@@ -79,7 +79,7 @@ export async function PATCH(
     // Check access permissions
     if (
       session.user.role !== 'super_admin' &&
-      invitation.company_id !== session.user.company_id
+      invitation.company_id !== session.user.companyId
     ) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
@@ -142,7 +142,7 @@ export async function DELETE(
     // Check access permissions
     if (
       session.user.role !== 'super_admin' &&
-      invitation.company_id !== session.user.company_id
+      invitation.company_id !== session.user.companyId
     ) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }

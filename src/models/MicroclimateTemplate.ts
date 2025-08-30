@@ -273,8 +273,10 @@ MicroclimateTemplateSchema.pre('save', function (next) {
   next();
 });
 
-export default mongoose.models.MicroclimateTemplate ||
+export default (mongoose.models.MicroclimateTemplate ||
   mongoose.model<IMicroclimateTemplate>(
     'MicroclimateTemplate',
     MicroclimateTemplateSchema
-  );
+  )) as mongoose.Model<IMicroclimateTemplate>;
+
+

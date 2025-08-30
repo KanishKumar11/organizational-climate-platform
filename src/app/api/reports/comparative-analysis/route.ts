@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         include_ai_insights: true,
         include_recommendations: true,
       },
-      session.user.company_id
+      session.user.companyId
     );
 
     // Generate comparative analysis
@@ -145,3 +145,5 @@ function generateComparisonSummary(analysis: any, comparisonType: string): any {
       return {};
   }
 }
+
+

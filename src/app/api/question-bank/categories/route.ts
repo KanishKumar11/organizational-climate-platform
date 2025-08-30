@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         { company_id: session.user.companyId },
         { company_id: { $exists: false } },
       ];
-    } else if (session.user.role === 'evaluated_user') {
+    } else {
       query.company_id = { $exists: false };
     }
 
@@ -189,3 +189,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

@@ -9,12 +9,13 @@ import { hasPermission } from '@/lib/permissions';
 // Get individual survey
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
 
-    const surveyId = params.id;
+    const surveyId = id;
     const { searchParams } = new URL(request.url);
     const invitationToken = searchParams.get('token');
 
@@ -95,7 +96,7 @@ export async function GET(
 // Update survey
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -109,8 +110,9 @@ export async function PATCH(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const surveyId = params.id;
+    const surveyId = id;
     const body = await request.json();
 
     // Get survey
@@ -149,7 +151,7 @@ export async function PATCH(
 // Delete survey
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -163,8 +165,9 @@ export async function DELETE(
     }
 
     await connectDB();
+    const { id } = await params;
 
-    const surveyId = params.id;
+    const surveyId = id;
 
     // Get survey
     const survey = await Survey.findById(surveyId);

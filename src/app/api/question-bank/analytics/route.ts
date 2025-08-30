@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import QuestionBank from '@/models/QuestionBank';
 import { connectDB } from '@/lib/db';
-import { hasPermission } from '@/lib/permissions';
+import { hasPermission, hasStringPermission } from '@/lib/permissions';
 
 // GET /api/question-bank/analytics - Get question effectiveness analytics
 export async function GET(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Only admins can view analytics
-    if (!hasPermission(session.user.role, 'manage_questions')) {
+    if (!hasStringPermission(session.user.role, 'manage_questions')) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
@@ -264,3 +264,5 @@ async function generateOptimizationSuggestions(baseQuery: any) {
 
   return suggestions;
 }
+
+

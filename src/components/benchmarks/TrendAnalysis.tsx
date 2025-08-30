@@ -294,12 +294,13 @@ export default function TrendAnalysisComponent({
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Historical Trend</h3>
             <AnimatedLineChart
-              data={trendAnalysis.historical_values.map((point) => ({
-                date: new Date(point.date).toLocaleDateString(),
-                value: point.value,
+              data={trendAnalysis.historical_values.map((point, index) => ({
+                x: index,
+                y: point.value,
+                label: new Date(point.date).toLocaleDateString(),
               }))}
-              xKey="date"
-              yKeys={['value']}
+              xKey="label"
+              yKeys={['y']}
               colors={['#3B82F6']}
               height={300}
             />
@@ -310,15 +311,17 @@ export default function TrendAnalysisComponent({
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">Forecast</h3>
               <AnimatedLineChart
-                data={trendAnalysis.forecast.map((point) => ({
-                  date: new Date(point.date).toLocaleDateString(),
+                data={trendAnalysis.forecast.map((point, index) => ({
+                  x: index,
+                  y: point.predicted_value,
                   predicted: point.predicted_value,
                   lower: point.confidence_interval.lower,
                   upper: point.confidence_interval.upper,
+                  label: new Date(point.date).toLocaleDateString(),
                 }))}
-                xKey="date"
+                xKey="label"
                 yKeys={['predicted', 'lower', 'upper']}
-                colors={['#10B981', '#F59E0B', '#F59E0B']}
+                colors={['#3B82F6', '#10B981', '#F59E0B']}
                 height={300}
               />
 

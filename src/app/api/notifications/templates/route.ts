@@ -41,7 +41,7 @@ const createTemplateSchema = z.object({
     .array(
       z.object({
         condition: z.string(),
-        modifications: z.record(z.any()),
+        modifications: z.record(z.string(), z.any()),
       })
     )
     .default([]),
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     if (query.is_default !== undefined) filter.is_default = query.is_default;
 
     // Include company-specific and default templates
-    const companyId = query.company_id || session.user.company_id;
+    const companyId = query.company_id || session.user.companyId;
     filter.$or = [
       { company_id: companyId },
       { is_default: true, company_id: { $exists: false } },
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     // Set company_id and created_by
     const templateData = {
       ...validatedData,
-      company_id: validatedData.company_id || session.user.company_id,
+      company_id: validatedData.company_id || session.user.companyId,
       created_by: session.user.id,
     };
 
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -180,3 +180,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+

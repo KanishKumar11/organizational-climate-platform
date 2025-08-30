@@ -24,6 +24,12 @@ export interface ISystemSettings extends Document {
   updated_at: Date;
 }
 
+// Static methods interface
+export interface ISystemSettingsModel extends mongoose.Model<ISystemSettings> {
+  getSettings(): Promise<ISystemSettings>;
+  updateSettings(updates: Partial<ISystemSettings>): Promise<ISystemSettings>;
+}
+
 // System settings schema
 const SystemSettingsSchema = new Schema(
   {
@@ -130,6 +136,8 @@ SystemSettingsSchema.statics.updateSettings = async function(updates: Partial<IS
   return settings;
 };
 
-const SystemSettings = mongoose.models.SystemSettings || mongoose.model<ISystemSettings>('SystemSettings', SystemSettingsSchema);
+const SystemSettings = (mongoose.models.SystemSettings || mongoose.model<ISystemSettings>('SystemSettings', SystemSettingsSchema)) as ISystemSettingsModel;
 
 export default SystemSettings;
+
+

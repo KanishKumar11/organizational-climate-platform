@@ -272,7 +272,7 @@ export function ActionPlanCreator({
               <UserSelector
                 selectedUsers={formData.assigned_to}
                 onChange={(users) => handleInputChange('assigned_to', users)}
-                companyId={user?.company_id}
+                companyId={user?.companyId}
                 departmentId={formData.department_id}
               />
               {errors.assigned_to && (

@@ -113,6 +113,13 @@ export interface KPIPrediction {
   factors: string[];
 }
 
+export interface QualitativeFeedbackInput {
+  source: 'survey' | 'microclimate' | 'action_plan' | 'manual';
+  content: string;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+}
+
 export interface QualitativeFeedback {
   id: string;
   source: 'survey' | 'microclimate' | 'action_plan' | 'manual';
@@ -569,7 +576,7 @@ class AIFeedbackLoop {
    * Process qualitative feedback and extract insights
    */
   async processQualitativeFeedback(
-    feedback: Omit<QualitativeFeedback, 'id' | 'processed' | 'insights'>
+    feedback: QualitativeFeedbackInput
   ): Promise<string> {
     const feedbackId = `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -1195,7 +1202,7 @@ export async function trackKPI(
 }
 
 export async function processQualitativeFeedback(
-  feedback: Omit<QualitativeFeedback, 'id' | 'processed' | 'insights'>
+  feedback: QualitativeFeedbackInput
 ) {
   return aiFeedbackLoop.processQualitativeFeedback(feedback);
 }
@@ -1211,3 +1218,5 @@ export async function enableContinuousLearning(
 ) {
   return aiFeedbackLoop.enableContinuousLearning(config);
 }
+
+

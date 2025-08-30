@@ -21,6 +21,9 @@ interface FilterOption {
   name: string;
   type?: string;
   category?: string;
+  value?: string;
+  label?: string;
+  field?: string;
   values?: string[];
   count?: number;
 }
@@ -237,7 +240,7 @@ export default function AdvancedFilters({
               <Calendar className="h-4 w-4 mr-2" />
               <span className="font-medium">Date Range</span>
               {filters.time_filter && (
-                <Badge variant="secondary" size="sm" className="ml-2">
+                <Badge variant="secondary" className="ml-2">
                   Active
                 </Badge>
               )}
@@ -329,7 +332,7 @@ export default function AdvancedFilters({
               <TrendingUp className="h-4 w-4 mr-2" />
               <span className="font-medium">Surveys</span>
               {(filters.survey_types?.length || filters.survey_ids?.length) && (
-                <Badge variant="secondary" size="sm" className="ml-2">
+                <Badge variant="secondary" className="ml-2">
                   {(filters.survey_types?.length || 0) +
                     (filters.survey_ids?.length || 0)}{' '}
                   selected
@@ -416,7 +419,7 @@ export default function AdvancedFilters({
               <Building className="h-4 w-4 mr-2" />
               <span className="font-medium">Departments</span>
               {filters.department_filter?.department_ids?.length && (
-                <Badge variant="secondary" size="sm" className="ml-2">
+                <Badge variant="secondary" className="ml-2">
                   {filters.department_filter.department_ids.length} selected
                 </Badge>
               )}
@@ -483,7 +486,7 @@ export default function AdvancedFilters({
               <Users className="h-4 w-4 mr-2" />
               <span className="font-medium">Demographics</span>
               {filters.demographic_filters?.length && (
-                <Badge variant="secondary" size="sm" className="ml-2">
+                <Badge variant="secondary" className="ml-2">
                   {filters.demographic_filters.length} filters
                 </Badge>
               )}
@@ -555,7 +558,7 @@ export default function AdvancedFilters({
                 <TrendingUp className="h-4 w-4 mr-2" />
                 <span className="font-medium">Benchmarks</span>
                 {filters.benchmark_ids?.length && (
-                  <Badge variant="secondary" size="sm" className="ml-2">
+                  <Badge variant="secondary" className="ml-2">
                     {filters.benchmark_ids.length} selected
                   </Badge>
                 )}

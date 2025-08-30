@@ -77,6 +77,16 @@ export async function POST(request: NextRequest) {
 
     // Prepare text data with dates
     const textData = responses
+      .flatMap((r) => 
+        (r.responses || []).map((qr) => ({
+          ...qr,
+          created_at: r.created_at,
+          survey_id: r.survey_id,
+          user_id: r.user_id,
+          company_id: r.company_id,
+          department_id: r.department_id,
+        }))
+      )
       .map((r) => {
         if (
           typeof r.response_value === 'string' &&
@@ -340,6 +350,14 @@ export async function GET(request: NextRequest) {
 
     // Prepare text data
     const textData = responses
+      .flatMap((r) => 
+        (r.responses || []).map((qr) => ({
+          ...qr,
+          created_at: r.created_at,
+          survey_id: r.survey_id,
+          user_id: r.user_id,
+        }))
+      )
       .map((r) => {
         if (
           typeof r.response_value === 'string' &&
@@ -449,3 +467,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+

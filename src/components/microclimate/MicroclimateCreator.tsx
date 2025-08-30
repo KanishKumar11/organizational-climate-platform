@@ -203,6 +203,7 @@ export default function MicroclimateCreator() {
       questions: template.questions.map((q) => ({
         ...q,
         id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: q.type as 'likert' | 'multiple_choice' | 'open_ended' | 'emoji_rating',
       })),
       scheduling: {
         ...prev.scheduling,
@@ -700,7 +701,7 @@ export default function MicroclimateCreator() {
                         value={question.type}
                         onChange={(e) =>
                           updateQuestion(index, {
-                            type: e.target.value as unknown,
+                            type: e.target.value as 'likert' | 'multiple_choice' | 'open_ended' | 'emoji_rating',
                             options:
                               e.target.value === 'multiple_choice'
                                 ? ['Option 1', 'Option 2']

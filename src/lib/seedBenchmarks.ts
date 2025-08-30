@@ -198,7 +198,7 @@ export async function seedBenchmarks() {
     await connectDB();
 
     // Clear existing benchmarks
-    await Benchmark.deleteMany({});
+    await (Benchmark as any).deleteMany({});
 
     // Insert sample benchmarks
     const benchmarks = await Benchmark.insertMany(sampleBenchmarks);
@@ -296,3 +296,5 @@ export async function seedInternalBenchmarks(
     throw error;
   }
 }
+
+

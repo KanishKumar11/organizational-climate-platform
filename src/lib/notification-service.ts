@@ -160,7 +160,7 @@ class NotificationService {
     await connectDB();
 
     if (templateId) {
-      return await NotificationTemplate.findById(templateId);
+      return await (NotificationTemplate as any).findById(templateId);
     }
 
     return await NotificationTemplate.findByTypeAndChannel(
@@ -220,11 +220,12 @@ class NotificationService {
     await connectDB();
 
     // Get user's historical notification engagement
-    const notifications = await Notification.find({
-      user_id: userId,
-      status: { $in: ['delivered', 'opened'] },
-      sent_at: { $exists: true },
-    })
+    const notifications = await (Notification as any)
+      .find({
+        user_id: userId,
+        status: { $in: ['delivered', 'opened'] },
+        sent_at: { $exists: true },
+      })
       .sort({ sent_at: -1 })
       .limit(100);
 
@@ -232,7 +233,7 @@ class NotificationService {
       return null; // Not enough data for optimization
     }
 
-    const user = await User.findById(userId);
+    const user = await (User as any).findById(userId);
     const timezone = user?.preferences?.timezone || 'UTC';
 
     // Analyze engagement patterns
@@ -386,8 +387,9 @@ class NotificationService {
   async processPendingNotifications(limit = 100): Promise<void> {
     await connectDB();
 
-    const pendingNotifications =
-      await Notification.findPendingNotifications(limit);
+    const pendingNotifications = await (
+      Notification as any
+    ).findPendingNotifications(limit);
 
     for (const notification of pendingNotifications) {
       try {
@@ -431,7 +433,7 @@ class NotificationService {
   private async sendEmailNotification(
     notification: INotification
   ): Promise<void> {
-    const user = await User.findById(notification.user_id);
+    const user = await (User as any).findById(notification.user_id);
     if (!user) {
       throw new Error('User not found');
     }
@@ -507,7 +509,7 @@ class NotificationService {
     await connectDB();
 
     // Get survey invitations
-    const invitations = await Notification.find({
+    const invitations = await (Notification as any).find({
       company_id: companyId,
       type: 'survey_invitation',
       'data.survey_id': surveyId,
@@ -516,7 +518,7 @@ class NotificationService {
     const totalInvitations = invitations.length;
 
     // Get historical response rates for this company
-    const historicalNotifications = await Notification.find({
+    const historicalNotifications = await (Notification as any).find({
       company_id: companyId,
       type: 'survey_invitation',
       created_at: { $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) }, // Last year
@@ -626,7 +628,7 @@ class NotificationService {
   ): Promise<DeliveryAnalytics> {
     await connectDB();
 
-    const notifications = await Notification.find({
+    const notifications = await (Notification as any).find({
       company_id: companyId,
       created_at: { $gte: startDate, $lte: endDate },
     });
@@ -746,7 +748,7 @@ class NotificationService {
   ): Promise<void> {
     await connectDB();
 
-    const notification = await Notification.findById(notificationId);
+    const notification = await (Notification as any).findById(notificationId);
     if (notification) {
       notification.markOpened(metadata);
       await notification.save();
@@ -759,7 +761,7 @@ class NotificationService {
     limit = 50
   ): Promise<INotification[]> {
     await connectDB();
-    return await Notification.findByUser(userId, limit);
+    return await (Notification as any).findByUser(userId, limit);
   }
 
   // Get company notifications
@@ -768,8 +770,10 @@ class NotificationService {
     limit = 100
   ): Promise<INotification[]> {
     await connectDB();
-    return await Notification.findByCompany(companyId, limit);
+    return await (Notification as any).findByCompany(companyId, limit);
   }
 }
 
 export const notificationService = new NotificationService();
+
+

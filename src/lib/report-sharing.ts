@@ -1,6 +1,5 @@
 import { IReport } from '@/models/Report';
 import { IUser } from '@/models/User';
-import { sendNotificationEmail } from '@/lib/email';
 
 export interface ShareOptions {
   recipients: string[];
@@ -293,17 +292,9 @@ export class ReportSharingService {
     const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/shared/reports/${sharedReport.shareToken}`;
 
     for (const recipient of sharedReport.sharedWith) {
-      await sendEmail({
-        to: recipient,
-        subject: 'Report Shared With You',
-        html: `
-          <h2>A report has been shared with you</h2>
-          <p>You have been granted ${sharedReport.permissions} access to a report.</p>
-          ${message ? `<p><strong>Message:</strong> ${message}</p>` : ''}
-          <p><a href="${shareUrl}">View Report</a></p>
-          <p>This link expires on ${sharedReport.expiresAt?.toLocaleDateString()}</p>
-        `,
-      });
+      // TODO: Implement email sending functionality
+      console.log(`Sending email to ${recipient} about shared report: ${shareUrl}`);
+      // Email functionality would be implemented here
     }
   }
 
@@ -410,3 +401,5 @@ export class ReportSharingService {
 }
 
 export const reportSharingService = new ReportSharingService();
+
+

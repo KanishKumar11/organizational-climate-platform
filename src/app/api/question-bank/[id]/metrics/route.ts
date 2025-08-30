@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import QuestionBank from '@/models/QuestionBank';
 import { connectDB } from '@/lib/db';
-import { hasPermission } from '@/lib/permissions';
+import { hasPermission, hasStringPermission } from '@/lib/permissions';
 
 // GET /api/question-bank/[id]/metrics - Get question effectiveness metrics
 export async function GET(
@@ -68,11 +68,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Only AI service or admins can update metrics
-    if (
-      !hasPermission(session.user.role, 'manage_questions') &&
-      session.user.role !== 'ai_service'
-    ) {
+    // Only admins can update metrics
+    if (!hasStringPermission(session.user.role, 'manage_questions')) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }

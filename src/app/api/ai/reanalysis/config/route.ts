@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import AIReanalysisTriggerService from '../../../../../lib/ai-reanalysis-triggers';
-import { validatePermissions } from '../../../../../lib/permissions';
+import { hasStringPermission } from '../../../../../lib/permissions';
 
 // GET /api/ai/reanalysis/config - Get reanalysis configuration
 export async function GET(request: NextRequest) {
@@ -24,14 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate permissions
-    const hasPermission = await validatePermissions(
-      session.user.id,
-      'read',
-      'ai_insights',
-      { company_id: companyId }
-    );
-
-    if (!hasPermission) {
+    if (!hasStringPermission(session.user.role, 'manage_ai_insights')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -72,14 +65,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate permissions - only company admins and super admins can update config
-    const hasPermission = await validatePermissions(
-      session.user.id,
-      'update',
-      'ai_insights',
-      { company_id, require_admin: true }
-    );
-
-    if (!hasPermission) {
+    if (!hasStringPermission(session.user.role, 'manage_ai_insights')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -120,3 +106,5 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+

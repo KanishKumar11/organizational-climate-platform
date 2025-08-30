@@ -28,7 +28,7 @@ export const GET = withAuth(async (req, { params }) => {
       );
     }
 
-    const company = await Company.findById(id);
+    const company = await (Company as any).findById(id);
     if (!company) {
       return NextResponse.json(
         createApiResponse(false, null, 'Company not found'),
@@ -37,16 +37,17 @@ export const GET = withAuth(async (req, { params }) => {
     }
 
     // Get user count for this company
-    const userCount = await User.countDocuments({ company_id: id, is_active: true });
+    const userCount = await User.countDocuments({
+      company_id: id,
+      is_active: true,
+    });
 
     const companyWithStats = {
       ...company.toObject(),
-      userCount
+      userCount,
     };
 
-    return NextResponse.json(
-      createApiResponse(true, companyWithStats)
-    );
+    return NextResponse.json(createApiResponse(true, companyWithStats));
   } catch (error) {
     console.error('Error fetching company:', error);
     return NextResponse.json(
@@ -79,7 +80,7 @@ export const PUT = withAuth(async (req, { params }) => {
       );
     }
 
-    const company = await Company.findById(id);
+    const company = await (Company as any).findById(id);
     if (!company) {
       return NextResponse.json(
         createApiResponse(false, null, 'Company not found'),
@@ -87,11 +88,20 @@ export const PUT = withAuth(async (req, { params }) => {
       );
     }
 
-    const { name, domain, industry, size, country, subscription_tier, is_active } = body;
+    const {
+      name,
+      domain,
+      industry,
+      size,
+      country,
+      subscription_tier,
+      is_active,
+    } = body;
 
     // If domain is being changed, validate it
     if (domain && domain !== company.domain) {
-      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
+      const domainRegex =
+        /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
       if (!domainRegex.test(domain)) {
         return NextResponse.json(
           createApiResponse(false, null, 'Invalid domain format'),
@@ -100,9 +110,9 @@ export const PUT = withAuth(async (req, { params }) => {
       }
 
       // Check if new domain already exists
-      const existingCompany = await Company.findOne({ 
+      const existingCompany = await (Company as any).findOne({
         domain: domain.toLowerCase(),
-        _id: { $ne: id }
+        _id: { $ne: id },
       });
       if (existingCompany) {
         return NextResponse.json(
@@ -120,11 +130,11 @@ export const PUT = withAuth(async (req, { params }) => {
       size: company.size,
       country: company.country,
       subscription_tier: company.subscription_tier,
-      is_active: company.is_active
+      is_active: company.is_active,
     };
 
     // Update company
-    const updatedCompany = await Company.findByIdAndUpdate(
+    const updatedCompany = await (Company as any).findByIdAndUpdate(
       id,
       {
         ...(name && { name: name.trim() }),
@@ -133,22 +143,36 @@ export const PUT = withAuth(async (req, { params }) => {
         ...(size && { size }),
         ...(country && { country: country.trim() }),
         ...(subscription_tier && { subscription_tier }),
-        ...(typeof is_active === 'boolean' && { is_active })
+        ...(typeof is_active === 'boolean' && { is_active }),
       },
       { new: true, runValidators: true }
     );
 
     // Log the action
     const changes: any = {};
-    if (name && name !== originalValues.name) changes.name = { from: originalValues.name, to: name };
-    if (domain && domain !== originalValues.domain) changes.domain = { from: originalValues.domain, to: domain };
-    if (industry && industry !== originalValues.industry) changes.industry = { from: originalValues.industry, to: industry };
-    if (size && size !== originalValues.size) changes.size = { from: originalValues.size, to: size };
-    if (country && country !== originalValues.country) changes.country = { from: originalValues.country, to: country };
-    if (subscription_tier && subscription_tier !== originalValues.subscription_tier) {
-      changes.subscription_tier = { from: originalValues.subscription_tier, to: subscription_tier };
+    if (name && name !== originalValues.name)
+      changes.name = { from: originalValues.name, to: name };
+    if (domain && domain !== originalValues.domain)
+      changes.domain = { from: originalValues.domain, to: domain };
+    if (industry && industry !== originalValues.industry)
+      changes.industry = { from: originalValues.industry, to: industry };
+    if (size && size !== originalValues.size)
+      changes.size = { from: originalValues.size, to: size };
+    if (country && country !== originalValues.country)
+      changes.country = { from: originalValues.country, to: country };
+    if (
+      subscription_tier &&
+      subscription_tier !== originalValues.subscription_tier
+    ) {
+      changes.subscription_tier = {
+        from: originalValues.subscription_tier,
+        to: subscription_tier,
+      };
     }
-    if (typeof is_active === 'boolean' && is_active !== originalValues.is_active) {
+    if (
+      typeof is_active === 'boolean' &&
+      is_active !== originalValues.is_active
+    ) {
       changes.is_active = { from: originalValues.is_active, to: is_active };
     }
 
@@ -160,8 +184,8 @@ export const PUT = withAuth(async (req, { params }) => {
       resource_id: id,
       details: {
         company_name: updatedCompany?.name,
-        changes
-      }
+        changes,
+      },
     });
 
     return NextResponse.json(
@@ -198,7 +222,7 @@ export const DELETE = withAuth(async (req, { params }) => {
       );
     }
 
-    const company = await Company.findById(id);
+    const company = await (Company as any).findById(id);
     if (!company) {
       return NextResponse.json(
         createApiResponse(false, null, 'Company not found'),
@@ -207,16 +231,16 @@ export const DELETE = withAuth(async (req, { params }) => {
     }
 
     // Check if company has active users
-    const activeUserCount = await User.countDocuments({ 
-      company_id: id, 
-      is_active: true 
+    const activeUserCount = await User.countDocuments({
+      company_id: id,
+      is_active: true,
     });
 
     if (activeUserCount > 0) {
       return NextResponse.json(
         createApiResponse(
-          false, 
-          null, 
+          false,
+          null,
           `Cannot delete company with ${activeUserCount} active users. Deactivate users first.`
         ),
         { status: 400 }
@@ -224,7 +248,7 @@ export const DELETE = withAuth(async (req, { params }) => {
     }
 
     // Soft delete by setting is_active to false
-    const deletedCompany = await Company.findByIdAndUpdate(
+    const deletedCompany = await (Company as any).findByIdAndUpdate(
       id,
       { is_active: false },
       { new: true }
@@ -240,12 +264,16 @@ export const DELETE = withAuth(async (req, { params }) => {
       details: {
         company_name: company.name,
         domain: company.domain,
-        soft_delete: true
-      }
+        soft_delete: true,
+      },
     });
 
     return NextResponse.json(
-      createApiResponse(true, deletedCompany, 'Company deactivated successfully')
+      createApiResponse(
+        true,
+        deletedCompany,
+        'Company deactivated successfully'
+      )
     );
   } catch (error) {
     console.error('Error deleting company:', error);

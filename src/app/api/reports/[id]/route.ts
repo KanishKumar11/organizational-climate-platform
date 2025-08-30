@@ -8,7 +8,7 @@ import { checkPermissions } from '@/lib/permissions';
 // GET /api/reports/[id] - Get specific report
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -25,11 +25,12 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
     // Build query based on user role
-    let query: any = { _id: params.id };
+    let query: any = { _id: id };
     if (session.user.role !== 'super_admin') {
-      query.company_id = session.user.company_id;
+      query.company_id = session.user.companyId;
     }
 
     const report = await Report.findOne(query).lean();
@@ -51,7 +52,7 @@ export async function GET(
 // DELETE /api/reports/[id] - Delete report
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -68,11 +69,12 @@ export async function DELETE(
     }
 
     await connectDB();
+    const { id } = await params;
 
     // Build query based on user role
-    let query: any = { _id: params.id };
+    let query: any = { _id: id };
     if (session.user.role !== 'super_admin') {
-      query.company_id = session.user.company_id;
+      query.company_id = session.user.companyId;
     }
 
     const report = await Report.findOneAndDelete(query);
@@ -97,7 +99,7 @@ export async function DELETE(
 // PATCH /api/reports/[id] - Update report (e.g., share settings)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -117,11 +119,12 @@ export async function PATCH(
     const { shared_with, expires_at } = body;
 
     await connectDB();
+    const { id } = await params;
 
     // Build query based on user role
-    let query: any = { _id: params.id };
+    let query: any = { _id: id };
     if (session.user.role !== 'super_admin') {
-      query.company_id = session.user.company_id;
+      query.company_id = session.user.companyId;
     }
 
     const updateData: any = {};

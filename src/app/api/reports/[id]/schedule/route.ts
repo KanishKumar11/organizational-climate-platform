@@ -7,7 +7,7 @@ import { connectDB } from '@/lib/db';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,6 +16,7 @@ export async function POST(
     }
 
     await connectDB();
+    const { id } = await params;
 
     const {
       name,
@@ -61,13 +62,13 @@ export async function POST(
     }
 
     // Check if user has permission to schedule reports
-    const report = await reportService.getReport(params.id, session.user.id);
+    const report = await reportService.getReport(id, session.user.id);
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
 
     const canSchedule =
-      report.createdBy === session.user.id ||
+      report.created_by === session.user.id ||
       session.user.role === 'super_admin' ||
       session.user.role === 'company_admin';
 
@@ -90,7 +91,7 @@ export async function POST(
     };
 
     const scheduledReport = await reportSharingService.scheduleReport(
-      params.id,
+      id,
       name,
       scheduleOptions,
       session.user.id
@@ -112,7 +113,7 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -121,6 +122,7 @@ export async function GET(
     }
 
     await connectDB();
+    const { id } = await params;
 
     // Get scheduled reports for this report
     // This would fetch from database
@@ -138,7 +140,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -147,6 +149,7 @@ export async function DELETE(
     }
 
     await connectDB();
+    const { id } = await params;
 
     const { searchParams } = new URL(request.url);
     const scheduleId = searchParams.get('scheduleId');

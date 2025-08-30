@@ -142,6 +142,7 @@ ActionPlanSchema.index({ assigned_to: 1 });
 ActionPlanSchema.index({ due_date: 1 });
 ActionPlanSchema.index({ created_by: 1 });
 
-export const ActionPlan =
-  mongoose.models.ActionPlan ||
-  mongoose.model<IActionPlan>('ActionPlan', ActionPlanSchema);
+export const ActionPlan = (mongoose.models.ActionPlan ||
+  mongoose.model<IActionPlan>('ActionPlan', ActionPlanSchema)) as mongoose.Model<IActionPlan>;
+
+

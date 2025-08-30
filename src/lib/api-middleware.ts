@@ -43,8 +43,14 @@ export class ApiError extends Error {
 // Middleware wrapper for API routes
 export function withApiMiddleware(
   handler: (req: NextRequest) => Promise<NextResponse>
+): (req: NextRequest) => Promise<NextResponse>;
+export function withApiMiddleware(
+  handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse>
+): (req: NextRequest, context: { params: any }) => Promise<NextResponse>;
+export function withApiMiddleware(
+  handler: (req: NextRequest, context?: { params: any }) => Promise<NextResponse>
 ) {
-  return async (req: NextRequest) => {
+  return async (req: NextRequest, context?: { params: any }) => {
     try {
       // Validate environment variables
       validateEnv();
@@ -53,7 +59,7 @@ export function withApiMiddleware(
       await connectDB();
 
       // Call the actual handler
-      return await handler(req);
+      return await handler(req, context);
     } catch (error) {
       console.error('API Error:', error);
 
@@ -119,7 +125,7 @@ async function getCurrentUser(req: NextRequest): Promise<IUser | null> {
 
     // Fetch full user data from database
     const User = (await import('../models/User')).default;
-    const user = await User.findOne({
+    const user = await (User as any).findOne({
       email: session.user.email,
       is_active: true,
     });
@@ -134,8 +140,14 @@ async function getCurrentUser(req: NextRequest): Promise<IUser | null> {
 // Authentication middleware
 export function withAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
+): (req: NextRequest) => Promise<NextResponse>;
+export function withAuth(
+  handler: (req: AuthenticatedRequest, context: { params: any }) => Promise<NextResponse>
+): (req: NextRequest, context: { params: any }) => Promise<NextResponse>;
+export function withAuth(
+  handler: (req: AuthenticatedRequest, context?: { params: any }) => Promise<NextResponse>
 ) {
-  return withApiMiddleware(async (req: NextRequest) => {
+  return withApiMiddleware(async (req: NextRequest, context?: { params: any }) => {
     const user = await getCurrentUser(req);
 
     if (!user) {
@@ -149,7 +161,7 @@ export function withAuth(
     const authenticatedReq = req as AuthenticatedRequest;
     authenticatedReq.user = user;
 
-    return await handler(authenticatedReq);
+    return await handler(authenticatedReq, context);
   });
 }
 
@@ -157,8 +169,16 @@ export function withAuth(
 export function withRoleAuth(
   requiredRole: UserRole,
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
+): (req: NextRequest) => Promise<NextResponse>;
+export function withRoleAuth(
+  requiredRole: UserRole,
+  handler: (req: AuthenticatedRequest, context: { params: any }) => Promise<NextResponse>
+): (req: NextRequest, context: { params: any }) => Promise<NextResponse>;
+export function withRoleAuth(
+  requiredRole: UserRole,
+  handler: (req: AuthenticatedRequest, context?: { params: any }) => Promise<NextResponse>
 ) {
-  return withAuth(async (req: AuthenticatedRequest) => {
+  return withAuth(async (req: AuthenticatedRequest, context?: { params: any }) => {
     const user = req.user!; // User is guaranteed to exist due to withAuth
 
     if (!user.hasPermission(requiredRole)) {
@@ -168,7 +188,7 @@ export function withRoleAuth(
       );
     }
 
-    return await handler(req);
+    return await handler(req, context);
   });
 }
 
@@ -176,8 +196,16 @@ export function withRoleAuth(
 export function withFeatureAuth(
   feature: keyof typeof ROLE_PERMISSIONS,
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
+): (req: NextRequest) => Promise<NextResponse>;
+export function withFeatureAuth(
+  feature: keyof typeof ROLE_PERMISSIONS,
+  handler: (req: AuthenticatedRequest, context: { params: any }) => Promise<NextResponse>
+): (req: NextRequest, context: { params: any }) => Promise<NextResponse>;
+export function withFeatureAuth(
+  feature: keyof typeof ROLE_PERMISSIONS,
+  handler: (req: AuthenticatedRequest, context?: { params: any }) => Promise<NextResponse>
 ) {
-  return withAuth(async (req: AuthenticatedRequest) => {
+  return withAuth(async (req: AuthenticatedRequest, context?: { params: any }) => {
     const user = req.user!; // User is guaranteed to exist due to withAuth
 
     if (!hasFeaturePermission(user.role, feature)) {
@@ -191,7 +219,7 @@ export function withFeatureAuth(
       );
     }
 
-    return await handler(req);
+    return await handler(req, context);
   });
 }
 
@@ -337,8 +365,10 @@ export function withRateLimit(
   maxRequests: number = 100,
   windowMs: number = 15 * 60 * 1000
 ) {
-  return function (handler: (req: NextRequest) => Promise<NextResponse>) {
-    return withApiMiddleware(async (req: NextRequest) => {
+  return function (
+    handler: (req: NextRequest, context?: { params: any }) => Promise<NextResponse>
+  ) {
+    return withApiMiddleware(async (req: NextRequest, context?: { params: any }) => {
       const identifier =
         req.headers.get('x-forwarded-for') ||
         req.headers.get('x-real-ip') ||
@@ -359,7 +389,7 @@ export function withRateLimit(
         );
       }
 
-      const response = await handler(req);
+      const response = await handler(req, context);
 
       // Add rate limit headers to successful responses
       response.headers.set('X-RateLimit-Limit', maxRequests.toString());
@@ -376,3 +406,5 @@ export function withRateLimit(
     });
   };
 }
+
+
