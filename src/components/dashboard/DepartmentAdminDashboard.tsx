@@ -266,37 +266,70 @@ export default function DepartmentAdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Search */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {dashboardData.department.name} Dashboard
-          </h1>
-          <p className="text-gray-600 mt-1">
-            {dashboardData.department.company_name} • Department insights and
-            management
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search team surveys, members..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-80"
-            />
-            {isSearching && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+      {/* Modern Header */}
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-8 border border-green-100">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-green-100 rounded-xl">
+                <Building2 className="h-8 w-8 text-green-600" />
               </div>
-            )}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {dashboardData.department.name} Dashboard
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  {dashboardData.department.company_name} • Department insights
+                  and management
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span>
+                  {dashboardData?.departmentKPIs?.totalTeamMembers || 0} Team
+                  Members
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                <span>
+                  {dashboardData?.departmentKPIs?.departmentSurveys || 0}{' '}
+                  Surveys
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                <span>
+                  {dashboardData?.departmentKPIs?.activeDepartmentSurveys || 0}{' '}
+                  Active
+                </span>
+              </div>
+            </div>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Create New Survey
-          </Button>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                placeholder="Search team surveys, members..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 h-12 w-80 text-base border-gray-200 focus:border-green-500 focus:ring-green-500 bg-white"
+              />
+              {isSearching && (
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin h-4 w-4 border-2 border-green-500 border-t-transparent rounded-full"></div>
+                </div>
+              )}
+            </div>
+            <Button className="bg-green-600 hover:bg-green-700 h-12 px-6">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Survey
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -382,15 +415,88 @@ export default function DepartmentAdminDashboard() {
         />
       </div> */}
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="team">Team</TabsTrigger>
-          <TabsTrigger value="surveys">Surveys</TabsTrigger>
-          <TabsTrigger value="insights">Insights</TabsTrigger>
-          <TabsTrigger value="actions">Action Plans</TabsTrigger>
-        </TabsList>
+      {/* Enhanced Tabs */}
+      <Tabs defaultValue="overview" className="space-y-8">
+        <div className="border-b border-gray-200">
+          <TabsList className="bg-transparent h-auto p-0 space-x-8">
+            <TabsTrigger
+              value="overview"
+              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-green-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Activity className="h-4 w-4 text-green-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Overview</div>
+                  <div className="text-sm text-gray-500">Department status</div>
+                </div>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="team"
+              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Users className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Team</div>
+                  <div className="text-sm text-gray-500">
+                    {dashboardData?.teamMembers?.length || 0} members
+                  </div>
+                </div>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="surveys"
+              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-purple-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <FileText className="h-4 w-4 text-purple-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Surveys</div>
+                  <div className="text-sm text-gray-500">
+                    {dashboardData?.ongoingSurveys?.length || 0} active
+                  </div>
+                </div>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="insights"
+              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <Brain className="h-4 w-4 text-orange-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Insights</div>
+                  <div className="text-sm text-gray-500">AI analysis</div>
+                </div>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="actions"
+              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-red-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <Target className="h-4 w-4 text-red-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Action Plans</div>
+                  <div className="text-sm text-gray-500">
+                    {dashboardData?.actionPlans?.length || 0} plans
+                  </div>
+                </div>
+              </div>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

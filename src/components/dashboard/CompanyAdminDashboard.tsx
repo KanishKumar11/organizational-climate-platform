@@ -103,10 +103,31 @@ interface DemographicVersion {
   surveys_affected: number;
 }
 
+interface Department {
+  _id: string;
+  name: string;
+  employee_count: number;
+}
+
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  department_id?: { name: string };
+}
+
+interface Survey {
+  _id: string;
+  title: string;
+  status: string;
+  type?: string;
+}
+
 interface SearchResult {
-  surveys: any[];
-  users: any[];
-  departments: any[];
+  surveys: Survey[];
+  users: User[];
+  departments: Department[];
   total: number;
 }
 
@@ -241,36 +262,67 @@ export default function CompanyAdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Search */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Company Dashboard
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Organization-wide insights and management
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search surveys, employees, departments..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-80"
-            />
-            {isSearching && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+      {/* Modern Header */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <Building2 className="h-8 w-8 text-blue-600" />
               </div>
-            )}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Company Dashboard
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Organization-wide insights and management
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                <span>
+                  {dashboardData?.companyKPIs?.totalEmployees || 0} Employees
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span>
+                  {dashboardData?.companyKPIs?.activeSurveys || 0} Active
+                  Surveys
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                <span>
+                  {dashboardData?.companyKPIs?.departmentCount || 0} Departments
+                </span>
+              </div>
+            </div>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Create New Survey
-          </Button>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                placeholder="Search surveys, employees, departments..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 h-12 w-80 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white"
+              />
+              {isSearching && (
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                </div>
+              )}
+            </div>
+            <Button className="bg-blue-600 hover:bg-blue-700 h-12 px-6">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Survey
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -340,37 +392,93 @@ export default function CompanyAdminDashboard() {
         </motion.div>
       )}
 
-      {/* Company KPIs */}
+      {/* Enhanced Company KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPIDisplay
-          title="Total Employees"
-          value={dashboardData.companyKPIs.totalEmployees}
-          icon={Users}
-          trend={`${dashboardData.companyKPIs.activeEmployees} active`}
-          color="blue"
-        />
-        <KPIDisplay
-          title="Total Surveys"
-          value={dashboardData.companyKPIs.totalSurveys}
-          icon={FileText}
-          trend={`${dashboardData.companyKPIs.activeSurveys} active`}
-          color="green"
-        />
-        <KPIDisplay
-          title="Completion Rate"
-          value={dashboardData.companyKPIs.completionRate}
-          suffix="%"
-          icon={TrendingUp}
-          trend={`${dashboardData.companyKPIs.totalResponses} responses`}
-          color="purple"
-        />
-        <KPIDisplay
-          title="Departments"
-          value={dashboardData.companyKPIs.departmentCount}
-          icon={Building2}
-          trend={`${dashboardData.companyKPIs.engagementTrend > 0 ? '+' : ''}${dashboardData.companyKPIs.engagementTrend.toFixed(1)}% engagement`}
-          color="orange"
-        />
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-700">
+                  Total Employees
+                </p>
+                <p className="text-4xl font-bold text-blue-900">
+                  {dashboardData.companyKPIs.totalEmployees}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  {dashboardData.companyKPIs.activeEmployees} active
+                </p>
+              </div>
+              <div className="p-3 bg-blue-200 rounded-full">
+                <Users className="h-6 w-6 text-blue-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-green-100">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-700">
+                  Total Surveys
+                </p>
+                <p className="text-4xl font-bold text-green-900">
+                  {dashboardData.companyKPIs.totalSurveys}
+                </p>
+                <p className="text-xs text-green-600 mt-1">
+                  {dashboardData.companyKPIs.activeSurveys} active
+                </p>
+              </div>
+              <div className="p-3 bg-green-200 rounded-full">
+                <FileText className="h-6 w-6 text-green-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-purple-700">
+                  Completion Rate
+                </p>
+                <p className="text-4xl font-bold text-purple-900">
+                  {dashboardData.companyKPIs.completionRate}%
+                </p>
+                <p className="text-xs text-purple-600 mt-1">
+                  {dashboardData.companyKPIs.totalResponses} responses
+                </p>
+              </div>
+              <div className="p-3 bg-purple-200 rounded-full">
+                <TrendingUp className="h-6 w-6 text-purple-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-50 to-orange-100">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-orange-700">
+                  Departments
+                </p>
+                <p className="text-4xl font-bold text-orange-900">
+                  {dashboardData.companyKPIs.departmentCount}
+                </p>
+                <p className="text-xs text-orange-600 mt-1">
+                  {dashboardData.companyKPIs.engagementTrend > 0 ? '+' : ''}
+                  {dashboardData.companyKPIs.engagementTrend.toFixed(1)}%
+                  engagement
+                </p>
+              </div>
+              <div className="p-3 bg-orange-200 rounded-full">
+                <Building2 className="h-6 w-6 text-orange-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content Tabs */}

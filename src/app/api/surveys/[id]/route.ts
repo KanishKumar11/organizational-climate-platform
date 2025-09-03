@@ -104,12 +104,36 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if role exists and is valid
+    if (!session.user.role) {
+      console.log('ERROR: No role found in session');
+      return NextResponse.json(
+        {
+          error: 'Forbidden',
+          details: 'No role found in user session',
+        },
+        { status: 403 }
+      );
+    }
+
+    await connectDB();
+
+    // If user is not super_admin in session, check database directly (in case session is stale)
+    if (session.user.role !== 'super_admin') {
+      console.log('User is not super_admin in session, checking database...');
+      const User = (await import('@/models/User')).default;
+      const dbUser = await User.findOne({ email: session.user.email });
+
+      if (dbUser && dbUser.role === 'super_admin') {
+        console.log('User is super_admin in database, updating session role');
+        session.user.role = 'super_admin';
+      }
+    }
+
     // Check permissions
     if (!hasPermission(session.user.role, 'company_admin')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-
-    await connectDB();
     const { id } = await params;
 
     const surveyId = id;
@@ -132,12 +156,7 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      survey: {
-        id: survey._id,
-        title: survey.title,
-        status: survey.status,
-        updated_at: survey.updated_at,
-      },
+      survey: survey,
     });
   } catch (error) {
     console.error('Error updating survey:', error);
@@ -159,12 +178,36 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if role exists and is valid
+    if (!session.user.role) {
+      console.log('ERROR: No role found in session');
+      return NextResponse.json(
+        {
+          error: 'Forbidden',
+          details: 'No role found in user session',
+        },
+        { status: 403 }
+      );
+    }
+
+    await connectDB();
+
+    // If user is not super_admin in session, check database directly (in case session is stale)
+    if (session.user.role !== 'super_admin') {
+      console.log('User is not super_admin in session, checking database...');
+      const User = (await import('@/models/User')).default;
+      const dbUser = await User.findOne({ email: session.user.email });
+
+      if (dbUser && dbUser.role === 'super_admin') {
+        console.log('User is super_admin in database, updating session role');
+        session.user.role = 'super_admin';
+      }
+    }
+
     // Check permissions
     if (!hasPermission(session.user.role, 'company_admin')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-
-    await connectDB();
     const { id } = await params;
 
     const surveyId = id;

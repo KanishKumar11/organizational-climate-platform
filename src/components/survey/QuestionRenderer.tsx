@@ -33,13 +33,13 @@ export function QuestionRenderer({
     const current = response?.response_value as number;
 
     return (
-      <div className="space-y-4">
-        <div className="flex justify-between text-sm text-gray-600">
+      <div className="space-y-6 mt-6">
+        <div className="flex justify-between text-sm text-gray-600 px-2">
           <span>{question.scale_labels?.min || 'Strongly Disagree'}</span>
           <span>{question.scale_labels?.max || 'Strongly Agree'}</span>
         </div>
 
-        <div className="flex justify-between items-center">
+        <div className="flex justify-center items-center gap-4">
           {Array.from({ length: max - min + 1 }, (_, i) => {
             const value = min + i;
             const isSelected = current === value;
@@ -51,8 +51,8 @@ export function QuestionRenderer({
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handleResponse(value)}
                 className={`
-                  w-12 h-12 rounded-full border-2 flex items-center justify-center
-                  font-semibold transition-colors
+                  w-10 h-10 rounded-full border-2 flex items-center justify-center
+                  font-medium transition-colors text-sm
                   ${
                     isSelected
                       ? 'bg-blue-500 border-blue-500 text-white'
@@ -66,13 +66,13 @@ export function QuestionRenderer({
           })}
         </div>
 
-        <div className="flex justify-between text-xs text-gray-500">
+        {/* <div className="flex justify-center items-center gap-4">
           {Array.from({ length: max - min + 1 }, (_, i) => (
-            <span key={i} className="w-12 text-center">
+            <span key={i} className="w-10 text-center text-xs text-gray-500">
               {min + i}
             </span>
           ))}
-        </div>
+        </div> */}
       </div>
     );
   };
@@ -81,18 +81,18 @@ export function QuestionRenderer({
     const current = response?.response_value as string;
 
     return (
-      <div className="space-y-3">
+      <div className="space-y-3 mt-6 max-w-2xl mx-auto">
         {question.options?.map((option, index) => {
           const isSelected = current === option;
 
           return (
             <motion.button
               key={index}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
               onClick={() => handleResponse(option)}
               className={`
-                w-full p-4 text-left rounded-lg border-2 transition-colors
+                w-full p-3 text-left rounded-lg border-2 transition-colors
                 ${
                   isSelected
                     ? 'bg-blue-50 border-blue-500 text-blue-900'
@@ -103,7 +103,7 @@ export function QuestionRenderer({
               <div className="flex items-center">
                 <div
                   className={`
-                  w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center
+                  w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center flex-shrink-0
                   ${isSelected ? 'border-blue-500' : 'border-gray-300'}
                 `}
                 >
@@ -111,7 +111,7 @@ export function QuestionRenderer({
                     <div className="w-2 h-2 rounded-full bg-blue-500" />
                   )}
                 </div>
-                <span>{option}</span>
+                <span className="text-sm">{option}</span>
               </div>
             </motion.button>
           );
@@ -243,7 +243,7 @@ export function QuestionRenderer({
     const current = response?.response_value as string;
 
     return (
-      <div className="flex space-x-4">
+      <div className="flex justify-center space-x-6 mt-6">
         {['Yes', 'No'].map((option) => {
           const isSelected = current === option.toLowerCase();
 
@@ -254,7 +254,7 @@ export function QuestionRenderer({
               whileTap={{ scale: 0.95 }}
               onClick={() => handleResponse(option.toLowerCase())}
               className={`
-                flex-1 p-4 rounded-lg border-2 font-semibold transition-colors
+                px-8 py-3 rounded-lg border-2 font-medium transition-colors min-w-[100px]
                 ${
                   isSelected
                     ? 'bg-blue-500 border-blue-500 text-white'
@@ -326,7 +326,7 @@ export function QuestionRenderer({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 ">
       {/* Question Header */}
       <div>
         <div className="flex items-start justify-between mb-4">

@@ -236,9 +236,9 @@ export function SurveyInterface({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 flex flex-col justify-between  min-h-[90vh]">
       {/* Survey Header */}
-      <div className="mb-8">
+      <div className="mb-8 justify-self-start">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           {survey.title}
         </h1>
@@ -279,76 +279,78 @@ export function SurveyInterface({
           </div>
         )}
       </div>
+      <div>
+        {/* Survey Content */}
+        <Card className="p-8 ">
+          <AnimatePresence mode="wait">
+            {isOnDemographics ? (
+              <motion.div
+                key="demographics"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <DemographicForm
+                  demographics={survey.demographics}
+                  responses={demographics}
+                  onResponse={handleDemographicResponse}
+                />
+              </motion.div>
+            ) : currentQuestion ? (
+              <motion.div
+                key={currentQuestion.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <QuestionRenderer
+                  question={currentQuestion}
+                  response={currentResponse || undefined}
+                  onResponse={handleQuestionResponse}
+                  questionNumber={currentStep + 1}
+                />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
 
-      {/* Survey Content */}
-      <Card className="p-8">
-        <AnimatePresence mode="wait">
-          {isOnDemographics ? (
-            <motion.div
-              key="demographics"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <DemographicForm
-                demographics={survey.demographics}
-                responses={demographics}
-                onResponse={handleDemographicResponse}
-              />
-            </motion.div>
-          ) : currentQuestion ? (
-            <motion.div
-              key={currentQuestion.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <QuestionRenderer
-                question={currentQuestion}
-                response={currentResponse || undefined}
-                onResponse={handleQuestionResponse}
-                questionNumber={currentStep + 1}
-              />
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+          {/* Navigation */}
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <SurveyNavigation
+              currentStep={currentStep}
+              totalSteps={totalSteps}
+              canProceed={canProceed() || false}
+              isSubmitting={isSubmitting}
+              onPrevious={handlePrevious}
+              onNext={handleNext}
+              onSubmit={handleSubmit}
+              isLastStep={currentStep === totalSteps - 1}
+            />
+          </div>
+        </Card>
 
-        {/* Navigation */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <SurveyNavigation
-            currentStep={currentStep}
-            totalSteps={totalSteps}
-            canProceed={canProceed() || false}
-            isSubmitting={isSubmitting}
-            onPrevious={handlePrevious}
-            onNext={handleNext}
-            onSubmit={handleSubmit}
-            isLastStep={currentStep === totalSteps - 1}
-          />
+        {/* Survey Info */}
+        <div className="mt-6 text-center text-sm text-gray-500">
+          {survey.settings.anonymous ? (
+            <p>
+              This survey is anonymous. Your responses cannot be traced back to
+              you.
+            </p>
+          ) : (
+            <p>
+              Your responses are confidential and will only be used for
+              organizational improvement.
+            </p>
+          )}
+          {survey.settings.time_limit_minutes && (
+            <p className="mt-1">
+              Estimated time: {survey.settings.time_limit_minutes} minutes
+            </p>
+          )}
         </div>
-      </Card>
-
-      {/* Survey Info */}
-      <div className="mt-6 text-center text-sm text-gray-500">
-        {survey.settings.anonymous ? (
-          <p>
-            This survey is anonymous. Your responses cannot be traced back to
-            you.
-          </p>
-        ) : (
-          <p>
-            Your responses are confidential and will only be used for
-            organizational improvement.
-          </p>
-        )}
-        {survey.settings.time_limit_minutes && (
-          <p className="mt-1">
-            Estimated time: {survey.settings.time_limit_minutes} minutes
-          </p>
-        )}
       </div>
+      <div />
     </div>
   );
 }

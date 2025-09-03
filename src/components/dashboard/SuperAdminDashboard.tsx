@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,16 +79,44 @@ interface RecentActivity {
   company: string;
 }
 
+interface Company {
+  _id: string;
+  name: string;
+  industry: string;
+  employee_count: number;
+}
+
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  company_id?: { name: string };
+}
+
+interface Survey {
+  _id: string;
+  title: string;
+  status: string;
+  company_id?: { name: string };
+  type?: string;
+}
+
+interface Department {
+  _id: string;
+  name: string;
+}
+
 interface SearchResult {
-  surveys: any[];
-  users: any[];
-  companies: any[];
-  departments: any[];
+  surveys: Survey[];
+  users: User[];
+  companies: Company[];
+  departments: Department[];
   total: number;
 }
 
 export default function SuperAdminDashboard() {
-  const { user } = useAuth();
+  useAuth();
   const [dashboardData, setDashboardData] = useState<{
     globalKPIs: GlobalKPIs;
     companyMetrics: CompanyMetric[];
@@ -103,17 +133,6 @@ export default function SuperAdminDashboard() {
     fetchDashboardData();
   }, []);
 
-  useEffect(() => {
-    if (searchQuery.length >= 2) {
-      const debounceTimer = setTimeout(() => {
-        performSearch();
-      }, 300);
-      return () => clearTimeout(debounceTimer);
-    } else {
-      setSearchResults(null);
-    }
-  }, [searchQuery]);
-
   const fetchDashboardData = async () => {
     try {
       const response = await fetch('/api/dashboard/super-admin');
@@ -128,7 +147,7 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
@@ -145,7 +164,7 @@ export default function SuperAdminDashboard() {
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [searchQuery]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -205,59 +224,99 @@ export default function SuperAdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Search */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Super Admin Dashboard
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Global system overview and management
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search surveys, users, companies..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-80"
-            />
-            {isSearching && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+      {/* Modern Header */}
+      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-8 border border-purple-100">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <Database className="h-8 w-8 text-purple-600" />
               </div>
-            )}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Super Admin Dashboard
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Global system overview and management
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                <span>
+                  {dashboardData?.globalKPIs.totalCompanies || 0} Companies
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                <span>{dashboardData?.globalKPIs.totalUsers || 0} Users</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span>
+                  {dashboardData?.globalKPIs.activeSurveys || 0} Active Surveys
+                </span>
+              </div>
+            </div>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Create New Survey
-          </Button>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                placeholder="Search surveys, users, companies..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 h-12 w-80 text-base border-gray-200 focus:border-purple-500 focus:ring-purple-500 bg-white"
+              />
+              {isSearching && (
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin h-4 w-4 border-2 border-purple-500 border-t-transparent rounded-full"></div>
+                </div>
+              )}
+            </div>
+            <Button className="bg-purple-600 hover:bg-purple-700 h-12 px-6">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Survey
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Search Results */}
+      {/* Enhanced Search Results */}
       {searchResults && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg border p-4 shadow-sm"
+          className="bg-white rounded-2xl border-0 shadow-sm p-6"
         >
-          <h3 className="font-semibold mb-3">
-            Search Results ({searchResults.total})
-          </h3>
-          <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Search Results ({searchResults.total})
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchResults(null)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ×
+            </Button>
+          </div>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
             {searchResults.surveys?.map((survey) => (
               <div
                 key={survey._id}
-                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
+                className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <FileText className="h-4 w-4 text-blue-500" />
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                  </div>
                   <div>
-                    <p className="font-medium">{survey.title}</p>
+                    <p className="font-medium text-gray-900">{survey.title}</p>
                     <p className="text-sm text-gray-500">
                       {survey.company_id?.name} • {survey.type}
                     </p>
@@ -265,6 +324,11 @@ export default function SuperAdminDashboard() {
                 </div>
                 <Badge
                   variant={survey.status === 'active' ? 'default' : 'secondary'}
+                  className={
+                    survey.status === 'active'
+                      ? 'bg-green-100 text-green-800'
+                      : ''
+                  }
                 >
                   {survey.status}
                 </Badge>
@@ -273,12 +337,14 @@ export default function SuperAdminDashboard() {
             {searchResults.companies?.map((company) => (
               <div
                 key={company._id}
-                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
+                className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <Building2 className="h-4 w-4 text-purple-500" />
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Building2 className="h-4 w-4 text-purple-600" />
+                  </div>
                   <div>
-                    <p className="font-medium">{company.name}</p>
+                    <p className="font-medium text-gray-900">{company.name}</p>
                     <p className="text-sm text-gray-500">
                       {company.industry} • {company.employee_count} employees
                     </p>
@@ -289,12 +355,14 @@ export default function SuperAdminDashboard() {
             {searchResults.users?.map((user) => (
               <div
                 key={user._id}
-                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
+                className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <Users className="h-4 w-4 text-green-500" />
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Users className="h-4 w-4 text-green-600" />
+                  </div>
                   <div>
-                    <p className="font-medium">{user.name}</p>
+                    <p className="font-medium text-gray-900">{user.name}</p>
                     <p className="text-sm text-gray-500">
                       {user.company_id?.name} • {user.role}
                     </p>
@@ -306,55 +374,180 @@ export default function SuperAdminDashboard() {
         </motion.div>
       )}
 
-      {/* Global KPIs */}
+      {/* Enhanced Global KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPIDisplay
-          title="Total Companies"
-          value={dashboardData.globalKPIs.totalCompanies}
-          icon={Building2}
-          trend={`+${dashboardData.globalKPIs.userGrowthRate.toFixed(1)}%`}
-          color="blue"
-        />
-        <KPIDisplay
-          title="Total Users"
-          value={dashboardData.globalKPIs.totalUsers}
-          icon={Users}
-          trend={`${dashboardData.globalKPIs.activeUsers} active`}
-          color="green"
-        />
-        <KPIDisplay
-          title="Total Surveys"
-          value={dashboardData.globalKPIs.totalSurveys}
-          icon={FileText}
-          trend={`${dashboardData.globalKPIs.activeSurveys} active`}
-          color="purple"
-        />
-        <KPIDisplay
-          title="Completion Rate"
-          value={dashboardData.globalKPIs.surveyCompletionRate}
-          suffix="%"
-          icon={TrendingUp}
-          trend="Across all surveys"
-          color="orange"
-        />
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-700">
+                  Total Companies
+                </p>
+                <p className="text-4xl font-bold text-blue-900">
+                  <AnimatedCounter
+                    value={dashboardData.globalKPIs.totalCompanies}
+                  />
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  +{dashboardData.globalKPIs.userGrowthRate.toFixed(1)}% growth
+                </p>
+              </div>
+              <div className="p-3 bg-blue-200 rounded-full">
+                <Building2 className="h-6 w-6 text-blue-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-green-100">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-700">
+                  Total Users
+                </p>
+                <p className="text-4xl font-bold text-green-900">
+                  <AnimatedCounter
+                    value={dashboardData.globalKPIs.totalUsers}
+                  />
+                </p>
+                <p className="text-xs text-green-600 mt-1">
+                  {dashboardData.globalKPIs.activeUsers} active users
+                </p>
+              </div>
+              <div className="p-3 bg-green-200 rounded-full">
+                <Users className="h-6 w-6 text-green-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-purple-700">
+                  Total Surveys
+                </p>
+                <p className="text-4xl font-bold text-purple-900">
+                  <AnimatedCounter
+                    value={dashboardData.globalKPIs.totalSurveys}
+                  />
+                </p>
+                <p className="text-xs text-purple-600 mt-1">
+                  {dashboardData.globalKPIs.activeSurveys} currently active
+                </p>
+              </div>
+              <div className="p-3 bg-purple-200 rounded-full">
+                <FileText className="h-6 w-6 text-purple-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-50 to-orange-100">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-orange-700">
+                  Completion Rate
+                </p>
+                <p className="text-4xl font-bold text-orange-900">
+                  <AnimatedCounter
+                    value={dashboardData.globalKPIs.surveyCompletionRate}
+                  />
+                  %
+                </p>
+                <p className="text-xs text-orange-600 mt-1">
+                  Across all surveys
+                </p>
+              </div>
+              <div className="p-3 bg-orange-200 rounded-full">
+                <TrendingUp className="h-6 w-6 text-orange-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="companies">Companies</TabsTrigger>
-          <TabsTrigger value="system">System Health</TabsTrigger>
-          <TabsTrigger value="surveys">Ongoing Surveys</TabsTrigger>
-        </TabsList>
+      {/* Enhanced Tabs */}
+      <Tabs defaultValue="overview" className="space-y-8">
+        <div className="border-b border-gray-200">
+          <TabsList className="bg-transparent h-auto p-0 space-x-8">
+            <TabsTrigger
+              value="overview"
+              className="bg-transparent border-b-2 border-transparent  data-[state=active]:bg-transparent rounded-none px-0 pb-4 !shadow-none cursor-pointer"
+            >
+              <div className="flex items-center gap-3 ">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Activity className="h-4 w-4 text-purple-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Overview</div>
+                  <div className="text-sm text-gray-500">System status</div>
+                </div>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="companies"
+              className="bg-transparent border-b-2 shadow-none data-[state=active]:bg-transparent rounded-none px-0 pb-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Building2 className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Companies</div>
+                  <div className="text-sm text-gray-500">
+                    {dashboardData?.companyMetrics?.length || 0} organizations
+                  </div>
+                </div>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="system"
+              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-green-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Cpu className="h-4 w-4 text-green-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">System Health</div>
+                  <div className="text-sm text-gray-500">
+                    Performance metrics
+                  </div>
+                </div>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="surveys"
+              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <FileText className="h-4 w-4 text-orange-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Active Surveys</div>
+                  <div className="text-sm text-gray-500">
+                    {dashboardData?.ongoingSurveys?.length || 0} running
+                  </div>
+                </div>
+              </div>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
+        <TabsContent value="overview" className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Enhanced Recent Activity */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Activity className="h-5 w-5 text-blue-600" />
+                  </div>
                   Recent Activity
                 </CardTitle>
               </CardHeader>
@@ -366,20 +559,27 @@ export default function SuperAdminDashboard() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50"
+                      className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors"
                     >
-                      {getActivityIcon(activity.type)}
+                      <div className="p-2 bg-gray-100 rounded-lg">
+                        {getActivityIcon(activity.type)}
+                      </div>
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{activity.title}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="font-semibold text-gray-900 mb-1">
+                          {activity.title}
+                        </p>
+                        <p className="text-sm text-gray-600 mb-2">
                           {activity.description}
                         </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-400">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-gray-500">
                             {new Date(activity.timestamp).toLocaleDateString()}
                           </span>
                           {activity.company && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge
+                              variant="outline"
+                              className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                            >
                               {activity.company}
                             </Badge>
                           )}
@@ -391,27 +591,80 @@ export default function SuperAdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+            {/* Enhanced Quick Actions */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Zap className="h-5 w-5 text-green-600" />
+                  </div>
+                  Quick Actions
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Button className="w-full justify-start" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New Company
+              <CardContent className="space-y-4">
+                <Button
+                  className="w-full justify-start h-auto p-4"
+                  variant="outline"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Plus className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Add New Company</div>
+                      <div className="text-sm text-gray-500">
+                        Onboard organization
+                      </div>
+                    </div>
+                  </div>
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Create Global Survey
+                <Button
+                  className="w-full justify-start h-auto p-4"
+                  variant="outline"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Create Global Survey</div>
+                      <div className="text-sm text-gray-500">
+                        System-wide survey
+                      </div>
+                    </div>
+                  </div>
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Generate System Report
+                <Button
+                  className="w-full justify-start h-auto p-4"
+                  variant="outline"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <BarChart3 className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Generate System Report</div>
+                      <div className="text-sm text-gray-500">
+                        Analytics export
+                      </div>
+                    </div>
+                  </div>
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <Users className="h-4 w-4 mr-2" />
-                  Manage System Users
+                <Button
+                  className="w-full justify-start h-auto p-4"
+                  variant="outline"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Users className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Manage System Users</div>
+                      <div className="text-sm text-gray-500">
+                        User administration
+                      </div>
+                    </div>
+                  </div>
                 </Button>
               </CardContent>
             </Card>
@@ -472,79 +725,109 @@ export default function SuperAdminDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="system" className="space-y-6">
+        <TabsContent value="system" className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-green-100">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
-                  <Database className="h-5 w-5" />
-                  Database
+                  <div className="p-2 bg-green-200 rounded-lg">
+                    <Database className="h-5 w-5 text-green-700" />
+                  </div>
+                  Database Health
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Status</span>
-                    <Badge variant="default" className="bg-green-500">
-                      {dashboardData.systemHealth.database_status}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Connections</span>
-                    <span className="font-semibold">
-                      {dashboardData.systemHealth.active_connections}
-                    </span>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-green-700">
+                    Status
+                  </span>
+                  <Badge className="bg-green-600 text-white">
+                    {dashboardData.systemHealth.database_status}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-green-700">
+                    Active Connections
+                  </span>
+                  <span className="text-lg font-bold text-green-900">
+                    {dashboardData.systemHealth.active_connections}
+                  </span>
+                </div>
+                <div className="pt-2 border-t border-green-200">
+                  <div className="text-xs text-green-600">
+                    All systems operational
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
+                  <div className="p-2 bg-blue-200 rounded-lg">
+                    <Zap className="h-5 w-5 text-blue-700" />
+                  </div>
                   Performance
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Response Time</span>
-                    <span
-                      className={`font-semibold ${getHealthColor(dashboardData.systemHealth.api_response_time, 'response_time')}`}
-                    >
-                      {dashboardData.systemHealth.api_response_time.toFixed(0)}
-                      ms
-                    </span>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-blue-700">
+                    API Response
+                  </span>
+                  <span
+                    className={`text-lg font-bold ${getHealthColor(dashboardData.systemHealth.api_response_time, 'response_time')}`}
+                  >
+                    {dashboardData.systemHealth.api_response_time.toFixed(0)}ms
+                  </span>
+                </div>
+                <div className="pt-2 border-t border-blue-200">
+                  <div className="text-xs text-blue-600">
+                    {dashboardData.systemHealth.api_response_time < 100
+                      ? 'Excellent'
+                      : dashboardData.systemHealth.api_response_time < 200
+                        ? 'Good'
+                        : 'Needs attention'}
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
-                  <Cpu className="h-5 w-5" />
-                  Resources
+                  <div className="p-2 bg-purple-200 rounded-lg">
+                    <Cpu className="h-5 w-5 text-purple-700" />
+                  </div>
+                  System Resources
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">CPU Usage</span>
+                    <span className="text-sm font-medium text-purple-700">
+                      CPU Usage
+                    </span>
                     <span
-                      className={`font-semibold ${getHealthColor(dashboardData.systemHealth.cpu_usage, 'cpu')}`}
+                      className={`text-lg font-bold ${getHealthColor(dashboardData.systemHealth.cpu_usage, 'cpu')}`}
                     >
                       {dashboardData.systemHealth.cpu_usage.toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Memory Usage</span>
+                    <span className="text-sm font-medium text-purple-700">
+                      Memory Usage
+                    </span>
                     <span
-                      className={`font-semibold ${getHealthColor(dashboardData.systemHealth.memory_usage, 'memory')}`}
+                      className={`text-lg font-bold ${getHealthColor(dashboardData.systemHealth.memory_usage, 'memory')}`}
                     >
                       {dashboardData.systemHealth.memory_usage.toFixed(1)}%
                     </span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-purple-200">
+                  <div className="text-xs text-purple-600">
+                    System running smoothly
                   </div>
                 </div>
               </CardContent>

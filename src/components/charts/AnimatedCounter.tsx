@@ -37,7 +37,9 @@ export default function AnimatedCounter({
       transition={{ duration: 0.5 }}
       className={className}
     >
-      <motion.span>{rounded}</motion.span>
+      <motion.span className="md:text-4xl text-2xl font-semibold md:font-bold">
+        {rounded}
+      </motion.span>
     </motion.span>
   );
 }
