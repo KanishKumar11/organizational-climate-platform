@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -117,6 +118,7 @@ interface SearchResult {
 
 export default function SuperAdminDashboard() {
   useAuth();
+  const router = useRouter();
   const [dashboardData, setDashboardData] = useState<{
     globalKPIs: GlobalKPIs;
     companyMetrics: CompanyMetric[];
@@ -277,7 +279,10 @@ export default function SuperAdminDashboard() {
                 </div>
               )}
             </div>
-            <Button className="bg-purple-600 hover:bg-purple-700 h-12 px-6">
+            <Button
+              className="bg-purple-600 hover:bg-purple-700 h-12 px-6"
+              onClick={() => router.push('/surveys/create')}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Create Survey
             </Button>
