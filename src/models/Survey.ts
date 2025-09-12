@@ -84,6 +84,7 @@ export interface ISurvey extends Document {
   response_count: number;
   target_audience_count?: number;
   template_id?: string;
+  version: number;
   created_at: Date;
   updated_at: Date;
   // Instance methods
@@ -249,6 +250,11 @@ const SurveySchema: Schema = new Schema(
     template_id: {
       type: String,
       trim: true,
+    },
+    version: {
+      type: Number,
+      default: 1,
+      min: 1,
     },
   },
   {

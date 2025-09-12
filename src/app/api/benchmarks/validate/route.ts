@@ -3,9 +3,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { BenchmarkService } from '@/lib/benchmark-service';
 import { validatePermissions } from '@/lib/permissions';
+import Benchmark from '@/models/Benchmark';
+import { connectDB } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -36,9 +39,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const benchmark = await BenchmarkService.validateBenchmark(
+    const benchmark = await Benchmark.findByIdAndUpdate(
       benchmark_id,
-      status
+      { 
+        validation_status: status,
+        updated_at: new Date()
+      },
+      { new: true }
     );
 
     if (!benchmark) {

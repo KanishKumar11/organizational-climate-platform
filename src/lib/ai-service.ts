@@ -407,6 +407,9 @@ class AIService {
 // Export singleton instance
 export const aiService = new AIService();
 
+// Export the class for direct instantiation if needed
+export { AIService };
+
 // Export utility functions for API routes
 export async function processSurveyResponses(
   responses: any[],

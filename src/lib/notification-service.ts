@@ -404,30 +404,7 @@ class NotificationService {
     }
   }
 
-  // Send individual notification
-  private async sendNotification(notification: INotification): Promise<void> {
-    switch (notification.channel) {
-      case 'email':
-        await this.sendEmailNotification(notification);
-        break;
-      case 'push':
-        await this.sendPushNotification(notification);
-        break;
-      case 'in_app':
-        await this.sendInAppNotification(notification);
-        break;
-      case 'sms':
-        await this.sendSMSNotification(notification);
-        break;
-      default:
-        throw new Error(
-          `Unsupported notification channel: ${notification.channel}`
-        );
-    }
 
-    notification.markSent();
-    await notification.save();
-  }
 
   // Send email notification
   private async sendEmailNotification(
@@ -772,8 +749,640 @@ class NotificationService {
     await connectDB();
     return await (Notification as any).findByCompany(companyId, limit);
   }
+
+  // Send notification immediately
+  async sendNotification(notificationId: string): Promise<void> {
+    await connectDB();
+    const notification = await (Notification as any).findById(notificationId);
+    if (!notification) {
+      throw new Error('Notification not found');
+    }
+    await this.sendNotificationInternal(notification);
+  }
+
+  // Rename the private method to avoid conflict
+  private async sendNotificationInternal(notification: INotification): Promise<void> {
+    switch (notification.channel) {
+      case 'email':
+        await this.sendEmailNotification(notification);
+        break;
+      case 'push':
+        await this.sendPushNotification(notification);
+        break;
+      case 'in_app':
+        await this.sendInAppNotification(notification);
+        break;
+      case 'sms':
+        await this.sendSMSNotification(notification);
+        break;
+      default:
+        throw new Error(
+          `Unsupported notification channel: ${notification.channel}`
+        );
+    }
+
+    notification.markSent();
+    await notification.save();
+  }
+
+  // Bulk update notifications
+  async bulkUpdateNotifications(
+    notificationIds: string[],
+    updates: any,
+    companyId?: string
+  ): Promise<any> {
+    await connectDB();
+
+    let query: any = { _id: { $in: notificationIds } };
+    if (companyId) {
+      query.company_id = companyId;
+    }
+
+    return await (Notification as any).updateMany(query, { $set: updates });
+  }
+
+  // Bulk delete notifications
+  async bulkDeleteNotifications(
+    notificationIds: string[],
+    companyId?: string
+  ): Promise<any> {
+    await connectDB();
+
+    let query: any = { _id: { $in: notificationIds } };
+    if (companyId) {
+      query.company_id = companyId;
+    }
+
+    return await (Notification as any).deleteMany(query);
+  }
+
+  // Get scheduled notifications
+  async getScheduledNotifications(filters: {
+    company_id: string;
+    status?: string;
+    limit?: number;
+    page?: number;
+  }): Promise<INotification[]> {
+    await connectDB();
+
+    const query: any = { company_id: filters.company_id };
+    if (filters.status) {
+      query.status = filters.status;
+    }
+
+    const limit = filters.limit || 50;
+    const skip = ((filters.page || 1) - 1) * limit;
+
+    return await (Notification as any)
+      .find(query)
+      .sort({ scheduled_for: 1 })
+      .skip(skip)
+      .limit(limit);
+  }
+
+  // Get user preferences
+  async getUserPreferences(userId: string): Promise<any> {
+    await connectDB();
+    const user = await (User as any).findById(userId);
+    return user?.preferences || null;
+  }
+
+  // Get optimal send time for user
+  async getOptimalSendTime(
+    userId: string
+  ): Promise<{ hour: number; minute: number } | null> {
+    const optimization = await this.getUserSendTimeOptimization(userId);
+    if (optimization) {
+      return {
+        hour: optimization.engagement_patterns.best_hour_of_day,
+        minute: 0,
+      };
+    }
+    return null;
+  }
+
+  // Get delivery optimization data
+  async getDeliveryOptimization(options: {
+    user_id?: string;
+    company_id: string;
+    notification_type?: string;
+    timeframe: number;
+  }): Promise<any> {
+    await connectDB();
+
+    const { user_id, company_id, notification_type, timeframe } = options;
+
+    // Calculate date range
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - timeframe);
+
+    // Build query
+    let query: any = {
+      company_id,
+      created_at: { $gte: startDate },
+    };
+
+    if (user_id) query.user_id = user_id;
+    if (notification_type) query.type = notification_type;
+
+    const notifications = await (Notification as any).find(query);
+
+    // Analyze optimal delivery times
+    const hourlyPerformance: Record<
+      number,
+      { sent: number; opened: number; rate: number }
+    > = {};
+    const dailyPerformance: Record<
+      number,
+      { sent: number; opened: number; rate: number }
+    > = {};
+    const channelPerformance: Record<
+      string,
+      { sent: number; opened: number; rate: number }
+    > = {};
+
+    for (const notification of notifications) {
+      const hour = notification.created_at.getHours();
+      const day = notification.created_at.getDay();
+      const channel = notification.channel;
+
+      // Initialize if not exists
+      if (!hourlyPerformance[hour]) {
+        hourlyPerformance[hour] = { sent: 0, opened: 0, rate: 0 };
+      }
+      if (!dailyPerformance[day]) {
+        dailyPerformance[day] = { sent: 0, opened: 0, rate: 0 };
+      }
+      if (!channelPerformance[channel]) {
+        channelPerformance[channel] = { sent: 0, opened: 0, rate: 0 };
+      }
+
+      // Count sent notifications
+      if (['sent', 'delivered', 'opened'].includes(notification.status)) {
+        hourlyPerformance[hour].sent++;
+        dailyPerformance[day].sent++;
+        channelPerformance[channel].sent++;
+      }
+
+      // Count opened notifications
+      if (notification.status === 'opened') {
+        hourlyPerformance[hour].opened++;
+        dailyPerformance[day].opened++;
+        channelPerformance[channel].opened++;
+      }
+    }
+
+    // Calculate rates
+    Object.values(hourlyPerformance).forEach((perf: any) => {
+      perf.rate = perf.sent > 0 ? perf.opened / perf.sent : 0;
+    });
+    Object.values(dailyPerformance).forEach((perf: any) => {
+      perf.rate = perf.sent > 0 ? perf.opened / perf.sent : 0;
+    });
+    Object.values(channelPerformance).forEach((perf: any) => {
+      perf.rate = perf.sent > 0 ? perf.opened / perf.sent : 0;
+    });
+
+    // Find optimal times
+    const bestHour = Object.entries(hourlyPerformance).sort(
+      ([, a], [, b]) => b.rate - a.rate
+    )[0];
+    const bestDay = Object.entries(dailyPerformance).sort(
+      ([, a], [, b]) => b.rate - a.rate
+    )[0];
+    const bestChannel = Object.entries(channelPerformance).sort(
+      ([, a], [, b]) => b.rate - a.rate
+    )[0];
+
+    return {
+      timeframe_days: timeframe,
+      total_notifications: notifications.length,
+      optimal_delivery_times: {
+        best_hour: bestHour
+          ? { hour: parseInt(bestHour[0]), performance: bestHour[1] }
+          : null,
+        best_day: bestDay
+          ? { day: parseInt(bestDay[0]), performance: bestDay[1] }
+          : null,
+        best_channel: bestChannel
+          ? { channel: bestChannel[0], performance: bestChannel[1] }
+          : null,
+      },
+      performance_by_hour: hourlyPerformance,
+      performance_by_day: dailyPerformance,
+      performance_by_channel: channelPerformance,
+      recommendations: this.generateDeliveryRecommendations(
+        hourlyPerformance,
+        dailyPerformance,
+        channelPerformance
+      ),
+    };
+  }
+
+  // Optimize delivery schedule
+  async optimizeDeliverySchedule(options: {
+    user_ids?: string[];
+    company_id: string;
+    notification_type: string;
+    content_template: string;
+    target_engagement_rate?: number;
+    time_constraints?: any;
+  }): Promise<any> {
+    await connectDB();
+
+    const {
+      user_ids,
+      company_id,
+      notification_type,
+      content_template,
+      target_engagement_rate,
+      time_constraints,
+    } = options;
+
+    // Get users to optimize for
+    let users;
+    if (user_ids) {
+      users = await (User as any).find({ _id: { $in: user_ids }, company_id });
+    } else {
+      users = await (User as any).find({ company_id });
+    }
+
+    const optimizedSchedule = [];
+
+    for (const user of users) {
+      // Get user's optimal send time
+      const userOptimization = await this.getUserSendTimeOptimization(
+        user._id.toString()
+      );
+
+      let optimalTime;
+      if (userOptimization) {
+        optimalTime = new Date();
+        optimalTime.setHours(
+          userOptimization.engagement_patterns.best_hour_of_day,
+          0,
+          0,
+          0
+        );
+
+        // Apply time constraints if provided
+        if (time_constraints) {
+          const constraints = time_constraints;
+          if (optimalTime.getHours() < constraints.earliest_hour) {
+            optimalTime.setHours(constraints.earliest_hour);
+          }
+          if (optimalTime.getHours() > constraints.latest_hour) {
+            optimalTime.setHours(constraints.latest_hour);
+          }
+
+          // Check if day is allowed
+          if (
+            constraints.allowed_days &&
+            !constraints.allowed_days.includes(optimalTime.getDay())
+          ) {
+            // Move to next allowed day
+            const nextAllowedDay =
+              constraints.allowed_days.find(
+                (day: number) => day > optimalTime.getDay()
+              ) || constraints.allowed_days[0];
+            const daysToAdd =
+              nextAllowedDay > optimalTime.getDay()
+                ? nextAllowedDay - optimalTime.getDay()
+                : 7 - optimalTime.getDay() + nextAllowedDay;
+            optimalTime.setDate(optimalTime.getDate() + daysToAdd);
+          }
+        }
+      } else {
+        // Use default optimal time
+        optimalTime = this.getDefaultOptimalSendTime('email');
+      }
+
+      optimizedSchedule.push({
+        user_id: user._id.toString(),
+        user_email: user.email,
+        user_name: user.name,
+        optimal_send_time: optimalTime,
+        predicted_engagement_rate:
+          userOptimization?.engagement_patterns.response_rate_by_hour[
+            optimalTime.getHours()
+          ] || 0.3,
+        notification_type,
+        content_template,
+      });
+    }
+
+    // Sort by optimal send time
+    optimizedSchedule.sort(
+      (a, b) => a.optimal_send_time.getTime() - b.optimal_send_time.getTime()
+    );
+
+    return {
+      total_recipients: optimizedSchedule.length,
+      schedule: optimizedSchedule,
+      estimated_engagement_rate:
+        optimizedSchedule.reduce(
+          (sum, item) => sum + item.predicted_engagement_rate,
+          0
+        ) / optimizedSchedule.length,
+      delivery_window: {
+        start: optimizedSchedule[0]?.optimal_send_time,
+        end: optimizedSchedule[optimizedSchedule.length - 1]?.optimal_send_time,
+      },
+    };
+  }
+
+  // Get engagement metrics
+  async getEngagementMetrics(options: {
+    company_id: string;
+    notification_type?: string;
+    timeframe: number;
+    user_id?: string;
+    campaign_id?: string;
+  }): Promise<any> {
+    await connectDB();
+
+    const { company_id, notification_type, timeframe, user_id, campaign_id } =
+      options;
+
+    // Calculate date range
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - timeframe);
+
+    // Build query
+    let query: any = {
+      company_id,
+      created_at: { $gte: startDate },
+    };
+
+    if (notification_type) query.type = notification_type;
+    if (user_id) query.user_id = user_id;
+    if (campaign_id) query['data.campaign_id'] = campaign_id;
+
+    const notifications = await (Notification as any).find(query);
+
+    // Calculate engagement metrics
+    const totalSent = notifications.filter((n) =>
+      ['sent', 'delivered', 'opened'].includes(n.status)
+    ).length;
+    const totalDelivered = notifications.filter((n) =>
+      ['delivered', 'opened'].includes(n.status)
+    ).length;
+    const totalOpened = notifications.filter(
+      (n) => n.status === 'opened'
+    ).length;
+    const totalClicked = notifications.filter((n) => n.data?.clicked).length;
+    const totalConverted = notifications.filter(
+      (n) => n.data?.converted
+    ).length;
+
+    // Calculate rates
+    const deliveryRate = totalSent > 0 ? totalDelivered / totalSent : 0;
+    const openRate = totalDelivered > 0 ? totalOpened / totalDelivered : 0;
+    const clickRate = totalOpened > 0 ? totalClicked / totalOpened : 0;
+    const conversionRate = totalSent > 0 ? totalConverted / totalSent : 0;
+
+    // Engagement over time
+    const engagementOverTime = this.calculateEngagementOverTime(
+      notifications,
+      timeframe
+    );
+
+    return {
+      timeframe_days: timeframe,
+      total_notifications: notifications.length,
+      metrics: {
+        sent: totalSent,
+        delivered: totalDelivered,
+        opened: totalOpened,
+        clicked: totalClicked,
+        converted: totalConverted,
+        delivery_rate: deliveryRate,
+        open_rate: openRate,
+        click_rate: clickRate,
+        conversion_rate: conversionRate,
+      },
+      engagement_over_time: engagementOverTime,
+      top_performing_content: this.getTopPerformingContent(notifications),
+    };
+  }
+
+  // Track engagement event
+  async trackEngagementEvent(options: {
+    notification_id: string;
+    user_id: string;
+    event_type: 'delivered' | 'opened' | 'clicked' | 'dismissed' | 'converted';
+    timestamp: Date;
+    metadata?: any;
+  }): Promise<any> {
+    await connectDB();
+
+    const { notification_id, user_id, event_type, timestamp, metadata } =
+      options;
+
+    const notification = await (Notification as any).findById(notification_id);
+    if (!notification) {
+      throw new Error('Notification not found');
+    }
+
+    // Update notification status and data
+    if (event_type === 'delivered' && notification.status === 'sent') {
+      notification.status = 'delivered';
+      notification.delivered_at = timestamp;
+    } else if (
+      event_type === 'opened' &&
+      ['sent', 'delivered'].includes(notification.status)
+    ) {
+      notification.status = 'opened';
+      notification.opened_at = timestamp;
+    }
+
+    // Track additional engagement data
+    if (!notification.data) notification.data = {};
+    if (event_type === 'clicked') notification.data.clicked = true;
+    if (event_type === 'converted') notification.data.converted = true;
+    if (event_type === 'dismissed') notification.data.dismissed = true;
+
+    // Add engagement event to history
+    if (!notification.data.engagement_events)
+      notification.data.engagement_events = [];
+    notification.data.engagement_events.push({
+      event_type,
+      timestamp,
+      metadata,
+    });
+
+    await notification.save();
+
+    return {
+      notification_id,
+      event_type,
+      timestamp,
+      status: 'tracked',
+    };
+  }
+
+  // Update engagement preferences
+  async updateEngagementPreferences(
+    userId: string,
+    preferences: any
+  ): Promise<any> {
+    await connectDB();
+
+    const user = await (User as any).findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Update user preferences
+    if (!user.preferences) user.preferences = {};
+    user.preferences.notifications = {
+      ...user.preferences.notifications,
+      ...preferences,
+    };
+
+    await user.save();
+
+    return user.preferences.notifications;
+  }
+
+  // Generate delivery recommendations
+  private generateDeliveryRecommendations(
+    hourlyPerformance: Record<number, any>,
+    dailyPerformance: Record<number, any>,
+    channelPerformance: Record<string, any>
+  ): string[] {
+    const recommendations: string[] = [];
+
+    // Find best performing hour
+    const bestHourEntry = Object.entries(hourlyPerformance).sort(
+      ([, a], [, b]) => b.rate - a.rate
+    )[0];
+
+    if (bestHourEntry && bestHourEntry[1].rate > 0.3) {
+      recommendations.push(
+        `Best engagement occurs at ${bestHourEntry[0]}:00. Consider scheduling notifications around this time.`
+      );
+    }
+
+    // Find best performing day
+    const bestDayEntry = Object.entries(dailyPerformance).sort(
+      ([, a], [, b]) => b.rate - a.rate
+    )[0];
+
+    if (bestDayEntry && bestDayEntry[1].rate > 0.3) {
+      const dayNames = [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+      ];
+      recommendations.push(
+        `${dayNames[parseInt(bestDayEntry[0])]} shows the highest engagement rates.`
+      );
+    }
+
+    // Find best performing channel
+    const bestChannelEntry = Object.entries(channelPerformance).sort(
+      ([, a], [, b]) => b.rate - a.rate
+    )[0];
+
+    if (bestChannelEntry && bestChannelEntry[1].rate > 0.3) {
+      recommendations.push(
+        `${bestChannelEntry[0]} channel shows the best engagement rates.`
+      );
+    }
+
+    // General recommendations
+    if (recommendations.length === 0) {
+      recommendations.push(
+        'Consider A/B testing different send times to optimize engagement.'
+      );
+      recommendations.push(
+        'Try personalizing notification content based on user preferences.'
+      );
+    }
+
+    return recommendations;
+  }
+
+  // Calculate engagement over time
+  private calculateEngagementOverTime(
+    notifications: any[],
+    timeframe: number
+  ): any[] {
+    const dailyEngagement: Record<
+      string,
+      { sent: number; opened: number; rate: number }
+    > = {};
+
+    for (const notification of notifications) {
+      const dateKey = notification.created_at.toISOString().split('T')[0];
+
+      if (!dailyEngagement[dateKey]) {
+        dailyEngagement[dateKey] = { sent: 0, opened: 0, rate: 0 };
+      }
+
+      if (['sent', 'delivered', 'opened'].includes(notification.status)) {
+        dailyEngagement[dateKey].sent++;
+      }
+      if (notification.status === 'opened') {
+        dailyEngagement[dateKey].opened++;
+      }
+    }
+
+    // Calculate rates and return sorted by date
+    return Object.entries(dailyEngagement)
+      .map(([date, data]) => ({
+        date,
+        sent: data.sent,
+        opened: data.opened,
+        rate: data.sent > 0 ? data.opened / data.sent : 0,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  // Get top performing content
+  private getTopPerformingContent(notifications: any[]): unknown[] {
+    const contentPerformance: Record<
+      string,
+      { sent: number; opened: number; rate: number; title: string }
+    > = {};
+
+    for (const notification of notifications) {
+      const contentKey = notification.title || 'Untitled';
+
+      if (!contentPerformance[contentKey]) {
+        contentPerformance[contentKey] = {
+          sent: 0,
+          opened: 0,
+          rate: 0,
+          title: contentKey,
+        };
+      }
+
+      if (['sent', 'delivered', 'opened'].includes(notification.status)) {
+        contentPerformance[contentKey].sent++;
+      }
+      if (notification.status === 'opened') {
+        contentPerformance[contentKey].opened++;
+      }
+    }
+
+    // Calculate rates and return top 10
+    return Object.values(contentPerformance)
+      .map((data) => ({
+        ...data,
+        rate: data.sent > 0 ? data.opened / data.sent : 0,
+      }))
+      .sort((a, b) => b.rate - a.rate)
+      .slice(0, 10);
+  }
 }
 
 export const notificationService = new NotificationService();
 
-
+// Export the class for direct instantiation if needed
+export { NotificationService };

@@ -26,6 +26,8 @@ export interface ISurveyTemplate extends Document {
   usage_count: number;
   rating: number;
   tags: string[];
+  source_survey_id?: string;
+  last_used?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -109,6 +111,13 @@ const SurveyTemplateSchema: Schema = new Schema(
       max: 5,
     },
     tags: [{ type: String, trim: true }],
+    source_survey_id: {
+      type: String,
+      trim: true,
+    },
+    last_used: {
+      type: Date,
+    },
   },
   {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },

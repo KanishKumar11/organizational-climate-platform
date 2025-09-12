@@ -20,6 +20,11 @@ interface MicroclimateData {
   participation_rate: number;
   live_results: {
     sentiment_score: number;
+    sentiment_distribution: {
+      positive: number;
+      neutral: number;
+      negative: number;
+    };
     engagement_level: 'low' | 'medium' | 'high';
     top_themes: string[];
     word_cloud_data: Array<{ text: string; value: number }>;
@@ -30,6 +35,7 @@ interface MicroclimateData {
     message: string;
     confidence: number;
     timestamp: Date;
+    priority: 'low' | 'medium' | 'high' | 'critical';
   }>;
   time_remaining?: number; // minutes
 }
@@ -143,11 +149,9 @@ export default function RealTimeMicroclimateVisualization({
   }
 
   const sentimentData = {
-    positive: Math.round(
-      (microclimateData.live_results.sentiment_score + 1) * 50
-    ), // Convert -1 to 1 scale to positive count
-    neutral: Math.round(microclimateData.response_count * 0.3), // Approximate neutral responses
-    negative: Math.round(microclimateData.response_count * 0.2), // Approximate negative responses
+    positive: microclimateData.live_results.sentiment_distribution.positive,
+    neutral: microclimateData.live_results.sentiment_distribution.neutral,
+    negative: microclimateData.live_results.sentiment_distribution.negative,
     total: microclimateData.response_count,
   };
 

@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
       bufferutil: 'commonjs bufferutil',
+      'webworker-threads': 'commonjs webworker-threads',
     });
     return config;
   },

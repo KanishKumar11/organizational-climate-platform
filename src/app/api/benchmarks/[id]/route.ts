@@ -3,18 +3,22 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { BenchmarkService } from '@/lib/benchmark-service';
 import { validatePermissions } from '@/lib/permissions';
+import Benchmark from '@/models/Benchmark';
+import { connectDB } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await connectDB();
     const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Validate permissions
     const hasPermission = await validatePermissions(
       session.user.id,
       'benchmark:read',
@@ -28,7 +32,7 @@ export async function GET(
       );
     }
 
-    const benchmark = await BenchmarkService.getBenchmarkById(id);
+    const benchmark = await Benchmark.findById(id);
 
     if (!benchmark) {
       return NextResponse.json(
@@ -47,11 +51,12 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await connectDB();
     const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -72,7 +77,11 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const benchmark = await BenchmarkService.updateBenchmark(id, body);
+    const benchmark = await Benchmark.findByIdAndUpdate(
+      id,
+      { ...body, updated_at: new Date() },
+      { new: true }
+    );
 
     if (!benchmark) {
       return NextResponse.json(
@@ -96,6 +105,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await connectDB();
     const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -116,9 +126,11 @@ export async function DELETE(
     }
 
     // Soft delete by setting is_active to false
-    const benchmark = await BenchmarkService.updateBenchmark(id, {
-      is_active: false,
-    });
+    const benchmark = await Benchmark.findByIdAndUpdate(
+      id,
+      { is_active: false, updated_at: new Date() },
+      { new: true }
+    );
 
     if (!benchmark) {
       return NextResponse.json(

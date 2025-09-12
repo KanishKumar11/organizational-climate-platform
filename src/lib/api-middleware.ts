@@ -4,6 +4,10 @@ import { validateEnv } from './env';
 import { UserRole, IUserBase } from '../types/user';
 import { IUser } from '../models/User';
 import { hasFeaturePermission, ROLE_PERMISSIONS } from './permissions';
+import ErrorHandler, {
+  DefaultRetryConfigs,
+  DefaultFallbackConfigs,
+} from './error-handling';
 
 // API Response wrapper for consistent error handling
 export interface ApiResponse<T = any> {
@@ -40,7 +44,90 @@ export class ApiError extends Error {
   }
 }
 
-// Middleware wrapper for API routes
+// Enhanced error handling middleware
+export function withErrorHandling(
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>
+) {
+  return async (req: NextRequest, context?: { params: any }) => {
+    const errorHandler = ErrorHandler.getInstance();
+    const requestId = generateRequestId();
+    const authenticatedReq = req as AuthenticatedRequest;
+    authenticatedReq.requestId = requestId;
+
+    try {
+      return await handler(authenticatedReq, context);
+    } catch (error) {
+      const errorContext = {
+        user_id: authenticatedReq.user?._id.toString(),
+        company_id: authenticatedReq.user?.company_id.toString(),
+        request_id: requestId,
+        url: req.url,
+        method: req.method,
+        user_agent: req.headers.get('user-agent') || '',
+        ip_address:
+          req.headers.get('x-forwarded-for') ||
+          req.headers.get('x-real-ip') ||
+          '',
+        timestamp: new Date(),
+      };
+
+      // Determine error type and status code
+      let errorType:
+        | 'validation'
+        | 'permission'
+        | 'network'
+        | 'database'
+        | 'ai_service'
+        | 'system'
+        | 'business_logic' = 'system';
+      let statusCode = 500;
+
+      if (error instanceof Error) {
+        if (
+          error.message.includes('validation') ||
+          error.message.includes('invalid')
+        ) {
+          errorType = 'validation';
+          statusCode = 400;
+        } else if (
+          error.message.includes('permission') ||
+          error.message.includes('unauthorized') ||
+          error.message.includes('forbidden')
+        ) {
+          errorType = 'permission';
+          statusCode = 403;
+        } else if (error.message.includes('not found')) {
+          errorType = 'business_logic';
+          statusCode = 404;
+        } else if (
+          error.message.includes('database') ||
+          error.message.includes('connection')
+        ) {
+          errorType = 'database';
+          statusCode = 503;
+        } else if (
+          error.message.includes('AI') ||
+          error.message.includes('analysis')
+        ) {
+          errorType = 'ai_service';
+          statusCode = 503;
+        }
+      }
+
+      return errorHandler.createApiErrorResponse(
+        error as Error,
+        errorContext,
+        errorType,
+        statusCode
+      );
+    }
+  };
+}
+
+// Middleware wrapper for API routes with enhanced error handling
 export function withApiMiddleware(
   handler: (req: NextRequest) => Promise<NextResponse>
 ): (req: NextRequest) => Promise<NextResponse>;
@@ -53,32 +140,154 @@ export function withApiMiddleware(
     context?: { params: any }
   ) => Promise<NextResponse>
 ) {
-  return async (req: NextRequest, context?: { params: any }) => {
+  return withErrorHandling(
+    async (req: AuthenticatedRequest, context?: { params: any }) => {
+      try {
+        // Validate environment variables
+        validateEnv();
+
+        // Connect to database
+        await connectDB();
+
+        // Call the actual handler
+        return await handler(req, context);
+      } catch (error) {
+        console.error('API Error:', error);
+
+        if (error instanceof ApiError) {
+          return NextResponse.json(
+            createApiResponse(false, null, error.message),
+            { status: error.statusCode }
+          );
+        }
+
+        // Re-throw to be handled by withErrorHandling
+        throw error;
+      }
+    }
+  );
+}
+
+// Retry middleware
+export function withRetry(
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>,
+  retryConfig = DefaultRetryConfigs.network
+) {
+  return async (req: AuthenticatedRequest, context?: { params: any }) => {
+    const errorHandler = ErrorHandler.getInstance();
+    const errorContext = {
+      user_id: req.user?._id.toString(),
+      company_id: req.user?.company_id.toString(),
+      request_id: req.requestId || generateRequestId(),
+      url: req.url,
+      method: req.method,
+      user_agent: req.headers.get('user-agent') || '',
+      ip_address:
+        req.headers.get('x-forwarded-for') ||
+        req.headers.get('x-real-ip') ||
+        '',
+      timestamp: new Date(),
+    };
+
+    return await errorHandler.withRetry(
+      () => handler(req, context),
+      retryConfig,
+      errorContext
+    );
+  };
+}
+
+// Fallback middleware
+export function withFallback(
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>,
+  fallbackConfig = DefaultFallbackConfigs.dashboard
+) {
+  return async (req: AuthenticatedRequest, context?: { params: any }) => {
+    const errorHandler = ErrorHandler.getInstance();
+    const errorContext = {
+      user_id: req.user?._id.toString(),
+      company_id: req.user?.company_id.toString(),
+      request_id: req.requestId || generateRequestId(),
+      url: req.url,
+      method: req.method,
+      user_agent: req.headers.get('user-agent') || '',
+      ip_address:
+        req.headers.get('x-forwarded-for') ||
+        req.headers.get('x-real-ip') ||
+        '',
+      timestamp: new Date(),
+    };
+
     try {
-      // Validate environment variables
-      validateEnv();
-
-      // Connect to database
-      await connectDB();
-
-      // Call the actual handler
       return await handler(req, context);
     } catch (error) {
-      console.error('API Error:', error);
+      const fallbackResult = await errorHandler.withFallback(
+        () => handler(req, context),
+        fallbackConfig,
+        errorContext
+      );
 
-      if (error instanceof ApiError) {
-        return NextResponse.json(
-          createApiResponse(false, null, error.message),
-          { status: error.statusCode }
-        );
-      }
-
-      // Handle unexpected errors
+      // Return fallback response
       return NextResponse.json(
-        createApiResponse(false, null, 'Internal server error'),
-        { status: 500 }
+        createApiResponse(
+          true,
+          fallbackResult,
+          undefined,
+          fallbackConfig.fallback_data?.message || 'Service temporarily degraded'
+        ),
+        { status: 200 }
       );
     }
+  };
+}
+
+// Circuit breaker middleware
+export function withCircuitBreaker(
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>,
+  serviceName: string
+) {
+  return async (req: AuthenticatedRequest, context?: { params: any }) => {
+    const errorHandler = ErrorHandler.getInstance();
+    const errorContext = {
+      user_id: req.user?._id.toString(),
+      company_id: req.user?.company_id.toString(),
+      request_id: req.requestId || generateRequestId(),
+      url: req.url,
+      method: req.method,
+      user_agent: req.headers.get('user-agent') || '',
+      ip_address:
+        req.headers.get('x-forwarded-for') ||
+        req.headers.get('x-real-ip') ||
+        '',
+      timestamp: new Date(),
+    };
+
+    if (errorHandler.isCircuitBreakerOpen(serviceName)) {
+      return NextResponse.json(
+          createApiResponse(
+            false,
+            null,
+            undefined,
+            `Service ${serviceName} is temporarily unavailable`
+          ),
+          { status: 503 }
+        );
+    }
+
+    return await errorHandler.executeWithCircuitBreaker(
+      serviceName,
+      () => handler(req, context),
+      errorContext
+    );
   };
 }
 
@@ -111,6 +320,12 @@ export interface UserContext {
 // Extended request interface with user context
 export interface AuthenticatedRequest extends NextRequest {
   user?: IUser;
+  requestId?: string;
+}
+
+// Generate unique request ID for tracking
+export function generateRequestId(): string {
+  return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
 // Get current user from NextAuth session
@@ -140,7 +355,7 @@ async function getCurrentUser(req: NextRequest): Promise<IUser | null> {
   }
 }
 
-// Authentication middleware
+// Enhanced authentication middleware with error handling
 export function withAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ): (req: NextRequest) => Promise<NextResponse>;
@@ -158,23 +373,73 @@ export function withAuth(
 ) {
   return withApiMiddleware(
     async (req: NextRequest, context?: { params: any }) => {
-      const user = await getCurrentUser(req);
+      try {
+        const user = await getCurrentUser(req);
 
-      if (!user) {
-        return NextResponse.json(
-          createApiResponse(false, null, 'Authentication required'),
-          { status: 401 }
-        );
+        if (!user) {
+          throw new Error('Authentication required');
+        }
+
+        // Add user to request context
+        const authenticatedReq = req as AuthenticatedRequest;
+        authenticatedReq.user = user;
+
+        return await handler(authenticatedReq, context);
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message === 'Authentication required') {
+            return NextResponse.json(
+              createApiResponse(false, null, 'Authentication required'),
+              { status: 401 }
+            );
+          }
+        }
+        throw error; // Re-throw to be handled by error middleware
       }
-
-      // Add user to request context
-      const authenticatedReq = req as AuthenticatedRequest;
-      authenticatedReq.user = user;
-
-      return await handler(authenticatedReq, context);
     }
   );
 }
+
+// Specialized middleware combinations with error handling
+export const withAuthAndRetry = (
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>,
+  retryConfig = DefaultRetryConfigs.database
+) => withAuth(withRetry(handler, retryConfig));
+
+export const withAuthAndFallback = (
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>,
+  fallbackConfig = DefaultFallbackConfigs.dashboard
+) => withAuth(withFallback(handler, fallbackConfig));
+
+export const withAuthAndCircuitBreaker = (
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>,
+  serviceName: string
+) => withAuth(withCircuitBreaker(handler, serviceName));
+
+export const withFullProtection = (
+  handler: (
+    req: AuthenticatedRequest,
+    context?: { params: any }
+  ) => Promise<NextResponse>,
+  serviceName: string,
+  retryConfig = DefaultRetryConfigs.network,
+  fallbackConfig = DefaultFallbackConfigs.dashboard
+) =>
+  withAuth(
+    withCircuitBreaker(
+      withRetry(withFallback(handler, fallbackConfig), retryConfig),
+      serviceName
+    )
+  );
 
 // Role-based authorization middleware
 export function withRoleAuth(

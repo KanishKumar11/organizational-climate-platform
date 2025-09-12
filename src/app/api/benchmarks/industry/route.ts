@@ -3,9 +3,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { BenchmarkService } from '@/lib/benchmark-service';
 import { validatePermissions } from '@/lib/permissions';
+import Benchmark from '@/models/Benchmark';
+import { connectDB } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
+    await connectDB();
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -35,10 +38,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const benchmarks = await BenchmarkService.getIndustryBenchmarks(
-      industry,
-      company_size || undefined
-    );
+    const filter: any = { industry, is_active: true };
+    if (company_size) {
+      filter.company_size = company_size;
+    }
+    
+    const benchmarks = await Benchmark.find(filter).sort({ created_at: -1 });
 
     return NextResponse.json({ benchmarks });
   } catch (error) {

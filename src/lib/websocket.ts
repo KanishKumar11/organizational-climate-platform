@@ -14,12 +14,18 @@ export interface MicroclimateUpdate {
     engagement_level: 'low' | 'medium' | 'high';
     response_distribution: Record<string, number>;
     top_themes: string[];
+    sentiment_distribution: {
+      positive: number;
+      neutral: number;
+      negative: number;
+    };
   };
   ai_insights: Array<{
     type: 'pattern' | 'alert' | 'recommendation';
     message: string;
     confidence: number;
     timestamp: Date;
+    priority: 'low' | 'medium' | 'high' | 'critical';
   }>;
 }
 

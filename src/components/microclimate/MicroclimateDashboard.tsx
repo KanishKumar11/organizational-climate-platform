@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ import {
   TrendingUp,
   Activity,
   BarChart3,
+  MessageSquare,
 } from 'lucide-react';
 
 interface Microclimate {
@@ -83,12 +84,7 @@ export default function MicroclimateDashboard() {
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    fetchMicroclimates();
-    fetchDepartments();
-  }, [statusFilter, departmentFilter]);
-
-  const fetchMicroclimates = async () => {
+  const fetchMicroclimates = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (statusFilter !== 'all') params.append('status', statusFilter);
@@ -105,9 +101,9 @@ export default function MicroclimateDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, departmentFilter]);
 
-  const fetchDepartments = async () => {
+  const fetchDepartments = useCallback(async () => {
     try {
       const response = await fetch('/api/departments');
       if (response.ok) {
@@ -117,7 +113,12 @@ export default function MicroclimateDashboard() {
     } catch (error) {
       console.error('Error fetching departments:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchMicroclimates();
+    fetchDepartments();
+  }, [fetchMicroclimates, fetchDepartments]);
 
   const handleActivate = async (microclimateId: string) => {
     try {
@@ -244,7 +245,7 @@ export default function MicroclimateDashboard() {
 
             <div className="flex items-center gap-6 text-sm text-gray-600">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span>
                   {microclimates.filter((m) => m.status === 'active').length}{' '}
                   Active
@@ -267,14 +268,14 @@ export default function MicroclimateDashboard() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               variant="outline"
-              className="flex items-center gap-2 bg-white h-12 px-6"
+              className="flex items-center gap-2 bg-white h-12 px-6 border-gray-200 hover:bg-gray-50"
             >
               <BarChart3 className="h-4 w-4" />
               Analytics
             </Button>
             <Button
               onClick={() => router.push('/microclimates/create')}
-              className="bg-teal-600 hover:bg-teal-700 h-12 px-6"
+              className="bg-teal-600 hover:bg-teal-700 h-12 px-6 shadow-sm"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Microclimate
@@ -293,16 +294,17 @@ export default function MicroclimateDashboard() {
                 placeholder="Search microclimates by title, description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 text-base border-gray-200 focus:border-teal-500 focus:ring-teal-500"
+                className="pl-12 h-12 text-base border-gray-200 focus:border-teal-500 focus:ring-teal-500 bg-white"
               />
             </div>
             <Button
               variant="outline"
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 h-12 px-6 border-gray-200"
+              className="flex items-center gap-2 h-12 px-6 border-gray-200 bg-white hover:bg-gray-50"
             >
               <Filter className="w-4 h-4" />
               <span>Filters</span>
+              {showFilters && <span className="ml-1 text-teal-600">•</span>}
             </Button>
           </div>
 
@@ -356,27 +358,33 @@ export default function MicroclimateDashboard() {
 
       {/* Microclimates Grid */}
       {filteredMicroclimates.length === 0 ? (
-        <Card className="p-8 text-center">
-          <Target className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No microclimates found
-          </h3>
-          <p className="text-gray-600 mb-4">
-            {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all'
-              ? 'Try adjusting your search or filters'
-              : 'Create your first microclimate to get started'}
-          </p>
-          {!searchTerm &&
-            statusFilter === 'all' &&
-            departmentFilter === 'all' && (
-              <Button
-                onClick={() => router.push('/microclimates/create')}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Microclimate
-              </Button>
-            )}
+        <Card className="p-12 text-center border-0 shadow-sm bg-gradient-to-br from-gray-50 to-white">
+          <div className="max-w-md mx-auto">
+            <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+              <Target className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              No microclimates found
+            </h3>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              {searchTerm ||
+              statusFilter !== 'all' ||
+              departmentFilter !== 'all'
+                ? "Try adjusting your search or filters to find what you're looking for"
+                : 'Create your first microclimate to start gathering real-time feedback from your team'}
+            </p>
+            {!searchTerm &&
+              statusFilter === 'all' &&
+              departmentFilter === 'all' && (
+                <Button
+                  onClick={() => router.push('/microclimates/create')}
+                  className="bg-teal-600 hover:bg-teal-700 h-12 px-8 shadow-sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Microclimate
+                </Button>
+              )}
+          </div>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -387,14 +395,14 @@ export default function MicroclimateDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <Card className="p-4 hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between mb-3">
+              <Card className="p-6 hover:shadow-lg transition-all duration-200 border-0 shadow-sm bg-white">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">
+                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-lg">
                       {microclimate.title}
                     </h3>
                     {microclimate.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-3">
                         {microclimate.description}
                       </p>
                     )}
@@ -402,7 +410,11 @@ export default function MicroclimateDashboard() {
                   <div className="flex items-center space-x-2">
                     {getStatusBadge(microclimate.status)}
                     <div className="relative">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="hover:bg-gray-100"
+                      >
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </div>
@@ -510,16 +522,33 @@ export default function MicroclimateDashboard() {
                     )}
 
                     {microclimate.status === 'active' && (
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          router.push(`/microclimates/${microclimate._id}/live`)
-                        }
-                        className="w-full bg-green-600 hover:bg-green-700"
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        View Live
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            router.push(
+                              `/microclimates/${microclimate._id}/live`
+                            )
+                          }
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View Live
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            router.push(
+                              `/microclimates/${microclimate._id}/respond`
+                            )
+                          }
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          <MessageSquare className="w-4 h-4 mr-1" />
+                          Respond
+                        </Button>
+                      </>
                     )}
 
                     {(microclimate.status === 'completed' ||

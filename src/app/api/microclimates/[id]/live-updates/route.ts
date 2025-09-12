@@ -34,6 +34,35 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    // Calculate sentiment distribution
+    const sentimentScore = microclimate.live_results.sentiment_score || 0;
+    const sentimentDistribution = {
+      positive:
+        sentimentScore > 0.2 ? Math.min(100, (sentimentScore + 1) * 50) : 0,
+      neutral:
+        Math.abs(sentimentScore) <= 0.2
+          ? 100 - Math.abs(sentimentScore) * 250
+          : 0,
+      negative:
+        sentimentScore < -0.2 ? Math.min(100, (1 - sentimentScore) * 50) : 0,
+    };
+
+    // Normalize to ensure they add up to 100%
+    const total =
+      sentimentDistribution.positive +
+      sentimentDistribution.neutral +
+      sentimentDistribution.negative;
+    if (total > 0) {
+      sentimentDistribution.positive =
+        (sentimentDistribution.positive / total) * 100;
+      sentimentDistribution.neutral =
+        (sentimentDistribution.neutral / total) * 100;
+      sentimentDistribution.negative =
+        (sentimentDistribution.negative / total) * 100;
+    } else {
+      sentimentDistribution.neutral = 100;
+    }
+
     // Return live data for real-time updates
     const liveData = {
       id: microclimate._id,
@@ -42,7 +71,10 @@ export async function GET(
       response_count: microclimate.response_count,
       target_participant_count: microclimate.target_participant_count,
       participation_rate: microclimate.participation_rate,
-      live_results: microclimate.live_results,
+      live_results: {
+        ...microclimate.live_results,
+        sentiment_distribution: sentimentDistribution,
+      },
       ai_insights: microclimate.ai_insights,
       time_remaining: microclimate.isActive()
         ? Math.max(
@@ -112,11 +144,12 @@ export async function POST(
         // Update word cloud data (simulate)
         if (data.text) {
           const existingWord = microclimate.live_results.word_cloud_data.find(
-            (word: any) => word.text.toLowerCase() === data.text.toLowerCase()
+            (word: any) =>
+              word.text.toLowerCase() === data.text.toLowerCase()
           );
 
           if (existingWord) {
-            existingWord.value += 1;
+            (existingWord as any).value += 1;
           } else {
             microclimate.live_results.word_cloud_data.push({
               text: data.text,

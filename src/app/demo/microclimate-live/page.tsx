@@ -16,6 +16,11 @@ const mockMicroclimateData = {
   participation_rate: 48,
   live_results: {
     sentiment_score: 0.3,
+    sentiment_distribution: {
+      positive: 58,
+      neutral: 25,
+      negative: 17,
+    },
     engagement_level: 'medium' as 'high' | 'medium' | 'low',
     top_themes: [
       'collaboration',
@@ -49,6 +54,7 @@ const mockMicroclimateData = {
         'Increased mentions of "workload" suggest team capacity concerns',
       confidence: 0.85,
       timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+      priority: 'high' as 'low' | 'medium' | 'high' | 'critical',
     },
     {
       type: 'recommendation' as 'alert' | 'pattern' | 'recommendation',
@@ -56,6 +62,7 @@ const mockMicroclimateData = {
         'Consider scheduling a team discussion about collaboration tools',
       confidence: 0.72,
       timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
+      priority: 'medium' as 'low' | 'medium' | 'high' | 'critical',
     },
   ],
   time_remaining: 45, // 45 minutes
@@ -130,6 +137,7 @@ export default function MicroclimateLiveDemo() {
               ],
             confidence: 0.6 + Math.random() * 0.3,
             timestamp: new Date(),
+            priority: (['low', 'medium', 'high', 'critical'][Math.floor(Math.random() * 4)]) as 'low' | 'medium' | 'high' | 'critical',
           });
 
           // Keep only last 10 insights
@@ -238,6 +246,7 @@ export default function MicroclimateLiveDemo() {
           type: randomInsight.type as 'alert' | 'pattern' | 'recommendation',
           confidence: 0.7 + Math.random() * 0.2,
           timestamp: new Date(),
+          priority: (['low', 'medium', 'high', 'critical'][Math.floor(Math.random() * 4)]) as 'low' | 'medium' | 'high' | 'critical',
         },
         ...prev.ai_insights.slice(0, 9), // Keep only last 10
       ],
