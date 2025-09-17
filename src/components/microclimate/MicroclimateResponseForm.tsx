@@ -26,6 +26,7 @@ interface MicroclimateResponseFormProps {
   questions: Question[];
   onSubmit?: () => void;
   className?: string;
+  invitationToken?: string;
 }
 
 const LIKERT_OPTIONS = [
@@ -49,6 +50,7 @@ export default function MicroclimateResponseForm({
   questions,
   onSubmit,
   className = '',
+  invitationToken,
 }: MicroclimateResponseFormProps) {
   const [responses, setResponses] = useState<Record<string, Response>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -112,6 +114,7 @@ export default function MicroclimateResponseForm({
             user_metadata: {
               timestamp: new Date().toISOString(),
             },
+            invitation_token: invitationToken,
           }),
         }
       );

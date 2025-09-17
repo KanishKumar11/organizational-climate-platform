@@ -20,6 +20,17 @@ export interface SurveyInvitationData {
   reminderCount?: number;
 }
 
+// Microclimate invitation data
+export interface MicroclimateInvitationData {
+  microclimate: any; // IMicroclimate
+  recipient: IUserBase;
+  invitationLink: string;
+  companyName: string;
+  expiryDate: Date;
+  company?: ICompany;
+  reminderCount?: number;
+}
+
 // Corporate branding interface
 export interface CorporateBranding {
   logo_url?: string;
@@ -35,6 +46,10 @@ export interface EmailService {
   sendSurveyInvitation(data: SurveyInvitationData): Promise<boolean>;
   sendSurveyReminder(data: SurveyInvitationData): Promise<boolean>;
   sendSurveyCompletion(data: SurveyInvitationData): Promise<boolean>;
+  sendMicroclimateInvitation(
+    data: MicroclimateInvitationData
+  ): Promise<boolean>;
+  sendMicroclimateReminder(data: MicroclimateInvitationData): Promise<boolean>;
 }
 
 // Generate survey invitation email template with corporate branding
@@ -197,6 +212,176 @@ export function generateSurveyInvitationTemplate(
     Take the survey: ${invitationLink}
     
     This survey is part of ${companyName}'s commitment to creating a better workplace for everyone.
+    Questions? Contact ${branding?.support_email || 'your HR department'}
+  `;
+
+  return { subject, html, text };
+}
+
+// Generate microclimate invitation email template
+export function generateMicroclimateInvitationTemplate(
+  data: MicroclimateInvitationData,
+  branding?: CorporateBranding
+): EmailTemplate {
+  const { microclimate, recipient, invitationLink, companyName, expiryDate } =
+    data;
+
+  const subject = `Quick feedback needed: ${microclimate.title}`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microclimate Invitation</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        ${branding?.logo_url ? `<img src="${branding.logo_url}" alt="${companyName}" style="max-height: 50px; margin-bottom: 20px;">` : ''}
+        <h1 style="margin: 0; font-size: 28px;">Quick Feedback Needed</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">${microclimate.title}</p>
+    </div>
+
+    <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px; margin-bottom: 20px;">Hello <strong>${recipient.name}</strong>,</p>
+
+        <p style="font-size: 16px; margin-bottom: 20px;">You've been invited to participate in a quick microclimate feedback session that will help us understand the current pulse of our team.</p>
+
+        ${
+          microclimate.description
+            ? `
+        <div style="background: white; padding: 20px; border-left: 4px solid #4CAF50; margin: 20px 0;">
+            <p style="margin: 0; font-style: italic;">${microclimate.description}</p>
+        </div>
+        `
+            : ''
+        }
+
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #4CAF50; margin-top: 0;">Session Details:</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 5px 0;"><strong>Duration:</strong> ${microclimate.scheduling?.duration_minutes || 15} minutes</li>
+                <li style="padding: 5px 0;"><strong>Starts:</strong> ${new Date(microclimate.scheduling?.start_time).toLocaleString()}</li>
+                <li style="padding: 5px 0;"><strong>Privacy:</strong> ${microclimate.real_time_settings?.anonymous_responses ? 'Anonymous responses' : 'Confidential responses'}</li>
+                <li style="padding: 5px 0;"><strong>Results:</strong> ${microclimate.real_time_settings?.show_live_results ? 'Live results shared' : 'Results shared after completion'}</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="${invitationLink}" style="background: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block; font-size: 16px;">Join Session</a>
+        </div>
+
+        <p style="font-size: 14px; color: #666; text-align: center; margin-top: 30px;">
+            Your quick input makes a big difference in creating a better workplace for everyone.
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            Questions? Contact ${branding?.support_email || 'your HR department'}.<br>
+            This invitation expires on ${expiryDate.toLocaleDateString()}.
+        </p>
+    </div>
+</body>
+</html>`;
+
+  const text = `
+    Microclimate Invitation
+
+    Hello ${recipient.name},
+
+    You've been invited to participate in a quick microclimate feedback session: ${microclimate.title}
+
+    ${microclimate.description || ''}
+
+    This is a brief, real-time feedback opportunity that will help us understand the current pulse of our team and make immediate improvements.
+
+    Session Details:
+    • Duration: ${microclimate.scheduling?.duration_minutes || 15} minutes
+    • Starts: ${new Date(microclimate.scheduling?.start_time).toLocaleString()}
+    • Responses are ${microclimate.real_time_settings?.anonymous_responses ? 'anonymous' : 'confidential'}
+    • ${microclimate.real_time_settings?.show_live_results ? 'Live results will be shared' : 'Results will be shared after completion'}
+
+    Join the session: ${invitationLink}
+
+    Your quick input makes a big difference in creating a better workplace for everyone.
+
+    This session is part of ${companyName}'s commitment to creating a better workplace for everyone.
+    Questions? Contact ${branding?.support_email || 'your HR department'}
+  `;
+
+  return { subject, html, text };
+}
+
+// Generate microclimate reminder email template
+export function generateMicroclimateReminderTemplate(
+  data: MicroclimateInvitationData,
+  branding?: CorporateBranding
+): EmailTemplate {
+  const {
+    microclimate,
+    recipient,
+    invitationLink,
+    companyName,
+    expiryDate,
+    reminderCount,
+  } = data;
+
+  const subject = `Reminder: Quick feedback needed - ${microclimate.title}`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microclimate Reminder</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        ${branding?.logo_url ? `<img src="${branding.logo_url}" alt="${companyName}" style="max-height: 50px; margin-bottom: 20px;">` : ''}
+        <h1 style="margin: 0; font-size: 28px;">⏰ Quick Reminder</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">${microclimate.title}</p>
+    </div>
+
+    <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px; margin-bottom: 20px;">Hello <strong>${recipient.name}</strong>,</p>
+
+        <p style="font-size: 16px; margin-bottom: 20px;">This is a friendly reminder that you haven't participated in the microclimate feedback session yet.</p>
+
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #FF9800;">
+            <h3 style="color: #FF9800; margin-top: 0;">Session: ${microclimate.title}</h3>
+            <p style="margin: 10px 0;">Duration: ${microclimate.scheduling?.duration_minutes || 15} minutes</p>
+            <p style="margin: 10px 0;">Expires: ${expiryDate.toLocaleString()}</p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="${invitationLink}" style="background: #FF9800; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block; font-size: 16px;">Join Now</a>
+        </div>
+
+        <p style="font-size: 14px; color: #666; text-align: center; margin-top: 30px;">
+            Your input is valuable and helps us make real-time improvements to our workplace.
+        </p>
+    </div>
+</body>
+</html>`;
+
+  const text = `
+    Microclimate Reminder
+
+    Hello ${recipient.name},
+
+    This is a friendly reminder that you haven't participated in the microclimate feedback session: ${microclimate.title}
+
+    Your input is valuable and will help us make real-time improvements to our workplace.
+
+    Time remaining: Session expires on ${expiryDate.toLocaleString()}
+    Duration: ${microclimate.scheduling?.duration_minutes || 15} minutes
+
+    Join the session: ${invitationLink}
+
+    This is reminder #${reminderCount || 1}.
     Questions? Contact ${branding?.support_email || 'your HR department'}
   `;
 
@@ -446,9 +631,31 @@ export class MockEmailService implements EmailService {
     });
     return true;
   }
+
+  async sendMicroclimateInvitation(
+    data: MicroclimateInvitationData
+  ): Promise<boolean> {
+    const template = generateMicroclimateInvitationTemplate(data);
+    console.log('Sending microclimate invitation:', {
+      to: data.recipient.email,
+      subject: template.subject,
+      // In production, send actual email
+    });
+    return true;
+  }
+
+  async sendMicroclimateReminder(
+    data: MicroclimateInvitationData
+  ): Promise<boolean> {
+    const template = generateMicroclimateReminderTemplate(data);
+    console.log('Sending microclimate reminder:', {
+      to: data.recipient.email,
+      subject: template.subject,
+      // In production, send actual email
+    });
+    return true;
+  }
 }
 
 // Email service singleton
 export const emailService = new MockEmailService();
-
-

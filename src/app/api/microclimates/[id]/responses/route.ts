@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import Microclimate from '@/models/Microclimate';
 import { connectToDatabase } from '@/lib/mongodb';
+import MicroclimateInvitation from '@/models/MicroclimateInvitation';
 
 // POST /api/microclimates/[id]/responses - Submit response to microclimate
 export async function POST(
@@ -44,7 +45,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { responses, user_metadata } = body;
+    const { responses, user_metadata, invitation_token } = body;
 
     // Validate responses
     if (!responses || !Array.isArray(responses)) {
@@ -256,6 +257,26 @@ export async function POST(
     }
 
     await microclimate.save();
+
+    // Mark invitation as participated if token provided
+    if (invitation_token) {
+      try {
+        const invitation = await (MicroclimateInvitation as any).findOne({
+          invitation_token,
+          user_id: session.user.id,
+          microclimate_id: id,
+        });
+
+        if (invitation && invitation.status !== 'participated') {
+          invitation.markParticipated();
+          await invitation.save();
+          console.log(`Marked invitation ${invitation._id} as participated`);
+        }
+      } catch (invitationError) {
+        console.error('Error updating invitation status:', invitationError);
+        // Don't fail the response submission if invitation update fails
+      }
+    }
 
     // Broadcast real-time updates via WebSocket
     if (global.io) {

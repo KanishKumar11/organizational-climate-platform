@@ -260,6 +260,153 @@ Thank you for taking the time to share your feedback.`,
       created_by: 'system',
     },
 
+    // Microclimate Invitation Email Template
+    {
+      name: 'Default Microclimate Invitation Email',
+      type: 'microclimate_invitation',
+      channel: 'email',
+      subject: 'Quick feedback needed: {{microclimate.title}}',
+      title: 'Microclimate Invitation',
+      content: `Hello {{recipient.name}},
+
+You've been invited to participate in a quick microclimate feedback session: {{microclimate.title}}
+
+{{microclimate.description}}
+
+This is a brief, real-time feedback opportunity that will help us understand the current pulse of our team and make immediate improvements.
+
+Session Details:
+• Duration: {{microclimate.scheduling.duration_minutes}} minutes
+• Starts: {{microclimate.scheduling.start_time}}
+• Responses are {{#if microclimate.real_time_settings.anonymous_responses}}anonymous{{else}}confidential{{/if}}
+• {{#if microclimate.real_time_settings.show_live_results}}Live results will be shared{{else}}Results will be shared after completion{{/if}}
+
+Join the session: {{invitationLink}}
+
+Your quick input makes a big difference in creating a better workplace for everyone.
+
+Questions? Contact {{companyName}} support team.
+
+Best regards,
+{{companyName}} Team`,
+      html_content: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microclimate Invitation</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="margin: 0; font-size: 28px;">Quick Feedback Needed</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">{{microclimate.title}}</p>
+    </div>
+
+    <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px; margin-bottom: 20px;">Hello <strong>{{recipient.name}}</strong>,</p>
+
+        <p style="font-size: 16px; margin-bottom: 20px;">You've been invited to participate in a quick microclimate feedback session that will help us understand the current pulse of our team.</p>
+
+        {{#if microclimate.description}}
+        <div style="background: white; padding: 20px; border-left: 4px solid #4CAF50; margin: 20px 0;">
+            <p style="margin: 0; font-style: italic;">{{microclimate.description}}</p>
+        </div>
+        {{/if}}
+
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #4CAF50; margin-top: 0;">Session Details:</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 5px 0;"><strong>Duration:</strong> {{microclimate.scheduling.duration_minutes}} minutes</li>
+                <li style="padding: 5px 0;"><strong>Starts:</strong> {{microclimate.scheduling.start_time}}</li>
+                <li style="padding: 5px 0;"><strong>Privacy:</strong> {{#if microclimate.real_time_settings.anonymous_responses}}Anonymous responses{{else}}Confidential responses{{/if}}</li>
+                <li style="padding: 5px 0;"><strong>Results:</strong> {{#if microclimate.real_time_settings.show_live_results}}Live results shared{{else}}Results shared after completion{{/if}}</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{invitationLink}}" style="background: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block; font-size: 16px;">Join Session</a>
+        </div>
+
+        <p style="font-size: 14px; color: #666; text-align: center; margin-top: 30px;">
+            Your quick input makes a big difference in creating a better workplace for everyone.
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            Questions? Contact {{companyName}} support team.<br>
+            This invitation expires on {{expiryDate}}.
+        </p>
+    </div>
+</body>
+</html>`,
+      variables: [
+        {
+          name: 'recipient',
+          type: 'object',
+          required: true,
+          description: 'Recipient user object',
+        },
+        {
+          name: 'microclimate',
+          type: 'object',
+          required: true,
+          description: 'Microclimate object',
+        },
+        {
+          name: 'invitationLink',
+          type: 'string',
+          required: true,
+          description: 'Link to join the microclimate',
+        },
+        {
+          name: 'companyName',
+          type: 'string',
+          required: true,
+          description: 'Company name',
+        },
+        {
+          name: 'expiryDate',
+          type: 'date',
+          required: true,
+          description: 'Invitation expiry date',
+        },
+      ],
+      is_active: true,
+      is_default: true,
+      personalization_rules: [],
+      created_by: 'system',
+    },
+
+    // Microclimate Invitation In-App Template
+    {
+      name: 'Default Microclimate Invitation In-App',
+      type: 'microclimate_invitation',
+      channel: 'in_app',
+      title: 'Quick Feedback: {{microclimate.title}}',
+      content:
+        "You've been invited to participate in a quick microclimate feedback session. Your input will help improve our team dynamics in real-time.",
+      variables: [
+        {
+          name: 'microclimate',
+          type: 'object',
+          required: true,
+          description: 'Microclimate object',
+        },
+        {
+          name: 'invitationLink',
+          type: 'string',
+          required: true,
+          description: 'Link to join the microclimate',
+        },
+      ],
+      is_active: true,
+      is_default: true,
+      personalization_rules: [],
+      created_by: 'system',
+    },
+
     // Action Plan Alert Template
     {
       name: 'Default Action Plan Alert Email',
@@ -335,5 +482,3 @@ if (require.main === module) {
       process.exit(1);
     });
 }
-
-

@@ -404,8 +404,6 @@ class NotificationService {
     }
   }
 
-
-
   // Send email notification
   private async sendEmailNotification(
     notification: INotification
@@ -432,6 +430,23 @@ class NotificationService {
         break;
       case 'survey_reminder':
         await emailService.sendSurveyReminder(emailData);
+        break;
+      case 'microclimate_invitation':
+        const microclimateEmailData = {
+          microclimate: notification.data.microclimate || {},
+          recipient: user,
+          invitationLink: notification.data.link || '',
+          companyName: notification.data.companyName || 'Your Organization',
+          expiryDate:
+            notification.data.expiryDate ||
+            new Date(Date.now() + 24 * 60 * 60 * 1000),
+          reminderCount: notification.data.reminder_count || 0,
+        };
+        if (notification.data.is_reminder) {
+          await emailService.sendMicroclimateReminder(microclimateEmailData);
+        } else {
+          await emailService.sendMicroclimateInvitation(microclimateEmailData);
+        }
         break;
       default:
         // For other types, send generic email
@@ -761,7 +776,9 @@ class NotificationService {
   }
 
   // Rename the private method to avoid conflict
-  private async sendNotificationInternal(notification: INotification): Promise<void> {
+  private async sendNotificationInternal(
+    notification: INotification
+  ): Promise<void> {
     switch (notification.channel) {
       case 'email':
         await this.sendEmailNotification(notification);

@@ -12,6 +12,7 @@ import { Clock, Users, MessageSquare } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ token?: string }>;
 }
 
 async function getMicroclimateData(id: string, session: any) {
@@ -68,9 +69,13 @@ async function getMicroclimateData(id: string, session: any) {
   };
 }
 
-export default async function MicroclimateResponsePage({ params }: PageProps) {
+export default async function MicroclimateResponsePage({
+  params,
+  searchParams,
+}: PageProps) {
   const session = await getServerSession(authOptions);
   const { id } = await params;
+  const { token } = await searchParams;
 
   if (!session?.user) {
     notFound();
@@ -225,6 +230,7 @@ export default async function MicroclimateResponsePage({ params }: PageProps) {
           <MicroclimateResponseForm
             microclimateId={id}
             questions={microclimateData.questions}
+            invitationToken={token}
             onSubmit={() => {
               // Redirect to live results if enabled
               if (microclimateData.real_time_settings?.show_live_results) {

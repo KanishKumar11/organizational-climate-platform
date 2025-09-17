@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import Microclimate from '@/models/Microclimate';
 import User from '@/models/User';
+import { microclimateInvitationService } from '@/lib/microclimate-invitation-service';
+import { getWebSocketServer } from '@/lib/websocket';
 
 // POST /api/microclimates/[id]/activate - Activate a microclimate
 export async function POST(
@@ -83,17 +85,61 @@ export async function POST(
     microclimate.target_participant_count = inviteList.length;
     await microclimate.save();
 
-    // TODO: Send invitations to participants
-    // This would typically involve:
-    // 1. Creating invitation records
-    // 2. Sending emails/notifications
-    // 3. Setting up WebSocket rooms for real-time updates
+    // Send invitations to participants
+    try {
+      const invitations = await microclimateInvitationService.createInvitations(
+        {
+          microclimate_id: microclimate._id.toString(),
+          user_ids: inviteList,
+          send_immediately: true,
+          expires_at: new Date(
+            microclimate.scheduling.start_time.getTime() +
+              microclimate.scheduling.duration_minutes * 60 * 1000
+          ),
+        }
+      );
 
-    return NextResponse.json({
-      microclimate,
-      message: 'Microclimate activated successfully',
-      participants_invited: inviteList.length,
-    });
+      console.log(`Created ${invitations.length} microclimate invitations`);
+
+      // Set up WebSocket rooms for real-time updates
+      const io = getWebSocketServer();
+      if (io) {
+        // Create a room for this microclimate
+        console.log(
+          `Setting up WebSocket room for microclimate ${microclimate._id}`
+        );
+
+        // Broadcast microclimate activation to all company users
+        io.to(`company_${microclimate.company_id}`).emit(
+          'microclimate_activated',
+          {
+            microclimateId: microclimate._id.toString(),
+            title: microclimate.title,
+            startTime: microclimate.scheduling.start_time,
+            duration: microclimate.scheduling.duration_minutes,
+            participantCount: inviteList.length,
+          }
+        );
+      }
+
+      return NextResponse.json({
+        microclimate,
+        message: 'Microclimate activated successfully',
+        participants_invited: inviteList.length,
+        invitations_sent: invitations.length,
+      });
+    } catch (invitationError) {
+      console.error('Error sending microclimate invitations:', invitationError);
+
+      // Still return success for microclimate activation, but note invitation issues
+      return NextResponse.json({
+        microclimate,
+        message:
+          'Microclimate activated successfully, but some invitations may have failed',
+        participants_invited: inviteList.length,
+        invitation_error: 'Some invitations may not have been sent',
+      });
+    }
   } catch (error) {
     console.error('Error activating microclimate:', error);
     return NextResponse.json(
