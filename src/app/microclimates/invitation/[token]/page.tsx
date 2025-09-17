@@ -3,11 +3,24 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, Eye, MessageSquare, AlertCircle, CheckCircle } from 'lucide-react';
+import {
+  Clock,
+  Users,
+  Eye,
+  MessageSquare,
+  AlertCircle,
+  CheckCircle,
+} from 'lucide-react';
 import { Loading } from '@/components/ui/Loading';
 
 interface MicroclimateData {
@@ -55,10 +68,12 @@ export default function MicroclimateInvitationPage() {
 
   useEffect(() => {
     if (status === 'loading') return;
-    
+
     if (!session) {
       // Redirect to login with callback URL
-      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.href)}`);
+      router.push(
+        `/auth/signin?callbackUrl=${encodeURIComponent(window.location.href)}`
+      );
       return;
     }
 
@@ -68,8 +83,10 @@ export default function MicroclimateInvitationPage() {
   const validateInvitation = async () => {
     try {
       setValidating(true);
-      const response = await fetch(`/api/microclimates/invitations/validate/${token}`);
-      
+      const response = await fetch(
+        `/api/microclimates/invitations/validate/${token}`
+      );
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Invalid invitation');
@@ -79,22 +96,26 @@ export default function MicroclimateInvitationPage() {
       setInvitation(data.invitation);
 
       // Mark invitation as opened
-      await fetch(`/api/microclimates/invitations/${data.invitation._id}/opened`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          metadata: {
-            user_agent: navigator.userAgent,
-            timestamp: new Date().toISOString(),
+      await fetch(
+        `/api/microclimates/invitations/${data.invitation._id}/opened`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        }),
-      });
-
+          body: JSON.stringify({
+            metadata: {
+              user_agent: navigator.userAgent,
+              timestamp: new Date().toISOString(),
+            },
+          }),
+        }
+      );
     } catch (err) {
       console.error('Error validating invitation:', err);
-      setError(err instanceof Error ? err.message : 'Failed to validate invitation');
+      setError(
+        err instanceof Error ? err.message : 'Failed to validate invitation'
+      );
     } finally {
       setLoading(false);
       setValidating(false);
@@ -110,7 +131,9 @@ export default function MicroclimateInvitationPage() {
     }).catch(console.error);
 
     // Redirect to microclimate participation page
-    router.push(`/microclimates/${invitation.microclimate._id}/respond?token=${token}`);
+    router.push(
+      `/microclimates/${invitation.microclimate._id}/respond?token=${token}`
+    );
   };
 
   const handleViewLiveResults = () => {
@@ -141,15 +164,15 @@ export default function MicroclimateInvitationPage() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
             <div className="mt-4 space-y-2">
-              <Button 
-                onClick={() => router.push('/dashboard')} 
+              <Button
+                onClick={() => router.push('/dashboard')}
                 className="w-full"
               >
                 Go to Dashboard
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => router.push('/microclimates')} 
+              <Button
+                variant="outline"
+                onClick={() => router.push('/microclimates')}
                 className="w-full"
               >
                 View All Microclimates
@@ -204,19 +227,19 @@ export default function MicroclimateInvitationPage() {
             {/* Status Badges */}
             <div className="flex flex-wrap gap-2 mb-6">
               <Badge variant={isActive ? 'default' : 'secondary'}>
-                {microclimate.status.charAt(0).toUpperCase() + microclimate.status.slice(1)}
+                {microclimate.status.charAt(0).toUpperCase() +
+                  microclimate.status.slice(1)}
               </Badge>
               {hasParticipated && (
-                <Badge variant="outline" className="text-green-600 border-green-600">
+                <Badge
+                  variant="outline"
+                  className="text-green-600 border-green-600"
+                >
                   <CheckCircle className="h-3 w-3 mr-1" />
                   Participated
                 </Badge>
               )}
-              {isExpired && (
-                <Badge variant="destructive">
-                  Expired
-                </Badge>
-              )}
+              {isExpired && <Badge variant="destructive">Expired</Badge>}
             </div>
 
             {/* Session Details */}
@@ -224,19 +247,24 @@ export default function MicroclimateInvitationPage() {
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-gray-500" />
                 <span className="text-sm">
-                  <strong>Duration:</strong> {microclimate.scheduling.duration_minutes} minutes
+                  <strong>Duration:</strong>{' '}
+                  {microclimate.scheduling.duration_minutes} minutes
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-gray-500" />
                 <span className="text-sm">
-                  <strong>Participants:</strong> {microclimate.response_count}/{microclimate.target_participant_count}
+                  <strong>Participants:</strong> {microclimate.response_count}/
+                  {microclimate.target_participant_count}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Eye className="h-4 w-4 text-gray-500" />
                 <span className="text-sm">
-                  <strong>Privacy:</strong> {microclimate.real_time_settings.anonymous_responses ? 'Anonymous' : 'Confidential'}
+                  <strong>Privacy:</strong>{' '}
+                  {microclimate.real_time_settings.anonymous_responses
+                    ? 'Anonymous'
+                    : 'Confidential'}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -254,7 +282,8 @@ export default function MicroclimateInvitationPage() {
                 <strong>Starts:</strong> {startTime.toLocaleString()}
               </p>
               <p className="text-sm text-gray-600">
-                <strong>Expires:</strong> {new Date(invitation.expires_at).toLocaleString()}
+                <strong>Expires:</strong>{' '}
+                {new Date(invitation.expires_at).toLocaleString()}
               </p>
             </div>
 
@@ -265,11 +294,12 @@ export default function MicroclimateInvitationPage() {
                   <Alert>
                     <CheckCircle className="h-4 w-4" />
                     <AlertDescription>
-                      Thank you for participating! You have already completed this microclimate session.
+                      Thank you for participating! You have already completed
+                      this microclimate session.
                     </AlertDescription>
                   </Alert>
                   {microclimate.real_time_settings.show_live_results && (
-                    <Button 
+                    <Button
                       onClick={handleViewLiveResults}
                       variant="outline"
                       className="mt-4"
@@ -282,23 +312,26 @@ export default function MicroclimateInvitationPage() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    This invitation has expired. Please contact your administrator if you still need to participate.
+                    This invitation has expired. Please contact your
+                    administrator if you still need to participate.
                   </AlertDescription>
                 </Alert>
               ) : !isActive ? (
                 <Alert>
                   <AlertDescription>
-                    This microclimate session is not currently active. Please check back later.
+                    This microclimate session is not currently active. Please
+                    check back later.
                   </AlertDescription>
                 </Alert>
               ) : !isStarted ? (
                 <Alert>
                   <AlertDescription>
-                    This session hasn't started yet. Please return at the scheduled time: {startTime.toLocaleString()}
+                    This session hasn't started yet. Please return at the
+                    scheduled time: {startTime.toLocaleString()}
                   </AlertDescription>
                 </Alert>
               ) : (
-                <Button 
+                <Button
                   onClick={handleJoinMicroclimate}
                   className="w-full bg-green-600 hover:bg-green-700"
                   size="lg"
@@ -309,15 +342,15 @@ export default function MicroclimateInvitationPage() {
               )}
 
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => router.push('/dashboard')}
                   className="flex-1"
                 >
                   Dashboard
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => router.push('/microclimates')}
                   className="flex-1"
                 >
@@ -330,7 +363,9 @@ export default function MicroclimateInvitationPage() {
 
         {/* Additional Info */}
         <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Your participation helps create a better workplace for everyone.</p>
+          <p>
+            Your participation helps create a better workplace for everyone.
+          </p>
           <p className="mt-1">Questions? Contact your HR department.</p>
         </div>
       </div>
