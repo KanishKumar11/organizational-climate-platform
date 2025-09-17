@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Users, Eye, MessageSquare, AlertCircle, CheckCircle } from 'lucide-react';
-import Loading from '@/components/ui/Loading';
+import { Loading } from '@/components/ui/Loading';
 
 interface MicroclimateData {
   _id: string;
