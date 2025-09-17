@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/mongodb';
@@ -6,8 +6,8 @@ import MicroclimateInvitation from '@/models/MicroclimateInvitation';
 import Microclimate from '@/models/Microclimate';
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { token: string } }
+  request: Request,
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -20,7 +20,7 @@ export async function GET(
 
     await connectDB();
 
-    const { token } = params;
+    const { token } = await params;
 
     // Find invitation by token
     const invitation = await (MicroclimateInvitation as any)
@@ -52,7 +52,7 @@ export async function GET(
     if (invitation.isExpired()) {
       await invitation.markExpired();
       await invitation.save();
-      
+
       return NextResponse.json(
         { error: 'This invitation has expired' },
         { status: 410 }
@@ -72,11 +72,8 @@ export async function GET(
     }
 
     // Check if user has permission to access this microclimate
-    if (microclimate.company_id.toString() !== session.user.company_id) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+    if (microclimate.company_id.toString() !== session.user.companyId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Return invitation and microclimate data
