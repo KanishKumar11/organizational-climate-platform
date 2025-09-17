@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import Microclimate from '@/models/Microclimate';
 import User from '@/models/User';
-import { validatePermissions } from '@/lib/permissions';
+import { hasPermission } from '@/lib/permissions';
 import { z } from 'zod';
 
 // Validation schema for updating microclimates

@@ -15,7 +15,18 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "seed": "tsx --env-file=.env.local src/scripts/seed-all.ts",
+    "seed:companies": "tsx --env-file=.env.local -e \"import { seedCompaniesAndDepartments } from './src/lib/seedCompaniesAndDepartments'; seedCompaniesAndDepartments().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\"",
+    "seed:questions": "tsx --env-file=.env.local -e \"import { seedQuestionBank } from './src/lib/seedQuestionBank'; seedQuestionBank().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\"",
+    "seed:user": "tsx --env-file=.env.local -e \"import { seedTestUser } from './src/lib/seedTestUser'; seedTestUser().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\"",
+    "debug:departments": "tsx --env-file=.env.local src/scripts/debug-departments.ts",
+    "fix:departments": "tsx --env-file=.env.local src/scripts/fix-department-company-ids.ts",
+    "onboard:company": "tsx --env-file=.env.local src/scripts/enhanced-company-onboarding.ts",
+    "migrate:departments": "tsx --env-file=.env.local src/scripts/department-hierarchy-migration.ts",
+    "seed:users": "tsx --env-file=.env.local src/scripts/user-role-permission-seeding.ts",
+    "create:super-admin": "tsx --env-file=.env.local src/scripts/user-role-permission-seeding.ts create-super-admin",
+    "audit:permissions": "tsx --env-file=.env.local src/scripts/user-role-permission-seeding.ts audit"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
@@ -93,6 +104,7 @@
     "mongodb-memory-server": "^10.2.0",
     "prettier": "^3.6.2",
     "tailwindcss": "^4",
+    "tsx": "^4.20.5",
     "tw-animate-css": "^1.3.7",
     "typescript": "^5"
   }

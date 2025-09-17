@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import Microclimate from '@/models/Microclimate';
-import { validatePermissions } from '@/lib/permissions';
+import { hasPermission } from '@/lib/permissions';
 
 // Update microclimate status
 export async function PATCH(
@@ -17,7 +17,7 @@ export async function PATCH(
     }
 
     // Check permissions
-    if (!validatePermissions(session.user.role, 'leader')) {
+    if (!hasPermission(session.user.role, 'leader')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

@@ -1,11 +1,15 @@
-import { Metadata } from 'next';
+'use client';
+
+import { useAuth } from '@/hooks/useAuth';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import MicroclimateDashboard from '@/components/microclimate/MicroclimateDashboard';
 
-export const metadata: Metadata = {
-  title: 'Microclimates | Organizational Climate Platform',
-  description: 'Manage real-time feedback sessions and microclimates',
-};
-
 export default function MicroclimatePage() {
-  return <MicroclimateDashboard />;
+  const { user } = useAuth();
+
+  return (
+    <DashboardLayout>
+      <MicroclimateDashboard />
+    </DashboardLayout>
+  );
 }

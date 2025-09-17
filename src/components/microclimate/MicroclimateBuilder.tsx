@@ -27,6 +27,11 @@ import {
   Trash2,
   Copy,
   Sparkles,
+  ChevronUp,
+  ChevronDown,
+  GripVertical,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
 
 interface Question {
@@ -93,11 +98,31 @@ const QUESTION_TYPES = [
 ];
 
 const SAMPLE_QUESTIONS = [
-  'How satisfied are you with your current work environment?',
-  'How would you rate team collaboration this week?',
-  'What is your current stress level?',
-  'How supported do you feel by your manager?',
-  'What could be improved in our team processes?',
+  {
+    text: 'How satisfied are you with your current work environment?',
+    type: 'likert' as const,
+  },
+  {
+    text: 'How would you rate team collaboration this week?',
+    type: 'emoji_rating' as const,
+  },
+  {
+    text: 'What is your current stress level?',
+    type: 'likert' as const,
+  },
+  {
+    text: 'How supported do you feel by your manager?',
+    type: 'likert' as const,
+  },
+  {
+    text: 'What could be improved in our team processes?',
+    type: 'open_ended' as const,
+  },
+  {
+    text: 'Which area needs the most attention?',
+    type: 'multiple_choice' as const,
+    options: ['Communication', 'Workload', 'Resources', 'Leadership'],
+  },
 ];
 
 export default function MicroclimateBuilder() {
@@ -156,6 +181,40 @@ export default function MicroclimateBuilder() {
     }));
   };
 
+  const addSampleQuestion = (sampleQuestion: (typeof SAMPLE_QUESTIONS)[0]) => {
+    const newQuestion: Question = {
+      id: `q_${Date.now()}`,
+      text: sampleQuestion.text,
+      type: sampleQuestion.type,
+      required: true,
+      order: microclimateData.questions.length,
+      ...(sampleQuestion.options && { options: sampleQuestion.options }),
+    };
+
+    setMicroclimateData((prev) => ({
+      ...prev,
+      questions: [...prev.questions, newQuestion],
+    }));
+  };
+
+  const loadSampleQuestions = () => {
+    const sampleQuestions: Question[] = SAMPLE_QUESTIONS.slice(0, 3).map(
+      (sample, index) => ({
+        id: `q_sample_${Date.now()}_${index}`,
+        text: sample.text,
+        type: sample.type,
+        required: true,
+        order: index,
+        ...(sample.options && { options: sample.options }),
+      })
+    );
+
+    setMicroclimateData((prev) => ({
+      ...prev,
+      questions: sampleQuestions,
+    }));
+  };
+
   const updateQuestion = (id: string, updates: Partial<Question>) => {
     setMicroclimateData((prev) => ({
       ...prev,
@@ -187,9 +246,65 @@ export default function MicroclimateBuilder() {
     }
   };
 
+  const moveQuestion = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= microclimateData.questions.length) return;
+
+    const questions = [...microclimateData.questions];
+    const [movedQuestion] = questions.splice(fromIndex, 1);
+    questions.splice(toIndex, 0, movedQuestion);
+
+    // Update order values
+    const updatedQuestions = questions.map((q, index) => ({
+      ...q,
+      order: index,
+    }));
+
+    setMicroclimateData((prev) => ({
+      ...prev,
+      questions: updatedQuestions,
+    }));
+  };
+
+  const validateQuestions = () => {
+    const errors: string[] = [];
+
+    if (microclimateData.questions.length === 0) {
+      errors.push('At least one question is required');
+    }
+
+    microclimateData.questions.forEach((question, index) => {
+      if (!question.text.trim()) {
+        errors.push(`Question ${index + 1}: Question text is required`);
+      }
+
+      if (
+        question.type === 'multiple_choice' &&
+        (!question.options || question.options.length < 2)
+      ) {
+        errors.push(
+          `Question ${index + 1}: Multiple choice questions need at least 2 options`
+        );
+      }
+
+      if (question.type === 'multiple_choice' && question.options) {
+        const emptyOptions = question.options.filter((opt) => !opt.trim());
+        if (emptyOptions.length > 0) {
+          errors.push(`Question ${index + 1}: All options must have text`);
+        }
+      }
+    });
+
+    return errors;
+  };
+
   const handleSave = async (status: 'draft' | 'active' = 'draft') => {
     setSaving(true);
     try {
+      console.log('Saving microclimate with data:', {
+        ...microclimateData,
+        status,
+      });
+
       const response = await fetch('/api/microclimates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -199,18 +314,35 @@ export default function MicroclimateBuilder() {
         }),
       });
 
+      console.log('API Response status:', response.status);
+      console.log('API Response headers:', response.headers);
+
       if (response.ok) {
         const result = await response.json();
+        console.log('API Response data:', result);
         if (status === 'active') {
           router.push(`/microclimates/${result.microclimate._id}/live`);
         } else {
           router.push('/microclimates');
         }
       } else {
-        throw new Error('Failed to save microclimate');
+        // Get the error response body for better debugging
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
+        console.error('API Error Response:', errorData);
+        console.error('Response status:', response.status);
+        console.error('Response statusText:', response.statusText);
+        throw new Error(
+          `Failed to save microclimate: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`
+        );
       }
     } catch (error) {
       console.error('Error saving microclimate:', error);
+      // Show user-friendly error message
+      alert(
+        `Failed to save microclimate: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     } finally {
       setSaving(false);
     }
@@ -221,10 +353,8 @@ export default function MicroclimateBuilder() {
       case 1:
         return microclimateData.title.trim().length > 0;
       case 2:
-        return (
-          microclimateData.questions.length > 0 &&
-          microclimateData.questions.every((q) => q.text.trim().length > 0)
-        );
+        const questionErrors = validateQuestions();
+        return questionErrors.length === 0;
       case 3:
         return microclimateData.targeting.department_ids.length > 0;
       case 4:
@@ -383,7 +513,710 @@ export default function MicroclimateBuilder() {
                 </Card>
               )}
 
-              {/* Additional steps will be added in the next part */}
+              {currentStep === 2 && (
+                <div className="space-y-6">
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <MessageSquare className="w-5 h-5 text-blue-600" />
+                        </div>
+                        Questions ({microclimateData.questions.length}/10)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {/* Empty State with Actions */}
+                      {microclimateData.questions.length === 0 && (
+                        <div className="text-center py-8 mb-6">
+                          <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            No Questions Added Yet
+                          </h3>
+                          <p className="text-gray-600 mb-4">
+                            Add questions to gather real-time feedback from your
+                            team.
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-2 justify-center mb-6">
+                            <Button
+                              onClick={loadSampleQuestions}
+                              variant="outline"
+                              className="flex items-center gap-2"
+                            >
+                              <Sparkles className="h-4 w-4" />
+                              Load Sample Questions
+                            </Button>
+                            <Button
+                              onClick={() => addQuestion('likert')}
+                              className="flex items-center gap-2"
+                            >
+                              <Plus className="h-4 w-4" />
+                              Add First Question
+                            </Button>
+                          </div>
+
+                          {/* Quick Add Suggestions for Empty State */}
+                          <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+                            <CardContent className="p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Sparkles className="w-4 h-4 text-purple-600" />
+                                <span className="text-sm font-medium text-purple-700">
+                                  Quick Add Suggestions
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap gap-2 justify-center">
+                                {SAMPLE_QUESTIONS.slice(0, 3).map(
+                                  (suggestion, index) => (
+                                    <Button
+                                      key={index}
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() =>
+                                        addSampleQuestion(suggestion)
+                                      }
+                                      className="text-xs bg-white border-purple-200 text-purple-700 hover:bg-purple-50"
+                                    >
+                                      <Plus className="w-3 h-3 mr-1" />
+                                      {suggestion.text.length > 30
+                                        ? `${suggestion.text.slice(0, 30)}...`
+                                        : suggestion.text}
+                                    </Button>
+                                  )
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      )}
+
+                      {/* Quick Add Sample Questions (when questions exist but not full) */}
+                      {microclimateData.questions.length > 0 &&
+                        microclimateData.questions.length < 10 && (
+                          <div className="mb-6">
+                            <h4 className="text-sm font-medium text-gray-700 mb-3">
+                              Quick Add More Questions:
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {SAMPLE_QUESTIONS.slice(0, 4).map(
+                                (sample, index) => (
+                                  <Button
+                                    key={index}
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addSampleQuestion(sample)}
+                                    className="text-xs"
+                                    disabled={microclimateData.questions.some(
+                                      (q) => q.text === sample.text
+                                    )}
+                                  >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    {sample.text.length > 30
+                                      ? `${sample.text.substring(0, 30)}...`
+                                      : sample.text}
+                                  </Button>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Question Types */}
+                      {microclimateData.questions.length > 0 && (
+                        <div className="mb-6">
+                          <h4 className="text-sm font-medium text-gray-700 mb-3">
+                            Add New Question:
+                          </h4>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {QUESTION_TYPES.map((type) => (
+                              <motion.button
+                                key={type.type}
+                                onClick={() => addQuestion(type.type)}
+                                disabled={
+                                  microclimateData.questions.length >= 10
+                                }
+                                className="p-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-teal-400 hover:bg-teal-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <div className="text-2xl mb-2">{type.icon}</div>
+                                <div className="font-medium text-sm">
+                                  {type.label}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {type.description}
+                                </div>
+                              </motion.button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Questions List */}
+                      <div className="space-y-4">
+                        <AnimatePresence>
+                          {microclimateData.questions.map((question, index) => (
+                            <motion.div
+                              key={question.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -20 }}
+                              className="p-4 border border-gray-200 rounded-xl bg-white"
+                            >
+                              <div className="flex items-start gap-4">
+                                <div className="p-2 bg-gray-100 rounded-lg">
+                                  <span className="text-sm font-medium">
+                                    Q{index + 1}
+                                  </span>
+                                </div>
+
+                                <div className="flex-1 space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {
+                                        QUESTION_TYPES.find(
+                                          (t) => t.type === question.type
+                                        )?.label
+                                      }
+                                    </Badge>
+                                    {question.required && (
+                                      <Badge className="bg-red-100 text-red-700 text-xs">
+                                        Required
+                                      </Badge>
+                                    )}
+                                  </div>
+
+                                  <Input
+                                    placeholder="Enter your question..."
+                                    value={question.text}
+                                    onChange={(e) =>
+                                      updateQuestion(question.id, {
+                                        text: e.target.value,
+                                      })
+                                    }
+                                    className="text-base"
+                                  />
+
+                                  {question.type === 'multiple_choice' && (
+                                    <div className="space-y-2">
+                                      <label className="text-sm font-medium text-gray-700">
+                                        Options:
+                                      </label>
+                                      {question.options?.map(
+                                        (option, optionIndex) => (
+                                          <div
+                                            key={optionIndex}
+                                            className="flex items-center gap-2"
+                                          >
+                                            <Input
+                                              placeholder={`Option ${optionIndex + 1}`}
+                                              value={option}
+                                              onChange={(e) => {
+                                                const newOptions = [
+                                                  ...(question.options || []),
+                                                ];
+                                                newOptions[optionIndex] =
+                                                  e.target.value;
+                                                updateQuestion(question.id, {
+                                                  options: newOptions,
+                                                });
+                                              }}
+                                              className="text-sm"
+                                            />
+                                            {question.options &&
+                                              question.options.length > 2 && (
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => {
+                                                    const newOptions =
+                                                      question.options?.filter(
+                                                        (_, i) =>
+                                                          i !== optionIndex
+                                                      );
+                                                    updateQuestion(
+                                                      question.id,
+                                                      {
+                                                        options: newOptions,
+                                                      }
+                                                    );
+                                                  }}
+                                                >
+                                                  <Trash2 className="w-4 h-4 text-red-500" />
+                                                </Button>
+                                              )}
+                                          </div>
+                                        )
+                                      )}
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          const newOptions = [
+                                            ...(question.options || []),
+                                            `Option ${(question.options?.length || 0) + 1}`,
+                                          ];
+                                          updateQuestion(question.id, {
+                                            options: newOptions,
+                                          });
+                                        }}
+                                        className="text-xs"
+                                      >
+                                        <Plus className="w-3 h-3 mr-1" />
+                                        Add Option
+                                      </Button>
+                                    </div>
+                                  )}
+
+                                  {/* Emoji Rating Options */}
+                                  {question.type === 'emoji_rating' && (
+                                    <div className="space-y-2">
+                                      <label className="text-sm font-medium text-gray-700">
+                                        Rating Scale
+                                      </label>
+                                      <div className="flex items-center gap-4">
+                                        <select
+                                          value={question.options?.[0] || '5'}
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              options: [e.target.value],
+                                            })
+                                          }
+                                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                          <option value="3">
+                                            3-point scale
+                                          </option>
+                                          <option value="5">
+                                            5-point scale
+                                          </option>
+                                          <option value="7">
+                                            7-point scale
+                                          </option>
+                                        </select>
+                                        <div className="text-sm text-gray-500">
+                                          😢 → 😐 → 😊 (example)
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Question Controls */}
+                                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                    <div className="flex items-center gap-2">
+                                      <label className="flex items-center gap-2 text-sm">
+                                        <input
+                                          type="checkbox"
+                                          checked={question.required}
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              required: e.target.checked,
+                                            })
+                                          }
+                                          className="rounded"
+                                        />
+                                        Required
+                                      </label>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                      {/* Move Up */}
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                          moveQuestion(index, index - 1)
+                                        }
+                                        disabled={index === 0}
+                                        className="p-1"
+                                      >
+                                        <ChevronUp className="w-4 h-4" />
+                                      </Button>
+
+                                      {/* Move Down */}
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                          moveQuestion(index, index + 1)
+                                        }
+                                        disabled={
+                                          index ===
+                                          microclimateData.questions.length - 1
+                                        }
+                                        className="p-1"
+                                      >
+                                        <ChevronDown className="w-4 h-4" />
+                                      </Button>
+
+                                      {/* Delete Question */}
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                          removeQuestion(question.id)
+                                        }
+                                        className="p-1 text-red-500 hover:text-red-700"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {currentStep === 3 && (
+                <div className="space-y-6">
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                          <Target className="w-5 h-5 text-green-600" />
+                        </div>
+                        Target Audience
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <DepartmentTargeting
+                        selectedDepartmentIds={
+                          microclimateData.targeting.department_ids
+                        }
+                        onDepartmentChange={(departmentIds) =>
+                          setMicroclimateData((prev) => ({
+                            ...prev,
+                            targeting: {
+                              ...prev.targeting,
+                              department_ids: departmentIds,
+                            },
+                          }))
+                        }
+                        roleFilters={microclimateData.targeting.role_filters}
+                        onRoleFilterChange={(roles) =>
+                          setMicroclimateData((prev) => ({
+                            ...prev,
+                            targeting: {
+                              ...prev.targeting,
+                              role_filters: roles,
+                            },
+                          }))
+                        }
+                        includeManagers={
+                          microclimateData.targeting.include_managers
+                        }
+                        onIncludeManagersChange={(include) =>
+                          setMicroclimateData((prev) => ({
+                            ...prev,
+                            targeting: {
+                              ...prev.targeting,
+                              include_managers: include,
+                            },
+                          }))
+                        }
+                        maxParticipants={
+                          microclimateData.targeting.max_participants
+                        }
+                        onMaxParticipantsChange={(max) =>
+                          setMicroclimateData((prev) => ({
+                            ...prev,
+                            targeting: {
+                              ...prev.targeting,
+                              max_participants: max,
+                            },
+                          }))
+                        }
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {currentStep === 4 && (
+                <Card className="border-0 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <div className="p-2 bg-orange-100 rounded-lg">
+                        <Calendar className="w-5 h-5 text-orange-600" />
+                      </div>
+                      Scheduling
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Start Time *
+                        </label>
+                        <Input
+                          type="datetime-local"
+                          value={microclimateData.scheduling.start_time}
+                          onChange={(e) =>
+                            setMicroclimateData((prev) => ({
+                              ...prev,
+                              scheduling: {
+                                ...prev.scheduling,
+                                start_time: e.target.value,
+                              },
+                            }))
+                          }
+                          className="text-base h-12"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Duration (minutes) *
+                        </label>
+                        <Input
+                          type="number"
+                          min="5"
+                          max="480"
+                          value={microclimateData.scheduling.duration_minutes}
+                          onChange={(e) =>
+                            setMicroclimateData((prev) => ({
+                              ...prev,
+                              scheduling: {
+                                ...prev.scheduling,
+                                duration_minutes:
+                                  parseInt(e.target.value) || 30,
+                              },
+                            }))
+                          }
+                          className="text-base h-12"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="auto_close"
+                        checked={microclimateData.scheduling.auto_close}
+                        onChange={(e) =>
+                          setMicroclimateData((prev) => ({
+                            ...prev,
+                            scheduling: {
+                              ...prev.scheduling,
+                              auto_close: e.target.checked,
+                            },
+                          }))
+                        }
+                        className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                      />
+                      <label
+                        htmlFor="auto_close"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Automatically close when time expires
+                      </label>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {currentStep === 5 && (
+                <div className="space-y-6">
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                          <Settings className="w-5 h-5 text-purple-600" />
+                        </div>
+                        Real-time Settings
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900">
+                            Display Options
+                          </h4>
+
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-3">
+                              <input
+                                type="checkbox"
+                                id="show_live_results"
+                                checked={
+                                  microclimateData.real_time_settings
+                                    .show_live_results
+                                }
+                                onChange={(e) =>
+                                  setMicroclimateData((prev) => ({
+                                    ...prev,
+                                    real_time_settings: {
+                                      ...prev.real_time_settings,
+                                      show_live_results: e.target.checked,
+                                    },
+                                  }))
+                                }
+                                className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                              />
+                              <label
+                                htmlFor="show_live_results"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Show live results to participants
+                              </label>
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                              <input
+                                type="checkbox"
+                                id="word_cloud_enabled"
+                                checked={
+                                  microclimateData.real_time_settings
+                                    .word_cloud_enabled
+                                }
+                                onChange={(e) =>
+                                  setMicroclimateData((prev) => ({
+                                    ...prev,
+                                    real_time_settings: {
+                                      ...prev.real_time_settings,
+                                      word_cloud_enabled: e.target.checked,
+                                    },
+                                  }))
+                                }
+                                className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                              />
+                              <label
+                                htmlFor="word_cloud_enabled"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Enable word cloud visualization
+                              </label>
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                              <input
+                                type="checkbox"
+                                id="sentiment_analysis_enabled"
+                                checked={
+                                  microclimateData.real_time_settings
+                                    .sentiment_analysis_enabled
+                                }
+                                onChange={(e) =>
+                                  setMicroclimateData((prev) => ({
+                                    ...prev,
+                                    real_time_settings: {
+                                      ...prev.real_time_settings,
+                                      sentiment_analysis_enabled:
+                                        e.target.checked,
+                                    },
+                                  }))
+                                }
+                                className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                              />
+                              <label
+                                htmlFor="sentiment_analysis_enabled"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Enable sentiment analysis
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900">
+                            Privacy Options
+                          </h4>
+
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-3">
+                              <input
+                                type="checkbox"
+                                id="anonymous_responses"
+                                checked={
+                                  microclimateData.real_time_settings
+                                    .anonymous_responses
+                                }
+                                onChange={(e) =>
+                                  setMicroclimateData((prev) => ({
+                                    ...prev,
+                                    real_time_settings: {
+                                      ...prev.real_time_settings,
+                                      anonymous_responses: e.target.checked,
+                                    },
+                                  }))
+                                }
+                                className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                              />
+                              <label
+                                htmlFor="anonymous_responses"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Anonymous responses
+                              </label>
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                              <input
+                                type="checkbox"
+                                id="allow_comments"
+                                checked={
+                                  microclimateData.real_time_settings
+                                    .allow_comments
+                                }
+                                onChange={(e) =>
+                                  setMicroclimateData((prev) => ({
+                                    ...prev,
+                                    real_time_settings: {
+                                      ...prev.real_time_settings,
+                                      allow_comments: e.target.checked,
+                                    },
+                                  }))
+                                }
+                                className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                              />
+                              <label
+                                htmlFor="allow_comments"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Allow text comments
+                              </label>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Minimum responses to show results
+                            </label>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="50"
+                              value={
+                                microclimateData.real_time_settings
+                                  .participation_threshold
+                              }
+                              onChange={(e) =>
+                                setMicroclimateData((prev) => ({
+                                  ...prev,
+                                  real_time_settings: {
+                                    ...prev.real_time_settings,
+                                    participation_threshold:
+                                      parseInt(e.target.value) || 3,
+                                  },
+                                }))
+                              }
+                              className="text-base h-12"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
 
@@ -446,540 +1279,4 @@ export default function MicroclimateBuilder() {
       </div>
     </div>
   );
-
-  // Step 2: Questions
-  if (currentStep === 2) {
-    return (
-    <div className="space-y-6">
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <MessageSquare className="w-5 h-5 text-blue-600" />
-            </div>
-            Questions ({microclimateData.questions.length}/10)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Question Types */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {QUESTION_TYPES.map((type) => (
-              <motion.button
-                key={type.type}
-                onClick={() => addQuestion(type.type)}
-                disabled={microclimateData.questions.length >= 10}
-                className="p-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-teal-400 hover:bg-teal-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="text-2xl mb-2">{type.icon}</div>
-                <div className="font-medium text-sm">{type.label}</div>
-                <div className="text-xs text-gray-500">{type.description}</div>
-              </motion.button>
-            ))}
-          </div>
-
-          {/* Questions List */}
-          <div className="space-y-4">
-            <AnimatePresence>
-              {microclimateData.questions.map((question, index) => (
-                <motion.div
-                  key={question.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="p-4 border border-gray-200 rounded-xl bg-white"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      <span className="text-sm font-medium">Q{index + 1}</span>
-                    </div>
-
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {
-                            QUESTION_TYPES.find((t) => t.type === question.type)
-                              ?.label
-                          }
-                        </Badge>
-                        {question.required && (
-                          <Badge className="bg-red-100 text-red-700 text-xs">
-                            Required
-                          </Badge>
-                        )}
-                      </div>
-
-                      <Input
-                        placeholder="Enter your question..."
-                        value={question.text}
-                        onChange={(e) =>
-                          updateQuestion(question.id, { text: e.target.value })
-                        }
-                        className="text-base"
-                      />
-
-                      {question.type === 'multiple_choice' && (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">
-                            Options:
-                          </label>
-                          {question.options?.map((option, optionIndex) => (
-                            <div
-                              key={optionIndex}
-                              className="flex items-center gap-2"
-                            >
-                              <Input
-                                placeholder={`Option ${optionIndex + 1}`}
-                                value={option}
-                                onChange={(e) => {
-                                  const newOptions = [
-                                    ...(question.options || []),
-                                  ];
-                                  newOptions[optionIndex] = e.target.value;
-                                  updateQuestion(question.id, {
-                                    options: newOptions,
-                                  });
-                                }}
-                                className="text-sm"
-                              />
-                              {question.options &&
-                                question.options.length > 2 && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      const newOptions =
-                                        question.options?.filter(
-                                          (_, i) => i !== optionIndex
-                                        );
-                                      updateQuestion(question.id, {
-                                        options: newOptions,
-                                      });
-                                    }}
-                                  >
-                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                  </Button>
-                                )}
-                            </div>
-                          ))}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const newOptions = [
-                                ...(question.options || []),
-                                `Option ${(question.options?.length || 0) + 1}`,
-                              ];
-                              updateQuestion(question.id, {
-                                options: newOptions,
-                              });
-                            }}
-                            className="text-xs"
-                          >
-                            <Plus className="w-3 h-3 mr-1" />
-                            Add Option
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => duplicateQuestion(question.id)}
-                        title="Duplicate question"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeQuestion(question.id)}
-                        title="Remove question"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-
-            {microclimateData.questions.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p className="text-lg font-medium mb-2">
-                  No questions added yet
-                </p>
-                <p className="text-sm">
-                  Click on a question type above to get started
-                </p>
-              </div>
-            )}
-
-            {/* Quick Add Suggestions */}
-            {microclimateData.questions.length < 5 && (
-              <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="w-4 h-4 text-purple-600" />
-                    <span className="text-sm font-medium text-purple-700">
-                      Quick Add Suggestions
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {SAMPLE_QUESTIONS.slice(0, 3).map((suggestion, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const newQuestion: Question = {
-                            id: `q_${Date.now()}_${index}`,
-                            text: suggestion,
-                            type: 'likert',
-                            required: true,
-                            order: microclimateData.questions.length,
-                          };
-                          setMicroclimateData((prev) => ({
-                            ...prev,
-                            questions: [...prev.questions, newQuestion],
-                          }));
-                        }}
-                        className="text-xs bg-white border-purple-200 text-purple-700 hover:bg-purple-50"
-                      >
-                        <Plus className="w-3 h-3 mr-1" />
-                        {suggestion.slice(0, 30)}...
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-{
-  currentStep === 3 && (
-    <Card className="border-0 shadow-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <Target className="w-5 h-5 text-green-600" />
-          </div>
-          Target Audience
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <DepartmentTargeting
-          selectedDepartmentIds={microclimateData.targeting.department_ids}
-          onDepartmentChange={(departmentIds) =>
-            setMicroclimateData((prev) => ({
-              ...prev,
-              targeting: { ...prev.targeting, department_ids: departmentIds },
-            }))
-          }
-          roleFilters={microclimateData.targeting.role_filters}
-          onRoleFilterChange={(roles) =>
-            setMicroclimateData((prev) => ({
-              ...prev,
-              targeting: { ...prev.targeting, role_filters: roles },
-            }))
-          }
-          includeManagers={microclimateData.targeting.include_managers}
-          onIncludeManagersChange={(include) =>
-            setMicroclimateData((prev) => ({
-              ...prev,
-              targeting: { ...prev.targeting, include_managers: include },
-            }))
-          }
-          maxParticipants={microclimateData.targeting.max_participants}
-          onMaxParticipantsChange={(max) =>
-            setMicroclimateData((prev) => ({
-              ...prev,
-              targeting: { ...prev.targeting, max_participants: max },
-            }))
-          }
-        />
-      </CardContent>
-    </Card>
-    );
-  }
-
-  // Step 4: Scheduling
-  if (currentStep === 4) {
-    return (
-    <Card className="border-0 shadow-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <div className="p-2 bg-orange-100 rounded-lg">
-            <Calendar className="w-5 h-5 text-orange-600" />
-          </div>
-          Scheduling
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Start Time *
-            </label>
-            <Input
-              type="datetime-local"
-              value={microclimateData.scheduling.start_time}
-              onChange={(e) =>
-                setMicroclimateData((prev) => ({
-                  ...prev,
-                  scheduling: {
-                    ...prev.scheduling,
-                    start_time: e.target.value,
-                  },
-                }))
-              }
-              className="text-base h-12"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Duration (minutes) *
-            </label>
-            <Input
-              type="number"
-              min="5"
-              max="480"
-              value={microclimateData.scheduling.duration_minutes}
-              onChange={(e) =>
-                setMicroclimateData((prev) => ({
-                  ...prev,
-                  scheduling: {
-                    ...prev.scheduling,
-                    duration_minutes: parseInt(e.target.value) || 30,
-                  },
-                }))
-              }
-              className="text-base h-12"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <input
-            type="checkbox"
-            id="auto_close"
-            checked={microclimateData.scheduling.auto_close}
-            onChange={(e) =>
-              setMicroclimateData((prev) => ({
-                ...prev,
-                scheduling: {
-                  ...prev.scheduling,
-                  auto_close: e.target.checked,
-                },
-              }))
-            }
-            className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-          />
-          <label
-            htmlFor="auto_close"
-            className="text-sm font-medium text-gray-700"
-          >
-            Automatically close when time expires
-          </label>
-        </div>
-      </CardContent>
-    </Card>
-    );
-  }
-
-  // Step 3: Target Audience
-  if (currentStep === 3) {
-    return (
-    <Card className="border-0 shadow-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Settings className="w-5 h-5 text-purple-600" />
-          </div>
-          Real-time Settings
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Display Options</h4>
-
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="show_live_results"
-                  checked={
-                    microclimateData.real_time_settings.show_live_results
-                  }
-                  onChange={(e) =>
-                    setMicroclimateData((prev) => ({
-                      ...prev,
-                      real_time_settings: {
-                        ...prev.real_time_settings,
-                        show_live_results: e.target.checked,
-                      },
-                    }))
-                  }
-                  className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                />
-                <label
-                  htmlFor="show_live_results"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Show live results to participants
-                </label>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="word_cloud_enabled"
-                  checked={
-                    microclimateData.real_time_settings.word_cloud_enabled
-                  }
-                  onChange={(e) =>
-                    setMicroclimateData((prev) => ({
-                      ...prev,
-                      real_time_settings: {
-                        ...prev.real_time_settings,
-                        word_cloud_enabled: e.target.checked,
-                      },
-                    }))
-                  }
-                  className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                />
-                <label
-                  htmlFor="word_cloud_enabled"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Enable word cloud visualization
-                </label>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="sentiment_analysis_enabled"
-                  checked={
-                    microclimateData.real_time_settings
-                      .sentiment_analysis_enabled
-                  }
-                  onChange={(e) =>
-                    setMicroclimateData((prev) => ({
-                      ...prev,
-                      real_time_settings: {
-                        ...prev.real_time_settings,
-                        sentiment_analysis_enabled: e.target.checked,
-                      },
-                    }))
-                  }
-                  className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                />
-                <label
-                  htmlFor="sentiment_analysis_enabled"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Enable sentiment analysis
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Privacy Options</h4>
-
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="anonymous_responses"
-                  checked={
-                    microclimateData.real_time_settings.anonymous_responses
-                  }
-                  onChange={(e) =>
-                    setMicroclimateData((prev) => ({
-                      ...prev,
-                      real_time_settings: {
-                        ...prev.real_time_settings,
-                        anonymous_responses: e.target.checked,
-                      },
-                    }))
-                  }
-                  className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                />
-                <label
-                  htmlFor="anonymous_responses"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Anonymous responses
-                </label>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="allow_comments"
-                  checked={microclimateData.real_time_settings.allow_comments}
-                  onChange={(e) =>
-                    setMicroclimateData((prev) => ({
-                      ...prev,
-                      real_time_settings: {
-                        ...prev.real_time_settings,
-                        allow_comments: e.target.checked,
-                      },
-                    }))
-                  }
-                  className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                />
-                <label
-                  htmlFor="allow_comments"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Allow text comments
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Minimum responses to show results
-              </label>
-              <Input
-                type="number"
-                min="1"
-                max="50"
-                value={
-                  microclimateData.real_time_settings.participation_threshold
-                }
-                onChange={(e) =>
-                  setMicroclimateData((prev) => ({
-                    ...prev,
-                    real_time_settings: {
-                      ...prev.real_time_settings,
-                      participation_threshold: parseInt(e.target.value) || 3,
-                    },
-                  }))
-                }
-                className="text-base h-12"
-              />
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-    );
-  }
-
-  return null;
 }

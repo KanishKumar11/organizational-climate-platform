@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import MicroclimateTemplate from '@/models/MicroclimateTemplate';
 import User from '@/models/User';
-import { validatePermissions } from '@/lib/permissions';
+import { hasPermission } from '@/lib/permissions';
 import { z } from 'zod';
 
 // Validation schema for creating templates
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check permissions - only leaders and above can create templates
-    if (!validatePermissions(session.user.role, 'leader')) {
+    if (!hasPermission(session.user.role, 'leader')) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }

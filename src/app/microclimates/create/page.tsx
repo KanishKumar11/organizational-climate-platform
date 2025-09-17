@@ -1,15 +1,42 @@
+'use client';
+
 import { Suspense } from 'react';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { notFound } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import MicroclimateBuilder from '@/components/microclimate/MicroclimateBuilder';
 import { Loading } from '@/components/ui/Loading';
+import { Card, CardContent } from '@/components/ui/card';
+import { AlertCircle } from 'lucide-react';
 
-export default async function CreateMicroclimatePage() {
-  const session = await getServerSession(authOptions);
+export default function CreateMicroclimatePage() {
+  const { user, isLoading } = useAuth();
 
-  if (!session?.user) {
-    notFound();
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loading size="lg" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!user) {
+    return (
+      <DashboardLayout>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <AlertCircle className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Access Denied
+            </h3>
+            <p className="text-gray-600">
+              Please log in to create microclimates.
+            </p>
+          </CardContent>
+        </Card>
+      </DashboardLayout>
+    );
   }
 
   // Check if user has permission to create microclimates
@@ -17,22 +44,32 @@ export default async function CreateMicroclimatePage() {
     'super_admin',
     'company_admin',
     'leader',
-  ].includes(session.user.role);
+  ].includes(user.role);
 
   if (!canCreateMicroclimates) {
-    notFound();
+    return (
+      <DashboardLayout>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <AlertCircle className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Insufficient Permissions
+            </h3>
+            <p className="text-gray-600">
+              You don't have permission to create microclimates. Contact your
+              administrator for access.
+            </p>
+          </CardContent>
+        </Card>
+      </DashboardLayout>
+    );
   }
 
   return (
-    <Suspense fallback={<Loading size="lg" />}>
-      <MicroclimateBuilder />
-    </Suspense>
+    <DashboardLayout>
+      <Suspense fallback={<Loading size="lg" />}>
+        <MicroclimateBuilder />
+      </Suspense>
+    </DashboardLayout>
   );
-}
-
-export async function generateMetadata() {
-  return {
-    title: 'Create Microclimate | Organizational Climate Platform',
-    description: 'Create a new real-time feedback microclimate for your team.',
-  };
 }

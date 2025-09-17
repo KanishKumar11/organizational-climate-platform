@@ -5,7 +5,7 @@ import { connectDB } from '@/lib/db';
 import Microclimate from '@/models/Microclimate';
 import User from '@/models/User';
 import Department from '@/models/Department';
-import { validatePermissions } from '@/lib/permissions';
+import { hasPermission } from '@/lib/permissions';
 import { z } from 'zod';
 
 // Validation schema for creating microclimates
@@ -21,7 +21,7 @@ const createMicroclimateSchema = z.object({
     max_participants: z.number().min(1).optional(),
   }),
   scheduling: z.object({
-    start_time: z.string().datetime(),
+    start_time: z.string().min(1), // Accept any non-empty string, will be converted to Date
     duration_minutes: z.number().min(5).max(480).default(30),
     timezone: z.string().default('UTC'),
     auto_close: z.boolean().default(true),
@@ -61,6 +61,9 @@ const createMicroclimateSchema = z.object({
     )
     .min(1)
     .max(10),
+  status: z
+    .enum(['draft', 'scheduled', 'active', 'completed', 'cancelled'])
+    .default('draft'),
 });
 
 // GET /api/microclimates - List microclimates
@@ -150,7 +153,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check permissions - only leaders and above can create microclimates
-    if (!validatePermissions(session.user.role, 'leader')) {
+    if (!hasPermission(session.user.role, 'leader')) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }

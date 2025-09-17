@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import MicroclimateTemplate from '@/models/MicroclimateTemplate';
 import Microclimate from '@/models/Microclimate';
-import { validatePermissions } from '@/lib/permissions';
+import { hasPermission } from '@/lib/permissions';
 
 // Create microclimate from template
 export async function POST(
@@ -18,7 +18,7 @@ export async function POST(
     }
 
     // Check permissions
-    if (!validatePermissions(session.user.role, 'leader')) {
+    if (!hasPermission(session.user.role, 'leader')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
