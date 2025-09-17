@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/mongodb';
 import MicroclimateInvitation from '@/models/MicroclimateInvitation';
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,7 +19,7 @@ export async function POST(
 
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
 
     // Find invitation
     const invitation = await (MicroclimateInvitation as any).findById(id);

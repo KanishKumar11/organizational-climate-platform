@@ -32,10 +32,7 @@ export async function POST(
 
     // Check if invitation belongs to current user
     if (invitation.user_id !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Mark as participated
