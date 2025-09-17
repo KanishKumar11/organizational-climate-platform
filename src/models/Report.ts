@@ -164,30 +164,30 @@ const ReportConfigSchema = new Schema(
   { _id: false }
 );
 
-// Report template schema
-const ReportTemplateSchema = new Schema(
-  {
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-    description: { type: String },
-    type: {
-      type: String,
-      enum: [
-        'survey_analysis',
-        'department_comparison',
-        'trend_analysis',
-        'benchmark_comparison',
-        'executive_summary',
-        'custom',
-      ],
-      required: true,
-    },
-    config: { type: ReportConfigSchema, required: true },
-    default_filters: ReportFiltersSchema,
-    is_system_template: { type: Boolean, default: false },
-  },
-  { _id: false }
-);
+// Report template schema (currently unused - reserved for future template system)
+// const ReportTemplateSchema = new Schema(
+//   {
+//     id: { type: String, required: true },
+//     name: { type: String, required: true },
+//     description: { type: String },
+//     type: {
+//       type: String,
+//       enum: [
+//         'survey_analysis',
+//         'department_comparison',
+//         'trend_analysis',
+//         'benchmark_comparison',
+//         'executive_summary',
+//         'custom',
+//       ],
+//       required: true,
+//     },
+//     config: { type: ReportConfigSchema, required: true },
+//     default_filters: ReportFiltersSchema,
+//     is_system_template: { type: Boolean, default: false },
+//   },
+//   { _id: false }
+// );
 
 // Main Report schema
 const ReportSchema: Schema = new Schema(

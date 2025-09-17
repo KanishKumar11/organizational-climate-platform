@@ -16,28 +16,40 @@ const updateCompanySchema = z.object({
   website: z.string().url().optional().or(z.literal('')),
   email: z.string().email().optional().or(z.literal('')),
   phone: z.string().max(20).optional(),
-  address: z.object({
-    street: z.string().max(200).optional(),
-    city: z.string().max(100).optional(),
-    state: z.string().max(100).optional(),
-    country: z.string().max(100).optional(),
-    postal_code: z.string().max(20).optional(),
-  }).optional(),
-  branding: z.object({
-    logo_url: z.string().url().optional().or(z.literal('')),
-    primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-    secondary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-    font_family: z.string().max(50).optional(),
-  }).optional(),
-  settings: z.object({
-    timezone: z.string().max(50).optional(),
-    date_format: z.string().max(20).optional(),
-    language: z.string().max(10).optional(),
-    currency: z.string().max(10).optional(),
-    email_notifications: z.boolean().optional(),
-    survey_reminders: z.boolean().optional(),
-    data_retention_days: z.number().min(30).max(2555).optional(),
-  }).optional(),
+  address: z
+    .object({
+      street: z.string().max(200).optional(),
+      city: z.string().max(100).optional(),
+      state: z.string().max(100).optional(),
+      country: z.string().max(100).optional(),
+      postal_code: z.string().max(20).optional(),
+    })
+    .optional(),
+  branding: z
+    .object({
+      logo_url: z.string().url().optional().or(z.literal('')),
+      primary_color: z
+        .string()
+        .regex(/^#[0-9A-Fa-f]{6}$/)
+        .optional(),
+      secondary_color: z
+        .string()
+        .regex(/^#[0-9A-Fa-f]{6}$/)
+        .optional(),
+      font_family: z.string().max(50).optional(),
+    })
+    .optional(),
+  settings: z
+    .object({
+      timezone: z.string().max(50).optional(),
+      date_format: z.string().max(20).optional(),
+      language: z.string().max(10).optional(),
+      currency: z.string().max(10).optional(),
+      email_notifications: z.boolean().optional(),
+      survey_reminders: z.boolean().optional(),
+      data_retention_days: z.number().min(30).max(2555).optional(),
+    })
+    .optional(),
 });
 
 // GET /api/admin/company-settings - Get company settings
@@ -126,7 +138,8 @@ export async function PATCH(request: NextRequest) {
     let companyId;
     if (user.role === 'super_admin') {
       // Super admin might need to specify which company to manage
-      companyId = request.nextUrl.searchParams.get('company_id') || body.company_id;
+      companyId =
+        request.nextUrl.searchParams.get('company_id') || body.company_id;
       if (!companyId) {
         return NextResponse.json(
           { error: 'Super admin must specify company_id' },
@@ -150,36 +163,55 @@ export async function PATCH(request: NextRequest) {
 
     // Handle top-level fields
     if (validatedData.name !== undefined) updateData.name = validatedData.name;
-    if (validatedData.description !== undefined) updateData.description = validatedData.description;
-    if (validatedData.industry !== undefined) updateData.industry = validatedData.industry;
+    if (validatedData.description !== undefined)
+      updateData.description = validatedData.description;
+    if (validatedData.industry !== undefined)
+      updateData.industry = validatedData.industry;
     if (validatedData.size !== undefined) updateData.size = validatedData.size;
-    if (validatedData.website !== undefined) updateData.website = validatedData.website;
-    if (validatedData.email !== undefined) updateData.email = validatedData.email;
-    if (validatedData.phone !== undefined) updateData.phone = validatedData.phone;
+    if (validatedData.website !== undefined)
+      updateData.website = validatedData.website;
+    if (validatedData.email !== undefined)
+      updateData.email = validatedData.email;
+    if (validatedData.phone !== undefined)
+      updateData.phone = validatedData.phone;
 
     // Handle nested address fields
     if (validatedData.address) {
-      Object.keys(validatedData.address).forEach(key => {
-        if (validatedData.address![key as keyof typeof validatedData.address] !== undefined) {
-          updateData[`address.${key}`] = validatedData.address![key as keyof typeof validatedData.address];
+      Object.keys(validatedData.address).forEach((key) => {
+        if (
+          validatedData.address![key as keyof typeof validatedData.address] !==
+          undefined
+        ) {
+          updateData[`address.${key}`] =
+            validatedData.address![key as keyof typeof validatedData.address];
         }
       });
     }
 
     // Handle nested branding fields
     if (validatedData.branding) {
-      Object.keys(validatedData.branding).forEach(key => {
-        if (validatedData.branding![key as keyof typeof validatedData.branding] !== undefined) {
-          updateData[`branding.${key}`] = validatedData.branding![key as keyof typeof validatedData.branding];
+      Object.keys(validatedData.branding).forEach((key) => {
+        if (
+          validatedData.branding![
+            key as keyof typeof validatedData.branding
+          ] !== undefined
+        ) {
+          updateData[`branding.${key}`] =
+            validatedData.branding![key as keyof typeof validatedData.branding];
         }
       });
     }
 
     // Handle nested settings fields
     if (validatedData.settings) {
-      Object.keys(validatedData.settings).forEach(key => {
-        if (validatedData.settings![key as keyof typeof validatedData.settings] !== undefined) {
-          updateData[`settings.${key}`] = validatedData.settings![key as keyof typeof validatedData.settings];
+      Object.keys(validatedData.settings).forEach((key) => {
+        if (
+          validatedData.settings![
+            key as keyof typeof validatedData.settings
+          ] !== undefined
+        ) {
+          updateData[`settings.${key}`] =
+            validatedData.settings![key as keyof typeof validatedData.settings];
         }
       });
     }
@@ -195,14 +227,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       company: updatedCompany,
-      message: 'Company settings updated successfully'
+      message: 'Company settings updated successfully',
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }

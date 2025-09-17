@@ -21,11 +21,15 @@ interface HierarchyRestructureData {
   }>;
 }
 
-export async function migrateDepartmentHierarchy(data: DepartmentMigrationData) {
+export async function migrateDepartmentHierarchy(
+  data: DepartmentMigrationData
+) {
   try {
     await connectDB();
 
-    console.log(`🏗️ Starting department hierarchy migration for company: ${data.companyId}`);
+    console.log(
+      `🏗️ Starting department hierarchy migration for company: ${data.companyId}`
+    );
 
     // Verify company exists
     const company = await Company.findById(data.companyId);
@@ -34,11 +38,13 @@ export async function migrateDepartmentHierarchy(data: DepartmentMigrationData) 
     }
 
     // Get existing departments
-    const existingDepartments = await Department.find({ 
+    const existingDepartments = await Department.find({
       company_id: data.companyId,
-      is_active: true 
+      is_active: true,
     });
-    const existingDeptMap = new Map(existingDepartments.map(d => [d.name, d]));
+    const existingDeptMap = new Map(
+      existingDepartments.map((d) => [d.name, d])
+    );
 
     console.log(`📋 Found ${existingDepartments.length} existing departments`);
 
@@ -52,7 +58,7 @@ export async function migrateDepartmentHierarchy(data: DepartmentMigrationData) 
       const deptData = departmentsToProcess[i];
       if (!deptData.parent) {
         let department;
-        
+
         if (existingDeptMap.has(deptData.name)) {
           // Update existing department
           department = await Department.findByIdAndUpdate(
@@ -97,11 +103,13 @@ export async function migrateDepartmentHierarchy(data: DepartmentMigrationData) 
 
       for (let i = departmentsToProcess.length - 1; i >= 0; i--) {
         const deptData = departmentsToProcess[i];
-        const parentDept = departmentMap.get(deptData.parent!) || existingDeptMap.get(deptData.parent!);
+        const parentDept =
+          departmentMap.get(deptData.parent!) ||
+          existingDeptMap.get(deptData.parent!);
 
         if (parentDept) {
           let department;
-          
+
           if (existingDeptMap.has(deptData.name)) {
             // Update existing department
             department = await Department.findByIdAndUpdate(
@@ -116,7 +124,9 @@ export async function migrateDepartmentHierarchy(data: DepartmentMigrationData) 
               },
               { new: true }
             );
-            console.log(`🔄 Updated child department: ${deptData.name} (parent: ${deptData.parent})`);
+            console.log(
+              `🔄 Updated child department: ${deptData.name} (parent: ${deptData.parent})`
+            );
           } else {
             // Create new department
             department = new Department({
@@ -130,7 +140,9 @@ export async function migrateDepartmentHierarchy(data: DepartmentMigrationData) 
               },
             });
             await department.save();
-            console.log(`✅ Created child department: ${deptData.name} (parent: ${deptData.parent})`);
+            console.log(
+              `✅ Created child department: ${deptData.name} (parent: ${deptData.parent})`
+            );
           }
 
           departmentMap.set(deptData.name, department);
@@ -141,7 +153,9 @@ export async function migrateDepartmentHierarchy(data: DepartmentMigrationData) 
       }
 
       if (processedInThisPass === 0) {
-        console.warn(`⚠️ Could not process remaining departments: ${departmentsToProcess.map(d => d.name).join(', ')}`);
+        console.warn(
+          `⚠️ Could not process remaining departments: ${departmentsToProcess.map((d) => d.name).join(', ')}`
+        );
         break;
       }
 
@@ -162,20 +176,26 @@ export async function migrateDepartmentHierarchy(data: DepartmentMigrationData) 
   }
 }
 
-export async function restructureDepartmentHierarchy(data: HierarchyRestructureData) {
+export async function restructureDepartmentHierarchy(
+  data: HierarchyRestructureData
+) {
   try {
     await connectDB();
 
-    console.log(`🔄 Starting department hierarchy restructure for company: ${data.companyId}`);
+    console.log(
+      `🔄 Starting department hierarchy restructure for company: ${data.companyId}`
+    );
 
     // Get all departments for the company
-    const departments = await Department.find({ 
+    const departments = await Department.find({
       company_id: data.companyId,
-      is_active: true 
+      is_active: true,
     });
-    const deptMap = new Map(departments.map(d => [d.name, d]));
+    const deptMap = new Map(departments.map((d) => [d.name, d]));
 
-    console.log(`📋 Found ${departments.length} departments to potentially restructure`);
+    console.log(
+      `📋 Found ${departments.length} departments to potentially restructure`
+    );
 
     const movedDepartments = [];
 
@@ -213,10 +233,12 @@ export async function restructureDepartmentHierarchy(data: HierarchyRestructureD
       );
 
       movedDepartments.push(updatedDepartment);
-      console.log(`🔄 Moved ${move.departmentName} to ${move.newParent || 'root level'}`);
+      console.log(
+        `🔄 Moved ${move.departmentName} to ${move.newParent || 'root level'}`
+      );
 
       // Update all child departments recursively
-      await updateChildDepartmentLevels(department._id, newLevel);
+      await updateChildDepartmentLevels(department._id as string, newLevel);
     }
 
     console.log(`✅ Department hierarchy restructure completed`);
@@ -232,7 +254,10 @@ export async function restructureDepartmentHierarchy(data: HierarchyRestructureD
   }
 }
 
-async function updateChildDepartmentLevels(parentId: string, parentLevel: number) {
+async function updateChildDepartmentLevels(
+  parentId: string,
+  parentLevel: number
+) {
   const childDepartments = await Department.find({
     'hierarchy.parent_department_id': parentId,
     is_active: true,
@@ -245,7 +270,9 @@ async function updateChildDepartmentLevels(parentId: string, parentLevel: number
       updated_at: new Date(),
     });
 
-    console.log(`  🔄 Updated child department level: ${child.name} (level ${newLevel})`);
+    console.log(
+      `  🔄 Updated child department level: ${child.name} (level ${newLevel})`
+    );
 
     // Recursively update grandchildren
     await updateChildDepartmentLevels(child._id.toString(), newLevel);
@@ -258,9 +285,9 @@ export async function validateDepartmentHierarchy(companyId: string) {
 
     console.log(`🔍 Validating department hierarchy for company: ${companyId}`);
 
-    const departments = await Department.find({ 
+    const departments = await Department.find({
       company_id: companyId,
-      is_active: true 
+      is_active: true,
     });
 
     const issues = [];
@@ -268,11 +295,15 @@ export async function validateDepartmentHierarchy(companyId: string) {
     for (const dept of departments) {
       // Check if parent exists (if specified)
       if (dept.hierarchy.parent_department_id) {
-        const parent = await Department.findById(dept.hierarchy.parent_department_id);
+        const parent = await Department.findById(
+          dept.hierarchy.parent_department_id
+        );
         if (!parent || !parent.is_active) {
           issues.push(`Department "${dept.name}" has invalid parent reference`);
         } else if (parent.hierarchy.level !== dept.hierarchy.level - 1) {
-          issues.push(`Department "${dept.name}" has incorrect level (should be ${parent.hierarchy.level + 1})`);
+          issues.push(
+            `Department "${dept.name}" has incorrect level (should be ${parent.hierarchy.level + 1})`
+          );
         }
       } else if (dept.hierarchy.level !== 0) {
         issues.push(`Root department "${dept.name}" should have level 0`);
@@ -281,13 +312,20 @@ export async function validateDepartmentHierarchy(companyId: string) {
       // Check for circular references
       const visited = new Set();
       let current = dept;
-      while (current.hierarchy.parent_department_id && !visited.has(current._id.toString())) {
+      while (
+        current.hierarchy.parent_department_id &&
+        !visited.has(current._id.toString())
+      ) {
         visited.add(current._id.toString());
-        current = await Department.findById(current.hierarchy.parent_department_id);
+        current = await Department.findById(
+          current.hierarchy.parent_department_id
+        );
         if (!current) break;
       }
       if (current && visited.has(current._id.toString())) {
-        issues.push(`Circular reference detected in hierarchy for department "${dept.name}"`);
+        issues.push(
+          `Circular reference detected in hierarchy for department "${dept.name}"`
+        );
       }
     }
 
@@ -295,7 +333,7 @@ export async function validateDepartmentHierarchy(companyId: string) {
       console.log(`✅ Department hierarchy is valid`);
     } else {
       console.log(`❌ Found ${issues.length} hierarchy issues:`);
-      issues.forEach(issue => console.log(`  - ${issue}`));
+      issues.forEach((issue) => console.log(`  - ${issue}`));
     }
 
     return {
@@ -311,14 +349,14 @@ export async function validateDepartmentHierarchy(companyId: string) {
 // CLI execution examples
 if (require.main === module) {
   const command = process.argv[2];
-  
+
   if (command === 'validate') {
     const companyId = process.argv[3];
     if (!companyId) {
       console.error('Usage: npm run migrate:departments validate <companyId>');
       process.exit(1);
     }
-    
+
     validateDepartmentHierarchy(companyId)
       .then(() => process.exit(0))
       .catch(() => process.exit(1));

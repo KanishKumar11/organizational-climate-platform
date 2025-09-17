@@ -12,7 +12,13 @@ import bcrypt from 'bcryptjs';
 const createUserSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email(),
-  role: z.enum(['employee', 'supervisor', 'leader', 'department_admin', 'company_admin']),
+  role: z.enum([
+    'employee',
+    'supervisor',
+    'leader',
+    'department_admin',
+    'company_admin',
+  ]),
   department_id: z.string(),
   password: z.string().min(8).optional(),
   is_active: z.boolean().default(true),
@@ -21,7 +27,15 @@ const createUserSchema = z.object({
 // Validation schema for updating users
 const updateUserSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  role: z.enum(['employee', 'supervisor', 'leader', 'department_admin', 'company_admin']).optional(),
+  role: z
+    .enum([
+      'employee',
+      'supervisor',
+      'leader',
+      'department_admin',
+      'company_admin',
+    ])
+    .optional(),
   department_id: z.string().optional(),
   is_active: z.boolean().optional(),
 });
@@ -51,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     // Build query based on user permissions
     let query: any = {};
-    
+
     if (user.role === 'super_admin') {
       // Super admin can see all users
     } else if (user.role === 'company_admin') {
@@ -72,21 +86,21 @@ export async function GET(request: NextRequest) {
           from: 'departments',
           localField: 'department_id',
           foreignField: '_id',
-          as: 'department'
-        }
+          as: 'department',
+        },
       },
       {
         $addFields: {
-          department_name: { $arrayElemAt: ['$department.name', 0] }
-        }
+          department_name: { $arrayElemAt: ['$department.name', 0] },
+        },
       },
       {
         $project: {
           password_hash: 0,
-          department: 0
-        }
+          department: 0,
+        },
       },
-      { $sort: { created_at: -1 } }
+      { $sort: { created_at: -1 } },
     ]);
 
     return NextResponse.json({ users });
@@ -135,7 +149,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user can assign to this department
-    if (currentUser.role !== 'super_admin' && department.company_id !== currentUser.company_id) {
+    if (
+      currentUser.role !== 'super_admin' &&
+      department.company_id !== currentUser.company_id
+    ) {
       return NextResponse.json(
         { error: 'Cannot assign user to department in different company' },
         { status: 403 }
@@ -152,7 +169,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate password if not provided
-    const password = validatedData.password || Math.random().toString(36).slice(-8);
+    const password =
+      validatedData.password || Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create user
@@ -181,14 +199,17 @@ export async function POST(request: NextRequest) {
       temporary_password: validatedData.password ? undefined : password,
     };
 
-    return NextResponse.json({ 
-      user: userResponse,
-      message: 'User created successfully'
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        user: userResponse,
+        message: 'User created successfully',
+      },
+      { status: 201 }
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }

@@ -22,10 +22,17 @@ const createNotificationSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
   title: z.string().optional(),
   message: z.string().optional(),
-  data: z.record(z.string(), z.any()).optional(),
+  data: z
+    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+    .optional(),
   template_id: z.string().optional(),
   scheduled_for: z.string().datetime().optional(),
-  variables: z.record(z.string(), z.any()).optional(),
+  variables: z
+    .record(
+      z.string(),
+      z.union([z.string(), z.number(), z.boolean(), z.date()])
+    )
+    .optional(),
   company_id: z.string().optional(),
 });
 

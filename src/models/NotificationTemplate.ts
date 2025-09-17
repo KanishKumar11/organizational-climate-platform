@@ -7,7 +7,7 @@ export interface TemplateVariable {
   type: 'string' | 'number' | 'date' | 'boolean' | 'object';
   required: boolean;
   description: string;
-  default_value?: any;
+  default_value?: string | number | boolean | Date;
 }
 
 // Notification template interface
@@ -25,13 +25,13 @@ export interface INotificationTemplate extends Document {
   is_default: boolean;
   personalization_rules: {
     condition: string;
-    modifications: Record<string, any>;
+    modifications: Record<string, string | number | boolean>;
   }[];
   created_by: string;
   created_at: Date;
   updated_at: Date;
   // Instance methods
-  renderContent(variables: Record<string, any>): {
+  renderContent(variables: Record<string, string | number | boolean | Date>): {
     title: string;
     content: string;
     subject?: string;

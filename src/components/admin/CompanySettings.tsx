@@ -145,12 +145,15 @@ export default function CompanySettings() {
     setSettings({ ...settings, ...updates });
   };
 
-  const updateNestedSettings = (section: keyof CompanySettings, updates: any) => {
+  const updateNestedSettings = (
+    section: keyof CompanySettings,
+    updates: Record<string, unknown>
+  ) => {
     if (!settings) return;
     setSettings({
       ...settings,
       [section]: {
-        ...settings[section],
+        ...((settings[section] as Record<string, unknown>) || {}),
         ...updates,
       },
     });
@@ -185,7 +188,9 @@ export default function CompanySettings() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Company Settings</h1>
-          <p className="text-gray-600">Manage your organization's configuration</p>
+          <p className="text-gray-600">
+            Manage your organization's configuration
+          </p>
         </div>
         <Button onClick={saveSettings} disabled={saving}>
           {saving ? <Loading size="sm" /> : <Save className="w-4 h-4 mr-2" />}
@@ -245,7 +250,9 @@ export default function CompanySettings() {
                 </label>
                 <Textarea
                   value={settings.description || ''}
-                  onChange={(e) => updateSettings({ description: e.target.value })}
+                  onChange={(e) =>
+                    updateSettings({ description: e.target.value })
+                  }
                   placeholder="Brief description of your company"
                   rows={3}
                 />
@@ -258,7 +265,9 @@ export default function CompanySettings() {
                   </label>
                   <select
                     value={settings.industry || ''}
-                    onChange={(e) => updateSettings({ industry: e.target.value })}
+                    onChange={(e) =>
+                      updateSettings({ industry: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select industry</option>
@@ -308,7 +317,9 @@ export default function CompanySettings() {
                   <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     value={settings.website || ''}
-                    onChange={(e) => updateSettings({ website: e.target.value })}
+                    onChange={(e) =>
+                      updateSettings({ website: e.target.value })
+                    }
                     placeholder="https://www.company.com"
                     className="pl-10"
                   />
@@ -363,7 +374,11 @@ export default function CompanySettings() {
                   </label>
                   <Input
                     value={settings.address?.street || ''}
-                    onChange={(e) => updateNestedSettings('address', { street: e.target.value })}
+                    onChange={(e) =>
+                      updateNestedSettings('address', {
+                        street: e.target.value,
+                      })
+                    }
                     placeholder="123 Main Street"
                   />
                 </div>
@@ -374,7 +389,9 @@ export default function CompanySettings() {
                   </label>
                   <Input
                     value={settings.address?.city || ''}
-                    onChange={(e) => updateNestedSettings('address', { city: e.target.value })}
+                    onChange={(e) =>
+                      updateNestedSettings('address', { city: e.target.value })
+                    }
                     placeholder="New York"
                   />
                 </div>
@@ -385,7 +402,9 @@ export default function CompanySettings() {
                   </label>
                   <Input
                     value={settings.address?.state || ''}
-                    onChange={(e) => updateNestedSettings('address', { state: e.target.value })}
+                    onChange={(e) =>
+                      updateNestedSettings('address', { state: e.target.value })
+                    }
                     placeholder="NY"
                   />
                 </div>
@@ -396,7 +415,11 @@ export default function CompanySettings() {
                   </label>
                   <Input
                     value={settings.address?.country || ''}
-                    onChange={(e) => updateNestedSettings('address', { country: e.target.value })}
+                    onChange={(e) =>
+                      updateNestedSettings('address', {
+                        country: e.target.value,
+                      })
+                    }
                     placeholder="United States"
                   />
                 </div>
@@ -407,7 +430,11 @@ export default function CompanySettings() {
                   </label>
                   <Input
                     value={settings.address?.postal_code || ''}
-                    onChange={(e) => updateNestedSettings('address', { postal_code: e.target.value })}
+                    onChange={(e) =>
+                      updateNestedSettings('address', {
+                        postal_code: e.target.value,
+                      })
+                    }
                     placeholder="10001"
                   />
                 </div>
@@ -432,12 +459,20 @@ export default function CompanySettings() {
                   <input
                     type="color"
                     value={settings.branding?.primary_color || '#3B82F6'}
-                    onChange={(e) => updateNestedSettings('branding', { primary_color: e.target.value })}
+                    onChange={(e) =>
+                      updateNestedSettings('branding', {
+                        primary_color: e.target.value,
+                      })
+                    }
                     className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
                   />
                   <Input
                     value={settings.branding?.primary_color || '#3B82F6'}
-                    onChange={(e) => updateNestedSettings('branding', { primary_color: e.target.value })}
+                    onChange={(e) =>
+                      updateNestedSettings('branding', {
+                        primary_color: e.target.value,
+                      })
+                    }
                     placeholder="#3B82F6"
                     className="flex-1"
                   />
@@ -452,12 +487,20 @@ export default function CompanySettings() {
                   <input
                     type="color"
                     value={settings.branding?.secondary_color || '#6B7280'}
-                    onChange={(e) => updateNestedSettings('branding', { secondary_color: e.target.value })}
+                    onChange={(e) =>
+                      updateNestedSettings('branding', {
+                        secondary_color: e.target.value,
+                      })
+                    }
                     className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
                   />
                   <Input
                     value={settings.branding?.secondary_color || '#6B7280'}
-                    onChange={(e) => updateNestedSettings('branding', { secondary_color: e.target.value })}
+                    onChange={(e) =>
+                      updateNestedSettings('branding', {
+                        secondary_color: e.target.value,
+                      })
+                    }
                     placeholder="#6B7280"
                     className="flex-1"
                   />
@@ -477,7 +520,11 @@ export default function CompanySettings() {
                 </label>
                 <Input
                   value={settings.branding?.logo_url || ''}
-                  onChange={(e) => updateNestedSettings('branding', { logo_url: e.target.value })}
+                  onChange={(e) =>
+                    updateNestedSettings('branding', {
+                      logo_url: e.target.value,
+                    })
+                  }
                   placeholder="https://example.com/logo.png"
                 />
               </div>
@@ -488,7 +535,11 @@ export default function CompanySettings() {
                 </label>
                 <select
                   value={settings.branding?.font_family || 'Inter'}
-                  onChange={(e) => updateNestedSettings('branding', { font_family: e.target.value })}
+                  onChange={(e) =>
+                    updateNestedSettings('branding', {
+                      font_family: e.target.value,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="Inter">Inter</option>
@@ -516,13 +567,21 @@ export default function CompanySettings() {
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium text-gray-900">Email Notifications</h4>
-                <p className="text-sm text-gray-600">Receive email notifications for important events</p>
+                <h4 className="font-medium text-gray-900">
+                  Email Notifications
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Receive email notifications for important events
+                </p>
               </div>
               <input
                 type="checkbox"
                 checked={settings.settings?.email_notifications ?? true}
-                onChange={(e) => updateNestedSettings('settings', { email_notifications: e.target.checked })}
+                onChange={(e) =>
+                  updateNestedSettings('settings', {
+                    email_notifications: e.target.checked,
+                  })
+                }
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
             </div>
@@ -530,12 +589,18 @@ export default function CompanySettings() {
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium text-gray-900">Survey Reminders</h4>
-                <p className="text-sm text-gray-600">Send reminders for pending surveys</p>
+                <p className="text-sm text-gray-600">
+                  Send reminders for pending surveys
+                </p>
               </div>
               <input
                 type="checkbox"
                 checked={settings.settings?.survey_reminders ?? true}
-                onChange={(e) => updateNestedSettings('settings', { survey_reminders: e.target.checked })}
+                onChange={(e) =>
+                  updateNestedSettings('settings', {
+                    survey_reminders: e.target.checked,
+                  })
+                }
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
             </div>
@@ -556,7 +621,11 @@ export default function CompanySettings() {
               <Input
                 type="number"
                 value={settings.settings?.data_retention_days || 365}
-                onChange={(e) => updateNestedSettings('settings', { data_retention_days: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  updateNestedSettings('settings', {
+                    data_retention_days: parseInt(e.target.value),
+                  })
+                }
                 placeholder="365"
                 min="30"
                 max="2555"
@@ -572,7 +641,9 @@ export default function CompanySettings() {
               </label>
               <select
                 value={settings.settings?.timezone || 'America/New_York'}
-                onChange={(e) => updateNestedSettings('settings', { timezone: e.target.value })}
+                onChange={(e) =>
+                  updateNestedSettings('settings', { timezone: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {TIMEZONE_OPTIONS.map((tz) => (

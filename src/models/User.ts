@@ -211,7 +211,7 @@ UserSchema.post(['find', 'findOne', 'findOneAndUpdate'], function (docs) {
     return;
   }
 
-  const processDoc = (doc: any) => {
+  const processDoc = (doc: Document) => {
     if (doc && typeof doc.toObject === 'function') {
       const processed = userPrivacyMiddleware.afterRetrieve(doc.toObject());
       Object.assign(doc, processed);

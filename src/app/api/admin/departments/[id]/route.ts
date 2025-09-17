@@ -54,40 +54,45 @@ export async function GET(
                 $expr: {
                   $and: [
                     { $eq: ['$department_id', '$$deptId'] },
-                    { $eq: ['$is_active', true] }
-                  ]
-                }
-              }
+                    { $eq: ['$is_active', true] },
+                  ],
+                },
+              },
             },
-            { $count: 'count' }
+            { $count: 'count' },
           ],
-          as: 'userCount'
-        }
+          as: 'userCount',
+        },
       },
       {
         $addFields: {
-          user_count: { $ifNull: [{ $arrayElemAt: ['$userCount.count', 0] }, 0] }
-        }
+          user_count: {
+            $ifNull: [{ $arrayElemAt: ['$userCount.count', 0] }, 0],
+          },
+        },
       },
       {
         $project: {
-          userCount: 0
-        }
-      }
+          userCount: 0,
+        },
+      },
     ]);
 
     if (!department || department.length === 0) {
-      return NextResponse.json({ error: 'Department not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Department not found' },
+        { status: 404 }
+      );
     }
 
     const dept = department[0];
 
     // Check if current user can access this department
-    if (currentUser.role !== 'super_admin' && dept.company_id !== currentUser.company_id) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+    if (
+      currentUser.role !== 'super_admin' &&
+      dept.company_id !== currentUser.company_id
+    ) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     return NextResponse.json({ department: dept });
@@ -130,15 +135,18 @@ export async function PATCH(
     // Find the target department
     const targetDepartment = await Department.findById(id);
     if (!targetDepartment) {
-      return NextResponse.json({ error: 'Department not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Department not found' },
+        { status: 404 }
+      );
     }
 
     // Check if current user can modify this department
-    if (currentUser.role !== 'super_admin' && targetDepartment.company_id !== currentUser.company_id) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+    if (
+      currentUser.role !== 'super_admin' &&
+      targetDepartment.company_id !== currentUser.company_id
+    ) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -149,7 +157,8 @@ export async function PATCH(
       const existingDepartment = await Department.findOne({
         name: validatedData.name,
         company_id: targetDepartment.company_id,
-        'hierarchy.parent_department_id': targetDepartment.hierarchy.parent_department_id,
+        'hierarchy.parent_department_id':
+          targetDepartment.hierarchy.parent_department_id,
         _id: { $ne: id },
       });
 
@@ -172,17 +181,20 @@ export async function PATCH(
     );
 
     if (!updatedDepartment) {
-      return NextResponse.json({ error: 'Department not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Department not found' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       department: updatedDepartment,
-      message: 'Department updated successfully'
+      message: 'Department updated successfully',
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -225,15 +237,18 @@ export async function DELETE(
     // Find the target department
     const targetDepartment = await Department.findById(id);
     if (!targetDepartment) {
-      return NextResponse.json({ error: 'Department not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Department not found' },
+        { status: 404 }
+      );
     }
 
     // Check if current user can delete this department
-    if (currentUser.role !== 'super_admin' && targetDepartment.company_id !== currentUser.company_id) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+    if (
+      currentUser.role !== 'super_admin' &&
+      targetDepartment.company_id !== currentUser.company_id
+    ) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Check if department has active users
@@ -244,7 +259,9 @@ export async function DELETE(
 
     if (activeUsers > 0) {
       return NextResponse.json(
-        { error: `Cannot delete department with ${activeUsers} active users. Please reassign users first.` },
+        {
+          error: `Cannot delete department with ${activeUsers} active users. Please reassign users first.`,
+        },
         { status: 400 }
       );
     }
@@ -257,7 +274,9 @@ export async function DELETE(
 
     if (childDepartments > 0) {
       return NextResponse.json(
-        { error: `Cannot delete department with ${childDepartments} child departments. Please reorganize hierarchy first.` },
+        {
+          error: `Cannot delete department with ${childDepartments} child departments. Please reorganize hierarchy first.`,
+        },
         { status: 400 }
       );
     }
@@ -269,8 +288,8 @@ export async function DELETE(
       updated_at: new Date(),
     });
 
-    return NextResponse.json({ 
-      message: 'Department deleted successfully'
+    return NextResponse.json({
+      message: 'Department deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting department:', error);

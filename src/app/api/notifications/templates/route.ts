@@ -30,7 +30,9 @@ const createTemplateSchema = z.object({
         type: z.enum(['string', 'number', 'date', 'boolean', 'object']),
         required: z.boolean().default(false),
         description: z.string(),
-        default_value: z.any().optional(),
+        default_value: z
+          .union([z.string(), z.number(), z.boolean(), z.date()])
+          .optional(),
       })
     )
     .default([]),
@@ -41,7 +43,10 @@ const createTemplateSchema = z.object({
     .array(
       z.object({
         condition: z.string(),
-        modifications: z.record(z.string(), z.any()),
+        modifications: z.record(
+          z.string(),
+          z.union([z.string(), z.number(), z.boolean()])
+        ),
       })
     )
     .default([]),

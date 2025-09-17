@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
     // Build query based on user permissions
     let query: any = {};
-    
+
     if (user.role === 'super_admin') {
       // Super admin can see all departments
     } else if (user.role === 'company_admin') {
@@ -73,27 +73,29 @@ export async function GET(request: NextRequest) {
                 $expr: {
                   $and: [
                     { $eq: ['$department_id', '$$deptId'] },
-                    { $eq: ['$is_active', true] }
-                  ]
-                }
-              }
+                    { $eq: ['$is_active', true] },
+                  ],
+                },
+              },
             },
-            { $count: 'count' }
+            { $count: 'count' },
           ],
-          as: 'userCount'
-        }
+          as: 'userCount',
+        },
       },
       {
         $addFields: {
-          user_count: { $ifNull: [{ $arrayElemAt: ['$userCount.count', 0] }, 0] }
-        }
+          user_count: {
+            $ifNull: [{ $arrayElemAt: ['$userCount.count', 0] }, 0],
+          },
+        },
       },
       {
         $project: {
-          userCount: 0
-        }
+          userCount: 0,
+        },
       },
-      { $sort: { 'hierarchy.level': 1, name: 1 } }
+      { $sort: { 'hierarchy.level': 1, name: 1 } },
     ]);
 
     return NextResponse.json({ departments });
@@ -137,7 +139,9 @@ export async function POST(request: NextRequest) {
 
     // If parent department is specified, verify it exists and calculate level
     if (validatedData.parent_department_id) {
-      parentDepartment = await Department.findById(validatedData.parent_department_id);
+      parentDepartment = await Department.findById(
+        validatedData.parent_department_id
+      );
       if (!parentDepartment) {
         return NextResponse.json(
           { error: 'Parent department not found' },
@@ -146,9 +150,14 @@ export async function POST(request: NextRequest) {
       }
 
       // Check if user can access parent department
-      if (currentUser.role !== 'super_admin' && parentDepartment.company_id !== currentUser.company_id) {
+      if (
+        currentUser.role !== 'super_admin' &&
+        parentDepartment.company_id !== currentUser.company_id
+      ) {
         return NextResponse.json(
-          { error: 'Cannot create department under parent in different company' },
+          {
+            error: 'Cannot create department under parent in different company',
+          },
           { status: 403 }
         );
       }
@@ -160,7 +169,8 @@ export async function POST(request: NextRequest) {
     const existingDepartment = await Department.findOne({
       name: validatedData.name,
       company_id: currentUser.company_id,
-      'hierarchy.parent_department_id': validatedData.parent_department_id || null,
+      'hierarchy.parent_department_id':
+        validatedData.parent_department_id || null,
     });
 
     if (existingDepartment) {
@@ -184,14 +194,17 @@ export async function POST(request: NextRequest) {
 
     await newDepartment.save();
 
-    return NextResponse.json({ 
-      department: newDepartment,
-      message: 'Department created successfully'
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        department: newDepartment,
+        message: 'Department created successfully',
+      },
+      { status: 201 }
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }

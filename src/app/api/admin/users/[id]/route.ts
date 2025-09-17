@@ -10,7 +10,15 @@ import { z } from 'zod';
 // Validation schema for updating users
 const updateUserSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  role: z.enum(['employee', 'supervisor', 'leader', 'department_admin', 'company_admin']).optional(),
+  role: z
+    .enum([
+      'employee',
+      'supervisor',
+      'leader',
+      'department_admin',
+      'company_admin',
+    ])
+    .optional(),
   department_id: z.string().optional(),
   is_active: z.boolean().optional(),
 });
@@ -43,17 +51,20 @@ export async function GET(
     }
 
     // Find the target user
-    const targetUser = await User.findById(id).populate('department_id', 'name');
+    const targetUser = await User.findById(id).populate(
+      'department_id',
+      'name'
+    );
     if (!targetUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Check if current user can access this user
-    if (currentUser.role !== 'super_admin' && targetUser.company_id !== currentUser.company_id) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+    if (
+      currentUser.role !== 'super_admin' &&
+      targetUser.company_id !== currentUser.company_id
+    ) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Return user without sensitive data
@@ -106,11 +117,11 @@ export async function PATCH(
     }
 
     // Check if current user can modify this user
-    if (currentUser.role !== 'super_admin' && targetUser.company_id !== currentUser.company_id) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+    if (
+      currentUser.role !== 'super_admin' &&
+      targetUser.company_id !== currentUser.company_id
+    ) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -127,7 +138,10 @@ export async function PATCH(
       }
 
       // Check if user can assign to this department
-      if (currentUser.role !== 'super_admin' && department.company_id !== currentUser.company_id) {
+      if (
+        currentUser.role !== 'super_admin' &&
+        department.company_id !== currentUser.company_id
+      ) {
         return NextResponse.json(
           { error: 'Cannot assign user to department in different company' },
           { status: 403 }
@@ -155,14 +169,14 @@ export async function PATCH(
       password_hash: undefined,
     };
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       user: userResponse,
-      message: 'User updated successfully'
+      message: 'User updated successfully',
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -209,11 +223,11 @@ export async function DELETE(
     }
 
     // Check if current user can delete this user
-    if (currentUser.role !== 'super_admin' && targetUser.company_id !== currentUser.company_id) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+    if (
+      currentUser.role !== 'super_admin' &&
+      targetUser.company_id !== currentUser.company_id
+    ) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Prevent self-deletion
@@ -232,8 +246,8 @@ export async function DELETE(
       updated_at: new Date(),
     });
 
-    return NextResponse.json({ 
-      message: 'User deleted successfully'
+    return NextResponse.json({
+      message: 'User deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting user:', error);

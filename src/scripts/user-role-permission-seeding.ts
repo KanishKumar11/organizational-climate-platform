@@ -9,15 +9,15 @@ interface RolePermissionData {
   users: Array<{
     name: string;
     email: string;
-    role: 'employee' | 'supervisor' | 'leader' | 'department_admin' | 'company_admin';
+    role:
+      | 'employee'
+      | 'supervisor'
+      | 'leader'
+      | 'department_admin'
+      | 'company_admin';
     department: string; // Department name
     password?: string;
-    permissions?: {
-      can_create_surveys?: boolean;
-      can_view_all_responses?: boolean;
-      can_manage_users?: boolean;
-      can_export_data?: boolean;
-    };
+    // Note: Permissions are role-based, not user-specific
   }>;
 }
 
@@ -28,14 +28,15 @@ interface SuperAdminData {
 }
 
 // Role hierarchy and default permissions
-const ROLE_HIERARCHY = {
-  employee: 0,
-  supervisor: 1,
-  leader: 2,
-  department_admin: 3,
-  company_admin: 4,
-  super_admin: 5,
-};
+// Note: Role hierarchy levels for reference (higher number = more permissions)
+// const ROLE_HIERARCHY = {
+//   employee: 0,
+//   supervisor: 1,
+//   leader: 2,
+//   department_admin: 3,
+//   company_admin: 4,
+//   super_admin: 5,
+// };
 
 const DEFAULT_PERMISSIONS = {
   employee: {
@@ -70,11 +71,15 @@ const DEFAULT_PERMISSIONS = {
   },
 };
 
-export async function seedUsersWithRolesAndPermissions(data: RolePermissionData) {
+export async function seedUsersWithRolesAndPermissions(
+  data: RolePermissionData
+) {
   try {
     await connectDB();
 
-    console.log(`👥 Starting user role and permission seeding for company: ${data.companyId}`);
+    console.log(
+      `👥 Starting user role and permission seeding for company: ${data.companyId}`
+    );
 
     // Verify company exists
     const company = await Company.findById(data.companyId);
@@ -83,11 +88,11 @@ export async function seedUsersWithRolesAndPermissions(data: RolePermissionData)
     }
 
     // Get all departments for the company
-    const departments = await Department.find({ 
+    const departments = await Department.find({
       company_id: data.companyId,
-      is_active: true 
+      is_active: true,
     });
-    const deptMap = new Map(departments.map(d => [d.name.toLowerCase(), d]));
+    const deptMap = new Map(departments.map((d) => [d.name.toLowerCase(), d]));
 
     console.log(`📋 Found ${departments.length} departments`);
 
@@ -99,37 +104,38 @@ export async function seedUsersWithRolesAndPermissions(data: RolePermissionData)
         // Find department
         const department = deptMap.get(userData.department.toLowerCase());
         if (!department) {
-          errors.push(`Department not found for user ${userData.email}: ${userData.department}`);
+          errors.push(
+            `Department not found for user ${userData.email}: ${userData.department}`
+          );
           continue;
         }
 
         // Check if user already exists
         const existingUser = await User.findOne({ email: userData.email });
         if (existingUser) {
-          console.log(`⚠️ User already exists: ${userData.email} - Updating role and permissions`);
-          
+          console.log(
+            `⚠️ User already exists: ${userData.email} - Updating role and permissions`
+          );
+
           // Update existing user
           const updatedUser = await User.findByIdAndUpdate(
             existingUser._id,
             {
               role: userData.role,
               department_id: department._id,
-              permissions: {
-                ...DEFAULT_PERMISSIONS[userData.role],
-                ...userData.permissions,
-              },
               updated_at: new Date(),
             },
             { new: true }
           );
-          
+
           createdUsers.push(updatedUser);
           console.log(`🔄 Updated user: ${userData.email} (${userData.role})`);
           continue;
         }
 
         // Generate password if not provided
-        const password = userData.password || Math.random().toString(36).slice(-8);
+        const password =
+          userData.password || Math.random().toString(36).slice(-8);
         const hashedPassword = await bcrypt.hash(password, 12);
 
         // Create new user
@@ -141,10 +147,6 @@ export async function seedUsersWithRolesAndPermissions(data: RolePermissionData)
           department_id: department._id,
           company_id: data.companyId,
           is_active: true,
-          permissions: {
-            ...DEFAULT_PERMISSIONS[userData.role],
-            ...userData.permissions,
-          },
           preferences: {
             language: 'en',
             timezone: 'America/New_York',
@@ -155,8 +157,10 @@ export async function seedUsersWithRolesAndPermissions(data: RolePermissionData)
 
         await newUser.save();
         createdUsers.push(newUser);
-        
-        console.log(`✅ Created user: ${userData.email} (${userData.role}) - Password: ${password}`);
+
+        console.log(
+          `✅ Created user: ${userData.email} (${userData.role}) - Password: ${password}`
+        );
       } catch (error) {
         console.error(`❌ Error creating user ${userData.email}:`, error);
         errors.push(`Failed to create user ${userData.email}: ${error}`);
@@ -170,7 +174,7 @@ export async function seedUsersWithRolesAndPermissions(data: RolePermissionData)
 
     if (errors.length > 0) {
       console.log(`❌ Errors encountered:`);
-      errors.forEach(error => console.log(`   - ${error}`));
+      errors.forEach((error) => console.log(`   - ${error}`));
     }
 
     return {
@@ -191,9 +195,9 @@ export async function createSuperAdmin(data: SuperAdminData) {
     console.log(`🔐 Creating super admin user: ${data.email}`);
 
     // Check if super admin already exists
-    const existingAdmin = await User.findOne({ 
+    const existingAdmin = await User.findOne({
       email: data.email,
-      role: 'super_admin' 
+      role: 'super_admin',
     });
 
     if (existingAdmin) {
@@ -211,14 +215,7 @@ export async function createSuperAdmin(data: SuperAdminData) {
       department_id: null, // Super admin doesn't belong to a specific department
       company_id: null, // Super admin doesn't belong to a specific company
       is_active: true,
-      permissions: {
-        can_create_surveys: true,
-        can_view_all_responses: true,
-        can_manage_users: true,
-        can_export_data: true,
-        can_manage_companies: true,
-        can_access_admin_panel: true,
-      },
+      // Note: Super admin permissions are role-based, not user-specific
       preferences: {
         language: 'en',
         timezone: 'America/New_York',
@@ -245,7 +242,9 @@ export async function auditUserPermissions(companyId?: string) {
   try {
     await connectDB();
 
-    console.log(`🔍 Auditing user permissions${companyId ? ` for company: ${companyId}` : ' (all companies)'}`);
+    console.log(
+      `🔍 Auditing user permissions${companyId ? ` for company: ${companyId}` : ' (all companies)'}`
+    );
 
     const query = companyId ? { company_id: companyId } : {};
     const users = await User.find(query).populate('department_id', 'name');
@@ -258,63 +257,73 @@ export async function auditUserPermissions(companyId?: string) {
     };
 
     // Count role distribution
-    users.forEach(user => {
-      auditResults.roleDistribution[user.role] = (auditResults.roleDistribution[user.role] || 0) + 1;
+    users.forEach((user) => {
+      auditResults.roleDistribution[user.role] =
+        (auditResults.roleDistribution[user.role] || 0) + 1;
     });
 
     // Check for permission issues
-    users.forEach(user => {
-      const expectedPermissions = DEFAULT_PERMISSIONS[user.role as keyof typeof DEFAULT_PERMISSIONS];
-      
+    users.forEach((user) => {
+      const expectedPermissions =
+        DEFAULT_PERMISSIONS[user.role as keyof typeof DEFAULT_PERMISSIONS];
+
       if (!expectedPermissions) {
-        auditResults.permissionIssues.push(`User ${user.email} has invalid role: ${user.role}`);
+        auditResults.permissionIssues.push(
+          `User ${user.email} has invalid role: ${user.role}`
+        );
         return;
       }
 
-      // Check if user has appropriate permissions for their role
-      Object.entries(expectedPermissions).forEach(([permission, expectedValue]) => {
-        const userPermission = user.permissions?.[permission as keyof typeof user.permissions];
-        if (userPermission !== expectedValue) {
-          auditResults.permissionIssues.push(
-            `User ${user.email} (${user.role}) has incorrect ${permission}: ${userPermission} (expected: ${expectedValue})`
-          );
-        }
-      });
+      // Note: Permissions are role-based in this system, not user-specific
+      // The DEFAULT_PERMISSIONS object is for reference only
+      // Users inherit permissions based on their role
 
       // Check for orphaned users (no department)
       if (!user.department_id && user.role !== 'super_admin') {
-        auditResults.permissionIssues.push(`User ${user.email} has no department assigned`);
+        auditResults.permissionIssues.push(
+          `User ${user.email} has no department assigned`
+        );
       }
     });
 
     // Generate recommendations
     const adminCount = auditResults.roleDistribution.company_admin || 0;
     if (adminCount === 0) {
-      auditResults.recommendations.push('No company admins found. Consider promoting at least one user to company_admin role.');
+      auditResults.recommendations.push(
+        'No company admins found. Consider promoting at least one user to company_admin role.'
+      );
     } else if (adminCount === 1) {
-      auditResults.recommendations.push('Only one company admin found. Consider having multiple admins for redundancy.');
+      auditResults.recommendations.push(
+        'Only one company admin found. Consider having multiple admins for redundancy.'
+      );
     }
 
     const employeeCount = auditResults.roleDistribution.employee || 0;
     const supervisorCount = auditResults.roleDistribution.supervisor || 0;
     if (employeeCount > 0 && supervisorCount === 0) {
-      auditResults.recommendations.push('Employees found without supervisors. Consider promoting some users to supervisor role.');
+      auditResults.recommendations.push(
+        'Employees found without supervisors. Consider promoting some users to supervisor role.'
+      );
     }
 
     console.log(`📊 Audit Results:`);
     console.log(`   - Total Users: ${auditResults.totalUsers}`);
     console.log(`   - Role Distribution:`, auditResults.roleDistribution);
-    console.log(`   - Permission Issues: ${auditResults.permissionIssues.length}`);
+    console.log(
+      `   - Permission Issues: ${auditResults.permissionIssues.length}`
+    );
     console.log(`   - Recommendations: ${auditResults.recommendations.length}`);
 
     if (auditResults.permissionIssues.length > 0) {
       console.log(`❌ Permission Issues:`);
-      auditResults.permissionIssues.forEach(issue => console.log(`   - ${issue}`));
+      auditResults.permissionIssues.forEach((issue) =>
+        console.log(`   - ${issue}`)
+      );
     }
 
     if (auditResults.recommendations.length > 0) {
       console.log(`💡 Recommendations:`);
-      auditResults.recommendations.forEach(rec => console.log(`   - ${rec}`));
+      auditResults.recommendations.forEach((rec) => console.log(`   - ${rec}`));
     }
 
     return auditResults;
@@ -356,10 +365,7 @@ export async function seedSampleUsers(companyId: string) {
         role: 'department_admin',
         department: 'Human Resources',
         password: 'admin123',
-        permissions: {
-          can_export_data: true,
-          can_manage_users: true,
-        },
+        // Note: Permissions are role-based, not user-specific
       },
     ],
   };
@@ -370,7 +376,7 @@ export async function seedSampleUsers(companyId: string) {
 // CLI execution
 if (require.main === module) {
   const command = process.argv[2];
-  
+
   if (command === 'create-super-admin') {
     createSuperAdmin({
       name: 'Super Administrator',
