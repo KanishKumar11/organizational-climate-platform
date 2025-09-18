@@ -171,13 +171,42 @@ export default function MicroclimateCreator() {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('/api/departments');
+      // Use the targeting-specific endpoint for broader department access
+      const response = await fetch('/api/departments/for-targeting');
       if (response.ok) {
         const data = await response.json();
         setDepartments(data.departments || []);
+
+        // Log helpful information for debugging
+        console.log('Departments loaded for targeting:', {
+          count: data.departments?.length || 0,
+          userContext: data.user_context,
+          canTargetAllCompanyDepartments:
+            data.user_context?.can_target_all_company_departments,
+        });
+      } else {
+        // Fallback to regular departments endpoint if targeting endpoint fails
+        console.warn(
+          'Targeting endpoint failed, falling back to regular departments'
+        );
+        const fallbackResponse = await fetch('/api/departments');
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          setDepartments(fallbackData.departments || []);
+        }
       }
     } catch (error) {
       console.error('Error fetching departments:', error);
+      // Try fallback endpoint
+      try {
+        const fallbackResponse = await fetch('/api/departments');
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          setDepartments(fallbackData.departments || []);
+        }
+      } catch (fallbackError) {
+        console.error('Fallback departments fetch also failed:', fallbackError);
+      }
     }
   };
 

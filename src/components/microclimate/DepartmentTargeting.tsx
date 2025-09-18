@@ -106,16 +106,51 @@ export default function DepartmentTargeting({
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('/api/departments');
+      // Use the targeting-specific endpoint for broader department access
+      const response = await fetch('/api/departments/for-targeting');
       if (response.ok) {
         const data = await response.json();
         const hierarchicalDepartments = buildDepartmentHierarchy(
           data.departments || []
         );
         setDepartments(hierarchicalDepartments);
+
+        // Log helpful information for debugging
+        console.log('Departments loaded for targeting:', {
+          count: data.departments?.length || 0,
+          userContext: data.user_context,
+          canTargetAllCompanyDepartments:
+            data.user_context?.can_target_all_company_departments,
+        });
+      } else {
+        // Fallback to regular departments endpoint if targeting endpoint fails
+        console.warn(
+          'Targeting endpoint failed, falling back to regular departments'
+        );
+        const fallbackResponse = await fetch('/api/departments');
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          const hierarchicalDepartments = buildDepartmentHierarchy(
+            fallbackData.departments || []
+          );
+          setDepartments(hierarchicalDepartments);
+        }
       }
     } catch (error) {
       console.error('Error fetching departments:', error);
+      // Try fallback endpoint
+      try {
+        const fallbackResponse = await fetch('/api/departments');
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          const hierarchicalDepartments = buildDepartmentHierarchy(
+            fallbackData.departments || []
+          );
+          setDepartments(hierarchicalDepartments);
+        }
+      } catch (fallbackError) {
+        console.error('Fallback departments fetch also failed:', fallbackError);
+      }
     } finally {
       setLoading(false);
     }
