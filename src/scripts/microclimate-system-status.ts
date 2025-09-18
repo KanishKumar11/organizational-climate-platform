@@ -6,7 +6,7 @@ import Department from '@/models/Department';
 import User from '@/models/User';
 import Microclimate from '@/models/Microclimate';
 import MicroclimateInvitation from '@/models/MicroclimateInvitation';
-import QuestionPool from '@/models/QuestionPool';
+import { QuestionPool } from '@/models/QuestionPool';
 import MicroclimateTemplate from '@/models/MicroclimateTemplate';
 import NotificationTemplate from '@/models/NotificationTemplate';
 
@@ -97,7 +97,7 @@ async function checkMicroclimateSystemStatus(): Promise<SystemStatus> {
         {} as Record<string, any[]>
       );
 
-      Object.entries(roleGroups).forEach(([role, roleUsers]) => {
+      Object.entries(roleGroups).forEach(([role, roleUsers]: [string, any[]]) => {
         console.log(`      ${role}: ${roleUsers.length} users`);
         roleUsers.forEach((user) => {
           const dept = departments.find(
@@ -115,7 +115,7 @@ async function checkMicroclimateSystemStatus(): Promise<SystemStatus> {
     console.log(`\n🌡️  MICROCLIMATES: ${microclimates.length} found`);
     microclimates.forEach((mc, index) => {
       console.log(
-        `   ${index + 1}. ${mc.title} - Status: ${mc.status} - Participants: ${mc.participant_count || 0}`
+        `   ${index + 1}. ${mc.title} - Status: ${mc.status} - Participants: ${mc.response_count || 0}`
       );
     });
 
