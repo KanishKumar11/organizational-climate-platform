@@ -97,17 +97,19 @@ async function checkMicroclimateSystemStatus(): Promise<SystemStatus> {
         {} as Record<string, any[]>
       );
 
-      Object.entries(roleGroups).forEach(([role, roleUsers]: [string, any[]]) => {
-        console.log(`      ${role}: ${roleUsers.length} users`);
-        roleUsers.forEach((user) => {
-          const dept = departments.find(
-            (d) => d._id.toString() === user.department_id
-          );
-          console.log(
-            `        - ${user.name} (${user.email}) - ${dept?.name || 'Unassigned'}`
-          );
-        });
-      });
+      Object.entries(roleGroups).forEach(
+        ([role, roleUsers]: [string, any[]]) => {
+          console.log(`      ${role}: ${roleUsers.length} users`);
+          roleUsers.forEach((user) => {
+            const dept = departments.find(
+              (d) => d._id.toString() === user.department_id
+            );
+            console.log(
+              `        - ${user.name} (${user.email}) - ${dept?.name || 'Unassigned'}`
+            );
+          });
+        }
+      );
     });
 
     // Check microclimates
