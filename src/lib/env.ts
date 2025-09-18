@@ -11,11 +11,16 @@ export const env = {
   AI_SERVICE_URL: process.env.AI_SERVICE_URL || 'http://localhost:8000',
   AI_SERVICE_API_KEY: process.env.AI_SERVICE_API_KEY || '',
 
-  // Email
+  // Email - Brevo
+  BREVO_API_KEY: process.env.BREVO_API_KEY || '',
+  BREVO_FROM_EMAIL: process.env.BREVO_FROM_EMAIL || '',
+
+  // Email - SMTP (fallback)
   SMTP_HOST: process.env.SMTP_HOST || '',
   SMTP_PORT: parseInt(process.env.SMTP_PORT || '587'),
   SMTP_USER: process.env.SMTP_USER || '',
   SMTP_PASS: process.env.SMTP_PASS || '',
+  SMTP_FROM: process.env.SMTP_FROM || '',
 
   // Application
   NODE_ENV: process.env.NODE_ENV || 'development',
@@ -38,5 +43,3 @@ export function validateEnv() {
 // Check if we're in development mode
 export const isDevelopment = env.NODE_ENV === 'development';
 export const isProduction = env.NODE_ENV === 'production';
-
-

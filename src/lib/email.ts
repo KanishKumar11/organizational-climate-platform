@@ -658,4 +658,9 @@ export class MockEmailService implements EmailService {
 }
 
 // Email service singleton
-export const emailService = new MockEmailService();
+import { BrevoEmailService } from './email-providers/brevo';
+
+// Use Brevo in production, Mock in development/testing
+export const emailService = process.env.BREVO_API_KEY
+  ? new BrevoEmailService()
+  : new MockEmailService();

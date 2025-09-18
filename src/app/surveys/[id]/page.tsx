@@ -11,6 +11,17 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/Progress';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
   Edit,
   Eye,
   BarChart3,
@@ -71,6 +82,7 @@ export default function SurveyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Edit state
   const [editTitle, setEditTitle] = useState('');
@@ -293,15 +305,7 @@ export default function SurveyDetailPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={async () => {
-                        const surveyUrl = `${window.location.origin}/survey/${survey._id}`;
-                        try {
-                          await navigator.clipboard.writeText(surveyUrl);
-                          alert('Survey link copied to clipboard!');
-                        } catch (err) {
-                          prompt('Copy this survey link:', surveyUrl);
-                        }
-                      }}
+                      onClick={() => setShowShareModal(true)}
                       className="h-9 px-3"
                     >
                       <Share2 className="h-4 w-4 mr-1" />
@@ -638,18 +642,10 @@ export default function SurveyDetailPage() {
                         variant="outline"
                         size="sm"
                         className="h-10 px-3"
-                        onClick={async () => {
-                          const surveyUrl = `${window.location.origin}/survey/${survey._id}`;
-                          try {
-                            await navigator.clipboard.writeText(surveyUrl);
-                            alert('Survey link copied!');
-                          } catch (err) {
-                            prompt('Copy this survey link:', surveyUrl);
-                          }
-                        }}
+                        onClick={() => setShowShareModal(true)}
                       >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy Link
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Share Survey
                       </Button>
 
                       <Button
@@ -1062,15 +1058,7 @@ export default function SurveyDetailPage() {
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Button
-                      onClick={async () => {
-                        const surveyUrl = `${window.location.origin}/survey/${survey._id}`;
-                        try {
-                          await navigator.clipboard.writeText(surveyUrl);
-                          alert('Survey link copied to clipboard!');
-                        } catch (err) {
-                          prompt('Copy this survey link:', surveyUrl);
-                        }
-                      }}
+                      onClick={() => setShowShareModal(true)}
                       className="flex items-center gap-2"
                     >
                       <Share2 className="h-4 w-4" />
@@ -1224,24 +1212,16 @@ export default function SurveyDetailPage() {
                   <Button
                     variant="outline"
                     className="w-full justify-start h-auto p-4"
-                    onClick={async () => {
-                      const surveyUrl = `${window.location.origin}/survey/${survey._id}`;
-                      try {
-                        await navigator.clipboard.writeText(surveyUrl);
-                        alert('Survey link copied to clipboard!');
-                      } catch (err) {
-                        prompt('Copy this survey link:', surveyUrl);
-                      }
-                    }}
+                    onClick={() => setShowShareModal(true)}
                   >
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-green-100 rounded-lg">
-                        <Copy className="h-5 w-5 text-green-600" />
+                        <Share2 className="h-5 w-5 text-green-600" />
                       </div>
                       <div className="text-left">
-                        <div className="font-medium">Copy Survey Link</div>
+                        <div className="font-medium">Share Survey</div>
                         <div className="text-sm text-gray-500">
-                          Share with respondents
+                          Send invitations to respondents
                         </div>
                       </div>
                     </div>
@@ -1365,7 +1345,227 @@ export default function SurveyDetailPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Share Survey Modal */}
+        <ShareSurveyModal
+          survey={survey}
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+        />
       </div>
     </DashboardLayout>
+  );
+}
+
+// Share Survey Modal Component
+interface ShareSurveyModalProps {
+  survey: Survey | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function ShareSurveyModal({ survey, isOpen, onClose }: ShareSurveyModalProps) {
+  const [shareMethod, setShareMethod] = useState<'link' | 'invitations'>(
+    'invitations'
+  );
+  const [emails, setEmails] = useState('');
+  const [customMessage, setCustomMessage] = useState('');
+  const [isSharing, setIsSharing] = useState(false);
+
+  if (!survey) return null;
+
+  const handleShareWithInvitations = async () => {
+    if (!emails.trim()) {
+      alert('Please enter at least one email address');
+      return;
+    }
+
+    setIsSharing(true);
+    try {
+      // Get users by email addresses
+      const emailList = emails
+        .split(',')
+        .map((email) => email.trim())
+        .filter(Boolean);
+
+      // First, get user IDs from emails
+      const usersResponse = await fetch('/api/users/by-emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails: emailList }),
+      });
+
+      if (!usersResponse.ok) {
+        throw new Error('Failed to find users');
+      }
+
+      const usersData = await usersResponse.json();
+      const userIds = usersData.users.map((user: any) => user._id);
+
+      if (userIds.length === 0) {
+        alert('No valid users found for the provided email addresses');
+        return;
+      }
+
+      // Create survey invitations
+      const invitationsResponse = await fetch(
+        `/api/surveys/${survey._id}/invitations`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_ids: userIds,
+            send_immediately: true,
+            custom_message: customMessage.trim() || undefined,
+          }),
+        }
+      );
+
+      if (!invitationsResponse.ok) {
+        throw new Error('Failed to send invitations');
+      }
+
+      const result = await invitationsResponse.json();
+      alert(
+        `Successfully sent ${result.invitations.length} survey invitations!`
+      );
+      onClose();
+      setEmails('');
+      setCustomMessage('');
+    } catch (error) {
+      console.error('Error sharing survey:', error);
+      alert('Failed to share survey. Please try again.');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const handleCopyDirectLink = async () => {
+    const surveyUrl = `${window.location.origin}/survey/${survey._id}`;
+    try {
+      await navigator.clipboard.writeText(surveyUrl);
+      alert(
+        'Survey link copied to clipboard!\n\nNote: Users must be logged in and in the same company to access this link.'
+      );
+    } catch (err) {
+      prompt('Copy this survey link:', surveyUrl);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Share Survey</DialogTitle>
+          <DialogDescription>
+            Choose how you'd like to share "{survey.title}" with respondents.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Share Method Selection */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Sharing Method</Label>
+            <div className="grid grid-cols-1 gap-3">
+              <div
+                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                  shareMethod === 'invitations'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setShareMethod('invitations')}
+              >
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="radio"
+                    checked={shareMethod === 'invitations'}
+                    onChange={() => setShareMethod('invitations')}
+                    className="text-blue-600"
+                  />
+                  <div>
+                    <div className="font-medium">
+                      Send Invitations (Recommended)
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Send personalized email invitations with secure access
+                      tokens
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                  shareMethod === 'link'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setShareMethod('link')}
+              >
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="radio"
+                    checked={shareMethod === 'link'}
+                    onChange={() => setShareMethod('link')}
+                    className="text-blue-600"
+                  />
+                  <div>
+                    <div className="font-medium">Copy Direct Link</div>
+                    <div className="text-sm text-gray-600">
+                      Share a direct link (requires users to be logged in)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Invitations Form */}
+          {shareMethod === 'invitations' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="emails">Email Addresses</Label>
+                <Textarea
+                  id="emails"
+                  placeholder="Enter email addresses separated by commas&#10;example@company.com, user@company.com"
+                  value={emails}
+                  onChange={(e) => setEmails(e.target.value)}
+                  className="mt-1"
+                  rows={3}
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Separate multiple email addresses with commas
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="message">Custom Message (Optional)</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Add a personal message to the invitation email..."
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  className="mt-1"
+                  rows={2}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isSharing}>
+            Cancel
+          </Button>
+          {shareMethod === 'invitations' ? (
+            <Button onClick={handleShareWithInvitations} disabled={isSharing}>
+              {isSharing ? 'Sending...' : 'Send Invitations'}
+            </Button>
+          ) : (
+            <Button onClick={handleCopyDirectLink}>Copy Link</Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

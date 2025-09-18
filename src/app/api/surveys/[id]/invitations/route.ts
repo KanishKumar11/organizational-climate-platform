@@ -60,8 +60,25 @@ export async function POST(
     }
 
     // Get target users
+    console.log('🔍 [DEBUG] Survey invitations - user query:', {
+      userQuery: JSON.stringify(userQuery, null, 2),
+      surveyId,
+      surveyCompanyId: survey.company_id,
+    });
+
     const users = await User.find(userQuery);
+    console.log('🔍 [DEBUG] Survey invitations - users found:', {
+      usersFound: users.length,
+      users: users.map((u) => ({
+        id: u._id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+      })),
+    });
+
     if (users.length === 0) {
+      console.log('❌ [DEBUG] No users found for survey invitations');
       return NextResponse.json({ error: 'No users found' }, { status: 400 });
     }
 

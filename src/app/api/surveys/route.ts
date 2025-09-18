@@ -196,6 +196,7 @@ export async function POST(request: NextRequest) {
       start_date,
       end_date,
       department_ids,
+      status,
     } = body;
 
     // Create survey
@@ -223,6 +224,7 @@ export async function POST(request: NextRequest) {
       start_date: new Date(start_date),
       end_date: new Date(end_date),
       department_ids: department_ids || [],
+      status: status || 'draft', // Use provided status or default to 'draft'
     };
 
     console.log('Creating survey with data:', surveyData);
