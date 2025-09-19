@@ -22,6 +22,10 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
+import {
+  getDefaultMicroclimateStartTime,
+  getUserTimezone,
+} from '@/lib/datetime-utils';
 
 interface Department {
   _id: string;
@@ -142,11 +146,9 @@ export default function MicroclimateCreator() {
       include_managers: true,
     },
     scheduling: {
-      start_time: new Date(Date.now() + 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 16), // 1 hour from now
+      start_time: getDefaultMicroclimateStartTime(), // 1 hour from now in local timezone
       duration_minutes: 30,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      timezone: getUserTimezone(),
       auto_close: true,
       reminder_settings: {
         send_reminders: true,

@@ -33,6 +33,10 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
+import {
+  getDefaultMicroclimateStartTime,
+  getUserTimezone,
+} from '@/lib/datetime-utils';
 
 interface Question {
   id: string;
@@ -139,11 +143,9 @@ export default function MicroclimateBuilder() {
       include_managers: true,
     },
     scheduling: {
-      start_time: new Date(Date.now() + 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 16),
+      start_time: getDefaultMicroclimateStartTime(), // 1 hour from now in local timezone
       duration_minutes: 30,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      timezone: getUserTimezone(),
       auto_close: true,
     },
     real_time_settings: {
