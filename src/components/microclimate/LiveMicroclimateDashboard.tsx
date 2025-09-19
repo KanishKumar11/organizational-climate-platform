@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -186,9 +187,15 @@ export default function LiveMicroclimateDashboard({
         setMicroclimateData((prev) =>
           prev ? { ...prev, status: 'paused' } : null
         );
+        toast.success('Microclimate paused successfully', {
+          description: 'Data collection has been temporarily stopped.',
+        });
       }
     } catch (error) {
       console.error('Error pausing microclimate:', error);
+      toast.error('Failed to pause microclimate', {
+        description: 'Please check your connection and try again.',
+      });
     }
   };
 
@@ -204,9 +211,15 @@ export default function LiveMicroclimateDashboard({
         setMicroclimateData((prev) =>
           prev ? { ...prev, status: 'active' } : null
         );
+        toast.success('Microclimate resumed successfully', {
+          description: 'Data collection has been restarted.',
+        });
       }
     } catch (error) {
       console.error('Error resuming microclimate:', error);
+      toast.error('Failed to resume microclimate', {
+        description: 'Please check your connection and try again.',
+      });
     }
   };
 
@@ -230,9 +243,16 @@ export default function LiveMicroclimateDashboard({
         setMicroclimateData((prev) =>
           prev ? { ...prev, status: 'completed' } : null
         );
+        toast.success('Microclimate ended successfully', {
+          description:
+            'Data collection has been completed and results are final.',
+        });
       }
     } catch (error) {
       console.error('Error ending microclimate:', error);
+      toast.error('Failed to end microclimate', {
+        description: 'Please check your connection and try again.',
+      });
     }
   };
 
@@ -257,12 +277,15 @@ export default function LiveMicroclimateDashboard({
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        toast.success('Data exported successfully!', {
+          description: `Downloaded ${microclimateData.title} data as CSV file.`,
+        });
       } else {
-        alert('Failed to export data. Please try again.');
+        toast.error('Failed to export data. Please try again.');
       }
     } catch (error) {
       console.error('Error exporting data:', error);
-      alert('Failed to export data. Please try again.');
+      toast.error('Export failed. Please check your connection and try again.');
     }
   };
 
@@ -275,12 +298,17 @@ export default function LiveMicroclimateDashboard({
 
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
-      alert('Shareable link copied to clipboard!');
+      toast.success('Shareable link copied to clipboard!', {
+        description: 'You can now paste the link to share this microclimate.',
+      });
     } catch (error) {
       console.error('Error sharing microclimate:', error);
       // Fallback for browsers that don't support clipboard API
       const shareUrl = `${window.location.origin}/microclimates/${microclimateId}/results`;
-      prompt('Copy this link to share:', shareUrl);
+      toast.info('Copy this link to share:', {
+        description: shareUrl,
+        duration: 10000, // Show longer for manual copying
+      });
     }
   };
 
@@ -337,9 +365,13 @@ export default function LiveMicroclimateDashboard({
   }
 
   return (
-    <div className="space-y-6">
+    <main
+      className="space-y-6"
+      role="main"
+      aria-label="Live Microclimate Dashboard"
+    >
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-50 to-teal-50 rounded-2xl p-8 border border-green-200">
+      <header className="bg-gradient-to-r from-green-50 to-teal-50 rounded-2xl p-8 border border-green-200">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="space-y-4">
             <div className="flex items-center gap-4">
@@ -382,8 +414,9 @@ export default function LiveMicroclimateDashboard({
                 onClick={handlePauseMicroclimate}
                 variant="outline"
                 className="bg-white border-gray-200 hover:bg-gray-50 h-10 px-4"
+                aria-label="Pause microclimate session"
               >
-                <Pause className="w-4 h-4 mr-2" />
+                <Pause className="w-4 h-4 mr-2" aria-hidden="true" />
                 Pause
               </Button>
             )}
@@ -393,8 +426,9 @@ export default function LiveMicroclimateDashboard({
                 onClick={handleResumeMicroclimate}
                 variant="outline"
                 className="bg-white border-gray-200 hover:bg-gray-50 h-10 px-4"
+                aria-label="Resume microclimate session"
               >
-                <Play className="w-4 h-4 mr-2" />
+                <Play className="w-4 h-4 mr-2" aria-hidden="true" />
                 Resume
               </Button>
             )}
@@ -405,8 +439,9 @@ export default function LiveMicroclimateDashboard({
                 onClick={handleEndMicroclimate}
                 variant="outline"
                 className="bg-white border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-10 px-4"
+                aria-label="End microclimate session permanently"
               >
-                <Square className="w-4 h-4 mr-2" />
+                <Square className="w-4 h-4 mr-2" aria-hidden="true" />
                 End
               </Button>
             )}
@@ -415,9 +450,9 @@ export default function LiveMicroclimateDashboard({
               variant="outline"
               className="bg-white border-gray-200 hover:bg-gray-50 h-10 px-4"
               onClick={handleExportData}
-              title="Export microclimate data"
+              aria-label="Export microclimate data as CSV file"
             >
-              <Download className="w-4 h-4 mr-2" />
+              <Download className="w-4 h-4 mr-2" aria-hidden="true" />
               Export
             </Button>
 
@@ -425,14 +460,14 @@ export default function LiveMicroclimateDashboard({
               variant="outline"
               className="bg-white border-gray-200 hover:bg-gray-50 h-10 px-4"
               onClick={handleShareMicroclimate}
-              title="Share microclimate results"
+              aria-label="Share microclimate results via link"
             >
-              <Share2 className="w-4 h-4 mr-2" />
+              <Share2 className="w-4 h-4 mr-2" aria-hidden="true" />
               Share
             </Button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Connection Status Warning */}
       {(wsError || !connected) && (
@@ -583,6 +618,6 @@ export default function LiveMicroclimateDashboard({
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }
