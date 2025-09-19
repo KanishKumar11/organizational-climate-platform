@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import Microclimate from '@/models/Microclimate';
-import { connectToDatabase } from '@/lib/mongodb';
+import { connectDB } from '@/lib/db';
 
 // GET /api/microclimates/[id]/live-updates - Get real-time microclimate data
 export async function GET(
@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
     const { id } = await params;
 
     const microclimate = await Microclimate.findById(id);
@@ -24,6 +24,12 @@ export async function GET(
         { error: 'Microclimate not found' },
         { status: 404 }
       );
+    }
+
+    // Auto-update expired microclimates to completed status
+    if (microclimate.status === 'active' && !microclimate.isActive()) {
+      microclimate.status = 'completed';
+      await microclimate.save();
     }
 
     // Check if user has access to this microclimate
@@ -111,7 +117,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
     const { id } = await params;
 
     const microclimate = await Microclimate.findById(id);
@@ -144,8 +150,7 @@ export async function POST(
         // Update word cloud data (simulate)
         if (data.text) {
           const existingWord = microclimate.live_results.word_cloud_data.find(
-            (word: any) =>
-              word.text.toLowerCase() === data.text.toLowerCase()
+            (word: any) => word.text.toLowerCase() === data.text.toLowerCase()
           );
 
           if (existingWord) {

@@ -574,19 +574,25 @@ export default function MicroclimateCreator() {
                 <Label className="text-sm font-medium">
                   Start Time <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  type="datetime-local"
-                  value={microclimateData.scheduling.start_time}
-                  onChange={(e) =>
-                    setMicroclimateData((prev) => ({
-                      ...prev,
-                      scheduling: {
-                        ...prev.scheduling,
-                        start_time: e.target.value,
-                      },
-                    }))
-                  }
-                />
+                <div className="space-y-1">
+                  <Input
+                    type="datetime-local"
+                    value={microclimateData.scheduling.start_time}
+                    onChange={(e) =>
+                      setMicroclimateData((prev) => ({
+                        ...prev,
+                        scheduling: {
+                          ...prev.scheduling,
+                          start_time: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                  <p className="text-xs text-gray-500">
+                    🌍 Timezone: {microclimateData.scheduling.timezone} (Your
+                    local timezone)
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -892,6 +898,10 @@ export default function MicroclimateCreator() {
                   <div>
                     <span className="font-medium">Duration:</span>{' '}
                     {microclimateData.scheduling.duration_minutes} minutes
+                  </div>
+                  <div>
+                    <span className="font-medium">Timezone:</span>{' '}
+                    {microclimateData.scheduling.timezone}
                   </div>
                   <div>
                     <span className="font-medium">Auto Close:</span>{' '}

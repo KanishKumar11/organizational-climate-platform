@@ -67,7 +67,13 @@ export interface IMicroclimate extends Document {
     required: boolean;
     order: number;
   }>;
-  status: 'draft' | 'scheduled' | 'active' | 'completed' | 'cancelled';
+  status:
+    | 'draft'
+    | 'scheduled'
+    | 'active'
+    | 'paused'
+    | 'completed'
+    | 'cancelled';
   response_count: number;
   target_participant_count: number;
   participation_rate: number;
@@ -264,7 +270,14 @@ const MicroclimateSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: ['draft', 'scheduled', 'active', 'completed', 'cancelled'],
+      enum: [
+        'draft',
+        'scheduled',
+        'active',
+        'paused',
+        'completed',
+        'cancelled',
+      ],
       default: 'draft',
     },
     response_count: {
@@ -316,7 +329,20 @@ MicroclimateSchema.methods.isActive = function (): boolean {
 };
 
 MicroclimateSchema.methods.canAcceptResponses = function (): boolean {
-  return this.isActive() && this.status !== 'completed';
+  const now = new Date();
+  const endTime = new Date(
+    this.scheduling.start_time.getTime() +
+      this.scheduling.duration_minutes * 60 * 1000
+  );
+
+  // Can accept responses if:
+  // 1. Status is 'active' and within time window, OR
+  // 2. Status is 'paused' and within time window (paused microclimates can still accept responses)
+  return (
+    (this.status === 'active' || this.status === 'paused') &&
+    now >= this.scheduling.start_time &&
+    now <= endTime
+  );
 };
 
 MicroclimateSchema.methods.calculateParticipationRate = function (): number {

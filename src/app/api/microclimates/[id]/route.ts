@@ -65,7 +65,7 @@ const updateMicroclimateSchema = z.object({
     .max(10)
     .optional(),
   status: z
-    .enum(['draft', 'scheduled', 'active', 'completed', 'cancelled'])
+    .enum(['draft', 'scheduled', 'active', 'paused', 'completed', 'cancelled'])
     .optional(),
 });
 
@@ -161,9 +161,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Prevent updates to active or completed microclimates (except status changes)
+    // Prevent updates to active, paused, or completed microclimates (except status changes)
     if (
       microclimate.status === 'active' ||
+      microclimate.status === 'paused' ||
       microclimate.status === 'completed'
     ) {
       const body = await request.json();
@@ -176,7 +177,7 @@ export async function PATCH(
         return NextResponse.json(
           {
             error:
-              'Cannot modify active or completed microclimates except status',
+              'Cannot modify active, paused, or completed microclimates except status',
           },
           { status: 400 }
         );
@@ -284,10 +285,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Prevent deletion of active microclimates
-    if (microclimate.status === 'active') {
+    // Prevent deletion of active or paused microclimates
+    if (microclimate.status === 'active' || microclimate.status === 'paused') {
       return NextResponse.json(
-        { error: 'Cannot delete active microclimate' },
+        { error: 'Cannot delete active or paused microclimate' },
         { status: 400 }
       );
     }

@@ -955,20 +955,26 @@ export default function MicroclimateBuilder() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Start Time *
                         </label>
-                        <Input
-                          type="datetime-local"
-                          value={microclimateData.scheduling.start_time}
-                          onChange={(e) =>
-                            setMicroclimateData((prev) => ({
-                              ...prev,
-                              scheduling: {
-                                ...prev.scheduling,
-                                start_time: e.target.value,
-                              },
-                            }))
-                          }
-                          className="text-base h-12"
-                        />
+                        <div className="space-y-2">
+                          <Input
+                            type="datetime-local"
+                            value={microclimateData.scheduling.start_time}
+                            onChange={(e) =>
+                              setMicroclimateData((prev) => ({
+                                ...prev,
+                                scheduling: {
+                                  ...prev.scheduling,
+                                  start_time: e.target.value,
+                                },
+                              }))
+                            }
+                            className="text-base h-12"
+                          />
+                          <p className="text-xs text-gray-500 flex items-center gap-1">
+                            🌍 Timezone: {microclimateData.scheduling.timezone}{' '}
+                            (Your local timezone)
+                          </p>
+                        </div>
                       </div>
 
                       <div>

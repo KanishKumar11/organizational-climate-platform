@@ -82,8 +82,17 @@ async function getMicroclimateData(id: string, session: any) {
       return null;
     }
 
-    // Only allow access to active or paused microclimates
-    if (!['active', 'paused'].includes(microclimate.status)) {
+    // Auto-update expired microclimates to completed status
+    if (microclimate.status === 'active' && !microclimate.isActive()) {
+      console.log(
+        `Auto-updating expired microclimate ${id} to completed status`
+      );
+      microclimate.status = 'completed';
+      await microclimate.save();
+    }
+
+    // Only allow access to active, paused, or recently completed microclimates
+    if (!['active', 'paused', 'completed'].includes(microclimate.status)) {
       console.log(
         `Microclimate ${id} has invalid status: ${microclimate.status}`
       );
