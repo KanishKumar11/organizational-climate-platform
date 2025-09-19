@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
+import { sanitizeForSerialization } from '@/lib/data-sanitization';
 import User from '@/models/User';
 import Survey from '@/models/Survey';
 import Company from '@/models/Company';
@@ -121,8 +122,8 @@ export async function GET(request: NextRequest) {
     // Get AI insights for the company
     const aiInsights = await getCompanyAIInsights(companyId);
 
-    // Get ongoing surveys
-    const ongoingSurveys = await (Survey as any)
+    // Get ongoing surveys with proper serialization
+    const ongoingSurveysRaw = await (Survey as any)
       .find({
         company_id: companyId,
         status: 'active',
@@ -134,10 +135,11 @@ export async function GET(request: NextRequest) {
         'title type start_date end_date response_count target_responses target_departments'
       )
       .sort({ start_date: -1 })
-      .limit(10);
+      .limit(10)
+      .lean();
 
-    // Get past surveys
-    const pastSurveys = await (Survey as any)
+    // Get past surveys with proper serialization
+    const pastSurveysRaw = await (Survey as any)
       .find({
         company_id: companyId,
         status: { $in: ['completed', 'archived'] },
@@ -147,12 +149,51 @@ export async function GET(request: NextRequest) {
         'title type start_date end_date response_count target_responses completion_rate'
       )
       .sort({ end_date: -1 })
-      .limit(10);
+      .limit(10)
+      .lean();
+
+    // Sanitize survey data to avoid circular references
+    const ongoingSurveys = ongoingSurveysRaw.map((survey: any) => ({
+      id: survey._id.toString(),
+      title: survey.title,
+      type: survey.type,
+      start_date: survey.start_date,
+      end_date: survey.end_date,
+      response_count: survey.response_count || 0,
+      target_responses: survey.target_responses || 0,
+      target_departments: survey.target_departments || [],
+      created_by: survey.created_by
+        ? {
+            id:
+              survey.created_by._id?.toString() || survey.created_by.toString(),
+            name: survey.created_by.name || 'Unknown',
+          }
+        : null,
+    }));
+
+    const pastSurveys = pastSurveysRaw.map((survey: any) => ({
+      id: survey._id.toString(),
+      title: survey.title,
+      type: survey.type,
+      start_date: survey.start_date,
+      end_date: survey.end_date,
+      response_count: survey.response_count || 0,
+      target_responses: survey.target_responses || 0,
+      completion_rate: survey.completion_rate || 0,
+      created_by: survey.created_by
+        ? {
+            id:
+              survey.created_by._id?.toString() || survey.created_by.toString(),
+            name: survey.created_by.name || 'Unknown',
+          }
+        : null,
+    }));
 
     // Get demographic versioning info
     const demographicVersions = await getDemographicVersions(companyId);
 
-    return NextResponse.json({
+    // Sanitize all data to prevent circular references and ensure serializability
+    const responseData = sanitizeForSerialization({
       companyKPIs: {
         totalEmployees,
         activeEmployees,
@@ -170,6 +211,8 @@ export async function GET(request: NextRequest) {
       recentActivity,
       demographicVersions,
     });
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error('Company admin dashboard error:', error);
     return NextResponse.json(
@@ -200,27 +243,29 @@ async function getCompanyRecentActivity(companyId: string) {
       .populate('created_by', 'name')
       .sort({ created_at: -1 })
       .limit(5)
-      .select('title type created_at'),
+      .select('title type created_at')
+      .lean(),
     (User as any)
       .find({ company_id: companyId, is_active: true })
       .populate('department_id', 'name')
       .sort({ created_at: -1 })
       .limit(5)
-      .select('name role created_at'),
+      .select('name role created_at')
+      .lean(),
   ]);
 
   const activities = [
-    ...recentSurveys.map((survey) => ({
+    ...recentSurveys.map((survey: any) => ({
       type: 'survey_created',
       title: `Survey "${survey.title}" created`,
-      description: `${survey.type} survey by ${survey.created_by?.name}`,
+      description: `${survey.type} survey by ${survey.created_by?.name || 'Unknown'}`,
       timestamp: survey.created_at,
       category: 'survey',
     })),
-    ...recentUsers.map((user) => ({
+    ...recentUsers.map((user: any) => ({
       type: 'user_registered',
       title: `New ${user.role} joined`,
-      description: `${user.name} joined ${user.department_id?.name}`,
+      description: `${user.name} joined ${user.department_id?.name || 'Unknown Department'}`,
       timestamp: user.created_at,
       category: 'user',
     })),
@@ -316,5 +361,3 @@ function calculateEngagementTrend(companyId: string): number {
   // Mock engagement trend calculation
   return Math.random() * 20 - 10; // -10% to +10%
 }
-
-
