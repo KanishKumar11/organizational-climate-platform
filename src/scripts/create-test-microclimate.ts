@@ -27,10 +27,12 @@ async function createTestMicroclimate() {
     console.log(`✅ Company: ${testUser.company_id}`);
 
     // Find a department for targeting
-    const department = await Department.findOne({ company_id: testUser.company_id });
+    const department = await Department.findOne({
+      company_id: testUser.company_id,
+    });
     if (!department) {
       console.log('❌ No departments found. Creating a test department...');
-      
+
       const testDepartment = new Department({
         name: 'Test Department',
         description: 'Test department for microclimate testing',
@@ -38,16 +40,18 @@ async function createTestMicroclimate() {
         hierarchy: {
           level: 0,
           path: 'test-department',
-          parent_department_id: null
+          parent_department_id: null,
         },
-        created_by: testUser._id
+        created_by: testUser._id,
       });
-      
+
       await testDepartment.save();
       console.log(`✅ Created test department: ${testDepartment.name}`);
     }
 
-    const targetDepartment = department || await Department.findOne({ company_id: testUser.company_id });
+    const targetDepartment =
+      department ||
+      (await Department.findOne({ company_id: testUser.company_id }));
 
     // Create test microclimate
     const startTime = new Date();
@@ -59,12 +63,12 @@ async function createTestMicroclimate() {
       company_id: testUser.company_id,
       created_by: testUser._id,
       status: 'active',
-      
+
       // Scheduling
       scheduling: {
         start_time: startTime,
         duration_minutes: 120, // 2 hours
-        timezone: 'UTC'
+        timezone: 'UTC',
       },
 
       // Targeting
@@ -72,28 +76,40 @@ async function createTestMicroclimate() {
         department_ids: [targetDepartment._id.toString()],
         role_levels: ['employee', 'supervisor', 'leader'],
         include_subdepartments: true,
-        max_participants: 50
+        max_participants: 50,
       },
 
       // Questions
       questions: [
         {
+          id: 'q1',
           text: 'How would you describe the current team atmosphere?',
           type: 'multiple_choice',
-          options: ['Very Positive', 'Positive', 'Neutral', 'Negative', 'Very Negative'],
-          required: true
+          options: [
+            'Very Positive',
+            'Positive',
+            'Neutral',
+            'Negative',
+            'Very Negative',
+          ],
+          required: true,
+          order: 1,
         },
         {
+          id: 'q2',
           text: 'What is your current stress level?',
-          type: 'multiple_choice', 
+          type: 'multiple_choice',
           options: ['Very Low', 'Low', 'Moderate', 'High', 'Very High'],
-          required: true
+          required: true,
+          order: 2,
         },
         {
+          id: 'q3',
           text: 'Any additional thoughts about the current work environment?',
-          type: 'open_text',
-          required: false
-        }
+          type: 'open_ended',
+          required: false,
+          order: 3,
+        },
       ],
 
       // Initial data
@@ -111,47 +127,54 @@ async function createTestMicroclimate() {
           { text: 'supportive', value: 5 },
           { text: 'challenging', value: 3 },
           { text: 'innovative', value: 4 },
-          { text: 'busy', value: 6 }
+          { text: 'busy', value: 6 },
         ],
         sentiment_score: 0.3,
         sentiment_distribution: {
           positive: 58,
           neutral: 25,
-          negative: 17
+          negative: 17,
         },
         engagement_level: 'medium',
         response_distribution: {
-          'q1_0': 3, // Very Positive
-          'q1_1': 4, // Positive  
-          'q1_2': 3, // Neutral
-          'q1_3': 1, // Negative
-          'q1_4': 1, // Very Negative
-          'q2_0': 2, // Very Low stress
-          'q2_1': 3, // Low stress
-          'q2_2': 4, // Moderate stress
-          'q2_3': 2, // High stress
-          'q2_4': 1  // Very High stress
+          q1_0: 3, // Very Positive
+          q1_1: 4, // Positive
+          q1_2: 3, // Neutral
+          q1_3: 1, // Negative
+          q1_4: 1, // Very Negative
+          q2_0: 2, // Very Low stress
+          q2_1: 3, // Low stress
+          q2_2: 4, // Moderate stress
+          q2_3: 2, // High stress
+          q2_4: 1, // Very High stress
         },
-        top_themes: ['collaboration', 'workload', 'team dynamics', 'communication']
+        top_themes: [
+          'collaboration',
+          'workload',
+          'team dynamics',
+          'communication',
+        ],
       },
 
       // AI insights
       ai_insights: [
         {
           type: 'pattern',
-          message: 'Team shows positive sentiment but moderate stress levels indicate potential workload concerns.',
+          message:
+            'Team shows positive sentiment but moderate stress levels indicate potential workload concerns.',
           confidence: 0.85,
           timestamp: new Date(),
-          priority: 'medium'
+          priority: 'medium',
         },
         {
-          type: 'recommendation', 
-          message: 'Consider scheduling team check-ins to address workload distribution.',
+          type: 'recommendation',
+          message:
+            'Consider scheduling team check-ins to address workload distribution.',
           confidence: 0.78,
           timestamp: new Date(),
-          priority: 'low'
-        }
-      ]
+          priority: 'low',
+        },
+      ],
     });
 
     await testMicroclimate.save();
@@ -167,9 +190,8 @@ async function createTestMicroclimate() {
     console.log(`Participation Rate: ${testMicroclimate.participation_rate}%`);
     console.log('\n🔗 Live Dashboard URL:');
     console.log(`/microclimates/${testMicroclimate._id}/live`);
-    
-    console.log('\n✅ You can now test the live microclimate dashboard route!');
 
+    console.log('\n✅ You can now test the live microclimate dashboard route!');
   } catch (error) {
     console.error('❌ Error creating test microclimate:', error);
   } finally {
