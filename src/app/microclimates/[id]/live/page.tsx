@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { connectToDatabase } from '@/lib/mongodb';
+import { connectDB } from '@/lib/db';
 import Microclimate from '@/models/Microclimate';
 import LiveMicroclimateDashboard from '@/components/microclimate/LiveMicroclimateDashboard';
 import { Loading } from '@/components/ui/Loading';
@@ -12,106 +12,125 @@ interface PageProps {
 }
 
 async function getMicroclimateData(id: string, session: any) {
-  await connectToDatabase();
+  try {
+    await connectDB();
 
-  const microclimate = await Microclimate.findById(id).lean();
+    const microclimate = await Microclimate.findById(id);
 
-  if (!microclimate) {
-    return null;
-  }
+    if (!microclimate) {
+      console.log(`Microclimate not found with ID: ${id}`);
+      return null;
+    }
 
-  // Check access permissions
-  if (
-    microclimate.company_id !== session.user.companyId &&
-    session.user.role !== 'super_admin'
-  ) {
-    return null;
-  }
+    // Check access permissions
+    if (
+      microclimate.company_id !== session.user.companyId &&
+      session.user.role !== 'super_admin'
+    ) {
+      console.log(
+        `Access denied for user ${session.user.id} to microclimate ${id}`
+      );
+      return null;
+    }
 
-  // Only allow access to active or paused microclimates
-  if (!['active', 'paused'].includes(microclimate.status)) {
-    return null;
-  }
+    // Only allow access to active or paused microclimates
+    if (!['active', 'paused'].includes(microclimate.status)) {
+      console.log(
+        `Microclimate ${id} has invalid status: ${microclimate.status}`
+      );
+      return null;
+    }
 
-  return {
-    id: microclimate._id.toString(),
-    title: microclimate.title,
-    status: microclimate.status,
-    response_count: microclimate.response_count || 0,
-    target_participant_count: microclimate.target_participant_count || 0,
-    participation_rate: microclimate.participation_rate || 0,
-    time_remaining: microclimate.isActive()
-      ? Math.max(
-          0,
-          Math.floor(
-            (new Date(microclimate.scheduling.start_time).getTime() +
-              microclimate.scheduling.duration_minutes * 60 * 1000 -
-              Date.now()) /
-              (1000 * 60)
+    return {
+      id: microclimate._id.toString(),
+      title: microclimate.title,
+      status: microclimate.status,
+      response_count: microclimate.response_count || 0,
+      target_participant_count: microclimate.target_participant_count || 0,
+      participation_rate: microclimate.participation_rate || 0,
+      time_remaining: microclimate.isActive()
+        ? Math.max(
+            0,
+            Math.floor(
+              (microclimate.scheduling.start_time.getTime() +
+                microclimate.scheduling.duration_minutes * 60 * 1000 -
+                Date.now()) /
+                (1000 * 60)
+            )
           )
-        )
-      : undefined,
-    live_results: microclimate.live_results || {
-      word_cloud_data: [],
-      sentiment_score: 0,
-      sentiment_distribution: {
-        positive: 0,
-        neutral: 0,
-        negative: 0,
+        : undefined,
+      live_results: microclimate.live_results || {
+        word_cloud_data: [],
+        sentiment_score: 0,
+        sentiment_distribution: {
+          positive: 0,
+          neutral: 0,
+          negative: 0,
+        },
+        engagement_level: 'low',
+        response_distribution: {},
+        top_themes: [],
       },
-      engagement_level: 'low',
-      response_distribution: {},
-      top_themes: [],
-    },
-    ai_insights: microclimate.ai_insights || [],
-    questions:
-      microclimate.questions?.map((q: any) => ({
-        question: q.text,
-        responses:
-          q.options?.map((option: string, index: number) => ({
-            option,
-            count:
-              microclimate.live_results?.response_distribution?.[
-                `${q._id}_${index}`
-              ] || 0,
-            percentage:
-              microclimate.response_count > 0
-                ? ((microclimate.live_results?.response_distribution?.[
-                    `${q._id}_${index}`
-                  ] || 0) /
-                    microclimate.response_count) *
-                  100
-                : 0,
-          })) || [],
-        total_responses: microclimate.response_count || 0,
-      })) || [],
-  };
+      ai_insights: microclimate.ai_insights || [],
+      questions:
+        microclimate.questions?.map((q: any) => ({
+          question: q.text,
+          responses:
+            q.options?.map((option: string, index: number) => ({
+              option,
+              count:
+                microclimate.live_results?.response_distribution?.[
+                  `${q._id}_${index}`
+                ] || 0,
+              percentage:
+                microclimate.response_count > 0
+                  ? ((microclimate.live_results?.response_distribution?.[
+                      `${q._id}_${index}`
+                    ] || 0) /
+                      microclimate.response_count) *
+                    100
+                  : 0,
+            })) || [],
+          total_responses: microclimate.response_count || 0,
+        })) || [],
+    };
+  } catch (error) {
+    console.error('Error fetching microclimate data:', error);
+    throw error;
+  }
 }
 
 export default async function LiveMicroclimatePage({ params }: PageProps) {
-  const session = await getServerSession(authOptions);
-  const { id } = await params;
+  try {
+    const session = await getServerSession(authOptions);
+    const { id } = await params;
 
-  if (!session?.user) {
-    notFound();
+    if (!session?.user) {
+      console.log('No session found, redirecting to not found');
+      notFound();
+    }
+
+    const microclimateData = await getMicroclimateData(id, session);
+
+    if (!microclimateData) {
+      console.log(`No microclimate data found for ID: ${id}`);
+      notFound();
+    }
+
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <Suspense fallback={<Loading size="lg" />}>
+          <LiveMicroclimateDashboard
+            microclimateId={id}
+            initialData={microclimateData}
+          />
+        </Suspense>
+      </div>
+    );
+  } catch (error) {
+    console.error('Error in LiveMicroclimatePage:', error);
+    throw error;
   }
-
-  const microclimateData = await getMicroclimateData(id, session);
-
-  if (!microclimateData) {
-    notFound();
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-6">
-      <Suspense fallback={<Loading size="lg" />}>
-        <LiveMicroclimateDashboard
-          microclimateId={id}
-          initialData={microclimateData}
-        />
-      </Suspense>
-    </div>
-  );
 }
 
 export async function generateMetadata({ params }: PageProps) {
