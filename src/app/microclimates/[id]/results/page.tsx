@@ -8,31 +8,31 @@ import Response from '@/models/Response';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import MicroclimateFinalResults from '@/components/microclimate/MicroclimateFinalResults';
 import { Loading } from '@/components/ui/Loading';
-import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 
 // Sanitization function for circular references
 function sanitizeForSerialization(obj: any): any {
   const seen = new WeakSet();
-  
+
   function sanitize(value: any): any {
     if (value === null || typeof value !== 'object') {
       return value;
     }
-    
+
     if (seen.has(value)) {
       return '[Circular Reference]';
     }
-    
+
     seen.add(value);
-    
+
     if (value instanceof Date) {
       return value.toISOString();
     }
-    
+
     if (Array.isArray(value)) {
       return value.map(sanitize);
     }
-    
+
     const sanitized: any = {};
     for (const key in value) {
       if (value.hasOwnProperty(key)) {
@@ -101,7 +101,7 @@ async function getMicroclimateResults(id: string, session: any) {
       target_participant_count: plainMicroclimate.target_participant_count || 0,
       participation_rate: plainMicroclimate.participation_rate || 0,
       created_at: plainMicroclimate.created_at,
-      completed_at: plainMicroclimate.completed_at,
+      updated_at: plainMicroclimate.updated_at,
       duration_minutes: plainMicroclimate.scheduling?.duration_minutes || 0,
       live_results: plainMicroclimate.live_results || {
         word_cloud_data: [],
@@ -158,8 +158,8 @@ async function getMicroclimateResults(id: string, session: any) {
       })),
       targeting: plainMicroclimate.targeting,
       created_by: {
-        name: plainMicroclimate.created_by?.name || 'Unknown',
-        id: plainMicroclimate.created_by?.id || null,
+        name: 'Unknown', // We'd need to populate this from User model
+        id: plainMicroclimate.created_by || null,
       },
     };
 

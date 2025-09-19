@@ -41,7 +41,7 @@ interface MicroclimateResultsData {
   target_participant_count: number;
   participation_rate: number;
   created_at: string;
-  completed_at: string;
+  updated_at: string;
   duration_minutes: number;
   live_results: {
     word_cloud_data: Array<{ text: string; value: number }>;
@@ -185,8 +185,8 @@ export default function MicroclimateFinalResults({
               ) : (
                 <AlertCircle className="w-3 h-3 mr-1" />
               )}
-              {microclimateData.status.charAt(0).toUpperCase() + 
-               microclimateData.status.slice(1)}
+              {microclimateData.status.charAt(0).toUpperCase() +
+                microclimateData.status.slice(1)}
             </Badge>
           </div>
           <p className="text-gray-600 mb-2">{microclimateData.description}</p>
@@ -195,10 +195,10 @@ export default function MicroclimateFinalResults({
               <Calendar className="w-4 h-4" />
               Created: {formatDate(microclimateData.created_at)}
             </span>
-            {microclimateData.completed_at && (
+            {microclimateData.status === 'completed' && (
               <span className="flex items-center gap-1">
                 <CheckCircle className="w-4 h-4" />
-                Completed: {formatDate(microclimateData.completed_at)}
+                Last Updated: {formatDate(microclimateData.updated_at)}
               </span>
             )}
             <span className="flex items-center gap-1">
@@ -259,7 +259,9 @@ export default function MicroclimateFinalResults({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Participation Rate</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Participation Rate
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {microclimateData.participation_rate.toFixed(1)}%
                 </p>
@@ -276,9 +278,14 @@ export default function MicroclimateFinalResults({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Sentiment Score</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Sentiment Score
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {(microclimateData.live_results.sentiment_score * 100).toFixed(0)}%
+                  {(
+                    microclimateData.live_results.sentiment_score * 100
+                  ).toFixed(0)}
+                  %
                 </p>
                 <p className="text-xs text-gray-500">overall sentiment</p>
               </div>
@@ -294,9 +301,13 @@ export default function MicroclimateFinalResults({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Engagement</p>
-                <p className={`text-2xl font-bold ${getEngagementColor(microclimateData.live_results.engagement_level)}`}>
-                  {microclimateData.live_results.engagement_level.charAt(0).toUpperCase() + 
-                   microclimateData.live_results.engagement_level.slice(1)}
+                <p
+                  className={`text-2xl font-bold ${getEngagementColor(microclimateData.live_results.engagement_level)}`}
+                >
+                  {microclimateData.live_results.engagement_level
+                    .charAt(0)
+                    .toUpperCase() +
+                    microclimateData.live_results.engagement_level.slice(1)}
                 </p>
                 <p className="text-xs text-gray-500">engagement level</p>
               </div>
@@ -331,7 +342,9 @@ export default function MicroclimateFinalResults({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <LiveWordCloud data={microclimateData.live_results.word_cloud_data} />
+                  <LiveWordCloud
+                    data={microclimateData.live_results.word_cloud_data}
+                  />
                 </CardContent>
               </Card>
             )}
@@ -350,7 +363,8 @@ export default function MicroclimateFinalResults({
                 <SentimentVisualization
                   data={{
                     score: microclimateData.live_results.sentiment_score,
-                    distribution: microclimateData.live_results.sentiment_distribution,
+                    distribution:
+                      microclimateData.live_results.sentiment_distribution,
                     total_responses: microclimateData.response_count,
                   }}
                 />
@@ -359,21 +373,22 @@ export default function MicroclimateFinalResults({
           </div>
 
           {/* Response Charts */}
-          {microclimateData.questions && microclimateData.questions.length > 0 && (
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <BarChart3 className="w-5 h-5 text-blue-600" />
-                  </div>
-                  Response Data
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <LiveResponseChart data={microclimateData.questions} />
-              </CardContent>
-            </Card>
-          )}
+          {microclimateData.questions &&
+            microclimateData.questions.length > 0 && (
+              <Card className="border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <BarChart3 className="w-5 h-5 text-blue-600" />
+                    </div>
+                    Response Data
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LiveResponseChart data={microclimateData.questions} />
+                </CardContent>
+              </Card>
+            )}
         </TabsContent>
 
         <TabsContent value="responses" className="space-y-4">
@@ -429,10 +444,10 @@ export default function MicroclimateFinalResults({
                       insight.priority === 'critical'
                         ? 'border-red-500 bg-red-50'
                         : insight.priority === 'high'
-                        ? 'border-orange-500 bg-orange-50'
-                        : insight.priority === 'medium'
-                        ? 'border-yellow-500 bg-yellow-50'
-                        : 'border-blue-500 bg-blue-50'
+                          ? 'border-orange-500 bg-orange-50'
+                          : insight.priority === 'medium'
+                            ? 'border-yellow-500 bg-yellow-50'
+                            : 'border-blue-500 bg-blue-50'
                     }`}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -442,8 +457,8 @@ export default function MicroclimateFinalResults({
                           insight.type === 'alert'
                             ? 'border-red-200 text-red-700'
                             : insight.type === 'recommendation'
-                            ? 'border-green-200 text-green-700'
-                            : 'border-blue-200 text-blue-700'
+                              ? 'border-green-200 text-green-700'
+                              : 'border-blue-200 text-blue-700'
                         }`}
                       >
                         {insight.type}
@@ -452,7 +467,9 @@ export default function MicroclimateFinalResults({
                         {formatDate(insight.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-800 mb-2">{insight.message}</p>
+                    <p className="text-sm text-gray-800 mb-2">
+                      {insight.message}
+                    </p>
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-gray-500">
                         Confidence: {(insight.confidence * 100).toFixed(0)}%
@@ -463,10 +480,10 @@ export default function MicroclimateFinalResults({
                           insight.priority === 'critical'
                             ? 'border-red-200 text-red-700'
                             : insight.priority === 'high'
-                            ? 'border-orange-200 text-orange-700'
-                            : insight.priority === 'medium'
-                            ? 'border-yellow-200 text-yellow-700'
-                            : 'border-gray-200 text-gray-700'
+                              ? 'border-orange-200 text-orange-700'
+                              : insight.priority === 'medium'
+                                ? 'border-yellow-200 text-yellow-700'
+                                : 'border-gray-200 text-gray-700'
                         }`}
                       >
                         {insight.priority} priority
@@ -487,20 +504,36 @@ export default function MicroclimateFinalResults({
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Created By</label>
-                  <p className="text-sm text-gray-900">{microclimateData.created_by.name}</p>
+                  <label className="text-sm font-medium text-gray-600">
+                    Created By
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {microclimateData.created_by.name}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Status</label>
-                  <p className="text-sm text-gray-900">{microclimateData.status}</p>
+                  <label className="text-sm font-medium text-gray-600">
+                    Status
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {microclimateData.status}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Duration</label>
-                  <p className="text-sm text-gray-900">{microclimateData.duration_minutes} minutes</p>
+                  <label className="text-sm font-medium text-gray-600">
+                    Duration
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {microclimateData.duration_minutes} minutes
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Target Participants</label>
-                  <p className="text-sm text-gray-900">{microclimateData.target_participant_count}</p>
+                  <label className="text-sm font-medium text-gray-600">
+                    Target Participants
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {microclimateData.target_participant_count}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -511,21 +544,31 @@ export default function MicroclimateFinalResults({
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Department IDs</label>
+                  <label className="text-sm font-medium text-gray-600">
+                    Department IDs
+                  </label>
                   <p className="text-sm text-gray-900">
-                    {microclimateData.targeting?.department_ids?.join(', ') || 'All departments'}
+                    {microclimateData.targeting?.department_ids?.join(', ') ||
+                      'All departments'}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Role Filters</label>
+                  <label className="text-sm font-medium text-gray-600">
+                    Role Filters
+                  </label>
                   <p className="text-sm text-gray-900">
-                    {microclimateData.targeting?.role_filters?.join(', ') || 'All roles'}
+                    {microclimateData.targeting?.role_filters?.join(', ') ||
+                      'All roles'}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Include Managers</label>
+                  <label className="text-sm font-medium text-gray-600">
+                    Include Managers
+                  </label>
                   <p className="text-sm text-gray-900">
-                    {microclimateData.targeting?.include_managers ? 'Yes' : 'No'}
+                    {microclimateData.targeting?.include_managers
+                      ? 'Yes'
+                      : 'No'}
                   </p>
                 </div>
               </CardContent>
