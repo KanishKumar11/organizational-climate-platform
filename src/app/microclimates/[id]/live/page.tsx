@@ -102,7 +102,7 @@ async function getMicroclimateData(id: string, session: any) {
       );
     }
 
-    return {
+    const transformedData = {
       id: plainMicroclimate._id.toString(),
       title: plainMicroclimate.title,
       status: plainMicroclimate.status,
