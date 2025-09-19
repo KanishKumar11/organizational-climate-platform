@@ -109,11 +109,13 @@ export default function LiveMicroclimateDashboard({
           live_results: {
             ...prev.live_results,
             ...lastUpdate.live_results,
-            sentiment_distribution: lastUpdate.live_results.sentiment_distribution || prev.live_results.sentiment_distribution || {
-              positive: 33,
-              neutral: 34,
-              negative: 33,
-            },
+            sentiment_distribution: lastUpdate.live_results
+              .sentiment_distribution ||
+              prev.live_results.sentiment_distribution || {
+                positive: 33,
+                neutral: 34,
+                negative: 33,
+              },
           },
           ai_insights: lastUpdate.ai_insights,
         };
@@ -231,6 +233,54 @@ export default function LiveMicroclimateDashboard({
       }
     } catch (error) {
       console.error('Error ending microclimate:', error);
+    }
+  };
+
+  const handleExportData = async () => {
+    if (!microclimateData) return;
+
+    try {
+      const response = await fetch(
+        `/api/microclimates/${microclimateId}/export`,
+        {
+          method: 'GET',
+        }
+      );
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `microclimate-${microclimateData.title}-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Failed to export data. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      alert('Failed to export data. Please try again.');
+    }
+  };
+
+  const handleShareMicroclimate = async () => {
+    if (!microclimateData) return;
+
+    try {
+      // Generate shareable link
+      const shareUrl = `${window.location.origin}/microclimates/${microclimateId}/results`;
+
+      // Copy to clipboard
+      await navigator.clipboard.writeText(shareUrl);
+      alert('Shareable link copied to clipboard!');
+    } catch (error) {
+      console.error('Error sharing microclimate:', error);
+      // Fallback for browsers that don't support clipboard API
+      const shareUrl = `${window.location.origin}/microclimates/${microclimateId}/results`;
+      prompt('Copy this link to share:', shareUrl);
     }
   };
 
@@ -364,6 +414,8 @@ export default function LiveMicroclimateDashboard({
             <Button
               variant="outline"
               className="bg-white border-gray-200 hover:bg-gray-50 h-10 px-4"
+              onClick={handleExportData}
+              title="Export microclimate data"
             >
               <Download className="w-4 h-4 mr-2" />
               Export
@@ -372,6 +424,8 @@ export default function LiveMicroclimateDashboard({
             <Button
               variant="outline"
               className="bg-white border-gray-200 hover:bg-gray-50 h-10 px-4"
+              onClick={handleShareMicroclimate}
+              title="Share microclimate results"
             >
               <Share2 className="w-4 h-4 mr-2" />
               Share

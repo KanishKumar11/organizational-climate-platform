@@ -35,6 +35,7 @@
     "debug:user-lookup": "tsx --env-file=.env.local src/scripts/debug-user-lookup.ts",
     "debug:survey-sharing": "tsx --env-file=.env.local src/scripts/debug-survey-sharing-api.ts",
     "test:department-creation": "tsx --env-file=.env.local src/scripts/test-department-creation.ts",
+    "test:user-management": "tsx --env-file=.env.local src/scripts/test-user-management.ts",
     "fix:departments": "tsx --env-file=.env.local src/scripts/fix-department-company-ids.ts",
     "onboard:company": "tsx --env-file=.env.local src/scripts/enhanced-company-onboarding.ts",
     "migrate:departments": "tsx --env-file=.env.local src/scripts/department-hierarchy-migration.ts",

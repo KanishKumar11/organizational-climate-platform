@@ -100,6 +100,18 @@ export default function UserManagement() {
     password: '',
   });
 
+  // Edit User Modal State
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [isUpdatingUser, setIsUpdatingUser] = useState(false);
+  const [editingUser, setEditingUser] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    role: User['role'];
+    department_id: string;
+    is_active: boolean;
+  } | null>(null);
+
   useEffect(() => {
     fetchUsers();
     fetchDepartments();
@@ -221,6 +233,65 @@ export default function UserManagement() {
     } finally {
       setIsCreatingUser(false);
     }
+  };
+
+  const startEditingUser = (user: User) => {
+    setEditingUser({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      department_id: user.department_id,
+      is_active: user.is_active,
+    });
+    setShowEditUserModal(true);
+  };
+
+  const updateUser = async () => {
+    if (
+      !editingUser ||
+      !editingUser.name ||
+      !editingUser.email ||
+      !editingUser.department_id
+    ) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setIsUpdatingUser(true);
+    try {
+      const response = await fetch(`/api/admin/users/${editingUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editingUser.name,
+          email: editingUser.email,
+          role: editingUser.role,
+          department_id: editingUser.department_id,
+          is_active: editingUser.is_active,
+        }),
+      });
+
+      if (response.ok) {
+        fetchUsers(); // Refresh the list
+        setShowEditUserModal(false);
+        setEditingUser(null);
+        alert('User updated successfully!');
+      } else {
+        const error = await response.json();
+        alert(`Error updating user: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert('Failed to update user. Please try again.');
+    } finally {
+      setIsUpdatingUser(false);
+    }
+  };
+
+  const cancelEditUser = () => {
+    setShowEditUserModal(false);
+    setEditingUser(null);
   };
 
   const exportUsers = () => {
@@ -456,7 +527,12 @@ export default function UserManagement() {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEditingUser(user)}
+                          title="Edit user"
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button
@@ -613,6 +689,149 @@ export default function UserManagement() {
               disabled={isCreatingUser}
             >
               {isCreatingUser ? 'Creating...' : 'Create User'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Modal */}
+      <Dialog open={showEditUserModal} onOpenChange={setShowEditUserModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user information and settings.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-name" className="text-right">
+                Name *
+              </Label>
+              <Input
+                id="edit-name"
+                value={editingUser?.name || ''}
+                onChange={(e) =>
+                  setEditingUser(
+                    editingUser
+                      ? { ...editingUser, name: e.target.value }
+                      : null
+                  )
+                }
+                className="col-span-3"
+                placeholder="Full name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-email" className="text-right">
+                Email *
+              </Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editingUser?.email || ''}
+                onChange={(e) =>
+                  setEditingUser(
+                    editingUser
+                      ? { ...editingUser, email: e.target.value }
+                      : null
+                  )
+                }
+                className="col-span-3"
+                placeholder="email@company.com"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-role" className="text-right">
+                Role *
+              </Label>
+              <Select
+                value={editingUser?.role || 'employee'}
+                onValueChange={(value: User['role']) =>
+                  setEditingUser(
+                    editingUser ? { ...editingUser, role: value } : null
+                  )
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Employee</SelectItem>
+                  <SelectItem value="supervisor">Supervisor</SelectItem>
+                  <SelectItem value="leader">Leader</SelectItem>
+                  <SelectItem value="department_admin">
+                    Department Admin
+                  </SelectItem>
+                  <SelectItem value="company_admin">Company Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-department" className="text-right">
+                Department *
+              </Label>
+              <Select
+                value={editingUser?.department_id || ''}
+                onValueChange={(value) =>
+                  setEditingUser(
+                    editingUser
+                      ? { ...editingUser, department_id: value }
+                      : null
+                  )
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept._id} value={dept._id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-status" className="text-right">
+                Status
+              </Label>
+              <Select
+                value={editingUser?.is_active ? 'active' : 'inactive'}
+                onValueChange={(value) =>
+                  setEditingUser(
+                    editingUser
+                      ? { ...editingUser, is_active: value === 'active' }
+                      : null
+                  )
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={cancelEditUser}
+              disabled={isUpdatingUser}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={updateUser}
+              disabled={isUpdatingUser}
+            >
+              {isUpdatingUser ? 'Updating...' : 'Update User'}
             </Button>
           </DialogFooter>
         </DialogContent>
