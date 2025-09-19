@@ -110,14 +110,21 @@ export async function GET(request: NextRequest) {
 
 // POST /api/admin/departments - Create a new department
 export async function POST(request: NextRequest) {
+  console.log('🔍 [DEBUG] Department creation API called');
+
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
+      console.log('❌ [DEBUG] No session found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check permissions
     if (!hasPermission(session.user.role, 'company_admin')) {
+      console.log(
+        '❌ [DEBUG] Insufficient permissions for role:',
+        session.user.role
+      );
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
@@ -128,32 +135,52 @@ export async function POST(request: NextRequest) {
 
     const currentUser = await User.findById(session.user.id);
     if (!currentUser) {
+      console.log('❌ [DEBUG] User not found:', session.user.id);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const body = await request.json();
+    console.log('🔍 [DEBUG] Request body:', body);
+
     const validatedData = createDepartmentSchema.parse(body);
+    console.log('🔍 [DEBUG] Validated data:', validatedData);
 
     let parentDepartment = null;
     let level = 0;
+    let departmentPath = validatedData.name.toLowerCase().replace(/\s+/g, '-');
 
     // If parent department is specified, verify it exists and calculate level
     if (validatedData.parent_department_id) {
+      console.log(
+        '🔍 [DEBUG] Looking for parent department:',
+        validatedData.parent_department_id
+      );
+
       parentDepartment = await Department.findById(
         validatedData.parent_department_id
       );
       if (!parentDepartment) {
+        console.log('❌ [DEBUG] Parent department not found');
         return NextResponse.json(
           { error: 'Parent department not found' },
           { status: 400 }
         );
       }
 
+      console.log('🔍 [DEBUG] Parent department found:', {
+        name: parentDepartment.name,
+        path: parentDepartment.hierarchy.path,
+        level: parentDepartment.hierarchy.level,
+      });
+
       // Check if user can access parent department
       if (
         currentUser.role !== 'super_admin' &&
         parentDepartment.company_id !== currentUser.company_id
       ) {
+        console.log(
+          '❌ [DEBUG] Cannot create department under parent in different company'
+        );
         return NextResponse.json(
           {
             error: 'Cannot create department under parent in different company',
@@ -163,7 +190,14 @@ export async function POST(request: NextRequest) {
       }
 
       level = parentDepartment.hierarchy.level + 1;
+      departmentPath = `${parentDepartment.hierarchy.path}/${departmentPath}`;
     }
+
+    console.log('🔍 [DEBUG] Department hierarchy calculated:', {
+      level,
+      path: departmentPath,
+      parentId: validatedData.parent_department_id,
+    });
 
     // Check if department name already exists in the same company and level
     const existingDepartment = await Department.findOne({
@@ -174,6 +208,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingDepartment) {
+      console.log('❌ [DEBUG] Department with this name already exists');
       return NextResponse.json(
         { error: 'Department with this name already exists at this level' },
         { status: 400 }
@@ -181,7 +216,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create department
-    const newDepartment = new Department({
+    const departmentData = {
       name: validatedData.name,
       description: validatedData.description,
       company_id: currentUser.company_id,
@@ -189,11 +224,19 @@ export async function POST(request: NextRequest) {
       hierarchy: {
         level,
         parent_department_id: validatedData.parent_department_id || null,
+        path: departmentPath,
       },
-    });
+    };
 
+    console.log('🔍 [DEBUG] Creating department with data:', departmentData);
+
+    const newDepartment = new Department(departmentData);
+
+    console.log('🔍 [DEBUG] Attempting to save department...');
     await newDepartment.save();
+    console.log('✅ [DEBUG] Department saved successfully:', newDepartment._id);
 
+    console.log('✅ [DEBUG] Returning success response');
     return NextResponse.json(
       {
         department: newDepartment,
@@ -203,15 +246,23 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.log('❌ [DEBUG] Validation error:', error.issues);
       return NextResponse.json(
         { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
 
-    console.error('Error creating department:', error);
+    console.error('❌ [DEBUG] Error creating department:', error);
+    console.error(
+      '❌ [DEBUG] Error stack:',
+      error instanceof Error ? error.stack : 'No stack trace'
+    );
     return NextResponse.json(
-      { error: 'Failed to create department' },
+      {
+        error: 'Failed to create department',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }
