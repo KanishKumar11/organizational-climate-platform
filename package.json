@@ -39,6 +39,7 @@
     "test:microclimate-dashboard": "tsx src/scripts/test-microclimate-dashboard.ts",
     "debug:microclimate-live": "tsx --env-file=.env.local src/scripts/debug-microclimate-live-route.ts",
     "create:test-microclimate": "tsx --env-file=.env.local src/scripts/create-test-microclimate.ts",
+    "test:microclimate-serialization": "tsx --env-file=.env.local src/scripts/test-microclimate-serialization.ts",
     "fix:departments": "tsx --env-file=.env.local src/scripts/fix-department-company-ids.ts",
     "onboard:company": "tsx --env-file=.env.local src/scripts/enhanced-company-onboarding.ts",
     "migrate:departments": "tsx --env-file=.env.local src/scripts/department-hierarchy-migration.ts",

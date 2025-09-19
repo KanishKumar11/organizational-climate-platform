@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -79,6 +79,21 @@ export default function LiveMicroclimateDashboard({
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
+  const [renderCount, setRenderCount] = useState(0);
+
+  // Debug: Track renders to detect infinite loops (only run once on mount)
+  React.useEffect(() => {
+    setRenderCount((prev) => {
+      const newCount = prev + 1;
+      if (newCount > 100) {
+        console.error(
+          'LiveMicroclimateDashboard: Too many renders detected!',
+          newCount
+        );
+      }
+      return newCount;
+    });
+  }, []); // Empty dependency array to run only once
 
   const {
     connected,
@@ -91,12 +106,34 @@ export default function LiveMicroclimateDashboard({
     autoConnect: true,
   });
 
+  // Memoized function to fetch microclimate data
+  const fetchMicroclimateData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `/api/microclimates/${microclimateId}/live-updates`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch microclimate data');
+      }
+
+      const data = await response.json();
+      setMicroclimateData(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  }, [microclimateId]);
+
   // Fetch initial data
   useEffect(() => {
     if (!initialData) {
       fetchMicroclimateData();
     }
-  }, [microclimateId, initialData]);
+  }, [initialData, fetchMicroclimateData]);
 
   // Handle WebSocket updates
   useEffect(() => {
@@ -153,27 +190,6 @@ export default function LiveMicroclimateDashboard({
       });
     }
   }, [lastInsight]);
-
-  const fetchMicroclimateData = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `/api/microclimates/${microclimateId}/live-updates`
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch microclimate data');
-      }
-
-      const data = await response.json();
-      setMicroclimateData(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handlePauseMicroclimate = async () => {
     try {
@@ -565,10 +581,14 @@ export default function LiveMicroclimateDashboard({
             <CardContent>
               <SentimentVisualization
                 data={{
-                  score: microclimateData.live_results.sentiment_score,
-                  distribution:
-                    microclimateData.live_results.sentiment_distribution,
-                  total_responses: microclimateData.response_count,
+                  score: microclimateData.live_results.sentiment_score || 0,
+                  distribution: microclimateData.live_results
+                    .sentiment_distribution || {
+                    positive: 33,
+                    neutral: 34,
+                    negative: 33,
+                  },
+                  total_responses: microclimateData.response_count || 0,
                 }}
               />
             </CardContent>

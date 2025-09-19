@@ -80,16 +80,13 @@ export default function LiveParticipationTracker({
         {/* Response Count */}
         <motion.div
           key={pulseKey}
-          className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm"
-          animate={{
-            scale: [1, 1.02, 1],
-            boxShadow: [
-              '0 1px 3px rgba(0, 0, 0, 0.1)',
-              '0 4px 6px rgba(0, 0, 0, 0.1)',
-              '0 1px 3px rgba(0, 0, 0, 0.1)',
-            ],
+          className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-md"
+          initial={{ scale: 0.98, opacity: 0.8 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{
+            duration: 0.3,
+            ease: [0.4, 0, 0.2, 1],
           }}
-          transition={{ duration: 0.5 }}
         >
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -174,8 +171,8 @@ export default function LiveParticipationTracker({
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(data.participation_rate, 100)}%` }}
               transition={{
-                duration: 1,
-                ease: 'easeOut',
+                duration: 0.8,
+                ease: [0.4, 0, 0.2, 1], // Smooth cubic-bezier easing
               }}
             />
           </div>
@@ -206,8 +203,7 @@ export default function LiveParticipationTracker({
         <motion.div
           className="w-2 h-2 bg-green-500 rounded-full"
           animate={{
-            scale: [1, 1.5, 1],
-            opacity: [1, 0.5, 1],
+            opacity: [0.4, 1, 0.4],
           }}
           transition={{
             duration: 2,
@@ -218,30 +214,22 @@ export default function LiveParticipationTracker({
         <span className="text-sm text-gray-600">Live updates active</span>
       </div>
 
-      {/* Floating response indicators */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={`${pulseKey}-${i}`}
-            className="absolute w-8 h-8 bg-green-400 rounded-full opacity-20"
-            initial={{
-              x: Math.random() * 100 + '%',
-              y: '100%',
-              scale: 0,
-            }}
-            animate={{
-              y: '-20%',
-              scale: [0, 1, 0],
-              opacity: [0, 0.6, 0],
-            }}
-            transition={{
-              duration: 2,
-              delay: i * 0.3,
-              ease: 'easeOut',
-            }}
-          />
-        ))}
-      </div>
+      {/* Subtle background pulse for active state */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none rounded-xl"
+        animate={{
+          background: [
+            'radial-gradient(circle at center, rgba(16, 185, 129, 0.03) 0%, transparent 70%)',
+            'radial-gradient(circle at center, rgba(59, 130, 246, 0.03) 0%, transparent 70%)',
+            'radial-gradient(circle at center, rgba(16, 185, 129, 0.03) 0%, transparent 70%)',
+          ],
+        }}
+        transition={{
+          duration: 6,
+          repeat: Infinity,
+          ease: 'linear',
+        }}
+      />
     </div>
   );
 }

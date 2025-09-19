@@ -6,9 +6,58 @@ import { connectDB } from '@/lib/db';
 import Microclimate from '@/models/Microclimate';
 import LiveMicroclimateDashboard from '@/components/microclimate/LiveMicroclimateDashboard';
 import { Loading } from '@/components/ui/Loading';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+// Helper function to sanitize data for serialization with circular reference detection
+function sanitizeForSerialization(obj: any, seen = new WeakSet()): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (obj instanceof Date) {
+    return obj.toISOString();
+  }
+
+  if (typeof obj === 'object') {
+    // Detect circular references
+    if (seen.has(obj)) {
+      console.warn('Circular reference detected, skipping object');
+      return '[Circular Reference]';
+    }
+    seen.add(obj);
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => sanitizeForSerialization(item, seen));
+    }
+
+    const sanitized: any = {};
+    for (const key in obj) {
+      if (
+        obj.hasOwnProperty(key) &&
+        key !== '__v' &&
+        key !== '$__' &&
+        key !== '$isNew' &&
+        key !== '_doc' &&
+        key !== '$locals' &&
+        key !== '$op'
+      ) {
+        try {
+          sanitized[key] = sanitizeForSerialization(obj[key], seen);
+        } catch (error) {
+          console.warn(`Error sanitizing key ${key}:`, error);
+          sanitized[key] = null;
+        }
+      }
+    }
+    return sanitized;
+  }
+
+  return obj;
 }
 
 async function getMicroclimateData(id: string, session: any) {
@@ -41,25 +90,37 @@ async function getMicroclimateData(id: string, session: any) {
       return null;
     }
 
+    // Convert to plain object to avoid circular references and ensure serializability
+    const plainMicroclimate = microclimate.toObject
+      ? microclimate.toObject()
+      : microclimate;
+
+    // Ensure all dates are converted to ISO strings for serialization
+    if (plainMicroclimate.scheduling?.start_time) {
+      plainMicroclimate.scheduling.start_time = new Date(
+        plainMicroclimate.scheduling.start_time
+      );
+    }
+
     return {
-      id: microclimate._id.toString(),
-      title: microclimate.title,
-      status: microclimate.status,
-      response_count: microclimate.response_count || 0,
-      target_participant_count: microclimate.target_participant_count || 0,
-      participation_rate: microclimate.participation_rate || 0,
+      id: plainMicroclimate._id.toString(),
+      title: plainMicroclimate.title,
+      status: plainMicroclimate.status,
+      response_count: plainMicroclimate.response_count || 0,
+      target_participant_count: plainMicroclimate.target_participant_count || 0,
+      participation_rate: plainMicroclimate.participation_rate || 0,
       time_remaining: microclimate.isActive()
         ? Math.max(
             0,
             Math.floor(
-              (microclimate.scheduling.start_time.getTime() +
-                microclimate.scheduling.duration_minutes * 60 * 1000 -
+              (plainMicroclimate.scheduling.start_time.getTime() +
+                plainMicroclimate.scheduling.duration_minutes * 60 * 1000 -
                 Date.now()) /
                 (1000 * 60)
             )
           )
         : undefined,
-      live_results: microclimate.live_results || {
+      live_results: plainMicroclimate.live_results || {
         word_cloud_data: [],
         sentiment_score: 0,
         sentiment_distribution: {
@@ -71,29 +132,42 @@ async function getMicroclimateData(id: string, session: any) {
         response_distribution: {},
         top_themes: [],
       },
-      ai_insights: microclimate.ai_insights || [],
+      ai_insights: (plainMicroclimate.ai_insights || []).map(
+        (insight: any) => ({
+          type: insight.type,
+          message: insight.message,
+          confidence: insight.confidence,
+          timestamp: insight.timestamp
+            ? new Date(insight.timestamp)
+            : new Date(),
+          priority: insight.priority,
+        })
+      ),
       questions:
-        microclimate.questions?.map((q: any) => ({
+        plainMicroclimate.questions?.map((q: any) => ({
           question: q.text,
           responses:
             q.options?.map((option: string, index: number) => ({
               option,
               count:
-                microclimate.live_results?.response_distribution?.[
-                  `${q._id}_${index}`
+                plainMicroclimate.live_results?.response_distribution?.[
+                  `${q.id}_${index}`
                 ] || 0,
               percentage:
-                microclimate.response_count > 0
-                  ? ((microclimate.live_results?.response_distribution?.[
-                      `${q._id}_${index}`
+                plainMicroclimate.response_count > 0
+                  ? ((plainMicroclimate.live_results?.response_distribution?.[
+                      `${q.id}_${index}`
                     ] || 0) /
-                      microclimate.response_count) *
+                      plainMicroclimate.response_count) *
                     100
                   : 0,
             })) || [],
-          total_responses: microclimate.response_count || 0,
+          total_responses: plainMicroclimate.response_count || 0,
         })) || [],
     };
+
+    // Sanitize the entire data structure to ensure it's serializable
+    return sanitizeForSerialization(transformedData);
   } catch (error) {
     console.error('Error fetching microclimate data:', error);
     throw error;
@@ -118,14 +192,14 @@ export default async function LiveMicroclimatePage({ params }: PageProps) {
     }
 
     return (
-      <div className="container mx-auto px-4 py-6">
-        <Suspense fallback={<Loading size="lg" />}>
+      <DashboardLayout>
+        <ErrorBoundary>
           <LiveMicroclimateDashboard
             microclimateId={id}
             initialData={microclimateData}
           />
-        </Suspense>
-      </div>
+        </ErrorBoundary>
+      </DashboardLayout>
     );
   } catch (error) {
     console.error('Error in LiveMicroclimatePage:', error);

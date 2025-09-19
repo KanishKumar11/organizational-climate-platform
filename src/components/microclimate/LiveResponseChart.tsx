@@ -100,7 +100,7 @@ export default function LiveResponseChart({
                 <div className="relative">
                   <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                     <motion.div
-                      className="h-full rounded-full"
+                      className="h-full rounded-full transition-all duration-300"
                       style={{
                         backgroundColor:
                           CHART_COLORS[responseIndex % CHART_COLORS.length],
@@ -108,28 +108,20 @@ export default function LiveResponseChart({
                       initial={{ width: 0 }}
                       animate={{ width: `${response.percentage}%` }}
                       transition={{
-                        duration: 1,
-                        ease: 'easeOut',
-                        delay: responseIndex * 0.1,
+                        duration: 0.8,
+                        ease: [0.4, 0, 0.2, 1], // Custom cubic-bezier for smooth easing
+                        delay: responseIndex * 0.05, // Reduced delay for snappier feel
                       }}
                     />
                   </div>
 
-                  {/* Animated pulse effect for new responses */}
+                  {/* Subtle glow effect on hover */}
                   <motion.div
-                    className="absolute inset-0 rounded-full"
+                    className="absolute inset-0 rounded-full opacity-0 hover:opacity-20 transition-opacity duration-200"
                     style={{
                       backgroundColor:
                         CHART_COLORS[responseIndex % CHART_COLORS.length],
-                    }}
-                    animate={{
-                      opacity: [0, 0.3, 0],
-                      scale: [1, 1.05, 1],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: responseIndex * 0.2,
+                      boxShadow: `0 0 8px ${CHART_COLORS[responseIndex % CHART_COLORS.length]}`,
                     }}
                   />
                 </div>
@@ -137,34 +129,23 @@ export default function LiveResponseChart({
             ))}
           </div>
 
-          {/* Response Count Animation */}
-          <motion.div
-            className="mt-4 pt-4 border-t border-gray-100"
-            animate={{
-              scale: [1, 1.02, 1],
-            }}
-            transition={{
-              duration: 0.5,
-              repeat: Infinity,
-              repeatType: 'reverse',
-            }}
-            key={questionData.total_responses}
-          >
+          {/* Live Status Indicator */}
+          <div className="mt-4 pt-4 border-t border-gray-100">
             <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
               <motion.div
                 className="w-2 h-2 bg-green-500 rounded-full"
                 animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [1, 0.5, 1],
+                  opacity: [0.4, 1, 0.4],
                 }}
                 transition={{
-                  duration: 1.5,
+                  duration: 2,
                   repeat: Infinity,
+                  ease: 'easeInOut',
                 }}
               />
               <span>Live responses updating</span>
             </div>
-          </motion.div>
+          </div>
         </motion.div>
       ))}
 
@@ -199,30 +180,22 @@ export default function LiveResponseChart({
         </motion.div>
       )}
 
-      {/* Floating activity indicators */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(4)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-green-400 rounded-full"
-            animate={{
-              x: [0, 50, 0],
-              y: [0, -30, 0],
-              opacity: [0.5, 1, 0.5],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 3 + i * 0.5,
-              repeat: Infinity,
-              delay: i * 0.7,
-            }}
-            style={{
-              left: `${10 + i * 20}%`,
-              top: `${20 + i * 15}%`,
-            }}
-          />
-        ))}
-      </div>
+      {/* Subtle background animation for active state */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none rounded-xl"
+        animate={{
+          background: [
+            'linear-gradient(45deg, transparent 0%, rgba(16, 185, 129, 0.02) 50%, transparent 100%)',
+            'linear-gradient(45deg, transparent 0%, rgba(59, 130, 246, 0.02) 50%, transparent 100%)',
+            'linear-gradient(45deg, transparent 0%, rgba(16, 185, 129, 0.02) 50%, transparent 100%)',
+          ],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: 'linear',
+        }}
+      />
     </div>
   );
 }

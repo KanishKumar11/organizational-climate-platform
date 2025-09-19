@@ -34,10 +34,16 @@ export default function SentimentVisualization({
   });
 
   useEffect(() => {
-    // Animate score change
+    // Animate score change with safety checks
     const timer = setTimeout(() => {
-      setAnimatedScore(data.score);
-      setAnimatedDistribution(data.distribution);
+      setAnimatedScore(data?.score || 0);
+      setAnimatedDistribution(
+        data?.distribution || {
+          positive: 33,
+          neutral: 34,
+          negative: 33,
+        }
+      );
     }, 100);
 
     return () => clearTimeout(timer);
@@ -140,12 +146,12 @@ export default function SentimentVisualization({
               <motion.div
                 className="h-full bg-green-500 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: `${animatedDistribution.positive}%` }}
+                animate={{ width: `${animatedDistribution?.positive || 0}%` }}
                 transition={{ duration: 1, ease: 'easeOut' }}
               />
             </div>
             <span className="text-sm font-medium text-gray-700 w-12 text-right">
-              {animatedDistribution.positive.toFixed(0)}%
+              {(animatedDistribution?.positive || 0).toFixed(0)}%
             </span>
           </div>
 
@@ -161,12 +167,12 @@ export default function SentimentVisualization({
               <motion.div
                 className="h-full bg-yellow-500 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: `${animatedDistribution.neutral}%` }}
+                animate={{ width: `${animatedDistribution?.neutral || 0}%` }}
                 transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
               />
             </div>
             <span className="text-sm font-medium text-gray-700 w-12 text-right">
-              {animatedDistribution.neutral.toFixed(0)}%
+              {(animatedDistribution?.neutral || 0).toFixed(0)}%
             </span>
           </div>
 
@@ -180,12 +186,12 @@ export default function SentimentVisualization({
               <motion.div
                 className="h-full bg-red-500 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: `${animatedDistribution.negative}%` }}
+                animate={{ width: `${animatedDistribution?.negative || 0}%` }}
                 transition={{ duration: 1, ease: 'easeOut', delay: 0.4 }}
               />
             </div>
             <span className="text-sm font-medium text-gray-700 w-12 text-right">
-              {animatedDistribution.negative.toFixed(0)}%
+              {(animatedDistribution?.negative || 0).toFixed(0)}%
             </span>
           </div>
         </div>
