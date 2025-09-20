@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
       const correctStatus = determineStatusFromTiming(
         microclimate.scheduling.start_time,
         microclimate.scheduling.duration_minutes
-      );
+      ) as typeof microclimate.status;
 
       // Only update if the status should change and it's a valid transition
       if (currentStatus !== correctStatus) {

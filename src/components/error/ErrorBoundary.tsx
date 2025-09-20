@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import ErrorHandler from '@/lib/error-handling';
 
 interface Props {
   children: ReactNode;
@@ -29,8 +28,6 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  private errorHandler: ErrorHandler;
-
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -40,7 +37,6 @@ export class ErrorBoundary extends Component<Props, State> {
       errorId: null,
       retryCount: 0,
     };
-    this.errorHandler = ErrorHandler.getInstance();
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
@@ -66,18 +62,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private async logError(error: Error, errorInfo: ErrorInfo): Promise<string> {
     try {
-      const errorDetails = await this.errorHandler.handleError(
-        error,
-        {
-          timestamp: new Date(),
-          url: window.location.href,
-          user_agent: navigator.userAgent,
-        },
-        'system',
-        'high'
-      );
+      // Log error to console for client-side debugging
+      console.error('Client-side error caught by ErrorBoundary:', {
+        error: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+      });
 
-      return errorDetails.error_code;
+      // Generate a simple error ID
+      const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      return errorId;
     } catch (logError) {
       console.error('Failed to log error:', logError);
       return 'UNKNOWN_ERROR';

@@ -35,11 +35,13 @@ interface LiveMicroclimateDashboardProps {
 interface MicroclimateData {
   id: string;
   title: string;
-  status: 'active' | 'paused' | 'completed';
+  status: 'active' | 'paused' | 'completed' | 'scheduled';
   response_count: number;
   target_participant_count: number;
   participation_rate: number;
   time_remaining?: number;
+  start_time?: string;
+  duration_minutes?: number;
   live_results: {
     word_cloud_data: Array<{ text: string; value: number }>;
     sentiment_score: number;
@@ -335,7 +337,9 @@ export default function LiveMicroclimateDashboard({
       case 'paused':
         return 'bg-yellow-100 text-yellow-800';
       case 'completed':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-blue-100 text-blue-800';
+      case 'scheduled':
+        return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -501,10 +505,50 @@ export default function LiveMicroclimateDashboard({
         </motion.div>
       )}
 
+      {/* Scheduled Microclimate View */}
+      {microclimateData.status === 'scheduled' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-12"
+        >
+          <Card className="border-0 shadow-lg max-w-md mx-auto">
+            <CardContent className="p-8">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Microclimate Scheduled
+              </h3>
+              <p className="text-gray-600 mb-6">
+                This microclimate is scheduled to start soon. The live dashboard
+                will be available once it becomes active.
+              </p>
+              {microclimateData.start_time && (
+                <div className="bg-purple-50 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-purple-800 font-medium">
+                    Scheduled Start Time
+                  </p>
+                  <p className="text-purple-900">
+                    {new Date(microclimateData.start_time).toLocaleString()}
+                  </p>
+                </div>
+              )}
+              <Button
+                onClick={() => window.location.reload()}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh Status
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* Main Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Participation & Charts */}
-        <div className="lg:col-span-2 space-y-6">
+      {microclimateData.status !== 'scheduled' && (
+        <div className="space-y-6">
           {/* Participation Tracker */}
           <Card className="border-0 shadow-sm">
             <CardHeader>
@@ -530,6 +574,52 @@ export default function LiveMicroclimateDashboard({
             </CardContent>
           </Card>
 
+          {/* Word Cloud & Sentiment Analysis - Standardized Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Word Cloud */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <MessageSquare className="w-5 h-5 text-purple-600" />
+                  </div>
+                  Live Word Cloud
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LiveWordCloud
+                  data={microclimateData.live_results.word_cloud_data}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Sentiment Analysis */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Activity className="w-5 h-5 text-orange-600" />
+                  </div>
+                  Sentiment Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SentimentVisualization
+                  data={{
+                    score: microclimateData.live_results.sentiment_score || 0,
+                    distribution: microclimateData.live_results
+                      .sentiment_distribution || {
+                      positive: 33,
+                      neutral: 34,
+                      negative: 33,
+                    },
+                    total_responses: microclimateData.response_count || 0,
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Response Charts */}
           {microclimateData.questions &&
             microclimateData.questions.length > 0 && (
@@ -547,52 +637,6 @@ export default function LiveMicroclimateDashboard({
                 </CardContent>
               </Card>
             )}
-        </div>
-
-        {/* Right Column - Word Cloud & Sentiment */}
-        <div className="space-y-6">
-          {/* Word Cloud */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <MessageSquare className="w-5 h-5 text-purple-600" />
-                </div>
-                Live Word Cloud
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LiveWordCloud
-                data={microclimateData.live_results.word_cloud_data}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Sentiment Analysis */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <Activity className="w-5 h-5 text-orange-600" />
-                </div>
-                Sentiment Analysis
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SentimentVisualization
-                data={{
-                  score: microclimateData.live_results.sentiment_score || 0,
-                  distribution: microclimateData.live_results
-                    .sentiment_distribution || {
-                    positive: 33,
-                    neutral: 34,
-                    negative: 33,
-                  },
-                  total_responses: microclimateData.response_count || 0,
-                }}
-              />
-            </CardContent>
-          </Card>
 
           {/* AI Insights */}
           {microclimateData.ai_insights.length > 0 && (
@@ -637,7 +681,7 @@ export default function LiveMicroclimateDashboard({
             </Card>
           )}
         </div>
-      </div>
+      )}
     </main>
   );
 }

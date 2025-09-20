@@ -83,8 +83,12 @@ async function getMicroclimateData(id: string, session: any) {
       }
     }
 
-    // Only allow access to active, paused, or recently completed microclimates
-    if (!['active', 'paused', 'completed'].includes(microclimate.status)) {
+    // Only allow access to active, paused, completed, or scheduled microclimates
+    if (
+      !['active', 'paused', 'completed', 'scheduled'].includes(
+        microclimate.status
+      )
+    ) {
       console.log(
         `Microclimate ${id} has invalid status: ${microclimate.status}`
       );
@@ -103,6 +107,8 @@ async function getMicroclimateData(id: string, session: any) {
       response_count: plainMicroclimate.response_count || 0,
       target_participant_count: plainMicroclimate.target_participant_count || 0,
       participation_rate: plainMicroclimate.participation_rate || 0,
+      start_time: plainMicroclimate.scheduling.start_time.toISOString(),
+      duration_minutes: plainMicroclimate.scheduling.duration_minutes,
       time_remaining: microclimate.isActive()
         ? Math.max(
             0,

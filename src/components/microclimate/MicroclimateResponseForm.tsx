@@ -24,9 +24,9 @@ interface Response {
 interface MicroclimateResponseFormProps {
   microclimateId: string;
   questions: Question[];
-  onSubmit?: () => void;
   className?: string;
   invitationToken?: string;
+  redirectToLiveResults?: boolean;
 }
 
 const LIKERT_OPTIONS = [
@@ -48,9 +48,9 @@ const EMOJI_OPTIONS = [
 export default function MicroclimateResponseForm({
   microclimateId,
   questions,
-  onSubmit,
   className = '',
   invitationToken,
+  redirectToLiveResults = false,
 }: MicroclimateResponseFormProps) {
   const [responses, setResponses] = useState<Record<string, Response>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -136,7 +136,13 @@ export default function MicroclimateResponseForm({
       });
 
       setSubmitted(true);
-      onSubmit?.();
+
+      // Handle redirect to live results if enabled
+      if (redirectToLiveResults) {
+        setTimeout(() => {
+          window.location.href = `/microclimates/${microclimateId}/live`;
+        }, 2000);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

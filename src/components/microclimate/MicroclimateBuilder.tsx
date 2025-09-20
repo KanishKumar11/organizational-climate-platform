@@ -109,27 +109,43 @@ const SAMPLE_QUESTIONS = [
   {
     text: 'How satisfied are you with your current work environment?',
     type: 'likert' as const,
+    description: 'Uses satisfaction scale: Very Dissatisfied → Very Satisfied',
   },
   {
     text: 'How would you rate team collaboration this week?',
     type: 'emoji_rating' as const,
+    description: 'Uses emoji scale for quick mood assessment',
   },
   {
     text: 'What is your current stress level?',
     type: 'likert' as const,
+    description: 'Uses stress scale: Very Low → Very High',
   },
   {
     text: 'How supported do you feel by your manager?',
     type: 'likert' as const,
+    description: 'Uses support scale: Not Supported → Excellently Supported',
+  },
+  {
+    text: 'How engaged do you feel with your current work?',
+    type: 'likert' as const,
+    description: 'Uses engagement scale: Not Engaged → Extremely Engaged',
+  },
+  {
+    text: 'How likely are you to recommend this company as a great place to work?',
+    type: 'likert' as const,
+    description: 'Uses likelihood scale: Very Unlikely → Very Likely',
   },
   {
     text: 'What could be improved in our team processes?',
     type: 'open_ended' as const,
+    description: 'Open text for detailed feedback',
   },
   {
     text: 'Which area needs the most attention?',
     type: 'multiple_choice' as const,
     options: ['Communication', 'Workload', 'Resources', 'Leadership'],
+    description: 'Multiple choice with predefined options',
   },
 ];
 
@@ -331,7 +347,7 @@ export default function MicroclimateBuilder() {
         if (status === 'active') {
           router.push(`/microclimates/${result.microclimate._id}/live`);
         } else {
-          router.push('/microclimates');
+          router.push(`/microclimates/${result.microclimate._id}`);
         }
       } else {
         // Get the error response body for better debugging
