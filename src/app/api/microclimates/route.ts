@@ -121,13 +121,25 @@ export async function GET(request: NextRequest) {
       .sort({ created_at: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('created_by', 'name email')
-      .lean();
+      .populate('created_by', 'name email');
+
+    // Auto-update expired microclimates to completed status
+    const updatedMicroclimates = [];
+    for (const microclimate of microclimates) {
+      if (microclimate.status === 'active' && !microclimate.isActive()) {
+        console.log(
+          `Auto-updating expired microclimate ${microclimate._id} to completed status`
+        );
+        microclimate.status = 'completed';
+        await microclimate.save();
+      }
+      updatedMicroclimates.push(microclimate.toObject());
+    }
 
     const total = await Microclimate.countDocuments(query);
 
     return NextResponse.json({
-      microclimates,
+      microclimates: updatedMicroclimates,
       pagination: {
         page,
         limit,

@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/Loading';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
 import {
   Plus,
@@ -164,6 +171,33 @@ export default function MicroclimateDashboard() {
     }
   };
 
+  const handleAnalytics = (microclimateId: string) => {
+    router.push(`/microclimates/${microclimateId}/analytics`);
+  };
+
+  const handleMenuAction = (microclimateId: string, action: string) => {
+    switch (action) {
+      case 'view':
+        router.push(`/microclimates/${microclimateId}`);
+        break;
+      case 'edit':
+        router.push(`/microclimates/${microclimateId}/edit`);
+        break;
+      case 'analytics':
+        handleAnalytics(microclimateId);
+        break;
+      case 'duplicate':
+        // TODO: Implement duplicate functionality
+        console.log('Duplicate microclimate:', microclimateId);
+        break;
+      case 'delete':
+        handleDelete(microclimateId);
+        break;
+      default:
+        console.log('Unknown action:', action);
+    }
+  };
+
   const filteredMicroclimates = microclimates.filter(
     (microclimate) =>
       microclimate.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -268,6 +302,7 @@ export default function MicroclimateDashboard() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               variant="outline"
+              onClick={() => router.push('/microclimates/analytics')}
               className="flex items-center gap-2 bg-white h-12 px-6 border-gray-200 hover:bg-gray-50"
             >
               <BarChart3 className="h-4 w-4" />
@@ -409,15 +444,66 @@ export default function MicroclimateDashboard() {
                   </div>
                   <div className="flex items-center space-x-2">
                     {getStatusBadge(microclimate.status)}
-                    <div className="relative">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="hover:bg-gray-100"
-                      >
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="hover:bg-gray-100"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleMenuAction(microclimate._id, 'view')
+                          }
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleMenuAction(microclimate._id, 'analytics')
+                          }
+                        >
+                          <BarChart3 className="h-4 w-4 mr-2" />
+                          Analytics
+                        </DropdownMenuItem>
+                        {microclimate.status === 'draft' && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleMenuAction(microclimate._id, 'edit')
+                            }
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleMenuAction(microclimate._id, 'duplicate')
+                          }
+                        >
+                          <Activity className="h-4 w-4 mr-2" />
+                          Duplicate
+                        </DropdownMenuItem>
+                        {(microclimate.status === 'draft' ||
+                          microclimate.status === 'completed') && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleMenuAction(microclimate._id, 'delete')
+                            }
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 

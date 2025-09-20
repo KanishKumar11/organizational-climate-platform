@@ -168,9 +168,28 @@ export default function CompanyAdminDashboard() {
       if (response.ok) {
         const data = await response.json();
         setDashboardData(data);
+      } else {
+        // Handle HTTP error responses
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
+        console.error('Dashboard API error:', response.status, errorData);
+
+        // For debugging - show more specific error information
+        if (response.status === 403) {
+          console.error('Access denied - user may not have company_admin role');
+        } else if (response.status === 404) {
+          console.error('User not found in database');
+        } else if (response.status === 500) {
+          console.error('Server error - check database connection and models');
+        }
+
+        // Set dashboardData to null so the error UI shows
+        setDashboardData(null);
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
+      setDashboardData(null);
     } finally {
       setLoading(false);
     }

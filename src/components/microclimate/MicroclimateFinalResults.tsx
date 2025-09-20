@@ -92,7 +92,69 @@ export default function MicroclimateFinalResults({
   data,
 }: MicroclimateFinalResultsProps) {
   const [isExporting, setIsExporting] = useState(false);
-  const microclimateData = data as MicroclimateResultsData;
+
+  // Safely parse and validate the data to prevent circular references and missing properties
+  const microclimateData = React.useMemo(() => {
+    if (!data) return null;
+
+    try {
+      // Create a safe copy of the data with default values
+      const safeData: MicroclimateResultsData = {
+        id: data.id || microclimateId,
+        title: data.title || 'Untitled Microclimate',
+        description: data.description || '',
+        status: data.status || 'completed',
+        response_count: data.response_count || 0,
+        target_participant_count: data.target_participant_count || 0,
+        participation_rate: data.participation_rate || 0,
+        created_at: data.created_at || new Date().toISOString(),
+        updated_at: data.updated_at || new Date().toISOString(),
+        duration_minutes: data.duration_minutes || 30,
+        live_results: {
+          word_cloud_data: data.live_results?.word_cloud_data || [],
+          sentiment_score: data.live_results?.sentiment_score || 0,
+          sentiment_distribution: data.live_results?.sentiment_distribution || {
+            positive: 0,
+            neutral: 0,
+            negative: 0,
+          },
+          engagement_level: data.live_results?.engagement_level || 'low',
+          response_distribution: data.live_results?.response_distribution || {},
+          top_themes: data.live_results?.top_themes || [],
+        },
+        ai_insights: data.ai_insights || [],
+        questions: data.questions || [],
+        responses: data.responses || [],
+        targeting: data.targeting || {},
+        created_by: {
+          name: data.created_by?.name || 'Unknown',
+          id: data.created_by?.id || '',
+        },
+      };
+
+      return safeData;
+    } catch (error) {
+      console.error('Error parsing microclimate data:', error);
+      return null;
+    }
+  }, [data, microclimateId]);
+
+  // Early return if data is invalid
+  if (!microclimateData) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Invalid Data
+          </h3>
+          <p className="text-gray-600">
+            Unable to load microclimate results data.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const handleExport = async (format: 'csv' | 'json') => {
     try {
@@ -161,13 +223,22 @@ export default function MicroclimateFinalResults({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    try {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid Date';
+    }
   };
 
   return (

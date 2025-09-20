@@ -134,6 +134,8 @@ export default function MicroclimateBuilder() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [participationThresholdInput, setParticipationThresholdInput] =
+    useState('3');
   const [microclimateData, setMicroclimateData] = useState<MicroclimateData>({
     title: '',
     description: '',
@@ -1202,20 +1204,56 @@ export default function MicroclimateBuilder() {
                               type="number"
                               min="1"
                               max="50"
-                              value={
-                                microclimateData.real_time_settings
-                                  .participation_threshold
-                              }
-                              onChange={(e) =>
-                                setMicroclimateData((prev) => ({
-                                  ...prev,
-                                  real_time_settings: {
-                                    ...prev.real_time_settings,
-                                    participation_threshold:
-                                      parseInt(e.target.value) || 3,
-                                  },
-                                }))
-                              }
+                              value={participationThresholdInput}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setParticipationThresholdInput(value);
+
+                                // Update the actual state only if we have a valid number
+                                const numericValue = parseInt(value);
+                                if (
+                                  !isNaN(numericValue) &&
+                                  numericValue >= 1 &&
+                                  numericValue <= 50
+                                ) {
+                                  setMicroclimateData((prev) => ({
+                                    ...prev,
+                                    real_time_settings: {
+                                      ...prev.real_time_settings,
+                                      participation_threshold: numericValue,
+                                    },
+                                  }));
+                                }
+                              }}
+                              onBlur={(e) => {
+                                // Ensure we have a valid value when the field loses focus
+                                const value = e.target.value;
+                                const numericValue = parseInt(value);
+
+                                if (
+                                  value === '' ||
+                                  isNaN(numericValue) ||
+                                  numericValue < 1
+                                ) {
+                                  setParticipationThresholdInput('1');
+                                  setMicroclimateData((prev) => ({
+                                    ...prev,
+                                    real_time_settings: {
+                                      ...prev.real_time_settings,
+                                      participation_threshold: 1,
+                                    },
+                                  }));
+                                } else if (numericValue > 50) {
+                                  setParticipationThresholdInput('50');
+                                  setMicroclimateData((prev) => ({
+                                    ...prev,
+                                    real_time_settings: {
+                                      ...prev.real_time_settings,
+                                      participation_threshold: 50,
+                                    },
+                                  }));
+                                }
+                              }}
                               className="text-base h-12"
                             />
                           </div>

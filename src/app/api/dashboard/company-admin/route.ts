@@ -10,9 +10,12 @@ import Department from '@/models/Department';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('Company Admin Dashboard API called');
     const session = await getServerSession(authOptions);
+    console.log('Session:', session?.user?.role, session?.user?.id);
 
     if (!session?.user || session.user.role !== 'company_admin') {
+      console.log('Access denied - not company admin');
       return NextResponse.json(
         { error: 'Unauthorized - Company Admin access required' },
         { status: 403 }
@@ -20,13 +23,22 @@ export async function GET(request: NextRequest) {
     }
 
     await connectDB();
+    console.log('Database connected');
 
     const user = await (User as any).findById(session.user.id);
+    console.log('User found:', !!user, user?.company_id);
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const companyId = user.company_id;
+    if (!companyId) {
+      console.log('User has no company_id');
+      return NextResponse.json(
+        { error: 'User not associated with a company' },
+        { status: 400 }
+      );
+    }
 
     // Get company-specific KPIs
     const [
