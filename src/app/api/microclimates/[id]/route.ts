@@ -5,6 +5,11 @@ import { connectDB } from '@/lib/db';
 import Microclimate from '@/models/Microclimate';
 import User from '@/models/User';
 import { hasPermission } from '@/lib/permissions';
+import {
+  convertLocalDateTimeToUTC,
+  validateSchedulingDateTime,
+  validateDuration,
+} from '@/lib/datetime-utils';
 import { z } from 'zod';
 
 // Validation schema for updating microclimates
@@ -23,7 +28,7 @@ const updateMicroclimateSchema = z.object({
     .optional(),
   scheduling: z
     .object({
-      start_time: z.string().datetime(),
+      start_time: z.string().min(1), // Accept datetime-local format, will be validated separately
       duration_minutes: z.number().min(5).max(480),
       timezone: z.string(),
       auto_close: z.boolean(),
@@ -187,13 +192,53 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = updateMicroclimateSchema.parse(body);
 
+    // Validate scheduling if being updated
+    if (validatedData.scheduling) {
+      // Validate scheduling datetime
+      const datetimeValidation = validateSchedulingDateTime(
+        validatedData.scheduling.start_time,
+        validatedData.scheduling.timezone
+      );
+
+      if (!datetimeValidation.isValid) {
+        return NextResponse.json(
+          {
+            error: 'Invalid start time',
+            message: datetimeValidation.error,
+            errorCode: datetimeValidation.errorCode,
+          },
+          { status: 400 }
+        );
+      }
+
+      // Validate duration
+      const durationValidation = validateDuration(
+        validatedData.scheduling.duration_minutes
+      );
+      if (!durationValidation.isValid) {
+        return NextResponse.json(
+          {
+            error: 'Invalid duration',
+            message: durationValidation.error,
+            errorCode: durationValidation.errorCode,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update fields
     Object.keys(validatedData).forEach((key) => {
       if (key === 'scheduling' && validatedData.scheduling) {
+        const startTimeUTC = convertLocalDateTimeToUTC(
+          validatedData.scheduling.start_time,
+          validatedData.scheduling.timezone
+        );
+
         microclimate.scheduling = {
           ...microclimate.scheduling,
           ...validatedData.scheduling,
-          start_time: new Date(validatedData.scheduling.start_time),
+          start_time: startTimeUTC,
         };
       } else if (key === 'targeting' && validatedData.targeting) {
         microclimate.targeting = {

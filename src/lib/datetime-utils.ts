@@ -1,6 +1,25 @@
 /**
- * Utility functions for handling datetime operations, especially for HTML datetime-local inputs
+ * Comprehensive utility functions for handling datetime operations across the entire application
+ * Provides consistent validation, conversion, and formatting for all date/time operations
  */
+
+// Standard validation constants
+export const DATETIME_VALIDATION = {
+  PAST_GRACE_PERIOD_MINUTES: 5,
+  MAX_FUTURE_YEARS: 1,
+  MIN_DURATION_MINUTES: 5,
+  MAX_DURATION_MINUTES: 480, // 8 hours
+} as const;
+
+// Standard error messages
+export const DATETIME_ERROR_MESSAGES = {
+  PAST_TIME: 'Start time cannot be in the past. Please select a future time.',
+  FAR_FUTURE: 'Start time cannot be more than 1 year in the future.',
+  INVALID_FORMAT: 'Invalid date/time format provided.',
+  END_BEFORE_START: 'End time must be after start time.',
+  INVALID_DURATION: 'Duration must be between 5 minutes and 8 hours.',
+  INVALID_TIMEZONE: 'Invalid timezone provided.',
+} as const;
 
 /**
  * Formats a Date object for use with HTML datetime-local input
@@ -149,6 +168,175 @@ export function formatUTCDateForDisplay(
 ): string {
   const date = new Date(utcDateString);
   return formatDateForDisplay(date, userTimezone, options);
+}
+
+/**
+ * Comprehensive date/time validation for scheduling operations
+ * Used across all components that handle date/time input
+ */
+export interface DateTimeValidationResult {
+  isValid: boolean;
+  error?: string;
+  errorCode?: keyof typeof DATETIME_ERROR_MESSAGES;
+}
+
+/**
+ * Validates a datetime-local input value for scheduling
+ * Applies consistent validation rules across the entire application
+ *
+ * @param datetimeLocalValue - The value from a datetime-local input
+ * @param userTimezone - User's timezone for conversion
+ * @param options - Additional validation options
+ * @returns Validation result with error details if invalid
+ */
+export function validateSchedulingDateTime(
+  datetimeLocalValue: string,
+  userTimezone: string,
+  options: {
+    allowPastWithGracePeriod?: boolean;
+    maxFutureYears?: number;
+    customMinDate?: Date;
+    customMaxDate?: Date;
+  } = {}
+): DateTimeValidationResult {
+  try {
+    // Check if the input is empty or invalid format
+    if (!datetimeLocalValue || !datetimeLocalValue.includes('T')) {
+      return {
+        isValid: false,
+        error: DATETIME_ERROR_MESSAGES.INVALID_FORMAT,
+        errorCode: 'INVALID_FORMAT',
+      };
+    }
+
+    // Convert to UTC for validation
+    const utcDate = convertLocalDateTimeToUTC(datetimeLocalValue, userTimezone);
+    const now = new Date();
+
+    // Check for past time (with grace period if allowed)
+    if (options.allowPastWithGracePeriod !== false) {
+      const gracePeriod = new Date(
+        now.getTime() -
+          DATETIME_VALIDATION.PAST_GRACE_PERIOD_MINUTES * 60 * 1000
+      );
+      if (utcDate < gracePeriod) {
+        return {
+          isValid: false,
+          error: DATETIME_ERROR_MESSAGES.PAST_TIME,
+          errorCode: 'PAST_TIME',
+        };
+      }
+    } else if (utcDate < now) {
+      return {
+        isValid: false,
+        error: DATETIME_ERROR_MESSAGES.PAST_TIME,
+        errorCode: 'PAST_TIME',
+      };
+    }
+
+    // Check for far future time
+    const maxFutureYears =
+      options.maxFutureYears || DATETIME_VALIDATION.MAX_FUTURE_YEARS;
+    const maxFutureDate = new Date(
+      now.getTime() + maxFutureYears * 365 * 24 * 60 * 60 * 1000
+    );
+    if (utcDate > maxFutureDate) {
+      return {
+        isValid: false,
+        error: DATETIME_ERROR_MESSAGES.FAR_FUTURE,
+        errorCode: 'FAR_FUTURE',
+      };
+    }
+
+    // Check custom date bounds if provided
+    if (options.customMinDate && utcDate < options.customMinDate) {
+      return {
+        isValid: false,
+        error: DATETIME_ERROR_MESSAGES.PAST_TIME,
+        errorCode: 'PAST_TIME',
+      };
+    }
+
+    if (options.customMaxDate && utcDate > options.customMaxDate) {
+      return {
+        isValid: false,
+        error: DATETIME_ERROR_MESSAGES.FAR_FUTURE,
+        errorCode: 'FAR_FUTURE',
+      };
+    }
+
+    return { isValid: true };
+  } catch (error) {
+    return {
+      isValid: false,
+      error: DATETIME_ERROR_MESSAGES.INVALID_FORMAT,
+      errorCode: 'INVALID_FORMAT',
+    };
+  }
+}
+
+/**
+ * Validates duration in minutes
+ * @param durationMinutes - Duration to validate
+ * @returns Validation result
+ */
+export function validateDuration(
+  durationMinutes: number
+): DateTimeValidationResult {
+  if (
+    durationMinutes < DATETIME_VALIDATION.MIN_DURATION_MINUTES ||
+    durationMinutes > DATETIME_VALIDATION.MAX_DURATION_MINUTES
+  ) {
+    return {
+      isValid: false,
+      error: DATETIME_ERROR_MESSAGES.INVALID_DURATION,
+      errorCode: 'INVALID_DURATION',
+    };
+  }
+  return { isValid: true };
+}
+
+/**
+ * Validates start and end date relationship
+ * @param startDate - Start date
+ * @param endDate - End date
+ * @returns Validation result
+ */
+export function validateDateRange(
+  startDate: Date,
+  endDate: Date
+): DateTimeValidationResult {
+  if (endDate <= startDate) {
+    return {
+      isValid: false,
+      error: DATETIME_ERROR_MESSAGES.END_BEFORE_START,
+      errorCode: 'END_BEFORE_START',
+    };
+  }
+  return { isValid: true };
+}
+
+/**
+ * Gets the minimum datetime-local value (current time + grace period)
+ * Used for HTML datetime-local min attribute
+ */
+export function getMinDateTimeLocal(): string {
+  const now = new Date();
+  const minTime = new Date(now.getTime() + 60 * 1000); // 1 minute from now
+  return formatDateForDatetimeLocal(minTime);
+}
+
+/**
+ * Gets the maximum datetime-local value (1 year from now)
+ * Used for HTML datetime-local max attribute
+ */
+export function getMaxDateTimeLocal(): string {
+  const now = new Date();
+  const maxTime = new Date(
+    now.getTime() +
+      DATETIME_VALIDATION.MAX_FUTURE_YEARS * 365 * 24 * 60 * 60 * 1000
+  );
+  return formatDateForDatetimeLocal(maxTime);
 }
 
 /**

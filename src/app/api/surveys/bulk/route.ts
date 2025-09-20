@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import Survey from '@/models/Survey';
 import { hasPermission } from '@/lib/permissions';
+import {
+  validateDateRange,
+  DATETIME_ERROR_MESSAGES,
+} from '@/lib/datetime-utils';
 
 // Bulk operations on surveys
 export async function POST(request: NextRequest) {
@@ -169,9 +173,15 @@ export async function POST(request: NextRequest) {
         const startDate = new Date(data.start_date);
         const endDate = new Date(data.end_date);
 
-        if (endDate <= startDate) {
+        // Use centralized date range validation
+        const dateRangeValidation = validateDateRange(startDate, endDate);
+        if (!dateRangeValidation.isValid) {
           return NextResponse.json(
-            { error: 'End date must be after start date' },
+            {
+              error: 'Invalid date range',
+              message: dateRangeValidation.error,
+              errorCode: dateRangeValidation.errorCode,
+            },
             { status: 400 }
           );
         }

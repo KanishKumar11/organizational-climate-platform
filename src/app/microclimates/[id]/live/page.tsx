@@ -39,13 +39,48 @@ async function getMicroclimateData(id: string, session: any) {
       return null;
     }
 
-    // Auto-update expired microclimates to completed status
-    if (microclimate.status === 'active' && !microclimate.isActive()) {
-      console.log(
-        `Auto-updating expired microclimate ${id} to completed status`
+    // Helper function to determine correct status based on timing
+    function determineStatusFromTiming(
+      startTime: Date,
+      durationMinutes: number
+    ): string {
+      const now = new Date();
+      const endTime = new Date(
+        startTime.getTime() + durationMinutes * 60 * 1000
       );
-      microclimate.status = 'completed';
-      await microclimate.save();
+
+      if (now < startTime) {
+        return 'scheduled';
+      } else if (now >= startTime && now <= endTime) {
+        return 'active';
+      } else {
+        return 'completed';
+      }
+    }
+
+    // Auto-update microclimate status based on current time
+    const currentStatus = microclimate.status;
+    const correctStatus = determineStatusFromTiming(
+      microclimate.scheduling.start_time,
+      microclimate.scheduling.duration_minutes
+    );
+
+    // Only update if the status should change and it's a valid transition
+    if (currentStatus !== correctStatus) {
+      // Valid transitions: scheduled -> active -> completed
+      const validTransitions = {
+        scheduled: ['active', 'completed'],
+        active: ['completed'],
+        draft: ['scheduled', 'active', 'completed'],
+      };
+
+      if (validTransitions[currentStatus]?.includes(correctStatus)) {
+        console.log(
+          `Auto-updating microclimate ${id} from ${currentStatus} to ${correctStatus}`
+        );
+        microclimate.status = correctStatus;
+        await microclimate.save();
+      }
     }
 
     // Only allow access to active, paused, or recently completed microclimates

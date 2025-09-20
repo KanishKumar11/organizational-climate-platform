@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import Department from '@/models/Department';
 import { hasPermission } from '@/lib/permissions';
+import { getUserTimezone } from '@/lib/datetime-utils';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
       is_active: validatedData.is_active,
       preferences: {
         language: 'en',
-        timezone: 'America/New_York',
+        timezone: getUserTimezone(), // Use user's detected timezone instead of hardcoded
         email_notifications: true,
         dashboard_layout: 'default',
       },

@@ -6,8 +6,30 @@ import Microclimate from '@/models/Microclimate';
 import User from '@/models/User';
 import Department from '@/models/Department';
 import { hasPermission } from '@/lib/permissions';
-import { convertLocalDateTimeToUTC } from '@/lib/datetime-utils';
+import {
+  convertLocalDateTimeToUTC,
+  validateSchedulingDateTime,
+  validateDuration,
+  DATETIME_ERROR_MESSAGES,
+} from '@/lib/datetime-utils';
 import { z } from 'zod';
+
+// Helper function to determine microclimate status based on timing
+function determineStatusFromTiming(
+  startTime: Date,
+  durationMinutes: number
+): string {
+  const now = new Date();
+  const endTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
+
+  if (now < startTime) {
+    return 'scheduled';
+  } else if (now >= startTime && now <= endTime) {
+    return 'active';
+  } else {
+    return 'completed';
+  }
+}
 
 // Validation schema for creating microclimates
 const createMicroclimateSchema = z.object({
@@ -124,15 +146,31 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .populate('created_by', 'name email');
 
-    // Auto-update expired microclimates to completed status
+    // Auto-update microclimate statuses based on current time
     const updatedMicroclimates = [];
     for (const microclimate of microclimates) {
-      if (microclimate.status === 'active' && !microclimate.isActive()) {
-        console.log(
-          `Auto-updating expired microclimate ${microclimate._id} to completed status`
-        );
-        microclimate.status = 'completed';
-        await microclimate.save();
+      const currentStatus = microclimate.status;
+      const correctStatus = determineStatusFromTiming(
+        microclimate.scheduling.start_time,
+        microclimate.scheduling.duration_minutes
+      );
+
+      // Only update if the status should change and it's a valid transition
+      if (currentStatus !== correctStatus) {
+        // Valid transitions: scheduled -> active -> completed
+        const validTransitions = {
+          scheduled: ['active', 'completed'],
+          active: ['completed'],
+          draft: ['scheduled', 'active', 'completed'],
+        };
+
+        if (validTransitions[currentStatus]?.includes(correctStatus)) {
+          console.log(
+            `Auto-updating microclimate ${microclimate._id} from ${currentStatus} to ${correctStatus}`
+          );
+          microclimate.status = correctStatus;
+          await microclimate.save();
+        }
       }
       updatedMicroclimates.push(microclimate.toObject());
     }
@@ -219,21 +257,69 @@ export async function POST(request: NextRequest) {
       is_active: true,
     }).countDocuments();
 
+    // Validate scheduling datetime using centralized validation
+    const datetimeValidation = validateSchedulingDateTime(
+      validatedData.scheduling.start_time,
+      validatedData.scheduling.timezone
+    );
+
+    if (!datetimeValidation.isValid) {
+      return NextResponse.json(
+        {
+          error: 'Invalid start time',
+          message: datetimeValidation.error,
+          errorCode: datetimeValidation.errorCode,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate duration
+    const durationValidation = validateDuration(
+      validatedData.scheduling.duration_minutes
+    );
+    if (!durationValidation.isValid) {
+      return NextResponse.json(
+        {
+          error: 'Invalid duration',
+          message: durationValidation.error,
+          errorCode: durationValidation.errorCode,
+        },
+        { status: 400 }
+      );
+    }
+
     // Create microclimate with proper timezone conversion
+    const startTimeUTC = convertLocalDateTimeToUTC(
+      validatedData.scheduling.start_time,
+      validatedData.scheduling.timezone
+    );
+
+    // Determine the correct initial status based on timing
+    const initialStatus = determineStatusFromTiming(
+      startTimeUTC,
+      validatedData.scheduling.duration_minutes
+    );
+
+    console.log('Creating microclimate with:', {
+      startTimeUTC: startTimeUTC.toISOString(),
+      currentTime: new Date().toISOString(),
+      durationMinutes: validatedData.scheduling.duration_minutes,
+      initialStatus,
+    });
+
     const microclimate = new Microclimate({
       ...validatedData,
       company_id: user.company_id,
       created_by: session.user.id,
+      status: initialStatus,
       target_participant_count: Math.min(
         targetUsers,
         validatedData.targeting.max_participants || targetUsers
       ),
       scheduling: {
         ...validatedData.scheduling,
-        start_time: convertLocalDateTimeToUTC(
-          validatedData.scheduling.start_time,
-          validatedData.scheduling.timezone
-        ),
+        start_time: startTimeUTC,
       },
     });
 

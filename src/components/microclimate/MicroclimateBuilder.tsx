@@ -36,6 +36,10 @@ import {
 import {
   getDefaultMicroclimateStartTime,
   getUserTimezone,
+  getMinDateTimeLocal,
+  getMaxDateTimeLocal,
+  validateSchedulingDateTime,
+  validateDuration,
 } from '@/lib/datetime-utils';
 
 interface Question {
@@ -963,15 +967,31 @@ export default function MicroclimateBuilder() {
                           <Input
                             type="datetime-local"
                             value={microclimateData.scheduling.start_time}
-                            onChange={(e) =>
+                            min={getMinDateTimeLocal()} // Prevent past times
+                            max={getMaxDateTimeLocal()} // Prevent far future times
+                            onChange={(e) => {
                               setMicroclimateData((prev) => ({
                                 ...prev,
                                 scheduling: {
                                   ...prev.scheduling,
                                   start_time: e.target.value,
                                 },
-                              }))
-                            }
+                              }));
+
+                              // Real-time validation feedback
+                              if (e.target.value) {
+                                const validation = validateSchedulingDateTime(
+                                  e.target.value,
+                                  microclimateData.scheduling.timezone
+                                );
+                                if (!validation.isValid) {
+                                  console.warn(
+                                    'Invalid datetime:',
+                                    validation.error
+                                  );
+                                }
+                              }
+                            }}
                             className="text-base h-12"
                           />
                           <p className="text-xs text-gray-500 flex items-center gap-1">
