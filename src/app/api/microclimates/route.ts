@@ -18,7 +18,7 @@ import { z } from 'zod';
 function determineStatusFromTiming(
   startTime: Date,
   durationMinutes: number
-): string {
+): 'scheduled' | 'active' | 'completed' {
   const now = new Date();
   const endTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
 
