@@ -6,6 +6,7 @@ import Microclimate from '@/models/Microclimate';
 import User from '@/models/User';
 import Department from '@/models/Department';
 import { hasPermission } from '@/lib/permissions';
+import { convertLocalDateTimeToUTC } from '@/lib/datetime-utils';
 import { z } from 'zod';
 
 // Validation schema for creating microclimates
@@ -218,7 +219,7 @@ export async function POST(request: NextRequest) {
       is_active: true,
     }).countDocuments();
 
-    // Create microclimate
+    // Create microclimate with proper timezone conversion
     const microclimate = new Microclimate({
       ...validatedData,
       company_id: user.company_id,
@@ -229,7 +230,10 @@ export async function POST(request: NextRequest) {
       ),
       scheduling: {
         ...validatedData.scheduling,
-        start_time: new Date(validatedData.scheduling.start_time),
+        start_time: convertLocalDateTimeToUTC(
+          validatedData.scheduling.start_time,
+          validatedData.scheduling.timezone
+        ),
       },
     });
 

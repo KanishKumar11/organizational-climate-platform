@@ -44,14 +44,58 @@ export function parseDatetimeLocal(datetimeLocalValue: string): Date {
 }
 
 /**
- * Converts a Date object to UTC for storage while preserving the intended local time
- * This is useful when you want to store the exact time the user selected
+ * Converts a datetime-local input value to UTC for database storage
+ * The input value represents local time in the user's timezone
  *
- * @param localDate - Date object representing local time
- * @returns Date object adjusted to UTC for storage
+ * @param datetimeLocalValue - The value from a datetime-local input (YYYY-MM-DDTHH:MM)
+ * @param userTimezone - The user's timezone (e.g., "Asia/Kolkata")
+ * @returns Date object in UTC for database storage
  */
-export function convertLocalDateToUTC(localDate: Date): Date {
-  return new Date(localDate.getTime());
+export function convertLocalDateTimeToUTC(
+  datetimeLocalValue: string,
+  userTimezone: string
+): Date {
+  // Much simpler approach: use the Intl API to handle timezone conversion
+  // The datetime-local value represents the exact time the user selected in their timezone
+
+  // Parse the datetime-local components
+  const [datePart, timePart] = datetimeLocalValue.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hours, minutes] = timePart.split(':').map(Number);
+
+  // Create a date object in UTC that represents the same "wall clock" time
+  const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+
+  // Now we need to adjust this to account for the user's timezone
+  // Get the offset for the user's timezone at this specific date/time
+  const testDate = new Date(year, month - 1, day, hours, minutes);
+
+  // Use Intl.DateTimeFormat to get the actual offset
+  const formatter = new Intl.DateTimeFormat('en', {
+    timeZone: userTimezone,
+    timeZoneName: 'longOffset',
+  });
+
+  // Get timezone offset in a more reliable way
+  const offsetString = formatter
+    .formatToParts(testDate)
+    .find((part) => part.type === 'timeZoneName')?.value;
+  let offsetMinutes = 0;
+
+  if (offsetString) {
+    // Parse offset string like "GMT+05:30" or "GMT-05:00"
+    const match = offsetString.match(/GMT([+-])(\d{2}):(\d{2})/);
+    if (match) {
+      const sign = match[1] === '+' ? 1 : -1;
+      const hours = parseInt(match[2]);
+      const minutes = parseInt(match[3]);
+      offsetMinutes = sign * (hours * 60 + minutes);
+    }
+  }
+
+  // Adjust the UTC date by subtracting the timezone offset
+  // (because we want to store the UTC equivalent of the local time)
+  return new Date(utcDate.getTime() - offsetMinutes * 60000);
 }
 
 /**
@@ -66,12 +110,14 @@ export function getUserTimezone(): string {
 /**
  * Formats a date for display in the user's local timezone
  *
- * @param date - Date to format
+ * @param date - Date to format (assumed to be in UTC from database)
+ * @param userTimezone - User's timezone (e.g., "Asia/Kolkata")
  * @param options - Intl.DateTimeFormatOptions for customizing the output
- * @returns Formatted date string
+ * @returns Formatted date string in user's timezone
  */
 export function formatDateForDisplay(
   date: Date,
+  userTimezone?: string,
   options?: Intl.DateTimeFormatOptions
 ): string {
   const defaultOptions: Intl.DateTimeFormatOptions = {
@@ -81,9 +127,28 @@ export function formatDateForDisplay(
     hour: '2-digit',
     minute: '2-digit',
     timeZoneName: 'short',
+    timeZone: userTimezone || getUserTimezone(),
   };
 
   return date.toLocaleString(undefined, { ...defaultOptions, ...options });
+}
+
+/**
+ * Formats a UTC date string for display in the user's timezone
+ * This is specifically for dates stored in the database as UTC strings
+ *
+ * @param utcDateString - UTC date string from database
+ * @param userTimezone - User's timezone (e.g., "Asia/Kolkata")
+ * @param options - Intl.DateTimeFormatOptions for customizing the output
+ * @returns Formatted date string in user's timezone
+ */
+export function formatUTCDateForDisplay(
+  utcDateString: string,
+  userTimezone?: string,
+  options?: Intl.DateTimeFormatOptions
+): string {
+  const date = new Date(utcDateString);
+  return formatDateForDisplay(date, userTimezone, options);
 }
 
 /**

@@ -35,6 +35,7 @@ import {
   BarChart3,
   MessageSquare,
 } from 'lucide-react';
+import { formatUTCDateForDisplay, getUserTimezone } from '@/lib/datetime-utils';
 
 interface Microclimate {
   _id: string;
@@ -227,7 +228,8 @@ export default function MicroclimateDashboard() {
   };
 
   const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    // Use the timezone-aware formatting function
+    return formatUTCDateForDisplay(dateString, getUserTimezone());
   };
 
   const getTimeRemaining = (startTime: string, durationMinutes: number) => {
