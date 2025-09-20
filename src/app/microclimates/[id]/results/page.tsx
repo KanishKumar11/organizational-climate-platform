@@ -9,41 +9,10 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import MicroclimateFinalResults from '@/components/microclimate/MicroclimateFinalResults';
 import { Loading } from '@/components/ui/Loading';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
-
-// Sanitization function for circular references
-function sanitizeForSerialization(obj: any): any {
-  const seen = new WeakSet();
-
-  function sanitize(value: any): any {
-    if (value === null || typeof value !== 'object') {
-      return value;
-    }
-
-    if (seen.has(value)) {
-      return '[Circular Reference]';
-    }
-
-    seen.add(value);
-
-    if (value instanceof Date) {
-      return value.toISOString();
-    }
-
-    if (Array.isArray(value)) {
-      return value.map(sanitize);
-    }
-
-    const sanitized: any = {};
-    for (const key in value) {
-      if (value.hasOwnProperty(key)) {
-        sanitized[key] = sanitize(value[key]);
-      }
-    }
-    return sanitized;
-  }
-
-  return sanitize(obj);
-}
+import {
+  sanitizeForSerialization,
+  safeToISOString,
+} from '@/lib/datetime-utils';
 
 async function getMicroclimateResults(id: string, session: any) {
   try {
@@ -85,13 +54,6 @@ async function getMicroclimateResults(id: string, session: any) {
       ? microclimate.toObject()
       : microclimate;
 
-    // Ensure all dates are converted to ISO strings for serialization
-    if (plainMicroclimate.scheduling?.start_time) {
-      plainMicroclimate.scheduling.start_time = new Date(
-        plainMicroclimate.scheduling.start_time
-      );
-    }
-
     const transformedData = {
       id: plainMicroclimate._id.toString(),
       title: plainMicroclimate.title,
@@ -100,8 +62,8 @@ async function getMicroclimateResults(id: string, session: any) {
       response_count: plainMicroclimate.response_count || 0,
       target_participant_count: plainMicroclimate.target_participant_count || 0,
       participation_rate: plainMicroclimate.participation_rate || 0,
-      created_at: plainMicroclimate.created_at,
-      updated_at: plainMicroclimate.updated_at,
+      created_at: safeToISOString(plainMicroclimate.created_at),
+      updated_at: safeToISOString(plainMicroclimate.updated_at),
       duration_minutes: plainMicroclimate.scheduling?.duration_minutes || 0,
       live_results: plainMicroclimate.live_results || {
         word_cloud_data: [],
@@ -120,9 +82,7 @@ async function getMicroclimateResults(id: string, session: any) {
           type: insight.type,
           message: insight.message,
           confidence: insight.confidence,
-          timestamp: insight.timestamp
-            ? new Date(insight.timestamp)
-            : new Date(),
+          timestamp: safeToISOString(insight.timestamp || new Date()),
           priority: insight.priority,
         })
       ),
@@ -153,7 +113,7 @@ async function getMicroclimateResults(id: string, session: any) {
       responses: responses.map((response: any) => ({
         id: response._id.toString(),
         user_name: response.user_id?.name || 'Anonymous',
-        submitted_at: response.submitted_at,
+        submitted_at: safeToISOString(response.submitted_at),
         answers: response.answers,
       })),
       targeting: plainMicroclimate.targeting,

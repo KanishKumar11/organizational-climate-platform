@@ -8,56 +8,13 @@ import LiveMicroclimateDashboard from '@/components/microclimate/LiveMicroclimat
 import { Loading } from '@/components/ui/Loading';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import {
+  sanitizeForSerialization,
+  safeToISOString,
+} from '@/lib/datetime-utils';
 
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-// Helper function to sanitize data for serialization with circular reference detection
-function sanitizeForSerialization(obj: any, seen = new WeakSet()): any {
-  if (obj === null || obj === undefined) {
-    return obj;
-  }
-
-  if (obj instanceof Date) {
-    return obj.toISOString();
-  }
-
-  if (typeof obj === 'object') {
-    // Detect circular references
-    if (seen.has(obj)) {
-      console.warn('Circular reference detected, skipping object');
-      return '[Circular Reference]';
-    }
-    seen.add(obj);
-
-    if (Array.isArray(obj)) {
-      return obj.map((item) => sanitizeForSerialization(item, seen));
-    }
-
-    const sanitized: any = {};
-    for (const key in obj) {
-      if (
-        obj.hasOwnProperty(key) &&
-        key !== '__v' &&
-        key !== '$__' &&
-        key !== '$isNew' &&
-        key !== '_doc' &&
-        key !== '$locals' &&
-        key !== '$op'
-      ) {
-        try {
-          sanitized[key] = sanitizeForSerialization(obj[key], seen);
-        } catch (error) {
-          console.warn(`Error sanitizing key ${key}:`, error);
-          sanitized[key] = null;
-        }
-      }
-    }
-    return sanitized;
-  }
-
-  return obj;
 }
 
 async function getMicroclimateData(id: string, session: any) {
@@ -104,13 +61,6 @@ async function getMicroclimateData(id: string, session: any) {
       ? microclimate.toObject()
       : microclimate;
 
-    // Ensure all dates are converted to ISO strings for serialization
-    if (plainMicroclimate.scheduling?.start_time) {
-      plainMicroclimate.scheduling.start_time = new Date(
-        plainMicroclimate.scheduling.start_time
-      );
-    }
-
     const transformedData = {
       id: plainMicroclimate._id.toString(),
       title: plainMicroclimate.title,
@@ -146,9 +96,7 @@ async function getMicroclimateData(id: string, session: any) {
           type: insight.type,
           message: insight.message,
           confidence: insight.confidence,
-          timestamp: insight.timestamp
-            ? new Date(insight.timestamp)
-            : new Date(),
+          timestamp: safeToISOString(insight.timestamp || new Date()),
           priority: insight.priority,
         })
       ),

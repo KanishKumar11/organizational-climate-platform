@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import Microclimate from '@/models/Microclimate';
 import { connectDB } from '@/lib/db';
+import { sanitizeForSerialization } from '@/lib/datetime-utils';
 
 // GET /api/microclimates/[id]/live-updates - Get real-time microclimate data
 export async function GET(
@@ -96,7 +97,7 @@ export async function GET(
       updated_at: microclimate.updated_at,
     };
 
-    return NextResponse.json(liveData);
+    return NextResponse.json(sanitizeForSerialization(liveData));
   } catch (error) {
     console.error('Error fetching live microclimate data:', error);
     return NextResponse.json(

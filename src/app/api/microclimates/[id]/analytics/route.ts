@@ -6,6 +6,7 @@ import { connectDB } from '@/lib/db';
 import Microclimate from '@/models/Microclimate';
 import Response from '@/models/Response';
 import AIInsight from '@/models/AIInsight';
+import { sanitizeForSerialization } from '@/lib/datetime-utils';
 
 // Get microclimate analytics
 export async function GET(
@@ -59,8 +60,8 @@ export async function GET(
 
     // Response distribution by question
     const questionAnalytics = microclimate.questions.map((question) => {
-      const questionResponses = responses.flatMap(response => 
-        response.responses.filter(r => r.question_id === question.id)
+      const questionResponses = responses.flatMap((response) =>
+        response.responses.filter((r) => r.question_id === question.id)
       );
 
       let analytics: any = {
@@ -173,10 +174,10 @@ export async function GET(
       sentiment: sentimentAnalysis,
       word_cloud: wordCloudAnalysis,
       insights: aiInsights,
-      generated_at: new Date(),
+      generated_at: new Date().toISOString(),
     };
 
-    return NextResponse.json(analytics);
+    return NextResponse.json(sanitizeForSerialization(analytics));
   } catch (error) {
     console.error('Error fetching microclimate analytics:', error);
     return NextResponse.json(

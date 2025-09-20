@@ -33,6 +33,7 @@
     "test:survey-sharing": "tsx --env-file=.env.local src/scripts/test-survey-sharing-fix.ts",
     "test:brevo-email": "tsx --env-file=.env.local src/scripts/test-brevo-email.ts",
     "debug:user-lookup": "tsx --env-file=.env.local src/scripts/debug-user-lookup.ts",
+    "test:datetime-serialization": "tsx --env-file=.env.local src/scripts/comprehensive-datetime-serialization-test.ts",
     "debug:survey-sharing": "tsx --env-file=.env.local src/scripts/debug-survey-sharing-api.ts",
     "test:department-creation": "tsx --env-file=.env.local src/scripts/test-department-creation.ts",
     "test:user-management": "tsx --env-file=.env.local src/scripts/test-user-management.ts",

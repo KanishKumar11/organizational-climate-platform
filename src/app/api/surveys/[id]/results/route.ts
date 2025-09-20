@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/db';
 import Survey from '@/models/Survey';
 import Response from '@/models/Response';
 import { hasPermission } from '@/lib/permissions';
+import { sanitizeForSerialization } from '@/lib/datetime-utils';
 
 // Get survey results and analytics
 export async function GET(
@@ -180,7 +181,7 @@ export async function GET(
     // Calculate response timeline
     const responseTimeline = calculateResponseTimeline(responses);
 
-    return NextResponse.json({
+    const responseData = {
       survey: {
         id: survey._id,
         title: survey.title,
@@ -199,8 +200,10 @@ export async function GET(
       demographic_breakdowns: demographicBreakdowns,
       completion_time_stats: timeStats,
       response_timeline: responseTimeline,
-      generated_at: new Date(),
-    });
+      generated_at: new Date().toISOString(),
+    };
+
+    return NextResponse.json(sanitizeForSerialization(responseData));
   } catch (error) {
     console.error('Error fetching survey results:', error);
     return NextResponse.json(

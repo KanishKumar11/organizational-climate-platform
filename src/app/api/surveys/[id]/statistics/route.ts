@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/db';
 import Survey from '@/models/Survey';
 import Response from '@/models/Response';
 import SurveyInvitation from '@/models/SurveyInvitation';
+import { sanitizeForSerialization } from '@/lib/datetime-utils';
 
 // Get survey statistics
 export async function GET(
@@ -170,10 +171,10 @@ export async function GET(
             response_count: item.count,
           })) || null,
       },
-      generated_at: new Date(),
+      generated_at: new Date().toISOString(),
     };
 
-    return NextResponse.json(statistics);
+    return NextResponse.json(sanitizeForSerialization(statistics));
   } catch (error) {
     console.error('Error fetching survey statistics:', error);
     return NextResponse.json(
