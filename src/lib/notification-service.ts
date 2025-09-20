@@ -11,6 +11,11 @@ import User, { IUser } from '@/models/User';
 import { emailService } from './email';
 import { connectDB } from './mongodb';
 
+// Helper function to safely check if a value is a Date
+function isDate(value: any): value is Date {
+  return value instanceof Date && !isNaN(value.getTime());
+}
+
 // Notification data interface
 export interface NotificationData {
   user_id: string;
@@ -415,13 +420,31 @@ class NotificationService {
 
     // Use existing email service
     const emailData = {
-      survey: notification.data.survey || {},
+      survey:
+        notification.data.survey ||
+        ({
+          _id: '',
+          title: 'Survey',
+          type: 'general_climate',
+          company_id: notification.company_id,
+          created_by: '',
+          questions: [],
+          demographics: [],
+          settings: {},
+          start_date: new Date(),
+          end_date: new Date(),
+          status: 'draft',
+          response_count: 0,
+          version: 1,
+          created_at: new Date(),
+          updated_at: new Date(),
+        } as any), // Fallback survey object
       recipient: user,
-      invitationLink: notification.data.link || '',
-      companyName: notification.data.companyName || 'Your Organization',
-      expiryDate:
-        notification.data.expiryDate ||
-        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      invitationLink: String(notification.data.link || ''),
+      companyName: String(notification.data.companyName || 'Your Organization'),
+      expiryDate: isDate(notification.data.expiryDate)
+        ? notification.data.expiryDate
+        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     };
 
     switch (notification.type) {
@@ -435,12 +458,14 @@ class NotificationService {
         const microclimateEmailData = {
           microclimate: notification.data.microclimate || {},
           recipient: user,
-          invitationLink: notification.data.link || '',
-          companyName: notification.data.companyName || 'Your Organization',
-          expiryDate:
-            notification.data.expiryDate ||
-            new Date(Date.now() + 24 * 60 * 60 * 1000),
-          reminderCount: notification.data.reminder_count || 0,
+          invitationLink: String(notification.data.link || ''),
+          companyName: String(
+            notification.data.companyName || 'Your Organization'
+          ),
+          expiryDate: isDate(notification.data.expiryDate)
+            ? notification.data.expiryDate
+            : new Date(Date.now() + 24 * 60 * 60 * 1000),
+          reminderCount: Number(notification.data.reminder_count || 0),
         };
         if (notification.data.is_reminder) {
           await emailService.sendMicroclimateReminder(microclimateEmailData);

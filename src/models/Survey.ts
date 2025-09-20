@@ -275,13 +275,13 @@ SurveySchema.statics.findByCompany = function (companyId: string) {
 };
 
 SurveySchema.statics.findActive = function (companyId?: string) {
-  const query: any = { status: 'active' };
+  const query: { status: string; company_id?: string } = { status: 'active' };
   if (companyId) query.company_id = companyId;
   return this.find(query);
 };
 
 SurveySchema.statics.findByType = function (type: string, companyId?: string) {
-  const query: any = { type };
+  const query: { type: string; company_id?: string } = { type };
   if (companyId) query.company_id = companyId;
   return this.find(query);
 };

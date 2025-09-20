@@ -5,7 +5,7 @@ export interface MicroclimateTargeting {
   department_ids: string[];
   role_filters?: string[];
   tenure_filters?: string[];
-  custom_filters?: Record<string, any>;
+  custom_filters?: Record<string, string | number | boolean>;
   include_managers: boolean;
   max_participants?: number;
 }
@@ -49,6 +49,16 @@ export interface MicroclimateTemplate {
   suggested_frequency: 'daily' | 'weekly' | 'bi_weekly' | 'monthly';
 }
 
+// Microclimate question interface
+export interface IMicroclimateQuestion {
+  id: string;
+  text: string;
+  type: 'likert' | 'multiple_choice' | 'open_ended' | 'emoji_rating';
+  options?: string[];
+  required: boolean;
+  order: number;
+}
+
 // Main Microclimate interface
 export interface IMicroclimate extends Document {
   title: string;
@@ -59,14 +69,7 @@ export interface IMicroclimate extends Document {
   scheduling: MicroclimateScheduling;
   real_time_settings: RealTimeSettings;
   template_id?: string;
-  questions: Array<{
-    id: string;
-    text: string;
-    type: 'likert' | 'multiple_choice' | 'open_ended' | 'emoji_rating';
-    options?: string[];
-    required: boolean;
-    order: number;
-  }>;
+  questions: IMicroclimateQuestion[];
   status:
     | 'draft'
     | 'scheduled'
@@ -262,7 +265,7 @@ const MicroclimateSchema: Schema = new Schema(
     questions: {
       type: [MicroclimateQuestionSchema],
       validate: {
-        validator: function (questions: any[]) {
+        validator: function (questions: IMicroclimateQuestion[]) {
           return questions.length > 0 && questions.length <= 10;
         },
         message: 'Microclimate must have 1-10 questions',
@@ -358,7 +361,12 @@ MicroclimateSchema.methods.generateInviteList = async function (): Promise<
   const User = mongoose.model('User');
 
   // Build query based on targeting criteria
-  const query: any = {
+  const query: {
+    company_id: string;
+    is_active: boolean;
+    department_id: { $in: string[] };
+    role?: { $in: string[] } | { $nin: string[] };
+  } = {
     company_id: this.company_id,
     is_active: true,
     department_id: { $in: this.targeting.department_ids },
@@ -375,7 +383,9 @@ MicroclimateSchema.methods.generateInviteList = async function (): Promise<
   }
 
   const users = await User.find(query).select('_id email').lean();
-  let userIds = users.map((user: any) => user._id.toString());
+  let userIds = users.map((user: { _id: { toString(): string } }) =>
+    user._id.toString()
+  );
 
   // Apply max participants limit if specified
   if (
@@ -397,13 +407,15 @@ MicroclimateSchema.statics.findByCompany = function (companyId: string) {
 };
 
 MicroclimateSchema.statics.findActive = function (companyId?: string) {
-  const query: any = { status: 'active' };
+  const query: { status: string; company_id?: string } = { status: 'active' };
   if (companyId) query.company_id = companyId;
   return this.find(query);
 };
 
 MicroclimateSchema.statics.findScheduled = function (companyId?: string) {
-  const query: any = { status: 'scheduled' };
+  const query: { status: string; company_id?: string } = {
+    status: 'scheduled',
+  };
   if (companyId) query.company_id = companyId;
   return this.find(query);
 };

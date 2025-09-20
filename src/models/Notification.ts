@@ -26,6 +26,15 @@ export type NotificationStatus =
 // Notification channel
 export type NotificationChannel = 'email' | 'in_app' | 'push' | 'sms';
 
+// Metadata type for notification tracking
+export interface NotificationMetadata {
+  user_agent?: string;
+  ip_address?: string;
+  email_client?: string;
+  device_type?: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
 // Notification interface
 export interface INotification extends Document {
   user_id: string;
@@ -36,7 +45,7 @@ export interface INotification extends Document {
   status: NotificationStatus;
   title: string;
   message: string;
-  data: Record<string, any>;
+  data: Record<string, string | number | boolean | null>;
   template_id?: string;
   scheduled_for: Date;
   sent_at?: Date;
@@ -56,8 +65,8 @@ export interface INotification extends Document {
   updated_at: Date;
   // Instance methods
   markSent(): void;
-  markDelivered(metadata?: any): void;
-  markOpened(metadata?: any): void;
+  markDelivered(metadata?: NotificationMetadata): void;
+  markOpened(metadata?: NotificationMetadata): void;
   markFailed(reason: string): void;
   markCancelled(): void;
   canRetry(): boolean;
@@ -243,7 +252,9 @@ NotificationSchema.methods.markSent = function () {
   this.sent_at = new Date();
 };
 
-NotificationSchema.methods.markDelivered = function (metadata?: any) {
+NotificationSchema.methods.markDelivered = function (
+  metadata?: NotificationMetadata
+) {
   this.status = 'delivered';
   this.delivered_at = new Date();
   if (metadata) {
@@ -251,7 +262,9 @@ NotificationSchema.methods.markDelivered = function (metadata?: any) {
   }
 };
 
-NotificationSchema.methods.markOpened = function (metadata?: any) {
+NotificationSchema.methods.markOpened = function (
+  metadata?: NotificationMetadata
+) {
   this.status = 'opened';
   this.opened_at = new Date();
   if (metadata) {
