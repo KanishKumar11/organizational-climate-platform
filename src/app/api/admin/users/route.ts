@@ -69,8 +69,9 @@ export async function GET(request: NextRequest) {
     if (user.role === 'super_admin') {
       // Super admin can see all users
     } else if (user.role === 'company_admin') {
-      // Company admin can see all users in their company
+      // Company admin can see all users in their company, but not super admins
       query.company_id = user.company_id;
+      query.role = { $ne: 'super_admin' };
     } else {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
