@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/db';
 import { sanitizeForSerialization } from '@/lib/data-sanitization';
 import User from '@/models/User';
 import Survey from '@/models/Survey';
+import Response from '@/models/Response';
 import Company from '@/models/Company';
 import Department from '@/models/Department';
 
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get company-specific KPIs
+    console.log('Fetching company KPIs for company:', companyId);
     const [
       totalEmployees,
       activeEmployees,
@@ -64,17 +66,25 @@ export async function GET(request: NextRequest) {
         start_date: { $lte: new Date() },
         end_date: { $gte: new Date() },
       }),
-      Survey.aggregate([
-        { $match: { company_id: companyId } },
-        { $unwind: '$responses' },
-        { $count: 'total' },
-      ]).then((result) => result[0]?.total || 0),
+      Response.countDocuments({ company_id: companyId }),
       calculateCompletionRate(companyId),
       Department.countDocuments({ company_id: companyId }),
       getCompanyRecentActivity(companyId),
     ]);
 
+    console.log('KPIs fetched:', {
+      totalEmployees,
+      activeEmployees,
+      totalSurveys,
+      activeSurveys,
+      totalResponses,
+      completionRate,
+      departmentCount,
+      recentActivityCount: recentActivity?.length || 0,
+    });
+
     // Get department analytics
+    console.log('Fetching department analytics...');
     const departmentAnalytics = await Department.aggregate([
       { $match: { company_id: companyId } },
       {
@@ -95,7 +105,7 @@ export async function GET(request: NextRequest) {
                 $expr: {
                   $and: [
                     { $eq: ['$company_id', companyId] },
-                    { $in: ['$$deptId', '$target_departments'] },
+                    { $in: ['$$deptId', '$department_ids'] },
                   ],
                 },
               },
@@ -131,6 +141,12 @@ export async function GET(request: NextRequest) {
       { $sort: { name: 1 } },
     ]);
 
+    console.log(
+      'Department analytics fetched:',
+      departmentAnalytics?.length || 0,
+      'departments'
+    );
+
     // Get AI insights for the company
     const aiInsights = await getCompanyAIInsights(companyId);
 
@@ -143,9 +159,7 @@ export async function GET(request: NextRequest) {
         end_date: { $gte: new Date() },
       })
       .populate('created_by', 'name')
-      .select(
-        'title type start_date end_date response_count target_responses target_departments'
-      )
+      .select('title type start_date end_date response_count department_ids')
       .sort({ start_date: -1 })
       .limit(10)
       .lean();
@@ -157,9 +171,7 @@ export async function GET(request: NextRequest) {
         status: { $in: ['completed', 'archived'] },
       })
       .populate('created_by', 'name')
-      .select(
-        'title type start_date end_date response_count target_responses completion_rate'
-      )
+      .select('title type start_date end_date response_count')
       .sort({ end_date: -1 })
       .limit(10)
       .lean();
@@ -172,8 +184,7 @@ export async function GET(request: NextRequest) {
       start_date: survey.start_date,
       end_date: survey.end_date,
       response_count: survey.response_count || 0,
-      target_responses: survey.target_responses || 0,
-      target_departments: survey.target_departments || [],
+      department_ids: survey.department_ids || [],
       created_by: survey.created_by
         ? {
             id:
@@ -190,8 +201,6 @@ export async function GET(request: NextRequest) {
       start_date: survey.start_date,
       end_date: survey.end_date,
       response_count: survey.response_count || 0,
-      target_responses: survey.target_responses || 0,
-      completion_rate: survey.completion_rate || 0,
       created_by: survey.created_by
         ? {
             id:
@@ -214,7 +223,7 @@ export async function GET(request: NextRequest) {
         totalResponses,
         completionRate,
         departmentCount,
-        engagementTrend: calculateEngagementTrend(companyId),
+        engagementTrend: calculateEngagementTrend(),
       },
       departmentAnalytics,
       aiInsights,
@@ -224,9 +233,14 @@ export async function GET(request: NextRequest) {
       demographicVersions,
     });
 
+    console.log('Successfully prepared response data');
     return NextResponse.json(responseData);
   } catch (error) {
     console.error('Company admin dashboard error:', error);
+    console.error(
+      'Error stack:',
+      error instanceof Error ? error.stack : 'No stack trace'
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -369,7 +383,7 @@ async function getDemographicVersions(companyId: string) {
   ];
 }
 
-function calculateEngagementTrend(companyId: string): number {
+function calculateEngagementTrend(): number {
   // Mock engagement trend calculation
   return Math.random() * 20 - 10; // -10% to +10%
 }
