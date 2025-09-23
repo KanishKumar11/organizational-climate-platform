@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ActionPlanKanban } from './ActionPlanKanban';
@@ -23,13 +24,27 @@ interface ActionPlan {
   _id: string;
   title: string;
   description: string;
-  status: string;
-  priority: string;
-  due_date: string;
-  assigned_to: Array<{ name: string; email: string }>;
-  kpis: any[];
-  qualitative_objectives: any[];
-  progress_updates: any[];
+  status: 'not_started' | 'in_progress' | 'completed' | 'overdue' | 'cancelled';
+  priority?: 'low' | 'medium' | 'high' | 'critical';
+  due_date?: string;
+  assigned_to?: Array<{ name: string; email: string }>;
+  kpis?: Array<{
+    id: string;
+    name: string;
+    current_value: number;
+    target_value: number;
+    unit: string;
+  }>;
+  qualitative_objectives?: Array<{
+    id: string;
+    description: string;
+    completion_percentage: number;
+  }>;
+  progress_updates?: Array<{
+    update_date: string;
+    updated_by: { name: string };
+  }>;
+  created_at?: string;
 }
 
 interface ActionPlanDashboardProps {
@@ -45,6 +60,7 @@ export function ActionPlanDashboard({
   assignedTo,
   canCreate = true,
 }: ActionPlanDashboardProps) {
+  const router = useRouter();
   const [activeView, setActiveView] = useState<
     'kanban' | 'timeline' | 'progress' | 'create'
   >('kanban');
@@ -55,13 +71,13 @@ export function ActionPlanDashboard({
   const [priorityFilter, setPriorityFilter] = useState('all');
 
   const handleActionPlanClick = (actionPlan: ActionPlan) => {
-    setSelectedActionPlan(actionPlan);
-    setActiveView('progress');
+    // Navigate to the individual action plan page
+    router.push(`/action-plans/${actionPlan._id}`);
   };
 
-  const handleActionPlanCreated = (actionPlan: ActionPlan) => {
-    setActiveView('kanban');
-    // Optionally refresh the data or add to local state
+  const handleCreateActionPlan = () => {
+    // Navigate to the create action plan page
+    router.push('/action-plans/create');
   };
 
   const handleProgressUpdated = (actionPlan: ActionPlan) => {
@@ -85,44 +101,56 @@ export function ActionPlanDashboard({
   ];
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-w-0 overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Action Plans</h1>
-          <p className="text-gray-600 mt-1">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 mb-6">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-bold text-gray-900 truncate">
+            Action Plans
+          </h1>
+          <p className="text-gray-600 mt-1 text-sm">
             Track progress and manage organizational improvements
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
           {canCreate && (
             <Button
-              onClick={() => setActiveView('create')}
-              className="bg-orange-600 hover:bg-orange-700"
+              onClick={handleCreateActionPlan}
+              className="bg-orange-600 hover:bg-orange-700 flex-shrink-0"
+              size="sm"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create Action Plan
+              <span className="hidden sm:inline">Create Action Plan</span>
+              <span className="sm:hidden">Create</span>
             </Button>
           )}
 
-          <Button variant="outline" className="flex items-center">
+          <Button
+            variant="outline"
+            className="flex items-center flex-shrink-0"
+            size="sm"
+          >
             <Download className="w-4 h-4 mr-2" />
-            Export
+            <span className="hidden sm:inline">Export</span>
           </Button>
 
-          <Button variant="outline" className="flex items-center">
+          <Button
+            variant="outline"
+            className="flex items-center flex-shrink-0"
+            size="sm"
+          >
             <Settings className="w-4 h-4 mr-2" />
-            Settings
+            <span className="hidden sm:inline">Settings</span>
           </Button>
         </div>
       </div>
 
       {/* View Navigation and Filters */}
       {activeView !== 'create' && activeView !== 'progress' && (
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 mb-6">
+        <div className="flex flex-col space-y-4 mb-6">
           {/* View Toggle */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 flex-wrap">
             {viewOptions.map((option) => {
               const IconComponent = option.icon;
               return (
@@ -132,34 +160,38 @@ export function ActionPlanDashboard({
                   onClick={() =>
                     setActiveView(option.id as 'kanban' | 'timeline')
                   }
-                  className="flex items-center"
+                  className="flex items-center flex-shrink-0"
+                  size="sm"
                 >
                   <IconComponent className="w-4 h-4 mr-2" />
-                  {option.label}
+                  <span className="hidden sm:inline">{option.label}</span>
+                  <span className="sm:hidden">
+                    {option.label.split(' ')[0]}
+                  </span>
                 </Button>
               );
             })}
           </div>
 
           {/* Search and Filters */}
-          <div className="flex items-center space-x-4">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
                 placeholder="Search action plans..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
               />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-gray-500" />
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Filter className="w-4 h-4 text-gray-500 flex-shrink-0" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 rounded px-3 py-2 text-sm"
+                className="border border-gray-300 rounded px-3 py-2 text-sm min-w-[120px] max-w-[140px]"
               >
                 <option value="all">All Status</option>
                 <option value="not_started">Not Started</option>
@@ -171,7 +203,7 @@ export function ActionPlanDashboard({
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className="border border-gray-300 rounded px-3 py-2 text-sm"
+                className="border border-gray-300 rounded px-3 py-2 text-sm min-w-[120px] max-w-[140px]"
               >
                 <option value="all">All Priority</option>
                 <option value="critical">Critical</option>
@@ -198,7 +230,7 @@ export function ActionPlanDashboard({
       )}
 
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden min-w-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeView}
@@ -229,14 +261,9 @@ export function ActionPlanDashboard({
             {activeView === 'progress' && selectedActionPlan && (
               <ProgressTracker
                 actionPlanId={selectedActionPlan._id}
-                onProgressUpdated={handleProgressUpdated}
-              />
-            )}
-
-            {activeView === 'create' && (
-              <ActionPlanCreator
-                onSuccess={handleActionPlanCreated}
-                onCancel={() => setActiveView('kanban')}
+                onProgressUpdated={(actionPlan) =>
+                  setSelectedActionPlan(actionPlan)
+                }
               />
             )}
           </motion.div>
@@ -245,22 +272,30 @@ export function ActionPlanDashboard({
 
       {/* Quick Stats Footer */}
       {activeView !== 'create' && activeView !== 'progress' && (
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">12</div>
-            <div className="text-sm text-gray-600">Active Plans</div>
+            <div className="text-3xl font-bold text-blue-600 leading-none">
+              12
+            </div>
+            <div className="text-sm text-gray-600 mt-1">Active Plans</div>
           </Card>
           <Card className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">8</div>
-            <div className="text-sm text-gray-600">Completed</div>
+            <div className="text-3xl font-bold text-green-600 leading-none">
+              8
+            </div>
+            <div className="text-sm text-gray-600 mt-1">Completed</div>
           </Card>
           <Card className="p-4 text-center">
-            <div className="text-2xl font-bold text-orange-600">3</div>
-            <div className="text-sm text-gray-600">Due This Week</div>
+            <div className="text-3xl font-bold text-orange-600 leading-none">
+              3
+            </div>
+            <div className="text-sm text-gray-600 mt-1">Due This Week</div>
           </Card>
           <Card className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-600">2</div>
-            <div className="text-sm text-gray-600">Overdue</div>
+            <div className="text-3xl font-bold text-red-600 leading-none">
+              2
+            </div>
+            <div className="text-sm text-gray-600 mt-1">Overdue</div>
           </Card>
         </div>
       )}

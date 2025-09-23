@@ -9,13 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from '../components/ui/card';
-import { 
-  FileQuestion, 
-  ArrowLeft, 
-  Home, 
+import {
+  FileQuestion,
+  ArrowLeft,
+  Home,
   Search,
   Compass,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 
 export default function NotFound() {
@@ -117,28 +117,6 @@ export default function NotFound() {
                   </Button>
                 </Link>
 
-                <Link href="/microclimates">
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 border-blue-300 hover:bg-blue-50 transition-all duration-200"
-                    size="lg"
-                  >
-                    <Compass className="w-4 h-4 mr-2" />
-                    View Microclimates
-                  </Button>
-                </Link>
-
-                <Link href="/surveys">
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 border-gray-300 hover:bg-gray-50 transition-all duration-200"
-                    size="lg"
-                  >
-                    <Search className="w-4 h-4 mr-2" />
-                    Browse Surveys
-                  </Button>
-                </Link>
-
                 <Button
                   variant="ghost"
                   className="w-full h-12 text-gray-600 hover:text-gray-800 transition-all duration-200"
@@ -163,8 +141,8 @@ export default function NotFound() {
                       Still having trouble?
                     </h4>
                     <p className="text-sm text-blue-700">
-                      If you believe this page should exist, please check the URL 
-                      or contact your administrator for assistance.
+                      If you believe this page should exist, please check the
+                      URL or contact your administrator for assistance.
                     </p>
                   </div>
                 </div>

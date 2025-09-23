@@ -7,7 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/Progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  EnhancedTabs as Tabs,
+  EnhancedTabsContent as TabsContent,
+  CompactTabsList as TabsList,
+  CompactTabsTrigger as TabsTrigger,
+} from '@/components/ui/enhanced-tabs';
 
 import {
   FileText,
@@ -324,7 +329,7 @@ export default function EvaluatedUserDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="surveys" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList>
           <TabsTrigger value="surveys">My Surveys</TabsTrigger>
           <TabsTrigger value="adaptive">AI Questionnaires</TabsTrigger>
           <TabsTrigger value="microclimates">Microclimates</TabsTrigger>
@@ -337,8 +342,8 @@ export default function EvaluatedUserDashboard() {
             <CardHeader>
               <CardTitle>Assigned Surveys</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.assignedSurveys.map((survey, index) => (
                   <motion.div
                     key={survey._id}
@@ -399,8 +404,8 @@ export default function EvaluatedUserDashboard() {
                 AI-Tailored Questionnaires
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.adaptiveQuestionnaires.map(
                   (questionnaire, index) => (
                     <motion.div
@@ -467,8 +472,8 @@ export default function EvaluatedUserDashboard() {
                 Microclimate Participation
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.microclimateHistory.map(
                   (microclimate, index) => (
                     <motion.div
@@ -534,8 +539,8 @@ export default function EvaluatedUserDashboard() {
                   Personal Insights & Recommendations
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+                <div className="space-y-4 pr-2">
                   {dashboardData.personalInsights.insights.map(
                     (insight, index) => (
                       <motion.div
@@ -596,8 +601,8 @@ export default function EvaluatedUserDashboard() {
             <CardHeader>
               <CardTitle>Participation History</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.participationHistory.map(
                   (participation, index) => (
                     <motion.div

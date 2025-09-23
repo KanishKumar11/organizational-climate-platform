@@ -204,13 +204,16 @@ export function ActionPlanKanban({
 
   return (
     <div className="h-full overflow-hidden">
-      <div className="flex space-x-6 h-full overflow-x-auto pb-4">
+      <div className="flex gap-3 sm:gap-4 lg:gap-6 h-full overflow-x-auto pb-4 px-1">
         {statusColumns.map((column) => {
           const columnPlans = getActionPlansByStatus(column.id);
           const ColumnIcon = column.icon;
 
           return (
-            <div key={column.id} className="flex-shrink-0 w-80">
+            <div
+              key={column.id}
+              className="flex-shrink-0 w-64 sm:w-72 lg:w-80 min-w-[250px] max-w-[320px]"
+            >
               <div
                 className={`${column.headerColor} rounded-t-lg p-4 border-b`}
               >

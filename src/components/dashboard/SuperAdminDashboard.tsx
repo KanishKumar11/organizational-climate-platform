@@ -10,7 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  EnhancedTabs as Tabs,
+  EnhancedTabsContent as TabsContent,
+  EnhancedTabsList as TabsList,
+  EnhancedTabsTrigger as TabsTrigger,
+} from '@/components/ui/enhanced-tabs';
 import AnimatedCounter from '@/components/charts/AnimatedCounter';
 
 import {
@@ -244,7 +249,7 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
 
-            <div className="flex items-center gap-6 text-sm text-gray-600">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                 <span>
@@ -264,14 +269,14 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 placeholder="Search surveys, users, companies..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 w-80 text-base border-gray-200 focus:border-purple-500 focus:ring-purple-500 bg-white"
+                className="pl-12 h-12 w-full sm:w-80 text-base border-gray-200 focus:border-purple-500 focus:ring-purple-500 bg-white"
               />
               {isSearching && (
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
@@ -280,10 +285,10 @@ export default function SuperAdminDashboard() {
               )}
             </div>
             <Button
-              className="bg-purple-600 hover:bg-purple-700 h-12 px-6"
+              className="bg-purple-600 hover:bg-purple-700 h-12 px-4 sm:px-6 w-full md:w-auto"
               onClick={() => router.push('/surveys/create')}
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-5 w-5 mr-2" />
               Create Survey
             </Button>
           </div>
@@ -310,7 +315,7 @@ export default function SuperAdminDashboard() {
               ×
             </Button>
           </div>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
+          <div className="space-y-3 max-h-96 overflow-y-auto dashboard-scroll">
             {searchResults.surveys?.map((survey) => (
               <div
                 key={survey._id}
@@ -477,72 +482,36 @@ export default function SuperAdminDashboard() {
 
       {/* Enhanced Tabs */}
       <Tabs defaultValue="overview" className="space-y-8">
-        <div className="border-b border-gray-200">
-          <TabsList className="bg-transparent h-auto p-0 space-x-8">
-            <TabsTrigger
-              value="overview"
-              className="bg-transparent border-b-2 border-transparent  data-[state=active]:bg-transparent rounded-none px-0 pb-4 !shadow-none cursor-pointer"
-            >
-              <div className="flex items-center gap-3 ">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Activity className="h-4 w-4 text-purple-600" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Overview</div>
-                  <div className="text-sm text-gray-500">System status</div>
-                </div>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="companies"
-              className="bg-transparent border-b-2 shadow-none data-[state=active]:bg-transparent rounded-none px-0 pb-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Building2 className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Companies</div>
-                  <div className="text-sm text-gray-500">
-                    {dashboardData?.companyMetrics?.length || 0} organizations
-                  </div>
-                </div>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="system"
-              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-green-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Cpu className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">System Health</div>
-                  <div className="text-sm text-gray-500">
-                    Performance metrics
-                  </div>
-                </div>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="surveys"
-              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <FileText className="h-4 w-4 text-orange-600" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Active Surveys</div>
-                  <div className="text-sm text-gray-500">
-                    {dashboardData?.ongoingSurveys?.length || 0} running
-                  </div>
-                </div>
-              </div>
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList>
+          <TabsTrigger
+            value="overview"
+            icon={<Activity className="h-5 w-5" />}
+            description="System status"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="companies"
+            icon={<Building2 className="h-5 w-5" />}
+            description={`${dashboardData?.companyMetrics?.length || 0} organizations`}
+          >
+            Companies
+          </TabsTrigger>
+          <TabsTrigger
+            value="system"
+            icon={<Cpu className="h-5 w-5" />}
+            description="Performance metrics"
+          >
+            System Health
+          </TabsTrigger>
+          <TabsTrigger
+            value="surveys"
+            icon={<FileText className="h-5 w-5" />}
+            description={`${dashboardData?.ongoingSurveys?.length || 0} running`}
+          >
+            Active Surveys
+          </TabsTrigger>
+        </TabsList>
 
         <TabsContent value="overview" className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -556,8 +525,8 @@ export default function SuperAdminDashboard() {
                   Recent Activity
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+                <div className="space-y-4 pr-2">
                   {dashboardData.recentActivity.map((activity, index) => (
                     <motion.div
                       key={index}
@@ -577,13 +546,13 @@ export default function SuperAdminDashboard() {
                           {activity.description}
                         </p>
                         <div className="flex items-center gap-3">
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs sm:text-sm text-gray-500">
                             {new Date(activity.timestamp).toLocaleDateString()}
                           </span>
                           {activity.company && (
                             <Badge
                               variant="outline"
-                              className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                              className="text-xs sm:text-sm bg-blue-50 text-blue-700 border-blue-200"
                             >
                               {activity.company}
                             </Badge>
@@ -681,8 +650,8 @@ export default function SuperAdminDashboard() {
             <CardHeader>
               <CardTitle>Company Performance</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.companyMetrics.map((company, index) => (
                   <motion.div
                     key={company._id}
@@ -845,8 +814,8 @@ export default function SuperAdminDashboard() {
             <CardHeader>
               <CardTitle>Current Ongoing Surveys</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.ongoingSurveys.map((survey, index) => (
                   <motion.div
                     key={survey._id}

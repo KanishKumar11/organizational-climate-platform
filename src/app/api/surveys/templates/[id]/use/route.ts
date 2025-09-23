@@ -5,6 +5,13 @@ import { connectDB } from '@/lib/db';
 import SurveyTemplate from '@/models/SurveyTemplate';
 import Survey from '@/models/Survey';
 import { hasFeaturePermission } from '@/lib/permissions';
+import { TemplateCategory } from '@/models/SurveyTemplate';
+import { QuestionType, IQuestion } from '@/models/Survey';
+import {
+  mapTemplateCategoryToSurveyType,
+  mapQuestionType,
+  transformTemplateQuestions,
+} from '@/lib/survey-template-utils';
 
 // Create survey from template
 export async function POST(
@@ -61,14 +68,18 @@ export async function POST(
       );
     }
 
+    // Transform template data to valid survey format
+    const templateQuestions = customizations.questions || template.questions;
+    const transformedQuestions = transformTemplateQuestions(templateQuestions);
+
     // Create survey from template
     const surveyData = {
       title,
       description: description || template.description,
-      type: template.category || 'general_climate',
+      type: mapTemplateCategoryToSurveyType(template.category),
       company_id: session.user.companyId,
       created_by: session.user.id,
-      questions: customizations.questions || template.questions,
+      questions: transformedQuestions,
       demographics: customizations.demographics || template.demographics,
       settings: {
         ...template.default_settings,
@@ -104,6 +115,19 @@ export async function POST(
     );
   } catch (error) {
     console.error('Error creating survey from template:', error);
+
+    // Handle validation errors specifically
+    if (error instanceof Error && error.name === 'ValidationError') {
+      return NextResponse.json(
+        {
+          error: 'Survey validation failed',
+          details: error.message,
+          validationErrors: (error as any).errors,
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

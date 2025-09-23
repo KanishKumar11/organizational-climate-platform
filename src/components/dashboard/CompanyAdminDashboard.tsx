@@ -7,7 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  EnhancedTabs as Tabs,
+  EnhancedTabsContent as TabsContent,
+  EnhancedTabsList as TabsList,
+  EnhancedTabsTrigger as TabsTrigger,
+} from '@/components/ui/enhanced-tabs';
 
 import {
   Users,
@@ -299,7 +304,7 @@ export default function CompanyAdminDashboard() {
               </div>
             </div>
 
-            <div className="flex items-center gap-6 text-sm text-gray-600">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                 <span>
@@ -322,14 +327,14 @@ export default function CompanyAdminDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 placeholder="Search surveys, employees, departments..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 w-80 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white"
+                className="pl-12 h-12 w-full sm:w-80 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white"
               />
               {isSearching && (
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
@@ -337,8 +342,8 @@ export default function CompanyAdminDashboard() {
                 </div>
               )}
             </div>
-            <Button className="bg-blue-600 hover:bg-blue-700 h-12 px-6">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button className="bg-blue-600 hover:bg-blue-700 h-12 px-4 sm:px-6 w-full md:w-auto">
+              <Plus className="h-5 w-5 mr-2" />
               Create Survey
             </Button>
           </div>
@@ -502,12 +507,42 @@ export default function CompanyAdminDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="surveys">Surveys</TabsTrigger>
-          <TabsTrigger value="departments">Departments</TabsTrigger>
-          <TabsTrigger value="insights">AI Insights</TabsTrigger>
-          <TabsTrigger value="demographics">Demographics</TabsTrigger>
+        <TabsList>
+          <TabsTrigger
+            value="overview"
+            icon={<BarChart3 className="h-5 w-5" />}
+            description="Company overview"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="surveys"
+            icon={<FileText className="h-5 w-5" />}
+            description={`${(dashboardData?.ongoingSurveys?.length || 0) + (dashboardData?.pastSurveys?.length || 0)} total`}
+          >
+            Surveys
+          </TabsTrigger>
+          <TabsTrigger
+            value="departments"
+            icon={<Building2 className="h-5 w-5" />}
+            description={`${dashboardData?.departmentAnalytics?.length || 0} departments`}
+          >
+            Departments
+          </TabsTrigger>
+          <TabsTrigger
+            value="insights"
+            icon={<Brain className="h-5 w-5" />}
+            description="AI recommendations"
+          >
+            AI Insights
+          </TabsTrigger>
+          <TabsTrigger
+            value="demographics"
+            icon={<GitBranch className="h-5 w-5" />}
+            description={`${dashboardData?.demographicVersions?.length || 0} versions`}
+          >
+            Demographics
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -520,8 +555,8 @@ export default function CompanyAdminDashboard() {
                   Recent Activity
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+                <div className="space-y-4 pr-2">
                   {dashboardData.recentActivity.map((activity, index) => (
                     <motion.div
                       key={index}
@@ -585,8 +620,8 @@ export default function CompanyAdminDashboard() {
               <CardHeader>
                 <CardTitle>Current Ongoing Surveys</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+                <div className="space-y-4 pr-2">
                   {dashboardData.ongoingSurveys.map((survey, index) => (
                     <motion.div
                       key={survey._id}
@@ -636,8 +671,8 @@ export default function CompanyAdminDashboard() {
               <CardHeader>
                 <CardTitle>Past Survey Details</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+                <div className="space-y-4 pr-2">
                   {dashboardData.pastSurveys.map((survey, index) => (
                     <motion.div
                       key={survey._id}
@@ -690,8 +725,8 @@ export default function CompanyAdminDashboard() {
             <CardHeader>
               <CardTitle>Department Analytics</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.departmentAnalytics.map((dept, index) => (
                   <motion.div
                     key={dept._id}
@@ -747,8 +782,8 @@ export default function CompanyAdminDashboard() {
                 AI Insights & Recommendations
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.aiInsights.map((insight, index) => (
                   <motion.div
                     key={insight.id}
@@ -821,8 +856,8 @@ export default function CompanyAdminDashboard() {
                 Demographic Versioning
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.demographicVersions.map((version, index) => (
                   <motion.div
                     key={version.id}

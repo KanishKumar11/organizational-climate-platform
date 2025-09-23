@@ -274,27 +274,27 @@ export default function RoleBasedNav() {
                     asChild
                     variant={isActive ? 'secondary' : 'ghost'}
                     className={cn(
-                      'w-full justify-start gap-3 h-auto p-3',
+                      'w-full justify-start gap-3 h-auto p-3 text-left',
                       isActive &&
                         'bg-secondary text-secondary-foreground font-medium'
                     )}
                   >
                     <Link href={item.href}>
                       <Icon className="h-4 w-4 flex-shrink-0" />
-                      <div className="flex-1 text-left">
+                      <div className="flex-1 text-left min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{item.label}</span>
+                          <span className="text-sm truncate">{item.label}</span>
                           {item.badge && (
                             <Badge
                               variant="destructive"
-                              className="text-xs px-1.5 py-0"
+                              className="text-xs px-1.5 py-0 flex-shrink-0"
                             >
                               {item.badge}
                             </Badge>
                           )}
                         </div>
                         {item.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-xs text-muted-foreground mt-0.5 break-words hyphens-auto leading-tight whitespace-normal">
                             {item.description}
                           </p>
                         )}

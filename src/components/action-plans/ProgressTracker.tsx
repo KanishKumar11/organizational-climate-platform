@@ -62,7 +62,7 @@ interface ActionPlan {
   _id: string;
   title: string;
   description: string;
-  status: string;
+  status: 'not_started' | 'in_progress' | 'completed' | 'overdue' | 'cancelled';
   kpis: KPI[];
   qualitative_objectives: QualitativeObjective[];
   progress_updates: ProgressUpdate[];

@@ -11,7 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/Progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  EnhancedTabs as Tabs,
+  EnhancedTabsContent as TabsContent,
+  EnhancedTabsList as TabsList,
+  EnhancedTabsTrigger as TabsTrigger,
+} from '@/components/ui/enhanced-tabs';
 
 import {
   Users,
@@ -285,7 +290,7 @@ export default function DepartmentAdminDashboard() {
               </div>
             </div>
 
-            <div className="flex items-center gap-6 text-sm text-gray-600">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                 <span>
@@ -310,14 +315,14 @@ export default function DepartmentAdminDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 placeholder="Search team surveys, members..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 w-80 text-base border-gray-200 focus:border-green-500 focus:ring-green-500 bg-white"
+                className="pl-12 h-12 w-full sm:w-80 text-base border-gray-200 focus:border-green-500 focus:ring-green-500 bg-white"
               />
               {isSearching && (
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
@@ -325,8 +330,8 @@ export default function DepartmentAdminDashboard() {
                 </div>
               )}
             </div>
-            <Button className="bg-green-600 hover:bg-green-700 h-12 px-6">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button className="bg-green-600 hover:bg-green-700 h-12 px-4 sm:px-6 w-full md:w-auto">
+              <Plus className="h-5 w-5 mr-2" />
               Create Survey
             </Button>
           </div>
@@ -417,86 +422,43 @@ export default function DepartmentAdminDashboard() {
 
       {/* Enhanced Tabs */}
       <Tabs defaultValue="overview" className="space-y-8">
-        <div className="border-b border-gray-200">
-          <TabsList className="bg-transparent h-auto p-0 space-x-8">
-            <TabsTrigger
-              value="overview"
-              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-green-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Activity className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Overview</div>
-                  <div className="text-sm text-gray-500">Department status</div>
-                </div>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="team"
-              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Users className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Team</div>
-                  <div className="text-sm text-gray-500">
-                    {dashboardData?.teamMembers?.length || 0} members
-                  </div>
-                </div>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="surveys"
-              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-purple-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <FileText className="h-4 w-4 text-purple-600" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Surveys</div>
-                  <div className="text-sm text-gray-500">
-                    {dashboardData?.ongoingSurveys?.length || 0} active
-                  </div>
-                </div>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="insights"
-              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <Brain className="h-4 w-4 text-orange-600" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Insights</div>
-                  <div className="text-sm text-gray-500">AI analysis</div>
-                </div>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="actions"
-              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-red-500 data-[state=active]:bg-transparent rounded-none px-0 pb-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <Target className="h-4 w-4 text-red-600" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Action Plans</div>
-                  <div className="text-sm text-gray-500">
-                    {dashboardData?.actionPlans?.length || 0} plans
-                  </div>
-                </div>
-              </div>
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList>
+          <TabsTrigger
+            value="overview"
+            icon={<Activity className="h-5 w-5" />}
+            description="Department status"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="team"
+            icon={<Users className="h-5 w-5" />}
+            description={`${dashboardData?.teamMembers?.length || 0} members`}
+          >
+            Team
+          </TabsTrigger>
+          <TabsTrigger
+            value="surveys"
+            icon={<FileText className="h-5 w-5" />}
+            description={`${dashboardData?.ongoingSurveys?.length || 0} active`}
+          >
+            Surveys
+          </TabsTrigger>
+          <TabsTrigger
+            value="insights"
+            icon={<Brain className="h-5 w-5" />}
+            description="AI analysis"
+          >
+            Insights
+          </TabsTrigger>
+          <TabsTrigger
+            value="actions"
+            icon={<Target className="h-5 w-5" />}
+            description={`${dashboardData?.actionPlans?.length || 0} plans`}
+          >
+            Action Plans
+          </TabsTrigger>
+        </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -508,8 +470,8 @@ export default function DepartmentAdminDashboard() {
                   Recent Activity
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+                <div className="space-y-4 pr-2">
                   {dashboardData.recentActivity.map((activity, index) => (
                     <motion.div
                       key={index}
@@ -571,8 +533,8 @@ export default function DepartmentAdminDashboard() {
             <CardHeader>
               <CardTitle>Team Members</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.teamMembers.map((member, index) => (
                   <motion.div
                     key={member._id}
@@ -625,8 +587,8 @@ export default function DepartmentAdminDashboard() {
               <CardHeader>
                 <CardTitle>Current Ongoing Surveys</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+                <div className="space-y-4 pr-2">
                   {dashboardData.ongoingSurveys.map((survey, index) => (
                     <motion.div
                       key={survey._id}
@@ -676,8 +638,8 @@ export default function DepartmentAdminDashboard() {
               <CardHeader>
                 <CardTitle>Past Survey Details</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+                <div className="space-y-4 pr-2">
                   {dashboardData.pastSurveys.map((survey, index) => (
                     <motion.div
                       key={survey._id}
@@ -733,8 +695,8 @@ export default function DepartmentAdminDashboard() {
                 Department AI Insights
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.departmentInsights.map((insight, index) => (
                   <motion.div
                     key={insight.id}
@@ -791,8 +753,8 @@ export default function DepartmentAdminDashboard() {
                 Department Action Plans
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
                 {dashboardData.actionPlans.map((plan, index) => (
                   <motion.div
                     key={plan.id}
