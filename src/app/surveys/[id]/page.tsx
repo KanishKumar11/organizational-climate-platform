@@ -21,6 +21,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { SuccessDialog } from '@/components/ui/success-dialog';
+import { toast } from 'sonner';
 import {
   Edit,
   Eye,
@@ -140,11 +142,11 @@ export default function SurveyDetailPage() {
         setSurvey(data.survey);
         setEditing(false);
       } else {
-        alert('Failed to save survey');
+        toast.error('Failed to save survey');
       }
     } catch (error) {
       console.error('Error saving survey:', error);
-      alert('Failed to save survey');
+      toast.error('Failed to save survey');
     } finally {
       setSaving(false);
     }
@@ -194,13 +196,13 @@ export default function SurveyDetailPage() {
         }
       } else {
         const errorData = await response.json();
-        alert(
+        toast.error(
           `Failed to ${action} survey: ${errorData.error || 'Unknown error'}`
         );
       }
     } catch (error) {
       console.error(`Error ${action} survey:`, error);
-      alert(`Failed to ${action} survey`);
+      toast.error(`Failed to ${action} survey`);
     }
   };
 
@@ -1371,12 +1373,28 @@ function ShareSurveyModal({ survey, isOpen, onClose }: ShareSurveyModalProps) {
   const [emails, setEmails] = useState('');
   const [customMessage, setCustomMessage] = useState('');
   const [isSharing, setIsSharing] = useState(false);
+  const [successDialog, setSuccessDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    copyableText?: string;
+    copyableLabel?: string;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+  });
 
   if (!survey) return null;
 
   const handleShareWithInvitations = async () => {
     if (!emails.trim()) {
-      alert('Please enter at least one email address');
+      setSuccessDialog({
+        open: true,
+        title: 'Email Required',
+        description:
+          'Please enter at least one email address to send invitations.',
+      });
       return;
     }
 
@@ -1403,7 +1421,12 @@ function ShareSurveyModal({ survey, isOpen, onClose }: ShareSurveyModalProps) {
       const userIds = usersData.users.map((user: any) => user._id);
 
       if (userIds.length === 0) {
-        alert('No valid users found for the provided email addresses');
+        setSuccessDialog({
+          open: true,
+          title: 'No Users Found',
+          description:
+            'No valid users found for the provided email addresses. Please check the email addresses and try again.',
+        });
         return;
       }
 
@@ -1426,15 +1449,22 @@ function ShareSurveyModal({ survey, isOpen, onClose }: ShareSurveyModalProps) {
       }
 
       const result = await invitationsResponse.json();
-      alert(
-        `Successfully sent ${result.invitations.length} survey invitations!`
-      );
+      setSuccessDialog({
+        open: true,
+        title: 'Invitations Sent Successfully!',
+        description: `Successfully sent ${result.invitations.length} survey invitations to the specified recipients.`,
+      });
       onClose();
       setEmails('');
       setCustomMessage('');
     } catch (error) {
       console.error('Error sharing survey:', error);
-      alert('Failed to share survey. Please try again.');
+      setSuccessDialog({
+        open: true,
+        title: 'Failed to Share Survey',
+        description:
+          'Failed to share survey. Please try again or contact support if the problem persists.',
+      });
     } finally {
       setIsSharing(false);
     }
@@ -1444,11 +1474,22 @@ function ShareSurveyModal({ survey, isOpen, onClose }: ShareSurveyModalProps) {
     const surveyUrl = `${window.location.origin}/survey/${survey._id}`;
     try {
       await navigator.clipboard.writeText(surveyUrl);
-      alert(
-        'Survey link copied to clipboard!\n\nNote: Users must be logged in and in the same company to access this link.'
-      );
+      setSuccessDialog({
+        open: true,
+        title: 'Survey Link Copied!',
+        description:
+          'Survey link copied to clipboard! Note: Users must be logged in and in the same company to access this link.',
+        copyableText: surveyUrl,
+        copyableLabel: 'Survey Link',
+      });
     } catch (err) {
-      prompt('Copy this survey link:', surveyUrl);
+      setSuccessDialog({
+        open: true,
+        title: 'Copy Survey Link',
+        description: 'Please copy the survey link below:',
+        copyableText: surveyUrl,
+        copyableLabel: 'Survey Link',
+      });
     }
   };
 
@@ -1566,6 +1607,16 @@ function ShareSurveyModal({ survey, isOpen, onClose }: ShareSurveyModalProps) {
           )}
         </DialogFooter>
       </DialogContent>
+
+      {/* Success Dialog */}
+      <SuccessDialog
+        open={successDialog.open}
+        onOpenChange={(open) => setSuccessDialog((prev) => ({ ...prev, open }))}
+        title={successDialog.title}
+        description={successDialog.description}
+        copyableText={successDialog.copyableText}
+        copyableLabel={successDialog.copyableLabel}
+      />
     </Dialog>
   );
 }

@@ -41,7 +41,7 @@ const updateUserSchema = z.object({
   is_active: z.boolean().optional(),
 });
 
-// GET /api/admin/users - List all users with admin permissions
+// GET /api/admin/users - List all users with admin permissions and pagination
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -58,6 +58,18 @@ export async function GET(request: NextRequest) {
     }
 
     await connectDB();
+
+    // Parse pagination and filter parameters
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(
+      Math.max(1, parseInt(searchParams.get('limit') || '25')),
+      100
+    );
+    const search = searchParams.get('search')?.trim() || '';
+    const roleFilter = searchParams.get('role') || '';
+    const statusFilter = searchParams.get('status') || '';
+    const departmentFilter = searchParams.get('department') || '';
 
     const user = await User.findById(session.user.id);
     if (!user) {
@@ -80,32 +92,74 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch users with department information
-    const users = await User.aggregate([
-      { $match: query },
-      {
-        $lookup: {
-          from: 'departments',
-          localField: 'department_id',
-          foreignField: '_id',
-          as: 'department',
+    // Add search filter
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    // Add role filter
+    if (roleFilter) {
+      query.role = roleFilter;
+    }
+
+    // Add status filter
+    if (statusFilter) {
+      query.is_active = statusFilter === 'active';
+    }
+
+    // Add department filter
+    if (departmentFilter) {
+      query.department_id = departmentFilter;
+    }
+
+    const skip = (page - 1) * limit;
+
+    // Fetch users with pagination and department information
+    const [users, total] = await Promise.all([
+      User.aggregate([
+        { $match: query },
+        {
+          $lookup: {
+            from: 'departments',
+            localField: 'department_id',
+            foreignField: '_id',
+            as: 'department',
+          },
         },
-      },
-      {
-        $addFields: {
-          department_name: { $arrayElemAt: ['$department.name', 0] },
+        {
+          $addFields: {
+            department_name: { $arrayElemAt: ['$department.name', 0] },
+          },
         },
-      },
-      {
-        $project: {
-          password_hash: 0,
-          department: 0,
+        {
+          $project: {
+            password_hash: 0,
+            department: 0,
+          },
         },
-      },
-      { $sort: { created_at: -1 } },
+        { $sort: { created_at: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+      ]),
+      User.countDocuments(query),
     ]);
 
-    return NextResponse.json({ users });
+    const totalPages = Math.ceil(total / limit);
+
+    return NextResponse.json({
+      users,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    });
   } catch (error) {
     console.error('Error fetching users:', error);
     return NextResponse.json(

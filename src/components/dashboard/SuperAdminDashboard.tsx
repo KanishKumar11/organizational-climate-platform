@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -29,13 +27,10 @@ import {
   Activity,
   Database,
   Cpu,
-  HardDrive,
   Zap,
   Eye,
-  Calendar,
   BarChart3,
 } from 'lucide-react';
-import { KPIDisplay } from '@/components/charts/KPIDisplay';
 
 interface GlobalKPIs {
   totalCompanies: number;
@@ -136,11 +131,7 @@ export default function SuperAdminDashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const response = await fetch('/api/dashboard/super-admin');
       if (response.ok) {
@@ -152,7 +143,7 @@ export default function SuperAdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const performSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
@@ -172,6 +163,21 @@ export default function SuperAdminDashboard() {
       setIsSearching(false);
     }
   }, [searchQuery]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  useEffect(() => {
+    if (searchQuery.length >= 2) {
+      const debounceTimer = setTimeout(() => {
+        performSearch();
+      }, 300);
+      return () => clearTimeout(debounceTimer);
+    } else {
+      setSearchResults(null);
+    }
+  }, [searchQuery, performSearch]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {

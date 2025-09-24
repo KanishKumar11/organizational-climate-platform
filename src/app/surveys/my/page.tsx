@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { redirect } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -8,16 +8,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { 
-  FileText, 
-  Clock, 
-  CheckCircle, 
+import {
+  FileText,
+  Clock,
+  CheckCircle,
   AlertCircle,
   Calendar,
   ArrowRight,
   Filter,
   Search,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
@@ -53,16 +53,12 @@ export default function MySurveysPage() {
     redirect('/dashboard');
   }
 
-  useEffect(() => {
-    loadMySurveys();
-  }, []);
-
-  const loadMySurveys = async () => {
+  const loadMySurveys = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/surveys/my');
       if (!response.ok) throw new Error('Failed to load surveys');
-      
+
       const data = await response.json();
       setSurveys(data.surveys || []);
     } catch (error) {
@@ -70,7 +66,11 @@ export default function MySurveysPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadMySurveys();
+  }, [loadMySurveys]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -78,21 +78,31 @@ export default function MySurveysPage() {
     setRefreshing(false);
   };
 
-  const filteredSurveys = surveys.filter(survey => {
-    const matchesSearch = survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         survey.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || survey.my_response_status === statusFilter;
+  const filteredSurveys = surveys.filter((survey) => {
+    const matchesSearch =
+      survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      survey.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === 'all' || survey.my_response_status === statusFilter;
     const matchesType = typeFilter === 'all' || survey.type === typeFilter;
-    
+
     return matchesSearch && matchesStatus && matchesType;
   });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Completed</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            Completed
+          </Badge>
+        );
       case 'in_progress':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">In Progress</Badge>;
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+            In Progress
+          </Badge>
+        );
       case 'not_started':
         return <Badge variant="outline">Not Started</Badge>;
       default:
@@ -129,8 +139,12 @@ export default function MySurveysPage() {
     window.location.href = `/surveys/${surveyId}/results`;
   };
 
-  const pendingSurveys = filteredSurveys.filter(s => s.my_response_status !== 'completed');
-  const completedSurveys = filteredSurveys.filter(s => s.my_response_status === 'completed');
+  const pendingSurveys = filteredSurveys.filter(
+    (s) => s.my_response_status !== 'completed'
+  );
+  const completedSurveys = filteredSurveys.filter(
+    (s) => s.my_response_status === 'completed'
+  );
 
   if (loading) {
     return (
@@ -158,13 +172,15 @@ export default function MySurveysPage() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleRefresh}
                 disabled={refreshing}
                 className="w-full sm:w-auto"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`}
+                />
                 Refresh
               </Button>
             </div>
@@ -270,7 +286,7 @@ export default function MySurveysPage() {
                 <p className="text-gray-600">
                   {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
                     ? 'Try adjusting your filters to see more surveys.'
-                    : 'You don\'t have any surveys assigned at the moment.'}
+                    : "You don't have any surveys assigned at the moment."}
                 </p>
               </CardContent>
             </Card>
@@ -278,11 +294,16 @@ export default function MySurveysPage() {
             <div className="space-y-4">
               {filteredSurveys.map((survey) => {
                 const TypeIcon = getTypeIcon(survey.type);
-                const isExpiringSoon = survey.expires_at && 
-                  new Date(survey.expires_at) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-                
+                const isExpiringSoon =
+                  survey.expires_at &&
+                  new Date(survey.expires_at) <
+                    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
                 return (
-                  <Card key={survey._id} className="hover:shadow-md transition-shadow">
+                  <Card
+                    key={survey._id}
+                    className="hover:shadow-md transition-shadow"
+                  >
                     <CardContent className="p-4 sm:p-6">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-start gap-3 flex-1">
@@ -295,7 +316,10 @@ export default function MySurveysPage() {
                               {getStatusBadge(survey.my_response_status)}
                               {getPriorityBadge(survey.priority)}
                               {isExpiringSoon && (
-                                <Badge variant="destructive" className="flex items-center gap-1">
+                                <Badge
+                                  variant="destructive"
+                                  className="flex items-center gap-1"
+                                >
                                   <AlertCircle className="h-3 w-3" />
                                   Expires Soon
                                 </Badge>
@@ -309,24 +333,28 @@ export default function MySurveysPage() {
                             <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                Created {new Date(survey.created_at).toLocaleDateString()}
+                                Created{' '}
+                                {new Date(
+                                  survey.created_at
+                                ).toLocaleDateString()}
                               </span>
                               {survey.expires_at && (
                                 <span className="flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
-                                  Expires {new Date(survey.expires_at).toLocaleDateString()}
+                                  Expires{' '}
+                                  {new Date(
+                                    survey.expires_at
+                                  ).toLocaleDateString()}
                                 </span>
                               )}
-                              <span>
-                                Est. {survey.estimated_duration} min
-                              </span>
+                              <span>Est. {survey.estimated_duration} min</span>
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="flex flex-col sm:flex-row gap-2 sm:ml-4">
                           {survey.my_response_status === 'not_started' && (
-                            <Button 
+                            <Button
                               onClick={() => handleStartSurvey(survey._id)}
                               className="w-full sm:w-auto"
                             >
@@ -335,8 +363,13 @@ export default function MySurveysPage() {
                             </Button>
                           )}
                           {survey.my_response_status === 'in_progress' && (
-                            <Button 
-                              onClick={() => handleContinueSurvey(survey._id, survey.my_response_id!)}
+                            <Button
+                              onClick={() =>
+                                handleContinueSurvey(
+                                  survey._id,
+                                  survey.my_response_id!
+                                )
+                              }
                               className="w-full sm:w-auto"
                             >
                               Continue
@@ -344,7 +377,7 @@ export default function MySurveysPage() {
                             </Button>
                           )}
                           {survey.my_response_status === 'completed' && (
-                            <Button 
+                            <Button
                               variant="outline"
                               onClick={() => handleViewResults(survey._id)}
                               className="w-full sm:w-auto"

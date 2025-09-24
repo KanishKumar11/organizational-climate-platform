@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { redirect } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -10,11 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { 
-  Database, 
-  Search, 
-  Filter, 
-  Download, 
+import {
+  Database,
+  Search,
+  Filter,
+  Download,
   RefreshCw,
   AlertTriangle,
   CheckCircle,
@@ -23,7 +23,7 @@ import {
   Activity,
   Shield,
   FileText,
-  Calendar
+  Calendar,
 } from 'lucide-react';
 
 interface AuditLog {
@@ -62,7 +62,7 @@ export default function SystemLogsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeView, setActiveView] = useState<'logs' | 'report'>('logs');
-  
+
   // Filters
   const [filters, setFilters] = useState({
     user_id: '',
@@ -72,7 +72,7 @@ export default function SystemLogsPage() {
     start_date: '',
     end_date: '',
     search: '',
-    limit: 50
+    limit: 50,
   });
 
   // Redirect if user doesn't have permission
@@ -80,16 +80,11 @@ export default function SystemLogsPage() {
     redirect('/dashboard');
   }
 
-  useEffect(() => {
-    loadLogs();
-    loadReport();
-  }, []);
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      
+
       Object.entries(filters).forEach(([key, value]) => {
         if (value && value !== '') {
           params.append(key, value.toString());
@@ -98,7 +93,7 @@ export default function SystemLogsPage() {
 
       const response = await fetch(`/api/audit/logs?${params}`);
       if (!response.ok) throw new Error('Failed to load logs');
-      
+
       const data = await response.json();
       setLogs(data.data || []);
     } catch (error) {
@@ -106,9 +101,9 @@ export default function SystemLogsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
-  const loadReport = async () => {
+  const loadReport = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (filters.start_date) params.append('start_date', filters.start_date);
@@ -116,13 +111,18 @@ export default function SystemLogsPage() {
 
       const response = await fetch(`/api/audit/report?${params}`);
       if (!response.ok) throw new Error('Failed to load report');
-      
+
       const data = await response.json();
       setReport(data.data);
     } catch (error) {
       console.error('Error loading report:', error);
     }
-  };
+  }, [filters.start_date, filters.end_date]);
+
+  useEffect(() => {
+    loadLogs();
+    loadReport();
+  }, [loadLogs, loadReport]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -142,7 +142,7 @@ export default function SystemLogsPage() {
 
       const response = await fetch(`/api/audit/export?${params}`);
       if (!response.ok) throw new Error('Failed to export logs');
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -159,20 +159,30 @@ export default function SystemLogsPage() {
 
   const getActionBadgeVariant = (action: string) => {
     switch (action) {
-      case 'create': return 'default';
-      case 'update': return 'secondary';
-      case 'delete': return 'destructive';
-      case 'login': case 'logout': return 'outline';
-      default: return 'secondary';
+      case 'create':
+        return 'default';
+      case 'update':
+        return 'secondary';
+      case 'delete':
+        return 'destructive';
+      case 'login':
+      case 'logout':
+        return 'outline';
+      default:
+        return 'secondary';
     }
   };
 
   const getResourceIcon = (resource: string) => {
     switch (resource) {
-      case 'user': return User;
-      case 'survey': return FileText;
-      case 'audit_log': return Database;
-      default: return Activity;
+      case 'user':
+        return User;
+      case 'survey':
+        return FileText;
+      case 'audit_log':
+        return Database;
+      default:
+        return Activity;
     }
   };
 
@@ -194,7 +204,9 @@ export default function SystemLogsPage() {
                 id="action"
                 placeholder="e.g., create, update"
                 value={filters.action}
-                onChange={(e) => setFilters(prev => ({ ...prev, action: e.target.value }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, action: e.target.value }))
+                }
                 className="mt-1"
               />
             </div>
@@ -204,7 +216,9 @@ export default function SystemLogsPage() {
                 id="resource"
                 placeholder="e.g., user, survey"
                 value={filters.resource}
-                onChange={(e) => setFilters(prev => ({ ...prev, resource: e.target.value }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, resource: e.target.value }))
+                }
                 className="mt-1"
               />
             </div>
@@ -214,7 +228,12 @@ export default function SystemLogsPage() {
                 id="start_date"
                 type="date"
                 value={filters.start_date}
-                onChange={(e) => setFilters(prev => ({ ...prev, start_date: e.target.value }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    start_date: e.target.value,
+                  }))
+                }
                 className="mt-1"
               />
             </div>
@@ -224,7 +243,9 @@ export default function SystemLogsPage() {
                 id="end_date"
                 type="date"
                 value={filters.end_date}
-                onChange={(e) => setFilters(prev => ({ ...prev, end_date: e.target.value }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, end_date: e.target.value }))
+                }
                 className="mt-1"
               />
             </div>
@@ -234,12 +255,20 @@ export default function SystemLogsPage() {
               <Search className="h-4 w-4 mr-2" />
               Apply Filters
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setFilters({
-                user_id: '', action: '', resource: '', success: '', 
-                start_date: '', end_date: '', search: '', limit: 50
-              })}
+            <Button
+              variant="outline"
+              onClick={() =>
+                setFilters({
+                  user_id: '',
+                  action: '',
+                  resource: '',
+                  success: '',
+                  start_date: '',
+                  end_date: '',
+                  search: '',
+                  limit: 50,
+                })
+              }
               className="w-full sm:w-auto"
             >
               Clear Filters
@@ -257,11 +286,19 @@ export default function SystemLogsPage() {
               Audit Logs ({logs.length})
             </span>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => handleExport('csv')}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport('csv')}
+              >
                 <Download className="h-4 w-4 mr-2" />
                 CSV
               </Button>
-              <Button variant="outline" size="sm" onClick={() => handleExport('json')}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport('json')}
+              >
                 <Download className="h-4 w-4 mr-2" />
                 JSON
               </Button>
@@ -280,23 +317,24 @@ export default function SystemLogsPage() {
               {logs.map((log) => {
                 const ResourceIcon = getResourceIcon(log.resource);
                 return (
-                  <div key={log._id} className="flex items-start gap-3 p-4 border rounded-lg bg-gray-50">
-                    <div className={`h-2 w-2 rounded-full mt-2 ${
-                      log.success ? 'bg-green-500' : 'bg-red-500'
-                    }`} />
+                  <div
+                    key={log._id}
+                    className="flex items-start gap-3 p-4 border rounded-lg bg-gray-50"
+                  >
+                    <div
+                      className={`h-2 w-2 rounded-full mt-2 ${
+                        log.success ? 'bg-green-500' : 'bg-red-500'
+                      }`}
+                    />
                     <ResourceIcon className="h-5 w-5 text-gray-600 mt-1" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <Badge variant={getActionBadgeVariant(log.action)}>
                           {log.action}
                         </Badge>
-                        <Badge variant="outline">
-                          {log.resource}
-                        </Badge>
+                        <Badge variant="outline">{log.resource}</Badge>
                         {!log.success && (
-                          <Badge variant="destructive">
-                            Failed
-                          </Badge>
+                          <Badge variant="destructive">Failed</Badge>
                         )}
                       </div>
                       <p className="text-sm text-gray-900">
@@ -313,9 +351,7 @@ export default function SystemLogsPage() {
                           <Clock className="h-3 w-3" />
                           {new Date(log.timestamp).toLocaleString()}
                         </span>
-                        {log.ip_address && (
-                          <span>IP: {log.ip_address}</span>
-                        )}
+                        {log.ip_address && <span>IP: {log.ip_address}</span>}
                       </div>
                     </div>
                   </div>
@@ -411,16 +447,15 @@ export default function SystemLogsPage() {
               <CardContent className="max-h-64 overflow-y-auto dashboard-scroll">
                 <div className="space-y-3">
                   {report.recent_failures.map((failure) => (
-                    <div key={failure._id} className="flex items-start gap-3 p-3 border border-red-200 rounded-lg bg-red-50">
+                    <div
+                      key={failure._id}
+                      className="flex items-start gap-3 p-3 border border-red-200 rounded-lg bg-red-50"
+                    >
                       <AlertTriangle className="h-4 w-4 text-red-600 mt-1" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="destructive">
-                            {failure.action}
-                          </Badge>
-                          <Badge variant="outline">
-                            {failure.resource}
-                          </Badge>
+                          <Badge variant="destructive">{failure.action}</Badge>
+                          <Badge variant="outline">{failure.resource}</Badge>
                         </div>
                         <p className="text-sm text-red-900">
                           {failure.error_message || 'Unknown error'}
@@ -456,13 +491,15 @@ export default function SystemLogsPage() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleRefresh}
                 disabled={refreshing}
                 className="w-full sm:w-auto"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`}
+                />
                 Refresh
               </Button>
             </div>

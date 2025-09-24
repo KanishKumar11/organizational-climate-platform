@@ -1,9 +1,6 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -143,22 +140,7 @@ export default function DepartmentAdminDashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  useEffect(() => {
-    if (searchQuery.length >= 2) {
-      const debounceTimer = setTimeout(() => {
-        performSearch();
-      }, 300);
-      return () => clearTimeout(debounceTimer);
-    } else {
-      setSearchResults(null);
-    }
-  }, [searchQuery]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const response = await fetch('/api/dashboard/department-admin');
       if (response.ok) {
@@ -170,9 +152,9 @@ export default function DepartmentAdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
@@ -189,7 +171,22 @@ export default function DepartmentAdminDashboard() {
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [searchQuery]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  useEffect(() => {
+    if (searchQuery.length >= 2) {
+      const debounceTimer = setTimeout(() => {
+        performSearch();
+      }, 300);
+      return () => clearTimeout(debounceTimer);
+    } else {
+      setSearchResults(null);
+    }
+  }, [searchQuery, performSearch]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {

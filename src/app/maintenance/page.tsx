@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,11 @@ interface MaintenanceInfo {
 }
 
 export default function MaintenancePage() {
-  const [maintenanceInfo, setMaintenanceInfo] = useState<MaintenanceInfo | null>(null);
+  const [maintenanceInfo, setMaintenanceInfo] =
+    useState<MaintenanceInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchMaintenanceInfo = async () => {
+  const fetchMaintenanceInfo = useCallback(async () => {
     try {
       const response = await fetch('/api/system/status');
       if (response.ok) {
@@ -29,14 +30,14 @@ export default function MaintenancePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchMaintenanceInfo();
     // Check status every 30 seconds
     const interval = setInterval(fetchMaintenanceInfo, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchMaintenanceInfo]);
 
   const handleRefresh = () => {
     setLoading(true);
@@ -72,18 +73,20 @@ export default function MaintenancePage() {
               )}
             </div>
             <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-200">
-              {maintenanceInfo?.enabled ? 'System Maintenance' : 'Access Temporarily Disabled'}
+              {maintenanceInfo?.enabled
+                ? 'System Maintenance'
+                : 'Access Temporarily Disabled'}
             </CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-6">
             <div className="space-y-3">
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                {maintenanceInfo?.message || 
-                 (maintenanceInfo?.enabled 
-                   ? 'Our system is currently undergoing scheduled maintenance to improve your experience.'
-                   : 'User login has been temporarily disabled by the system administrator.')}
+                {maintenanceInfo?.message ||
+                  (maintenanceInfo?.enabled
+                    ? 'Our system is currently undergoing scheduled maintenance to improve your experience.'
+                    : 'User login has been temporarily disabled by the system administrator.')}
               </p>
-              
+
               <div className="flex items-center justify-center space-x-2 text-sm text-slate-500 dark:text-slate-400">
                 <Clock className="h-4 w-4" />
                 <span>Status updates every 30 seconds</span>
@@ -91,20 +94,22 @@ export default function MaintenancePage() {
             </div>
 
             <div className="space-y-3">
-              <Button 
+              <Button
                 onClick={handleRefresh}
                 variant="outline"
                 className="w-full"
                 disabled={loading}
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`}
+                />
                 Check Status
               </Button>
-              
+
               <div className="text-xs text-slate-500 dark:text-slate-400">
                 <p>If you're a system administrator, you can access the</p>
-                <Link 
-                  href="/admin/system-settings" 
+                <Link
+                  href="/admin/system-settings"
                   className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                 >
                   Admin Panel

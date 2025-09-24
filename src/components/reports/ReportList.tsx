@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,37 +54,56 @@ export default function ReportList({
     pages: 0,
   });
 
+  const loadReports = useCallback(
+    async (
+      page = pagination.page,
+      limit = pagination.limit,
+      status = statusFilter,
+      type = typeFilter
+    ) => {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+
+        if (status !== 'all') params.append('status', status);
+        if (type !== 'all') params.append('type', type);
+
+        const response = await fetch(`/api/reports?${params}`);
+        if (response.ok) {
+          const data = await response.json();
+          setReports(data.reports);
+          setPagination((prev) => ({
+            ...prev,
+            page: page,
+            total: data.pagination.total,
+            pages: data.pagination.pages,
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  ); // Remove dependencies to prevent recreation
+
+  // Initial load effect
   useEffect(() => {
     loadReports();
-  }, [pagination.page, statusFilter, typeFilter]);
+  }, [loadReports]);
 
-  const loadReports = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
-      });
+  // Debounced search/filter effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      loadReports(1, pagination.limit, statusFilter, typeFilter); // Reset to page 1 on search/filter
+    }, 500); // 500ms debounce
 
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (typeFilter !== 'all') params.append('type', typeFilter);
-
-      const response = await fetch(`/api/reports?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        setReports(data.reports);
-        setPagination((prev) => ({
-          ...prev,
-          total: data.pagination.total,
-          pages: data.pagination.pages,
-        }));
-      }
-    } catch (error) {
-      console.error('Error loading reports:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => clearTimeout(timeoutId);
+  }, [statusFilter, typeFilter, pagination.limit, loadReports]);
 
   const handleDownload = async (report: Report) => {
     if (report.status !== 'completed') return;

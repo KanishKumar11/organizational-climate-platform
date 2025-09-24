@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SurveyInterface } from '@/components/survey/SurveyInterface';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -17,33 +17,33 @@ export default function SurveyPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchSurvey = async () => {
-      try {
-        const url = invitationToken
-          ? `/api/surveys/${surveyId}?token=${invitationToken}`
-          : `/api/surveys/${surveyId}`;
+  const fetchSurvey = useCallback(async () => {
+    try {
+      const url = invitationToken
+        ? `/api/surveys/${surveyId}?token=${invitationToken}`
+        : `/api/surveys/${surveyId}`;
 
-        const response = await fetch(url);
+      const response = await fetch(url);
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to load survey');
-        }
-
-        const data = await response.json();
-        setSurvey(data.survey);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load survey');
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to load survey');
       }
-    };
 
+      const data = await response.json();
+      setSurvey(data.survey);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load survey');
+    } finally {
+      setLoading(false);
+    }
+  }, [surveyId, invitationToken]);
+
+  useEffect(() => {
     if (surveyId) {
       fetchSurvey();
     }
-  }, [surveyId, invitationToken]);
+  }, [surveyId, fetchSurvey]);
 
   if (loading) {
     return (

@@ -35,6 +35,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Pagination } from '@/components/ui/pagination';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -281,15 +282,9 @@ export function SurveyManagement({
   departmentId,
 }: SurveyManagementProps) {
   const [surveys, setSurveys] = useState<Survey[]>([]);
-  const [filteredSurveys, setFilteredSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Debug: Log props
-  console.log('=== SURVEY MANAGEMENT PROPS ===');
-  console.log('CompanyId prop:', companyId);
-  console.log('DepartmentId prop:', departmentId);
-  console.log('================================');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filters, setFilters] = useState<SurveyFilters>({
     status: 'all',
     type: 'all',
@@ -302,146 +297,85 @@ export function SurveyManagement({
   const [selectedSurveys, setSelectedSurveys] = useState<string[]>([]);
   const [currentView, setCurrentView] = useState<'list' | 'results'>('list');
   const [selectedSurveyId, setSelectedSurveyId] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 12,
+    total: 0,
+    totalPages: 0,
+  });
 
   const surveyColors = getModuleColors('survey');
 
+  // Debounce search query
   useEffect(() => {
-    fetchSurveys();
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
 
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Reset to page 1 when filters change
   useEffect(() => {
-    applyFiltersAndSort();
-  }, [surveys, searchQuery, filters, sortField, sortOrder]);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  }, [debouncedSearchQuery, filters.status, filters.type, filters.dateRange]);
 
   const fetchSurveys = useCallback(async () => {
     try {
       setLoading(true);
 
-      // Debug logging
-      console.log('=== SURVEY FETCH DEBUG ===');
-      console.log('CompanyId:', companyId);
-      console.log('DepartmentId:', departmentId);
+      const params = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
+      });
 
-      const params = new URLSearchParams();
       if (companyId) params.append('company_id', companyId);
       if (departmentId) params.append('department_id', departmentId);
+      if (debouncedSearchQuery) params.append('search', debouncedSearchQuery);
+      if (filters.status !== 'all') params.append('status', filters.status);
+      if (filters.type !== 'all') params.append('type', filters.type);
 
-      const url = `/api/surveys?${params.toString()}`;
-      console.log('Fetching surveys from:', url);
-
-      const response = await fetch(url);
-      console.log('Response status:', response.status);
+      const response = await fetch(`/api/surveys?${params.toString()}`);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Surveys received:', data.surveys?.length || 0);
-        console.log('All surveys:', data.surveys);
-        console.log('First survey:', data.surveys?.[0]);
         setSurveys(data.surveys || []);
+        setPagination((prev) => ({
+          ...prev,
+          total: data.pagination.total,
+          totalPages: data.pagination.pages,
+        }));
       } else {
-        const errorData = await response.json();
-        console.error('Survey fetch error:', errorData);
+        console.error('Failed to fetch surveys');
       }
-      console.log('=== END SURVEY FETCH DEBUG ===');
     } catch (error) {
       console.error('Failed to fetch surveys:', error);
     } finally {
       setLoading(false);
     }
-  }, [companyId, departmentId]);
+  }, [
+    companyId,
+    departmentId,
+    pagination.page,
+    pagination.limit,
+    debouncedSearchQuery,
+    filters.status,
+    filters.type,
+  ]);
 
-  const applyFiltersAndSort = useCallback(() => {
-    let filtered = [...surveys];
+  // Fetch surveys when pagination or filters change
+  useEffect(() => {
+    fetchSurveys();
+  }, [fetchSurveys]);
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (survey) =>
-          survey.title.toLowerCase().includes(query) ||
-          survey.description.toLowerCase().includes(query) ||
-          survey.type.toLowerCase().includes(query) ||
-          survey.tags.some((tag) => tag.toLowerCase().includes(query))
-      );
-    }
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setPagination((prev) => ({ ...prev, page }));
+  };
 
-    // Apply status filter
-    if (filters.status !== 'all') {
-      filtered = filtered.filter((survey) => survey.status === filters.status);
-    }
-
-    // Apply type filter
-    if (filters.type !== 'all') {
-      filtered = filtered.filter((survey) => survey.type === filters.type);
-    }
-
-    // Apply date range filter
-    if (filters.dateRange !== 'all') {
-      const now = new Date();
-      const filterDate = new Date();
-
-      switch (filters.dateRange) {
-        case 'week':
-          filterDate.setDate(now.getDate() - 7);
-          break;
-        case 'month':
-          filterDate.setMonth(now.getMonth() - 1);
-          break;
-        case 'quarter':
-          filterDate.setMonth(now.getMonth() - 3);
-          break;
-        case 'year':
-          filterDate.setFullYear(now.getFullYear() - 1);
-          break;
-      }
-
-      filtered = filtered.filter(
-        (survey) => new Date(survey.created_at) >= filterDate
-      );
-    }
-
-    // Apply created by filter
-    if (filters.createdBy !== 'all') {
-      filtered = filtered.filter(
-        (survey) => survey.created_by.id === filters.createdBy
-      );
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortField) {
-        case 'title':
-          comparison = a.title.localeCompare(b.title);
-          break;
-        case 'created_at':
-          comparison =
-            new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-          break;
-        case 'end_date':
-          comparison =
-            new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
-          break;
-        case 'response_count':
-          comparison = a.response_count - b.response_count;
-          break;
-        case 'completion_rate':
-          comparison = a.completion_rate - b.completion_rate;
-          break;
-      }
-
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-
-    console.log('=== FILTER AND SORT DEBUG ===');
-    console.log('Original surveys count:', surveys.length);
-    console.log('Filtered surveys count:', filtered.length);
-    console.log('Filtered surveys:', filtered);
-    console.log('==============================');
-
-    setFilteredSurveys(filtered);
-  }, [surveys, searchQuery, filters, sortField, sortOrder]);
+  const handleLimitChange = (limit: number) => {
+    setPagination((prev) => ({ ...prev, limit, page: 1 }));
+  };
 
   const handleCreateSurvey = () => {
     // Navigate to survey creation page
@@ -526,8 +460,8 @@ export function SurveyManagement({
     return <Icon className="h-4 w-4" />;
   };
 
-  const ongoingSurveys = filteredSurveys.filter((s) => s.status === 'active');
-  const pastSurveys = filteredSurveys.filter((s) =>
+  const ongoingSurveys = surveys.filter((s) => s.status === 'active');
+  const pastSurveys = surveys.filter((s) =>
     ['completed', 'archived'].includes(s.status)
   );
 
@@ -584,7 +518,7 @@ export function SurveyManagement({
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                <span>{filteredSurveys.length} Total</span>
+                <span>{pagination.total} Total</span>
               </div>
             </div>
           </div>
@@ -835,7 +769,7 @@ export function SurveyManagement({
                 <div className="text-left">
                   <div className="font-medium">All Surveys</div>
                   <div className="text-sm text-gray-500">
-                    {filteredSurveys.length} total
+                    {pagination.total} total
                   </div>
                 </div>
               </div>
@@ -873,7 +807,7 @@ export function SurveyManagement({
 
         <TabsContent value="all" className="space-y-4">
           <SurveyGrid
-            surveys={filteredSurveys}
+            surveys={surveys}
             selectedSurveys={selectedSurveys}
             onToggleSelection={toggleSurveySelection}
             onSurveyAction={handleSurveyAction}
@@ -883,6 +817,20 @@ export function SurveyManagement({
             showProgress={true}
             onCreateSurvey={handleCreateSurvey}
           />
+
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <div className="mt-6">
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+                loading={loading}
+                totalItems={pagination.total}
+                itemsPerPage={pagination.limit}
+              />
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

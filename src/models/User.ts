@@ -6,6 +6,7 @@ import {
   NotificationSettings,
   UserPreferences,
   IUserBase,
+  UserDemographics,
 } from '../types/user';
 import { createPrivacyMiddleware } from '../lib/data-privacy';
 
@@ -64,6 +65,43 @@ const UserPreferencesSchema = new Schema(
   { _id: false }
 );
 
+// User demographics schema
+const UserDemographicsSchema = new Schema(
+  {
+    gender: {
+      type: String,
+      enum: ['male', 'female', 'non_binary', 'prefer_not_to_say', 'other'],
+    },
+    education_level: {
+      type: String,
+      enum: [
+        'high_school',
+        'associate',
+        'bachelor',
+        'master',
+        'doctorate',
+        'other',
+      ],
+    },
+    job_title: { type: String, trim: true },
+    hierarchy_level: {
+      type: String,
+      enum: ['entry', 'mid', 'senior', 'executive', 'c_level'],
+    },
+    work_location: {
+      type: String,
+      enum: ['remote', 'hybrid', 'onsite'],
+    },
+    site_location: { type: String, trim: true },
+    tenure_months: { type: Number, min: 0 },
+    previous_experience_years: { type: Number, min: 0 },
+    team_size: { type: Number, min: 0 },
+    reports_count: { type: Number, min: 0, default: 0 },
+    custom_attributes: { type: Schema.Types.Mixed, default: {} },
+  },
+  { _id: false }
+);
+
 // Main User schema
 const UserSchema: Schema = new Schema(
   {
@@ -111,6 +149,10 @@ const UserSchema: Schema = new Schema(
     },
     preferences: {
       type: UserPreferencesSchema,
+      default: () => ({}),
+    },
+    demographics: {
+      type: UserDemographicsSchema,
       default: () => ({}),
     },
     is_active: {

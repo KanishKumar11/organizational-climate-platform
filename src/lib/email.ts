@@ -18,6 +18,12 @@ export interface SurveyInvitationData {
   expiryDate: Date;
   company?: ICompany;
   reminderCount?: number;
+  credentials?: {
+    username: string;
+    password: string;
+    temporaryPassword: boolean;
+  };
+  customMessage?: string;
 }
 
 // Microclimate invitation data
@@ -57,7 +63,15 @@ export function generateSurveyInvitationTemplate(
   data: SurveyInvitationData,
   branding?: CorporateBranding
 ): EmailTemplate {
-  const { survey, recipient, invitationLink, companyName, expiryDate } = data;
+  const {
+    survey,
+    recipient,
+    invitationLink,
+    companyName,
+    expiryDate,
+    credentials,
+    customMessage,
+  } = data;
 
   const subject = `Your feedback is needed: ${survey.title}`;
   const primaryColor = branding?.primary_color || '#007bff';
@@ -159,8 +173,23 @@ export function generateSurveyInvitationTemplate(
             ${survey.description ? `<p style="margin-bottom: 0;">${survey.description}</p>` : ''}
           </div>
           
+          ${customMessage ? `<p style="background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 4px solid ${primaryColor};">${customMessage}</p>` : ''}
+
           <p>Your feedback is valuable and will help ${companyName} improve our organizational climate and culture. This survey is designed to gather insights that will drive positive change in our workplace.</p>
-          
+
+          ${
+            credentials
+              ? `
+          <div class="details" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+            <strong>🔑 Your Login Credentials:</strong><br>
+            <strong>Username:</strong> ${credentials.username}<br>
+            <strong>Password:</strong> ${credentials.password}<br>
+            ${credentials.temporaryPassword ? '<em style="color: #856404;">This is a temporary password. You will be prompted to change it on first login.</em>' : ''}
+          </div>
+          `
+              : ''
+          }
+
           <div class="details">
             <strong>Survey Details:</strong><br>
             📊 Estimated time: ${survey.settings?.time_limit_minutes || 10} minutes<br>
@@ -195,22 +224,35 @@ export function generateSurveyInvitationTemplate(
 
   const text = `
     Survey Invitation
-    
+
     Hello ${recipient.name},
-    
+
     You've been invited to participate in a survey: ${survey.title}
-    
+
     ${survey.description || ''}
-    
+
+    ${customMessage ? `Custom Message: ${customMessage}\n\n` : ''}
+
+    ${
+      credentials
+        ? `Your Login Credentials:
+    Username: ${credentials.username}
+    Password: ${credentials.password}
+    ${credentials.temporaryPassword ? 'This is a temporary password. You will be prompted to change it on first login.' : ''}
+
+    `
+        : ''
+    }
+
     Your feedback is valuable and will help ${companyName} improve our organizational climate and culture.
-    
+
     Survey Details:
     • Estimated time: ${survey.settings?.time_limit_minutes || 10} minutes
     • Responses are ${survey.settings?.anonymous ? 'anonymous' : 'confidential'}
     • Survey closes: ${expiryDate.toLocaleDateString()}
-    
+
     Take the survey: ${invitationLink}
-    
+
     This survey is part of ${companyName}'s commitment to creating a better workplace for everyone.
     Questions? Contact ${branding?.support_email || 'your HR department'}
   `;

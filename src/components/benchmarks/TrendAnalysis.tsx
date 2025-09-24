@@ -93,7 +93,10 @@ export default function TrendAnalysisComponent({
 
   const handleAnalyzeTrends = async () => {
     if (selectedSurveys.length < 2 || !selectedMetric) {
-      alert('Please select at least 2 surveys and a metric for trend analysis');
+      // You could add a toast notification here or use a proper dialog
+      console.warn(
+        'Please select at least 2 surveys and a metric for trend analysis'
+      );
       return;
     }
 
@@ -119,7 +122,8 @@ export default function TrendAnalysisComponent({
       setTrendAnalysis(data.trend_analysis);
     } catch (error) {
       console.error('Error analyzing trends:', error);
-      alert('Failed to analyze trends');
+      // You could add a toast notification here
+      console.error('Failed to analyze trends');
     } finally {
       setAnalyzing(false);
     }

@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/Loading';
+import { Pagination } from '@/components/ui/pagination';
+import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import {
   Dialog,
   DialogContent,
@@ -62,6 +64,15 @@ interface Department {
   name: string;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 const ROLE_LABELS = {
   employee: 'Employee',
   supervisor: 'Supervisor',
@@ -81,13 +92,24 @@ const ROLE_COLORS = {
 };
 
 export default function UserManagement() {
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: 25,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
 
   // Add User Modal State
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -112,24 +134,69 @@ export default function UserManagement() {
     is_active: boolean;
   } | null>(null);
 
+  // Debounce search term
   useEffect(() => {
-    fetchUsers();
-    fetchDepartments();
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
 
-  const fetchUsers = async () => {
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  }, [debouncedSearchTerm, roleFilter, statusFilter, departmentFilter]);
+
+  const fetchUsers = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
+      });
+
+      if (debouncedSearchTerm) params.append('search', debouncedSearchTerm);
+      if (roleFilter !== 'all') params.append('role', roleFilter);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (departmentFilter !== 'all')
+        params.append('department', departmentFilter);
+
+      const response = await fetch(`/api/admin/users?${params}`);
       if (response.ok) {
         const data = await response.json();
         setUsers(data.users || []);
+        setPagination((prev) => ({
+          ...prev,
+          total: data.pagination.total,
+          totalPages: data.pagination.totalPages,
+          hasNext: data.pagination.hasNext,
+          hasPrev: data.pagination.hasPrev,
+        }));
       }
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    pagination.page,
+    pagination.limit,
+    debouncedSearchTerm,
+    roleFilter,
+    statusFilter,
+    departmentFilter,
+  ]);
+
+  // Fetch users when pagination or filters change
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Fetch departments on mount
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
 
   const fetchDepartments = async () => {
     try {
@@ -143,21 +210,14 @@ export default function UserManagement() {
     }
   };
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.department_name &&
-        user.department_name.toLowerCase().includes(searchTerm.toLowerCase()));
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setPagination((prev) => ({ ...prev, page }));
+  };
 
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesStatus =
-      statusFilter === 'all' ||
-      (statusFilter === 'active' && user.is_active) ||
-      (statusFilter === 'inactive' && !user.is_active);
-
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  const handleLimitChange = (limit: number) => {
+    setPagination((prev) => ({ ...prev, limit, page: 1 }));
+  };
 
   const toggleUserStatus = async (userId: string, isActive: boolean) => {
     try {
@@ -175,20 +235,26 @@ export default function UserManagement() {
     }
   };
 
-  const deleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+  const deleteUser = (userId: string, userName: string) => {
+    showConfirmation({
+      title: 'Delete User',
+      description: `Are you sure you want to delete ${userName}? This action cannot be undone.`,
+      confirmText: 'Delete',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin/users/${userId}`, {
+            method: 'DELETE',
+          });
 
-    try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        fetchUsers(); // Refresh the list
-      }
-    } catch (error) {
-      console.error('Error deleting user:', error);
-    }
+          if (response.ok) {
+            fetchUsers(); // Refresh the list
+          }
+        } catch (error) {
+          console.error('Error deleting user:', error);
+        }
+      },
+    });
   };
 
   const createUser = async () => {
@@ -297,7 +363,7 @@ export default function UserManagement() {
   const exportUsers = () => {
     const csvContent = [
       ['Name', 'Email', 'Role', 'Department', 'Status', 'Created At'].join(','),
-      ...filteredUsers.map((user) =>
+      ...users.map((user) =>
         [
           user.name,
           user.email,
@@ -356,7 +422,7 @@ export default function UserManagement() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold">{users.length}</p>
+                <p className="text-2xl font-bold">{pagination.total}</p>
               </div>
             </div>
           </CardContent>
@@ -447,6 +513,19 @@ export default function UserManagement() {
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
+
+            <select
+              value={departmentFilter}
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Departments</option>
+              {departments.map((dept) => (
+                <option key={dept._id} value={dept._id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
           </div>
         </CardContent>
       </Card>
@@ -454,7 +533,23 @@ export default function UserManagement() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Users ({filteredUsers.length})</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Users ({pagination.total})</CardTitle>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Show:</span>
+              <select
+                value={pagination.limit}
+                onChange={(e) => handleLimitChange(parseInt(e.target.value))}
+                className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span className="text-sm text-gray-600">per page</span>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -482,93 +577,113 @@ export default function UserManagement() {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
-                  <tr
-                    key={user._id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
-                  >
-                    <td className="py-3 px-4">
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {user.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {user.email}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge className={ROLE_COLORS[user.role]}>
-                        {ROLE_LABELS[user.role]}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="text-gray-900">
-                        {user.department_name || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge
-                        className={
-                          user.is_active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }
-                      >
-                        {user.is_active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="text-gray-600">
-                        {user.last_login
-                          ? new Date(user.last_login).toLocaleDateString()
-                          : 'Never'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEditingUser(user)}
-                          title="Edit user"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            toggleUserStatus(user._id, user.is_active)
-                          }
-                        >
-                          {user.is_active ? (
-                            <UserX className="w-4 h-4" />
-                          ) : (
-                            <UserCheck className="w-4 h-4" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteUser(user._id)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center">
+                      <Loading size="lg" />
                     </td>
                   </tr>
-                ))}
+                ) : users.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-gray-500">
+                      No users found
+                    </td>
+                  </tr>
+                ) : (
+                  users.map((user) => (
+                    <tr
+                      key={user._id}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <td className="py-3 px-4">
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {user.name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {user.email}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge className={ROLE_COLORS[user.role]}>
+                          {ROLE_LABELS[user.role]}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-gray-900">
+                          {user.department_name || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge
+                          className={
+                            user.is_active
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }
+                        >
+                          {user.is_active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-gray-600">
+                          {user.last_login
+                            ? new Date(user.last_login).toLocaleDateString()
+                            : 'Never'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEditingUser(user)}
+                            title="Edit user"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              toggleUserStatus(user._id, user.is_active)
+                            }
+                          >
+                            {user.is_active ? (
+                              <UserX className="w-4 h-4" />
+                            ) : (
+                              <UserCheck className="w-4 h-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteUser(user._id, user.name)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
-
-            {filteredUsers.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No users found matching your criteria.
-              </div>
-            )}
           </div>
+
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={handlePageChange}
+              loading={loading}
+              totalItems={pagination.total}
+              itemsPerPage={pagination.limit}
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -836,6 +951,9 @@ export default function UserManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog />
     </div>
   );
 }

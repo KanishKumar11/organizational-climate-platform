@@ -14,6 +14,7 @@ import {
 } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
+import { useConfirmationDialog } from '../ui/confirmation-dialog';
 import {
   Camera,
   History,
@@ -42,6 +43,7 @@ export default function DemographicSnapshots({
   onSnapshotCreated,
   onSnapshotRolledBack,
 }: DemographicSnapshotsProps) {
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
   const [snapshots, setSnapshots] = useState<IDemographicSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -165,33 +167,34 @@ export default function DemographicSnapshots({
     }
   };
 
-  const handleArchiveSnapshot = async (snapshot: IDemographicSnapshot) => {
-    if (
-      !confirm(
-        'Are you sure you want to archive this snapshot? This action cannot be undone.'
-      )
-    ) {
-      return;
-    }
+  const handleArchiveSnapshot = (snapshot: IDemographicSnapshot) => {
+    showConfirmation({
+      title: 'Archive Snapshot',
+      description:
+        'Are you sure you want to archive this snapshot? This action cannot be undone.',
+      confirmText: 'Archive',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          const response = await fetch(
+            `/api/demographics/snapshots/${snapshot._id}`,
+            {
+              method: 'DELETE',
+            }
+          );
 
-    try {
-      const response = await fetch(
-        `/api/demographics/snapshots/${snapshot._id}`,
-        {
-          method: 'DELETE',
+          if (!response.ok) {
+            throw new Error('Failed to archive snapshot');
+          }
+
+          setSnapshots((prev) => prev.filter((s) => s._id !== snapshot._id));
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : 'Failed to archive snapshot'
+          );
         }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to archive snapshot');
-      }
-
-      setSnapshots((prev) => prev.filter((s) => s._id !== snapshot._id));
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to archive snapshot'
-      );
-    }
+      },
+    });
   };
 
   const formatDate = (date: Date | string) => {
@@ -461,6 +464,9 @@ export default function DemographicSnapshots({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog />
     </div>
   );
 }

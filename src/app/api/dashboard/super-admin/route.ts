@@ -49,11 +49,21 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Get company performance metrics
+    // Note: We need to convert ObjectId to string for the lookup since
+    // User and Survey models store company_id as String, not ObjectId
     let companyMetrics = await Company.aggregate([
+      {
+        $match: { is_active: true },
+      },
+      {
+        $addFields: {
+          company_id_string: { $toString: '$_id' },
+        },
+      },
       {
         $lookup: {
           from: 'users',
-          localField: '_id',
+          localField: 'company_id_string',
           foreignField: 'company_id',
           as: 'users',
         },
@@ -61,7 +71,7 @@ export async function GET(request: NextRequest) {
       {
         $lookup: {
           from: 'surveys',
-          localField: '_id',
+          localField: 'company_id_string',
           foreignField: 'company_id',
           as: 'surveys',
         },

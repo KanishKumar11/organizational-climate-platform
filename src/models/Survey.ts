@@ -7,7 +7,9 @@ export type QuestionType =
   | 'ranking'
   | 'open_ended'
   | 'yes_no'
-  | 'rating';
+  | 'yes_no_comment'
+  | 'rating'
+  | 'emoji_scale';
 
 // Conditional logic interface
 export interface ConditionalLogic {
@@ -32,10 +34,20 @@ export interface IQuestion {
   scale_min?: number;
   scale_max?: number;
   scale_labels?: { min: string; max: string };
+  emoji_options?: EmojiOption[];
+  comment_required?: boolean; // For yes_no_comment type
+  comment_prompt?: string; // Custom prompt for comment field
   required: boolean;
   conditional_logic?: ConditionalLogic;
   order: number;
   category?: string;
+}
+
+// Emoji option interface for emoji_scale questions
+export interface EmojiOption {
+  emoji: string;
+  label: string;
+  value: number;
 }
 
 // Demographic configuration
@@ -60,6 +72,13 @@ export interface SurveySettings {
     send_invitations: boolean;
     send_reminders: boolean;
     reminder_frequency_days: number;
+  };
+  invitation_settings?: {
+    custom_message?: string;
+    include_credentials: boolean;
+    send_immediately: boolean;
+    custom_subject?: string;
+    branding_enabled: boolean;
   };
 }
 
@@ -104,7 +123,9 @@ const QuestionSchema = new Schema(
         'ranking',
         'open_ended',
         'yes_no',
+        'yes_no_comment',
         'rating',
+        'emoji_scale',
       ],
       required: true,
     },
@@ -115,7 +136,16 @@ const QuestionSchema = new Schema(
       min: { type: String },
       max: { type: String },
     },
-    required: { type: Boolean, default: true },
+    emoji_options: [
+      {
+        emoji: { type: String, required: true },
+        label: { type: String, required: true },
+        value: { type: Number, required: true },
+      },
+    ],
+    comment_required: { type: Boolean, default: true },
+    comment_prompt: { type: String, default: 'Please explain your answer:' },
+    required: { type: Boolean, default: false },
     conditional_logic: {
       condition_question_id: { type: String },
       condition_operator: {
