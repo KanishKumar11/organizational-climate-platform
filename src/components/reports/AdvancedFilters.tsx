@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useId } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   Filter,
   Plus,
@@ -382,25 +384,16 @@ export default function AdvancedFilters({
                   </label>
                   <div className="max-h-32 overflow-y-auto space-y-1">
                     {filterOptions.surveys.map((survey) => (
-                      <label
+                      <SurveyFilterCheckbox
                         key={survey.id}
-                        className="flex items-center text-sm"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={
-                            filters.survey_ids?.includes(survey.id) || false
-                          }
-                          onChange={() => handleSurveyToggle(survey.id)}
-                          className="mr-2"
-                        />
-                        <div className="flex-1">
-                          <div className="font-medium">{survey.name}</div>
-                          <div className="text-xs text-gray-500">
-                            {survey.type}
-                          </div>
-                        </div>
-                      </label>
+                        surveyId={survey.id}
+                        surveyName={survey.name}
+                        surveyType={survey.type}
+                        checked={
+                          filters.survey_ids?.includes(survey.id) || false
+                        }
+                        onToggle={handleSurveyToggle}
+                      />
                     ))}
                   </div>
                 </div>
@@ -436,42 +429,35 @@ export default function AdvancedFilters({
               {filterOptions.departments && (
                 <div className="max-h-32 overflow-y-auto space-y-1">
                   {filterOptions.departments.map((dept) => (
-                    <label key={dept.id} className="flex items-center text-sm">
-                      <input
-                        type="checkbox"
-                        checked={
-                          filters.department_filter?.department_ids?.includes(
-                            dept.id
-                          ) || false
-                        }
-                        onChange={() => handleDepartmentToggle(dept.id)}
-                        className="mr-2"
-                      />
-                      <span>{dept.name}</span>
-                    </label>
+                    <DepartmentFilterCheckbox
+                      key={dept.id}
+                      departmentId={dept.id}
+                      departmentName={dept.name}
+                      checked={
+                        filters.department_filter?.department_ids?.includes(
+                          dept.id
+                        ) || false
+                      }
+                      onToggle={handleDepartmentToggle}
+                    />
                   ))}
                 </div>
               )}
 
-              <label className="flex items-center mt-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={
-                    filters.department_filter?.include_subdepartments || false
-                  }
-                  onChange={(e) =>
-                    onFiltersChange({
-                      ...filters,
-                      department_filter: {
-                        ...filters.department_filter,
-                        include_subdepartments: e.target.checked,
-                      },
-                    })
-                  }
-                  className="mr-2"
-                />
-                <span>Include subdepartments</span>
-              </label>
+              <IncludeSubdepartmentsCheckbox
+                checked={
+                  filters.department_filter?.include_subdepartments || false
+                }
+                onCheckedChange={(checked) =>
+                  onFiltersChange({
+                    ...filters,
+                    department_filter: {
+                      ...filters.department_filter,
+                      include_subdepartments: checked,
+                    },
+                  })
+                }
+              />
             </div>
           )}
         </div>
@@ -574,25 +560,17 @@ export default function AdvancedFilters({
               <div className="ml-6">
                 <div className="max-h-32 overflow-y-auto space-y-1">
                   {filterOptions.benchmarks.map((benchmark) => (
-                    <label
+                    <BenchmarkFilterCheckbox
                       key={benchmark.id}
-                      className="flex items-center text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={
-                          filters.benchmark_ids?.includes(benchmark.id) || false
-                        }
-                        onChange={() => handleBenchmarkToggle(benchmark.id)}
-                        className="mr-2"
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium">{benchmark.name}</div>
-                        <div className="text-xs text-gray-500">
-                          {benchmark.type} - {benchmark.category}
-                        </div>
-                      </div>
-                    </label>
+                      benchmarkId={benchmark.id}
+                      benchmarkName={benchmark.name}
+                      benchmarkType={benchmark.type}
+                      benchmarkCategory={benchmark.category}
+                      checked={
+                        filters.benchmark_ids?.includes(benchmark.id) || false
+                      }
+                      onToggle={handleBenchmarkToggle}
+                    />
                   ))}
                 </div>
               </div>
@@ -601,5 +579,137 @@ export default function AdvancedFilters({
         )}
       </div>
     </Card>
+  );
+}
+
+// Survey filter checkbox component
+interface SurveyFilterCheckboxProps {
+  surveyId: string;
+  surveyName: string;
+  surveyType?: string;
+  checked: boolean;
+  onToggle: (surveyId: string) => void;
+}
+
+function SurveyFilterCheckbox({
+  surveyId,
+  surveyName,
+  surveyType,
+  checked,
+  onToggle,
+}: SurveyFilterCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center text-sm">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={() => onToggle(surveyId)}
+        className="mr-2"
+      />
+      <Label htmlFor={checkboxId} className="flex-1 cursor-pointer">
+        <div className="font-medium">{surveyName}</div>
+        {surveyType && (
+          <div className="text-xs text-gray-500">{surveyType}</div>
+        )}
+      </Label>
+    </div>
+  );
+}
+
+// Department Filter Checkbox Component
+interface DepartmentFilterCheckboxProps {
+  departmentId: string;
+  departmentName: string;
+  checked: boolean;
+  onToggle: (departmentId: string) => void;
+}
+
+function DepartmentFilterCheckbox({
+  departmentId,
+  departmentName,
+  checked,
+  onToggle,
+}: DepartmentFilterCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center text-sm">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={() => onToggle(departmentId)}
+        className="mr-2"
+      />
+      <Label htmlFor={checkboxId} className="cursor-pointer">
+        {departmentName}
+      </Label>
+    </div>
+  );
+}
+
+// Include Subdepartments Checkbox Component
+interface IncludeSubdepartmentsCheckboxProps {
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}
+
+function IncludeSubdepartmentsCheckbox({
+  checked,
+  onCheckedChange,
+}: IncludeSubdepartmentsCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center mt-2 text-sm">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        className="mr-2"
+      />
+      <Label htmlFor={checkboxId} className="cursor-pointer">
+        Include subdepartments
+      </Label>
+    </div>
+  );
+}
+
+// Benchmark Filter Checkbox Component
+interface BenchmarkFilterCheckboxProps {
+  benchmarkId: string;
+  benchmarkName: string;
+  benchmarkType: string;
+  benchmarkCategory: string;
+  checked: boolean;
+  onToggle: (benchmarkId: string) => void;
+}
+
+function BenchmarkFilterCheckbox({
+  benchmarkId,
+  benchmarkName,
+  benchmarkType,
+  benchmarkCategory,
+  checked,
+  onToggle,
+}: BenchmarkFilterCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center text-sm">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={() => onToggle(benchmarkId)}
+        className="mr-2"
+      />
+      <Label htmlFor={checkboxId} className="flex-1 cursor-pointer">
+        <div className="font-medium">{benchmarkName}</div>
+        <div className="text-xs text-gray-500">
+          {benchmarkType} - {benchmarkCategory}
+        </div>
+      </Label>
+    </div>
   );
 }

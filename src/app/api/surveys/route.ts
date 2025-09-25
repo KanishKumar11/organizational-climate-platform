@@ -4,106 +4,116 @@ import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/mongodb';
 import Survey from '@/models/Survey';
 import { hasPermission, hasFeaturePermission } from '@/lib/permissions';
+import { searchApiLimiter, withRateLimit } from '@/lib/rate-limiting';
+
+// Security utility to escape regex special characters
+function escapeRegex(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 // Get surveys
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export const GET = withRateLimit(
+  searchApiLimiter,
+  async (request: NextRequest) => {
+    try {
+      const session = await getServerSession(authOptions);
+      if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
 
-    await connectDB();
+      await connectDB();
 
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type');
-    const status = searchParams.get('status');
-    const search = searchParams.get('search');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100);
-    const skip = (page - 1) * limit;
+      const { searchParams } = new URL(request.url);
+      const type = searchParams.get('type');
+      const status = searchParams.get('status');
+      const search = searchParams.get('search');
+      const page = parseInt(searchParams.get('page') || '1');
+      const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100);
+      const skip = (page - 1) * limit;
 
-    // Debug logging
-    console.log('=== SURVEY GET DEBUG ===');
-    console.log('Session user:', {
-      id: session.user.id,
-      email: session.user.email,
-      role: session.user.role,
-      companyId: session.user.companyId,
-      departmentId: session.user.departmentId,
-    });
-    console.log('Query params:', { type, status, page, limit });
+      // Debug logging
+      console.log('=== SURVEY GET DEBUG ===');
+      console.log('Session user:', {
+        id: session.user.id,
+        email: session.user.email,
+        role: session.user.role,
+        companyId: session.user.companyId,
+        departmentId: session.user.departmentId,
+      });
+      console.log('Query params:', { type, status, page, limit });
 
-    // Build query
-    const query: any = {};
+      // Build query
+      const query: any = {};
 
-    // Only filter by company if user has a companyId (super_admin might not have one)
-    if (session.user.companyId) {
-      query.company_id = session.user.companyId;
-    } else if (session.user.role !== 'super_admin') {
-      // Non-super-admin users must have a company
-      console.log('ERROR: Non-super-admin user without companyId');
+      // Only filter by company if user has a companyId (super_admin might not have one)
+      if (session.user.companyId) {
+        query.company_id = session.user.companyId;
+      } else if (session.user.role !== 'super_admin') {
+        // Non-super-admin users must have a company
+        console.log('ERROR: Non-super-admin user without companyId');
+        return NextResponse.json(
+          { error: 'User not associated with a company' },
+          { status: 403 }
+        );
+      }
+
+      if (type) query.type = type;
+      if (status) query.status = status;
+
+      // Add search functionality with regex escaping to prevent injection
+      if (search) {
+        const escapedSearch = escapeRegex(search.trim());
+        query.$or = [
+          { title: { $regex: escapedSearch, $options: 'i' } },
+          { description: { $regex: escapedSearch, $options: 'i' } },
+          { tags: { $in: [new RegExp(escapedSearch, 'i')] } },
+        ];
+      }
+
+      console.log('Final query:', query);
+
+      // Get surveys
+      const surveys = await Survey.find(query)
+        .sort({ created_at: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      console.log('Found surveys:', surveys.length);
+
+      // Also check total surveys in database
+      const totalSurveysInDB = await Survey.countDocuments({});
+      console.log('Total surveys in database:', totalSurveysInDB);
+
+      // Check surveys for this company specifically
+      if (session.user.companyId) {
+        const companySurveys = await Survey.find({
+          company_id: session.user.companyId,
+        });
+        console.log('Surveys for this company:', companySurveys.length);
+      }
+
+      console.log('=== END SURVEY GET DEBUG ===');
+
+      const total = await Survey.countDocuments(query);
+
+      return NextResponse.json({
+        surveys,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching surveys:', error);
       return NextResponse.json(
-        { error: 'User not associated with a company' },
-        { status: 403 }
+        { error: 'Internal server error' },
+        { status: 500 }
       );
     }
-
-    if (type) query.type = type;
-    if (status) query.status = status;
-
-    // Add search functionality
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } },
-      ];
-    }
-
-    console.log('Final query:', query);
-
-    // Get surveys
-    const surveys = await Survey.find(query)
-      .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    console.log('Found surveys:', surveys.length);
-
-    // Also check total surveys in database
-    const totalSurveysInDB = await Survey.countDocuments({});
-    console.log('Total surveys in database:', totalSurveysInDB);
-
-    // Check surveys for this company specifically
-    if (session.user.companyId) {
-      const companySurveys = await Survey.find({
-        company_id: session.user.companyId,
-      });
-      console.log('Surveys for this company:', companySurveys.length);
-    }
-
-    console.log('=== END SURVEY GET DEBUG ===');
-
-    const total = await Survey.countDocuments(query);
-
-    return NextResponse.json({
-      surveys,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching surveys:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
   }
-}
+);
 
 // Create survey
 export async function POST(request: NextRequest) {

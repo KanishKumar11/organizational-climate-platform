@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   Calendar,
@@ -436,29 +438,12 @@ export default function ReportBuilder({
                     </label>
                     <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
                       {filterOptions.chart_types.map((chartType: any) => (
-                        <label
+                        <ChartTypeCheckbox
                           key={chartType.value}
-                          className="flex items-start"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedChartTypes.includes(
-                              chartType.value
-                            )}
-                            onChange={() =>
-                              handleChartTypeToggle(chartType.value)
-                            }
-                            className="mr-2 mt-1"
-                          />
-                          <div>
-                            <span className="text-sm font-medium">
-                              {chartType.label}
-                            </span>
-                            <p className="text-xs text-gray-500">
-                              {chartType.description}
-                            </p>
-                          </div>
-                        </label>
+                          chartType={chartType}
+                          checked={selectedChartTypes.includes(chartType.value)}
+                          onToggle={handleChartTypeToggle}
+                        />
                       ))}
                     </div>
                   </div>
@@ -487,62 +472,46 @@ export default function ReportBuilder({
             {expandedSections.config && (
               <div className="mt-4 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={config.include_charts}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          include_charts: e.target.checked,
-                        }))
-                      }
-                      className="mr-2"
-                    />
-                    <span className="text-sm">Include Charts</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={config.include_raw_data}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          include_raw_data: e.target.checked,
-                        }))
-                      }
-                      className="mr-2"
-                    />
-                    <span className="text-sm">Include Raw Data</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={config.include_ai_insights}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          include_ai_insights: e.target.checked,
-                        }))
-                      }
-                      className="mr-2"
-                    />
-                    <span className="text-sm">Include AI Insights</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={config.include_recommendations}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          include_recommendations: e.target.checked,
-                        }))
-                      }
-                      className="mr-2"
-                    />
-                    <span className="text-sm">Include Recommendations</span>
-                  </label>
+                  <ReportConfigCheckbox
+                    label="Include Charts"
+                    checked={config.include_charts}
+                    onCheckedChange={(checked) =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        include_charts: checked,
+                      }))
+                    }
+                  />
+                  <ReportConfigCheckbox
+                    label="Include Raw Data"
+                    checked={config.include_raw_data}
+                    onCheckedChange={(checked) =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        include_raw_data: checked,
+                      }))
+                    }
+                  />
+                  <ReportConfigCheckbox
+                    label="Include AI Insights"
+                    checked={config.include_ai_insights}
+                    onCheckedChange={(checked) =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        include_ai_insights: checked,
+                      }))
+                    }
+                  />
+                  <ReportConfigCheckbox
+                    label="Include Recommendations"
+                    checked={config.include_recommendations}
+                    onCheckedChange={(checked) =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        include_recommendations: checked,
+                      }))
+                    }
+                  />
                 </div>
 
                 {/* Custom Sections */}
@@ -558,36 +527,31 @@ export default function ReportBuilder({
                         'recommendations',
                         'appendix',
                       ].map((section) => (
-                        <label key={section} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={
-                              config.custom_sections?.includes(section) || false
+                        <CustomSectionCheckbox
+                          key={section}
+                          section={section}
+                          checked={
+                            config.custom_sections?.includes(section) || false
+                          }
+                          onToggle={(sectionName, checked) => {
+                            if (checked) {
+                              setConfig((prev) => ({
+                                ...prev,
+                                custom_sections: [
+                                  ...(prev.custom_sections || []),
+                                  sectionName,
+                                ],
+                              }));
+                            } else {
+                              setConfig((prev) => ({
+                                ...prev,
+                                custom_sections: prev.custom_sections?.filter(
+                                  (s) => s !== sectionName
+                                ),
+                              }));
                             }
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setConfig((prev) => ({
-                                  ...prev,
-                                  custom_sections: [
-                                    ...(prev.custom_sections || []),
-                                    section,
-                                  ],
-                                }));
-                              } else {
-                                setConfig((prev) => ({
-                                  ...prev,
-                                  custom_sections: prev.custom_sections?.filter(
-                                    (s) => s !== section
-                                  ),
-                                }));
-                              }
-                            }}
-                            className="mr-2"
-                          />
-                          <span className="text-sm capitalize">
-                            {section.replace('_', ' ')}
-                          </span>
-                        </label>
+                          }}
+                        />
                       ))}
                     </div>
                   </div>
@@ -597,6 +561,98 @@ export default function ReportBuilder({
           </Card>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Chart Type Checkbox Component
+interface ChartTypeCheckboxProps {
+  chartType: {
+    value: string;
+    label: string;
+    description: string;
+  };
+  checked: boolean;
+  onToggle: (value: string) => void;
+}
+
+function ChartTypeCheckbox({
+  chartType,
+  checked,
+  onToggle,
+}: ChartTypeCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-start">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={() => onToggle(chartType.value)}
+        className="mr-2 mt-1"
+      />
+      <Label htmlFor={checkboxId} className="cursor-pointer">
+        <span className="text-sm font-medium">{chartType.label}</span>
+        <p className="text-xs text-gray-500">{chartType.description}</p>
+      </Label>
+    </div>
+  );
+}
+
+// Report Configuration Checkbox Component
+interface ReportConfigCheckboxProps {
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}
+
+function ReportConfigCheckbox({
+  label,
+  checked,
+  onCheckedChange,
+}: ReportConfigCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        className="mr-2"
+      />
+      <Label htmlFor={checkboxId} className="text-sm cursor-pointer">
+        {label}
+      </Label>
+    </div>
+  );
+}
+
+// Custom Section Checkbox Component
+interface CustomSectionCheckboxProps {
+  section: string;
+  checked: boolean;
+  onToggle: (section: string, checked: boolean) => void;
+}
+
+function CustomSectionCheckbox({
+  section,
+  checked,
+  onToggle,
+}: CustomSectionCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={(checked) => onToggle(section, checked as boolean)}
+        className="mr-2"
+      />
+      <Label htmlFor={checkboxId} className="text-sm capitalize cursor-pointer">
+        {section.replace('_', ' ')}
+      </Label>
     </div>
   );
 }

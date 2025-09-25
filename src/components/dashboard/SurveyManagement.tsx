@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
@@ -36,6 +36,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Pagination } from '@/components/ui/pagination';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1004,11 +1006,14 @@ function SurveyCard({
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4 flex-1">
-            <input
-              type="checkbox"
+            <SurveySelectionCheckbox
               checked={isSelected}
-              onChange={onToggleSelection}
-              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              onCheckedChange={(checked) => {
+                const event = {
+                  target: { checked },
+                } as React.ChangeEvent<HTMLInputElement>;
+                onToggleSelection();
+              }}
               onClick={(e) => e.stopPropagation()}
             />
             <div className="flex-1 min-w-0">
@@ -1174,5 +1179,34 @@ function SurveyCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// Survey selection checkbox component
+interface SurveySelectionCheckboxProps {
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  onClick?: (e: React.MouseEvent) => void;
+}
+
+function SurveySelectionCheckbox({
+  checked,
+  onCheckedChange,
+  onClick,
+}: SurveySelectionCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center gap-2 mt-1" onClick={onClick}>
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        className="w-4 h-4"
+      />
+      <Label htmlFor={checkboxId} className="sr-only">
+        Select survey
+      </Label>
+    </div>
   );
 }

@@ -6,8 +6,14 @@ import User from '@/models/User';
 import Department from '@/models/Department';
 import { hasPermission } from '@/lib/permissions';
 import { getUserTimezone } from '@/lib/datetime-utils';
+import { adminApiLimiter, withRateLimit } from '@/lib/rate-limiting';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
+
+// Security utility to escape regex special characters
+function escapeRegex(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 // Validation schema for creating users
 const createUserSchema = z.object({
@@ -42,238 +48,245 @@ const updateUserSchema = z.object({
 });
 
 // GET /api/admin/users - List all users with admin permissions and pagination
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export const GET = withRateLimit(
+  adminApiLimiter,
+  async (request: NextRequest) => {
+    try {
+      const session = await getServerSession(authOptions);
+      if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
 
-    // Check permissions - only company admins and above can manage users
-    if (!hasPermission(session.user.role, 'company_admin')) {
+      // Check permissions - only company admins and above can manage users
+      if (!hasPermission(session.user.role, 'company_admin')) {
+        return NextResponse.json(
+          { error: 'Insufficient permissions' },
+          { status: 403 }
+        );
+      }
+
+      await connectDB();
+
+      // Parse pagination and filter parameters
+      const { searchParams } = new URL(request.url);
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+      const limit = Math.min(
+        Math.max(1, parseInt(searchParams.get('limit') || '25')),
+        100
+      );
+      const search = searchParams.get('search')?.trim() || '';
+      const roleFilter = searchParams.get('role') || '';
+      const statusFilter = searchParams.get('status') || '';
+      const departmentFilter = searchParams.get('department') || '';
+
+      const user = await User.findById(session.user.id);
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      // Build query based on user permissions
+      let query: any = {};
+
+      if (user.role === 'super_admin') {
+        // Super admin can see all users
+      } else if (user.role === 'company_admin') {
+        // Company admin can see all users in their company, but not super admins
+        query.company_id = user.company_id;
+        query.role = { $ne: 'super_admin' };
+      } else {
+        return NextResponse.json(
+          { error: 'Insufficient permissions' },
+          { status: 403 }
+        );
+      }
+
+      // Add search filter with regex escaping to prevent injection
+      if (search) {
+        const escapedSearch = escapeRegex(search.trim());
+        query.$or = [
+          { name: { $regex: escapedSearch, $options: 'i' } },
+          { email: { $regex: escapedSearch, $options: 'i' } },
+        ];
+      }
+
+      // Add role filter
+      if (roleFilter) {
+        query.role = roleFilter;
+      }
+
+      // Add status filter
+      if (statusFilter) {
+        query.is_active = statusFilter === 'active';
+      }
+
+      // Add department filter
+      if (departmentFilter) {
+        query.department_id = departmentFilter;
+      }
+
+      const skip = (page - 1) * limit;
+
+      // Fetch users with pagination and department information
+      const [users, total] = await Promise.all([
+        User.aggregate([
+          { $match: query },
+          {
+            $lookup: {
+              from: 'departments',
+              localField: 'department_id',
+              foreignField: '_id',
+              as: 'department',
+            },
+          },
+          {
+            $addFields: {
+              department_name: { $arrayElemAt: ['$department.name', 0] },
+            },
+          },
+          {
+            $project: {
+              password_hash: 0,
+              department: 0,
+            },
+          },
+          { $sort: { created_at: -1 } },
+          { $skip: skip },
+          { $limit: limit },
+        ]),
+        User.countDocuments(query),
+      ]);
+
+      const totalPages = Math.ceil(total / limit);
+
+      return NextResponse.json({
+        users,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching users:', error);
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
+        { error: 'Failed to fetch users' },
+        { status: 500 }
       );
     }
-
-    await connectDB();
-
-    // Parse pagination and filter parameters
-    const { searchParams } = new URL(request.url);
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-    const limit = Math.min(
-      Math.max(1, parseInt(searchParams.get('limit') || '25')),
-      100
-    );
-    const search = searchParams.get('search')?.trim() || '';
-    const roleFilter = searchParams.get('role') || '';
-    const statusFilter = searchParams.get('status') || '';
-    const departmentFilter = searchParams.get('department') || '';
-
-    const user = await User.findById(session.user.id);
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Build query based on user permissions
-    let query: any = {};
-
-    if (user.role === 'super_admin') {
-      // Super admin can see all users
-    } else if (user.role === 'company_admin') {
-      // Company admin can see all users in their company, but not super admins
-      query.company_id = user.company_id;
-      query.role = { $ne: 'super_admin' };
-    } else {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
-    }
-
-    // Add search filter
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    // Add role filter
-    if (roleFilter) {
-      query.role = roleFilter;
-    }
-
-    // Add status filter
-    if (statusFilter) {
-      query.is_active = statusFilter === 'active';
-    }
-
-    // Add department filter
-    if (departmentFilter) {
-      query.department_id = departmentFilter;
-    }
-
-    const skip = (page - 1) * limit;
-
-    // Fetch users with pagination and department information
-    const [users, total] = await Promise.all([
-      User.aggregate([
-        { $match: query },
-        {
-          $lookup: {
-            from: 'departments',
-            localField: 'department_id',
-            foreignField: '_id',
-            as: 'department',
-          },
-        },
-        {
-          $addFields: {
-            department_name: { $arrayElemAt: ['$department.name', 0] },
-          },
-        },
-        {
-          $project: {
-            password_hash: 0,
-            department: 0,
-          },
-        },
-        { $sort: { created_at: -1 } },
-        { $skip: skip },
-        { $limit: limit },
-      ]),
-      User.countDocuments(query),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-
-    return NextResponse.json({
-      users,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch users' },
-      { status: 500 }
-    );
   }
-}
+);
 
 // POST /api/admin/users - Create a new user
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export const POST = withRateLimit(
+  adminApiLimiter,
+  async (request: NextRequest) => {
+    try {
+      const session = await getServerSession(authOptions);
+      if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
 
-    // Check permissions
-    if (!hasPermission(session.user.role, 'company_admin')) {
+      // Check permissions
+      if (!hasPermission(session.user.role, 'company_admin')) {
+        return NextResponse.json(
+          { error: 'Insufficient permissions' },
+          { status: 403 }
+        );
+      }
+
+      await connectDB();
+
+      const currentUser = await User.findById(session.user.id);
+      if (!currentUser) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      const body = await request.json();
+      const validatedData = createUserSchema.parse(body);
+
+      // Verify department exists and user can access it
+      const department = await Department.findById(validatedData.department_id);
+      if (!department) {
+        return NextResponse.json(
+          { error: 'Department not found' },
+          { status: 400 }
+        );
+      }
+
+      // Check if user can assign to this department
+      if (
+        currentUser.role !== 'super_admin' &&
+        department.company_id !== currentUser.company_id
+      ) {
+        return NextResponse.json(
+          { error: 'Cannot assign user to department in different company' },
+          { status: 403 }
+        );
+      }
+
+      // Check if email already exists
+      const existingUser = await User.findOne({ email: validatedData.email });
+      if (existingUser) {
+        return NextResponse.json(
+          { error: 'User with this email already exists' },
+          { status: 400 }
+        );
+      }
+
+      // Generate password if not provided
+      const password =
+        validatedData.password || Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      // Create user
+      const newUser = new User({
+        name: validatedData.name,
+        email: validatedData.email,
+        password_hash: hashedPassword,
+        role: validatedData.role,
+        department_id: validatedData.department_id,
+        company_id: department.company_id,
+        is_active: validatedData.is_active,
+        preferences: {
+          language: 'en',
+          timezone: getUserTimezone(), // Use user's detected timezone instead of hardcoded
+          email_notifications: true,
+          dashboard_layout: 'default',
+        },
+      });
+
+      await newUser.save();
+
+      // Return user without password
+      const userResponse = {
+        ...newUser.toObject(),
+        password_hash: undefined,
+        temporary_password: validatedData.password ? undefined : password,
+      };
+
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
+        {
+          user: userResponse,
+          message: 'User created successfully',
+        },
+        { status: 201 }
+      );
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: error.issues },
+          { status: 400 }
+        );
+      }
+
+      console.error('Error creating user:', error);
+      return NextResponse.json(
+        { error: 'Failed to create user' },
+        { status: 500 }
       );
     }
-
-    await connectDB();
-
-    const currentUser = await User.findById(session.user.id);
-    if (!currentUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const body = await request.json();
-    const validatedData = createUserSchema.parse(body);
-
-    // Verify department exists and user can access it
-    const department = await Department.findById(validatedData.department_id);
-    if (!department) {
-      return NextResponse.json(
-        { error: 'Department not found' },
-        { status: 400 }
-      );
-    }
-
-    // Check if user can assign to this department
-    if (
-      currentUser.role !== 'super_admin' &&
-      department.company_id !== currentUser.company_id
-    ) {
-      return NextResponse.json(
-        { error: 'Cannot assign user to department in different company' },
-        { status: 403 }
-      );
-    }
-
-    // Check if email already exists
-    const existingUser = await User.findOne({ email: validatedData.email });
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 400 }
-      );
-    }
-
-    // Generate password if not provided
-    const password =
-      validatedData.password || Math.random().toString(36).slice(-8);
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create user
-    const newUser = new User({
-      name: validatedData.name,
-      email: validatedData.email,
-      password_hash: hashedPassword,
-      role: validatedData.role,
-      department_id: validatedData.department_id,
-      company_id: department.company_id,
-      is_active: validatedData.is_active,
-      preferences: {
-        language: 'en',
-        timezone: getUserTimezone(), // Use user's detected timezone instead of hardcoded
-        email_notifications: true,
-        dashboard_layout: 'default',
-      },
-    });
-
-    await newUser.save();
-
-    // Return user without password
-    const userResponse = {
-      ...newUser.toObject(),
-      password_hash: undefined,
-      temporary_password: validatedData.password ? undefined : password,
-    };
-
-    return NextResponse.json(
-      {
-        user: userResponse,
-        message: 'User created successfully',
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.issues },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error creating user:', error);
-    return NextResponse.json(
-      { error: 'Failed to create user' },
-      { status: 500 }
-    );
   }
-}
+);

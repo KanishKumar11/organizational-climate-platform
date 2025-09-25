@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/Loading';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   Building,
   Save,
@@ -574,15 +576,13 @@ export default function CompanySettings() {
                   Receive email notifications for important events
                 </p>
               </div>
-              <input
-                type="checkbox"
+              <EmailNotificationsCheckbox
                 checked={settings.settings?.email_notifications ?? true}
-                onChange={(e) =>
+                onCheckedChange={(checked) =>
                   updateNestedSettings('settings', {
-                    email_notifications: e.target.checked,
+                    email_notifications: checked,
                   })
                 }
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
             </div>
 
@@ -593,15 +593,13 @@ export default function CompanySettings() {
                   Send reminders for pending surveys
                 </p>
               </div>
-              <input
-                type="checkbox"
+              <SurveyRemindersCheckbox
                 checked={settings.settings?.survey_reminders ?? true}
-                onChange={(e) =>
+                onCheckedChange={(checked) =>
                   updateNestedSettings('settings', {
-                    survey_reminders: e.target.checked,
+                    survey_reminders: checked,
                   })
                 }
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
             </div>
           </CardContent>
@@ -656,6 +654,54 @@ export default function CompanySettings() {
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+// Checkbox components for settings
+interface SettingsCheckboxProps {
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}
+
+function EmailNotificationsCheckbox({
+  checked,
+  onCheckedChange,
+}: SettingsCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        aria-describedby={`${checkboxId}-description`}
+      />
+      <Label htmlFor={checkboxId} className="sr-only">
+        Enable email notifications
+      </Label>
+    </div>
+  );
+}
+
+function SurveyRemindersCheckbox({
+  checked,
+  onCheckedChange,
+}: SettingsCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        aria-describedby={`${checkboxId}-description`}
+      />
+      <Label htmlFor={checkboxId} className="sr-only">
+        Enable survey reminders
+      </Label>
     </div>
   );
 }

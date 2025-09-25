@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useId } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   Download,
   FileText,
@@ -208,47 +210,29 @@ export function ExportDialog({
           <div>
             <h3 className="text-sm font-medium mb-3">Export Options</h3>
             <div className="space-y-3">
-              <label className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={exportOptions.includeCharts}
-                  onChange={(e) =>
-                    setExportOptions((prev) => ({
-                      ...prev,
-                      includeCharts: e.target.checked,
-                    }))
-                  }
-                  className="rounded border-gray-300"
-                />
-                <div>
-                  <span className="text-sm font-medium">Include Charts</span>
-                  <p className="text-xs text-gray-600">
-                    Embed visualizations in the export
-                  </p>
-                </div>
-              </label>
+              <ExportOptionCheckbox
+                label="Include Charts"
+                description="Embed visualizations in the export"
+                checked={exportOptions.includeCharts}
+                onCheckedChange={(checked) =>
+                  setExportOptions((prev) => ({
+                    ...prev,
+                    includeCharts: checked,
+                  }))
+                }
+              />
 
-              <label className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={exportOptions.includeExecutiveSummary}
-                  onChange={(e) =>
-                    setExportOptions((prev) => ({
-                      ...prev,
-                      includeExecutiveSummary: e.target.checked,
-                    }))
-                  }
-                  className="rounded border-gray-300"
-                />
-                <div>
-                  <span className="text-sm font-medium">
-                    AI Executive Summary
-                  </span>
-                  <p className="text-xs text-gray-600">
-                    Include AI-generated insights and recommendations
-                  </p>
-                </div>
-              </label>
+              <ExportOptionCheckbox
+                label="AI Executive Summary"
+                description="Include AI-generated insights and recommendations"
+                checked={exportOptions.includeExecutiveSummary}
+                onCheckedChange={(checked) =>
+                  setExportOptions((prev) => ({
+                    ...prev,
+                    includeExecutiveSummary: checked,
+                  }))
+                }
+              />
             </div>
           </div>
 
@@ -257,17 +241,12 @@ export function ExportDialog({
             <h3 className="text-sm font-medium mb-3">Report Sections</h3>
             <div className="grid grid-cols-2 gap-2">
               {availableSections.map((section) => (
-                <label key={section} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={exportOptions.sections.includes(section)}
-                    onChange={() => toggleSection(section)}
-                    className="rounded border-gray-300"
-                  />
-                  <span className="text-sm capitalize">
-                    {section.replace(/([A-Z])/g, ' $1').trim()}
-                  </span>
-                </label>
+                <SectionCheckbox
+                  key={section}
+                  section={section}
+                  checked={exportOptions.sections.includes(section)}
+                  onToggle={toggleSection}
+                />
               ))}
             </div>
           </div>
@@ -380,5 +359,62 @@ export function ExportDialog({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Export Option Checkbox Component
+interface ExportOptionCheckboxProps {
+  label: string;
+  description: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}
+
+function ExportOptionCheckbox({
+  label,
+  description,
+  checked,
+  onCheckedChange,
+}: ExportOptionCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center gap-3">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        className="rounded border-gray-300"
+      />
+      <Label htmlFor={checkboxId} className="cursor-pointer">
+        <span className="text-sm font-medium">{label}</span>
+        <p className="text-xs text-gray-600">{description}</p>
+      </Label>
+    </div>
+  );
+}
+
+// Section Checkbox Component
+interface SectionCheckboxProps {
+  section: string;
+  checked: boolean;
+  onToggle: (section: string) => void;
+}
+
+function SectionCheckbox({ section, checked, onToggle }: SectionCheckboxProps) {
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={() => onToggle(section)}
+        className="rounded border-gray-300"
+      />
+      <Label htmlFor={checkboxId} className="text-sm capitalize cursor-pointer">
+        {section.replace(/([A-Z])/g, ' $1').trim()}
+      </Label>
+    </div>
   );
 }

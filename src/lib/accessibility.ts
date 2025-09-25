@@ -3,6 +3,90 @@
  * Ensures WCAG 2.1 AA compliance across the application
  */
 
+import { useEffect, useRef } from 'react';
+
+/**
+ * Screen reader announcements
+ */
+export function announceToScreenReader(
+  message: string,
+  priority: 'polite' | 'assertive' = 'polite'
+) {
+  const announcement = document.createElement('div');
+  announcement.setAttribute('aria-live', priority);
+  announcement.setAttribute('aria-atomic', 'true');
+  announcement.setAttribute('class', 'sr-only');
+  announcement.textContent = message;
+
+  document.body.appendChild(announcement);
+
+  // Remove after announcement
+  setTimeout(() => {
+    if (document.body.contains(announcement)) {
+      document.body.removeChild(announcement);
+    }
+  }, 1000);
+}
+
+/**
+ * Focus management utilities
+ */
+export class FocusManager {
+  private static focusStack: HTMLElement[] = [];
+
+  static saveFocus() {
+    const activeElement = document.activeElement as HTMLElement;
+    if (activeElement) {
+      this.focusStack.push(activeElement);
+    }
+  }
+
+  static restoreFocus() {
+    const lastFocused = this.focusStack.pop();
+    if (lastFocused && lastFocused.focus) {
+      lastFocused.focus();
+    }
+  }
+
+  static trapFocus(container: HTMLElement) {
+    const focusableElements = container.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    const firstFocusable = focusableElements[0] as HTMLElement;
+    const lastFocusable = focusableElements[
+      focusableElements.length - 1
+    ] as HTMLElement;
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          lastFocusable.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          firstFocusable.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    container.addEventListener('keydown', handleTabKey);
+
+    // Focus first element
+    if (firstFocusable) {
+      firstFocusable.focus();
+    }
+
+    return () => {
+      container.removeEventListener('keydown', handleTabKey);
+    };
+  }
+}
+
 // Color contrast calculation utilities
 export function getLuminance(r: number, g: number, b: number): number {
   const [rs, gs, bs] = [r, g, b].map((c) => {
@@ -402,5 +486,3 @@ export const ariaAttributes = {
     current: 'aria-current',
   },
 } as const;
-
-
