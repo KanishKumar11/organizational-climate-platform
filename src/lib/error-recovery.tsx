@@ -316,7 +316,7 @@ export function useErrorRecovery() {
     await ErrorRecoveryManager.handleError(error, context, options);
   };
 
-  const withRetry = async <T extends any>(
+  const withRetry = async <T,>(
     operation: () => Promise<T>,
     operationName: string,
     retryConfig?: Partial<RetryConfig>
@@ -338,7 +338,7 @@ export function useErrorRecovery() {
 /**
  * Higher-order component for error boundaries
  */
-export function withErrorRecovery<P extends object = {}>(
+export function withErrorRecovery<P extends object = object>(
   Component: React.ComponentType<P>,
   fallbackComponent?: React.ComponentType<{ error: Error; retry: () => void }>
 ) {
