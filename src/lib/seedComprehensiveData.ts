@@ -570,21 +570,6 @@ export async function seedComprehensiveData(
       ...user,
       password_hash: hashedPassword,
       is_active: true,
-      preferences: {
-        language: 'en',
-        timezone: user.demographics?.site_location?.includes('Toronto')
-          ? 'America/Toronto'
-          : 'America/New_York',
-        theme: Math.random() > 0.5 ? 'light' : 'dark',
-        notification_settings: {
-          email_surveys: true,
-          email_microclimates: true,
-          email_action_plans: true,
-          email_reminders: true,
-          push_notifications: false,
-          digest_frequency: 'weekly',
-        },
-      },
     }));
 
     users.push(...completeAdditionalUsers);
