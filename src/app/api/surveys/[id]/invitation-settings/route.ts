@@ -18,7 +18,7 @@ export interface InvitationSettings {
 // GET /api/surveys/[id]/invitation-settings - Get invitation settings
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -32,7 +32,8 @@ export async function GET(
 
     await connectDB();
 
-    const survey = await Survey.findById(params.id);
+    const { id } = await params;
+    const survey = await Survey.findById(id);
     if (!survey) {
       return NextResponse.json({ error: 'Survey not found' }, { status: 404 });
     }
@@ -78,7 +79,7 @@ export async function GET(
 // PUT /api/surveys/[id]/invitation-settings - Update invitation settings
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -92,7 +93,8 @@ export async function PUT(
 
     await connectDB();
 
-    const survey = await Survey.findById(params.id);
+    const { id } = await params;
+    const survey = await Survey.findById(id);
     if (!survey) {
       return NextResponse.json({ error: 'Survey not found' }, { status: 404 });
     }
@@ -160,7 +162,7 @@ export async function PUT(
 // POST /api/surveys/[id]/invitation-settings/preview - Preview invitation email
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -174,7 +176,8 @@ export async function POST(
 
     await connectDB();
 
-    const survey = await Survey.findById(params.id);
+    const { id } = await params;
+    const survey = await Survey.findById(id);
     if (!survey) {
       return NextResponse.json({ error: 'Survey not found' }, { status: 404 });
     }
@@ -213,7 +216,7 @@ export async function POST(
         created_at: new Date(),
         updated_at: new Date(),
       },
-      invitationLink: `${process.env.NEXTAUTH_URL}/survey/${params.id}?token=preview-token`,
+      invitationLink: `${process.env.NEXTAUTH_URL}/survey/${id}?token=preview-token`,
       companyName: 'Your Company',
       expiryDate: survey.end_date,
       customMessage: settings.custom_message,

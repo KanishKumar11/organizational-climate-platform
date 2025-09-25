@@ -734,24 +734,6 @@ export async function POST(request: NextRequest) {
             tenure_months: emp.tenure,
           },
           is_active: true,
-          preferences: {
-            language: 'en',
-            timezone:
-              emp.site.includes('Toronto') ||
-              emp.site.includes('Montreal') ||
-              emp.site.includes('Vancouver')
-                ? 'America/Toronto'
-                : 'America/New_York',
-            theme: Math.random() > 0.5 ? 'light' : 'dark',
-            notification_settings: {
-              email_surveys: true,
-              email_microclimates: true,
-              email_action_plans: true,
-              email_reminders: true,
-              push_notifications: false,
-              digest_frequency: 'weekly',
-            },
-          },
         });
       }
     }
