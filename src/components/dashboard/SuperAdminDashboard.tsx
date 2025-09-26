@@ -15,6 +15,22 @@ import {
   EnhancedTabsTrigger as TabsTrigger,
 } from '@/components/ui/enhanced-tabs';
 import AnimatedCounter from '@/components/charts/AnimatedCounter';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import {
   Building2,
@@ -30,6 +46,7 @@ import {
   Zap,
   Eye,
   BarChart3,
+  Settings,
 } from 'lucide-react';
 
 interface GlobalKPIs {
@@ -116,6 +133,29 @@ interface SearchResult {
   total: number;
 }
 
+interface CompanyFormData {
+  name: string;
+  domain: string;
+  industry: string;
+  size: 'startup' | 'small' | 'medium' | 'large' | 'enterprise';
+  country: string;
+  subscription_tier: 'basic' | 'professional' | 'enterprise';
+}
+
+const COMPANY_SIZES = [
+  { value: 'startup', label: '1-10 employees' },
+  { value: 'small', label: '11-50 employees' },
+  { value: 'medium', label: '51-200 employees' },
+  { value: 'large', label: '201-1000 employees' },
+  { value: 'enterprise', label: '1000+ employees' },
+];
+
+const SUBSCRIPTION_TIERS = [
+  { value: 'basic', label: 'Basic' },
+  { value: 'professional', label: 'Professional' },
+  { value: 'enterprise', label: 'Enterprise' },
+];
+
 export default function SuperAdminDashboard() {
   useAuth();
   const router = useRouter();
@@ -130,6 +170,18 @@ export default function SuperAdminDashboard() {
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Company dialog state
+  const [showCreateCompanyDialog, setShowCreateCompanyDialog] = useState(false);
+  const [isSubmittingCompany, setIsSubmittingCompany] = useState(false);
+  const [companyFormData, setCompanyFormData] = useState<CompanyFormData>({
+    name: '',
+    domain: '',
+    industry: '',
+    size: 'small',
+    country: '',
+    subscription_tier: 'basic',
+  });
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -163,6 +215,64 @@ export default function SuperAdminDashboard() {
       setIsSearching(false);
     }
   }, [searchQuery]);
+
+  // Company management functions
+  const resetCompanyForm = () => {
+    setCompanyFormData({
+      name: '',
+      domain: '',
+      industry: '',
+      size: 'small',
+      country: '',
+      subscription_tier: 'basic',
+    });
+  };
+
+  const handleCreateCompany = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingCompany(true);
+
+    try {
+      const response = await fetch('/api/admin/companies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(companyFormData),
+      });
+
+      if (response.ok) {
+        setShowCreateCompanyDialog(false);
+        resetCompanyForm();
+        // Refresh dashboard data to show new company
+        await fetchDashboardData();
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to create company:', errorData.message);
+        // You could add a toast notification here
+      }
+    } catch (error) {
+      console.error('Error creating company:', error);
+    } finally {
+      setIsSubmittingCompany(false);
+    }
+  };
+
+  // Quick action handlers
+  const handleAddCompany = () => {
+    resetCompanyForm();
+    setShowCreateCompanyDialog(true);
+  };
+
+  const handleCreateGlobalSurvey = () => {
+    router.push('/surveys/create');
+  };
+
+  const handleGenerateSystemReport = () => {
+    router.push('/reports');
+  };
+
+  const handleManageSystemUsers = () => {
+    router.push('/admin/companies');
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -585,6 +695,7 @@ export default function SuperAdminDashboard() {
                 <Button
                   className="w-full justify-start h-auto p-4"
                   variant="outline"
+                  onClick={handleAddCompany}
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-purple-100 rounded-lg">
@@ -601,6 +712,7 @@ export default function SuperAdminDashboard() {
                 <Button
                   className="w-full justify-start h-auto p-4"
                   variant="outline"
+                  onClick={handleCreateGlobalSurvey}
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-100 rounded-lg">
@@ -617,6 +729,7 @@ export default function SuperAdminDashboard() {
                 <Button
                   className="w-full justify-start h-auto p-4"
                   variant="outline"
+                  onClick={handleGenerateSystemReport}
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-orange-100 rounded-lg">
@@ -633,6 +746,7 @@ export default function SuperAdminDashboard() {
                 <Button
                   className="w-full justify-start h-auto p-4"
                   variant="outline"
+                  onClick={handleManageSystemUsers}
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-green-100 rounded-lg">
@@ -869,6 +983,143 @@ export default function SuperAdminDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Create Company Dialog */}
+      <Dialog
+        open={showCreateCompanyDialog}
+        onOpenChange={setShowCreateCompanyDialog}
+      >
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Company</DialogTitle>
+            <DialogDescription>
+              Add a new company to authorize users from their email domain.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateCompany} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Company Name *</Label>
+                <Input
+                  id="name"
+                  value={companyFormData.name}
+                  onChange={(e) =>
+                    setCompanyFormData({
+                      ...companyFormData,
+                      name: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="domain">Email Domain *</Label>
+                <Input
+                  id="domain"
+                  placeholder="example.com"
+                  value={companyFormData.domain}
+                  onChange={(e) =>
+                    setCompanyFormData({
+                      ...companyFormData,
+                      domain: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="industry">Industry *</Label>
+                <Input
+                  id="industry"
+                  value={companyFormData.industry}
+                  onChange={(e) =>
+                    setCompanyFormData({
+                      ...companyFormData,
+                      industry: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="country">Country *</Label>
+                <Input
+                  id="country"
+                  value={companyFormData.country}
+                  onChange={(e) =>
+                    setCompanyFormData({
+                      ...companyFormData,
+                      country: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="size">Company Size *</Label>
+                <Select
+                  value={companyFormData.size}
+                  onValueChange={(value: CompanyFormData['size']) =>
+                    setCompanyFormData({ ...companyFormData, size: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COMPANY_SIZES.map((size) => (
+                      <SelectItem key={size.value} value={size.value}>
+                        {size.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="subscription_tier">Subscription Tier</Label>
+                <Select
+                  value={companyFormData.subscription_tier}
+                  onValueChange={(
+                    value: CompanyFormData['subscription_tier']
+                  ) =>
+                    setCompanyFormData({
+                      ...companyFormData,
+                      subscription_tier: value,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUBSCRIPTION_TIERS.map((tier) => (
+                      <SelectItem key={tier.value} value={tier.value}>
+                        {tier.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowCreateCompanyDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmittingCompany}>
+                {isSubmittingCompany ? 'Creating...' : 'Create Company'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
