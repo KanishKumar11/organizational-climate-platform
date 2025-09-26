@@ -6,6 +6,7 @@ import { IQuestion } from '@/models/Survey';
 import { IQuestionResponse } from '@/models/Response';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 
 interface QuestionRendererProps {
   question: IQuestion;
@@ -220,14 +221,14 @@ export function QuestionRenderer({
   const renderOpenEnded = () => {
     return (
       <div className="space-y-4">
-        <textarea
+        <Textarea
           value={textValue}
           onChange={(e) => {
             setTextValue(e.target.value);
             handleResponse(e.target.value);
           }}
           placeholder="Please share your thoughts..."
-          className="w-full p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="resize-none"
           rows={6}
           maxLength={2000}
         />

@@ -9,6 +9,8 @@ import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
+import { Textarea } from '../ui/textarea';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { IQuestion } from '../../models/Survey';
 import { cn } from '@/lib/utils';
 
@@ -215,12 +217,12 @@ export default function QuestionEditor({
         >
           Question Text
         </Label>
-        <textarea
+        <Textarea
           id={`question-text-${question.id}`}
           value={question.text}
           onChange={(e) => updateQuestion({ text: e.target.value })}
           placeholder="Enter your question here..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none transition-all"
+          className="resize-none"
           rows={3}
         />
       </div>
@@ -381,35 +383,43 @@ export default function QuestionEditor({
                   )}
 
                   {question.type === 'open_ended' && (
-                    <textarea
+                    <Textarea
                       disabled
                       placeholder="Respondent's answer will appear here..."
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 resize-none"
+                      className="bg-gray-50 text-gray-500 resize-none"
                       rows={3}
                     />
                   )}
 
                   {question.type === 'yes_no' && (
-                    <div className="flex gap-6">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`preview-${question.id}`}
+                    <RadioGroup disabled className="flex gap-6">
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem
+                          value="yes"
+                          id={`preview-${question.id}-yes`}
                           disabled
-                          className="w-4 h-4 text-blue-600"
                         />
-                        <span className="text-sm text-gray-700">Yes</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`preview-${question.id}`}
+                        <Label
+                          htmlFor={`preview-${question.id}-yes`}
+                          className="text-sm text-gray-700 cursor-pointer"
+                        >
+                          Yes
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem
+                          value="no"
+                          id={`preview-${question.id}-no`}
                           disabled
-                          className="w-4 h-4 text-blue-600"
                         />
-                        <span className="text-sm text-gray-700">No</span>
-                      </label>
-                    </div>
+                        <Label
+                          htmlFor={`preview-${question.id}-no`}
+                          className="text-sm text-gray-700 cursor-pointer"
+                        >
+                          No
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   )}
 
                   {question.type === 'rating' && (

@@ -53,6 +53,18 @@ export interface UserDemographics {
 }
 
 /**
+ * Consent preferences interface
+ */
+export interface ConsentPreferences {
+  essential: boolean;
+  analytics: boolean;
+  marketing: boolean;
+  personalization: boolean;
+  thirdParty: boolean;
+  demographics: boolean;
+}
+
+/**
  * Base user interface for client-side usage
  * This excludes Mongoose Document methods and properties
  */
@@ -65,6 +77,8 @@ export interface IUserBase {
   department_id: string;
   preferences: UserPreferences;
   demographics?: UserDemographics;
+  consent_preferences?: ConsentPreferences;
+  consent_updated_at?: Date;
   is_active: boolean;
   last_login?: Date;
   created_at: Date;

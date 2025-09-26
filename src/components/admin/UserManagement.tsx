@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/Loading';
 import { Pagination } from '@/components/ui/pagination';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -36,17 +36,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   Users,
   Search,
-  Filter,
   Plus,
   Edit,
   Trash2,
   Mail,
   Building,
-  UserCheck,
-  UserX,
   Download,
-  Upload,
-  X,
   MoreHorizontal,
   Grid3X3,
   List,
@@ -55,12 +50,9 @@ import {
   CheckCircle,
   Clock,
   Target,
-  BarChart3,
   Crown,
   Shield,
   User,
-  ChevronRight,
-  ChevronDown,
 } from 'lucide-react';
 
 interface User {
@@ -116,20 +108,17 @@ const ROLE_COLORS = {
 
 export default function UserManagement() {
   const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
+  const { success, error } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter] = useState<string>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [sortField, setSortField] = useState<
-    'name' | 'role' | 'created_at' | 'last_login'
-  >('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showInactive, setShowInactive] = useState(true);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
@@ -278,9 +267,20 @@ export default function UserManagement() {
 
           if (response.ok) {
             fetchUsers(); // Refresh the list
+            success(
+              'User deleted successfully',
+              `${userName} has been removed from the system.`
+            );
+          } else {
+            const errorData = await response.json();
+            error(
+              'Error deleting user',
+              errorData.error || 'Failed to delete user'
+            );
           }
-        } catch (error) {
-          console.error('Error deleting user:', error);
+        } catch (err) {
+          console.error('Error deleting user:', err);
+          error('Error deleting user', 'Please try again.');
         }
       },
     });
@@ -288,7 +288,7 @@ export default function UserManagement() {
 
   const createUser = async () => {
     if (!newUser.name || !newUser.email || !newUser.department_id) {
-      alert('Please fill in all required fields');
+      error('Please fill in all required fields');
       return;
     }
 
@@ -317,14 +317,20 @@ export default function UserManagement() {
           department_id: '',
           password: '',
         });
-        alert('User created successfully!');
+        success(
+          'User created successfully!',
+          `${newUser.name} has been added to the system.`
+        );
       } else {
-        const error = await response.json();
-        alert(`Error creating user: ${error.error || 'Unknown error'}`);
+        const errorData = await response.json();
+        error(
+          'Error creating user',
+          errorData.error || 'Unknown error occurred'
+        );
       }
-    } catch (error) {
-      console.error('Error creating user:', error);
-      alert('Error creating user. Please try again.');
+    } catch (err) {
+      console.error('Error creating user:', err);
+      error('Error creating user', 'Please try again.');
     } finally {
       setIsCreatingUser(false);
     }
@@ -349,7 +355,7 @@ export default function UserManagement() {
       !editingUser.email ||
       !editingUser.department_id
     ) {
-      alert('Please fill in all required fields');
+      error('Please fill in all required fields');
       return;
     }
 
@@ -371,14 +377,20 @@ export default function UserManagement() {
         fetchUsers(); // Refresh the list
         setShowEditUserModal(false);
         setEditingUser(null);
-        alert('User updated successfully!');
+        success(
+          'User updated successfully!',
+          `${editingUser.name}'s information has been updated.`
+        );
       } else {
-        const error = await response.json();
-        alert(`Error updating user: ${error.error || 'Unknown error'}`);
+        const errorData = await response.json();
+        error(
+          'Error updating user',
+          errorData.error || 'Unknown error occurred'
+        );
       }
-    } catch (error) {
-      console.error('Error updating user:', error);
-      alert('Failed to update user. Please try again.');
+    } catch (err) {
+      console.error('Error updating user:', err);
+      error('Failed to update user', 'Please try again.');
     } finally {
       setIsUpdatingUser(false);
     }

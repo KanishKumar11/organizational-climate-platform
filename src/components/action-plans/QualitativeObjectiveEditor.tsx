@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, CheckCircle, Circle } from 'lucide-react';
 
@@ -131,7 +132,7 @@ export function QualitativeObjectiveEditor({
                       Objective Description{' '}
                       <span className="text-red-500">*</span>
                     </Label>
-                    <textarea
+                    <Textarea
                       value={objective.description}
                       onChange={(e) =>
                         updateObjective(objective.id, {
@@ -140,7 +141,6 @@ export function QualitativeObjectiveEditor({
                       }
                       placeholder="Describe what you want to achieve..."
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
 

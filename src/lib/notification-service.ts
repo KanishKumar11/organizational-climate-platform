@@ -473,6 +473,36 @@ class NotificationService {
           await emailService.sendMicroclimateInvitation(microclimateEmailData);
         }
         break;
+      case 'user_invitation':
+        // Handle user invitation emails
+        const userInvitationEmailData = {
+          recipient_email: String(
+            notification.data?.recipient_email || user.email
+          ),
+          company_name: String(
+            notification.data?.company_name || 'Your Company'
+          ),
+          inviter_name: String(
+            notification.data?.inviter_name || 'Administrator'
+          ),
+          role: String(notification.data?.role || 'employee'),
+          registration_link: String(notification.data?.registration_link || ''),
+          expires_at: notification.data?.expires_at
+            ? new Date(notification.data.expires_at as string | number | Date)
+            : new Date(),
+          custom_message: notification.data?.custom_message
+            ? String(notification.data.custom_message)
+            : undefined,
+          setup_required: Boolean(notification.data?.setup_required || false),
+          invitation_type: String(
+            notification.data?.invitation_type || 'employee_direct'
+          ) as
+            | 'company_admin_setup'
+            | 'employee_direct'
+            | 'employee_self_signup',
+        };
+        await emailService.sendUserInvitation(userInvitationEmailData);
+        break;
       default:
         // For other types, send generic email
         console.log('Sending email notification:', {

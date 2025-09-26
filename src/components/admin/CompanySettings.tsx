@@ -10,6 +10,13 @@ import { Loading } from '@/components/ui/Loading';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Building,
   Save,
   Upload,
@@ -236,9 +243,9 @@ export default function CompanySettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">
                   Company Name
-                </label>
+                </Label>
                 <Input
                   value={settings.name}
                   onChange={(e) => updateSettings({ name: e.target.value })}
@@ -247,9 +254,9 @@ export default function CompanySettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">
                   Description
-                </label>
+                </Label>
                 <Textarea
                   value={settings.description || ''}
                   onChange={(e) =>
@@ -262,41 +269,49 @@ export default function CompanySettings() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">
                     Industry
-                  </label>
-                  <select
+                  </Label>
+                  <Select
                     value={settings.industry || ''}
-                    onChange={(e) =>
-                      updateSettings({ industry: e.target.value })
+                    onValueChange={(value) =>
+                      updateSettings({ industry: value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">Select industry</option>
-                    {INDUSTRY_OPTIONS.map((industry) => (
-                      <option key={industry} value={industry}>
-                        {industry}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Select industry</SelectItem>
+                      {INDUSTRY_OPTIONS.map((industry) => (
+                        <SelectItem key={industry} value={industry}>
+                          {industry}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">
                     Company Size
-                  </label>
-                  <select
+                  </Label>
+                  <Select
                     value={settings.size || ''}
-                    onChange={(e) => updateSettings({ size: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onValueChange={(value) => updateSettings({ size: value })}
                   >
-                    <option value="">Select size</option>
-                    {COMPANY_SIZE_OPTIONS.map((size) => (
-                      <option key={size} value={size}>
-                        {size} employees
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Select size</SelectItem>
+                      {COMPANY_SIZE_OPTIONS.map((size) => (
+                        <SelectItem key={size} value={size}>
+                          {size} employees
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
@@ -312,9 +327,9 @@ export default function CompanySettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">
                   Website
-                </label>
+                </Label>
                 <div className="relative">
                   <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
@@ -329,9 +344,9 @@ export default function CompanySettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
-                </label>
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
@@ -344,9 +359,9 @@ export default function CompanySettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">
                   Phone
-                </label>
+                </Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
@@ -371,9 +386,9 @@ export default function CompanySettings() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">
                     Street Address
-                  </label>
+                  </Label>
                   <Input
                     value={settings.address?.street || ''}
                     onChange={(e) =>
@@ -386,9 +401,9 @@ export default function CompanySettings() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">
                     City
-                  </label>
+                  </Label>
                   <Input
                     value={settings.address?.city || ''}
                     onChange={(e) =>
@@ -399,9 +414,9 @@ export default function CompanySettings() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">
                     State/Province
-                  </label>
+                  </Label>
                   <Input
                     value={settings.address?.state || ''}
                     onChange={(e) =>
@@ -412,9 +427,9 @@ export default function CompanySettings() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">
                     Country
-                  </label>
+                  </Label>
                   <Input
                     value={settings.address?.country || ''}
                     onChange={(e) =>
@@ -427,9 +442,9 @@ export default function CompanySettings() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">
                     Postal Code
-                  </label>
+                  </Label>
                   <Input
                     value={settings.address?.postal_code || ''}
                     onChange={(e) =>
@@ -454,9 +469,9 @@ export default function CompanySettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">
                   Primary Color
-                </label>
+                </Label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
@@ -482,9 +497,9 @@ export default function CompanySettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">
                   Secondary Color
-                </label>
+                </Label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
@@ -517,9 +532,9 @@ export default function CompanySettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">
                   Logo URL
-                </label>
+                </Label>
                 <Input
                   value={settings.branding?.logo_url || ''}
                   onChange={(e) =>
@@ -532,24 +547,28 @@ export default function CompanySettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">
                   Font Family
-                </label>
-                <select
+                </Label>
+                <Select
                   value={settings.branding?.font_family || 'Inter'}
-                  onChange={(e) =>
+                  onValueChange={(value) =>
                     updateNestedSettings('branding', {
-                      font_family: e.target.value,
+                      font_family: value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="Inter">Inter</option>
-                  <option value="Roboto">Roboto</option>
-                  <option value="Open Sans">Open Sans</option>
-                  <option value="Lato">Lato</option>
-                  <option value="Montserrat">Montserrat</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select font" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Inter">Inter</SelectItem>
+                    <SelectItem value="Roboto">Roboto</SelectItem>
+                    <SelectItem value="Open Sans">Open Sans</SelectItem>
+                    <SelectItem value="Lato">Lato</SelectItem>
+                    <SelectItem value="Montserrat">Montserrat</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <Button variant="outline" className="w-full">
@@ -613,9 +632,9 @@ export default function CompanySettings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <Label className="block text-sm font-medium text-gray-700 mb-1">
                 Data Retention (Days)
-              </label>
+              </Label>
               <Input
                 type="number"
                 value={settings.settings?.data_retention_days || 365}
@@ -634,22 +653,26 @@ export default function CompanySettings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <Label className="block text-sm font-medium text-gray-700 mb-1">
                 Timezone
-              </label>
-              <select
+              </Label>
+              <Select
                 value={settings.settings?.timezone || 'America/New_York'}
-                onChange={(e) =>
-                  updateNestedSettings('settings', { timezone: e.target.value })
+                onValueChange={(value) =>
+                  updateNestedSettings('settings', { timezone: value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {TIMEZONE_OPTIONS.map((tz) => (
-                  <option key={tz} value={tz}>
-                    {tz}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select timezone" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIMEZONE_OPTIONS.map((tz) => (
+                    <SelectItem key={tz} value={tz}>
+                      {tz}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>

@@ -24,6 +24,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -31,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 import {
   Building2,
@@ -46,7 +49,6 @@ import {
   Zap,
   Eye,
   BarChart3,
-  Settings,
 } from 'lucide-react';
 
 interface GlobalKPIs {
@@ -140,6 +142,9 @@ interface CompanyFormData {
   size: 'startup' | 'small' | 'medium' | 'large' | 'enterprise';
   country: string;
   subscription_tier: 'basic' | 'professional' | 'enterprise';
+  admin_email: string;
+  admin_message?: string;
+  send_invitation: boolean;
 }
 
 const COMPANY_SIZES = [
@@ -159,6 +164,7 @@ const SUBSCRIPTION_TIERS = [
 export default function SuperAdminDashboard() {
   useAuth();
   const router = useRouter();
+  const { success, error } = useToast();
   const [dashboardData, setDashboardData] = useState<{
     globalKPIs: GlobalKPIs;
     companyMetrics: CompanyMetric[];
@@ -181,6 +187,9 @@ export default function SuperAdminDashboard() {
     size: 'small',
     country: '',
     subscription_tier: 'basic',
+    admin_email: '',
+    admin_message: '',
+    send_invitation: true,
   });
 
   const fetchDashboardData = useCallback(async () => {
@@ -225,6 +234,9 @@ export default function SuperAdminDashboard() {
       size: 'small',
       country: '',
       subscription_tier: 'basic',
+      admin_email: '',
+      admin_message: '',
+      send_invitation: true,
     });
   };
 
@@ -246,24 +258,67 @@ export default function SuperAdminDashboard() {
 
       if (response.ok) {
         console.log('Company created successfully');
+
+        // Send invitation to company admin if requested
+        if (companyFormData.send_invitation && companyFormData.admin_email) {
+          try {
+            const invitationResponse = await fetch(
+              '/api/admin/invitations/company-admin',
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: companyFormData.admin_email,
+                  company_id: responseData.data._id,
+                  custom_message: companyFormData.admin_message,
+                }),
+              }
+            );
+
+            if (invitationResponse.ok) {
+              console.log('Company admin invitation sent successfully');
+              success(
+                'Company created and invitation sent successfully!',
+                'The administrator will receive an email invitation to complete their setup.'
+              );
+            } else {
+              console.error('Failed to send invitation');
+              error(
+                'Company created successfully, but failed to send invitation',
+                'You can resend the invitation later from the company management page.'
+              );
+            }
+          } catch (invitationError) {
+            console.error('Error sending invitation:', invitationError);
+            error(
+              'Company created successfully, but failed to send invitation',
+              'You can resend the invitation later from the company management page.'
+            );
+          }
+        } else {
+          success(
+            'Company created successfully!',
+            `${companyFormData.name} has been added to the system.`
+          );
+        }
+
         setShowCreateCompanyDialog(false);
         resetCompanyForm();
         // Refresh dashboard data to show new company
         await fetchDashboardData();
-        // TODO: Add success toast notification
-        alert('Company created successfully!');
       } else {
         console.error('Failed to create company:', responseData);
         const errorMessage =
           responseData.error ||
           responseData.message ||
           'Unknown error occurred';
-        alert(`Failed to create company: ${errorMessage}`);
+        error('Failed to create company', errorMessage);
       }
-    } catch (error) {
-      console.error('Error creating company:', error);
-      alert(
-        `Error creating company: ${error instanceof Error ? error.message : 'Network error'}`
+    } catch (err) {
+      console.error('Error creating company:', err);
+      error(
+        'Error creating company',
+        err instanceof Error ? err.message : 'Network error occurred'
       );
     } finally {
       setIsSubmittingCompany(false);
@@ -1023,6 +1078,7 @@ export default function SuperAdminDashboard() {
                       name: e.target.value,
                     })
                   }
+                  placeholder="Acme Corporation"
                   required
                 />
               </div>
@@ -1030,7 +1086,7 @@ export default function SuperAdminDashboard() {
                 <Label htmlFor="domain">Email Domain *</Label>
                 <Input
                   id="domain"
-                  placeholder="example.com"
+                  placeholder="acme.com"
                   value={companyFormData.domain}
                   onChange={(e) =>
                     setCompanyFormData({
@@ -1054,6 +1110,7 @@ export default function SuperAdminDashboard() {
                       industry: e.target.value,
                     })
                   }
+                  placeholder="Technology"
                   required
                 />
               </div>
@@ -1068,6 +1125,7 @@ export default function SuperAdminDashboard() {
                       country: e.target.value,
                     })
                   }
+                  placeholder="United States"
                   required
                 />
               </div>
@@ -1082,7 +1140,7 @@ export default function SuperAdminDashboard() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select size" />
                   </SelectTrigger>
                   <SelectContent>
                     {COMPANY_SIZES.map((size) => (
@@ -1094,7 +1152,7 @@ export default function SuperAdminDashboard() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="subscription_tier">Subscription Tier</Label>
+                <Label htmlFor="subscription_tier">Subscription Tier *</Label>
                 <Select
                   value={companyFormData.subscription_tier}
                   onValueChange={(
@@ -1107,7 +1165,7 @@ export default function SuperAdminDashboard() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select tier" />
                   </SelectTrigger>
                   <SelectContent>
                     {SUBSCRIPTION_TIERS.map((tier) => (
@@ -1119,15 +1177,96 @@ export default function SuperAdminDashboard() {
                 </Select>
               </div>
             </div>
+
+            {/* Company Admin Invitation Section */}
+            <div className="space-y-4 border-t pt-4">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="send_invitation"
+                  checked={companyFormData.send_invitation}
+                  onCheckedChange={(checked) =>
+                    setCompanyFormData({
+                      ...companyFormData,
+                      send_invitation: checked === true,
+                    })
+                  }
+                />
+                <Label
+                  htmlFor="send_invitation"
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  Send invitation to company administrator
+                </Label>
+              </div>
+
+              {companyFormData.send_invitation && (
+                <div className="space-y-4 pl-6 border-l-2 border-blue-100">
+                  <div className="space-y-2">
+                    <Label htmlFor="admin_email">Administrator Email *</Label>
+                    <Input
+                      id="admin_email"
+                      type="email"
+                      placeholder="admin@company.com"
+                      value={companyFormData.admin_email}
+                      onChange={(e) =>
+                        setCompanyFormData({
+                          ...companyFormData,
+                          admin_email: e.target.value,
+                        })
+                      }
+                      required={companyFormData.send_invitation}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="admin_message">
+                      Personal Message (Optional)
+                    </Label>
+                    <Textarea
+                      id="admin_message"
+                      placeholder="Welcome to our organizational climate platform! We're excited to have you on board..."
+                      value={companyFormData.admin_message}
+                      onChange={(e) =>
+                        setCompanyFormData({
+                          ...companyFormData,
+                          admin_message: e.target.value,
+                        })
+                      }
+                      rows={3}
+                      className="resize-none"
+                    />
+                  </div>
+                  <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md">
+                    <p className="font-medium">What happens next:</p>
+                    <ul className="mt-1 space-y-1 text-xs">
+                      <li>
+                        • The administrator will receive an invitation email
+                      </li>
+                      <li>
+                        • They can complete their profile and company setup
+                      </li>
+                      <li>
+                        • They'll be able to invite employees and start surveys
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setShowCreateCompanyDialog(false)}
+                disabled={isSubmittingCompany}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmittingCompany}>
+              <Button
+                type="submit"
+                disabled={isSubmittingCompany}
+                className="cursor-pointer"
+              >
                 {isSubmittingCompany ? 'Creating...' : 'Create Company'}
               </Button>
             </DialogFooter>

@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/Loading';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   Wand2,
   RefreshCw,
@@ -218,28 +220,35 @@ export default function QuestionAdaptationTester({
               Categories to Adapt
             </label>
             <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-3">
-              {availableCategories.map((category) => (
-                <label key={category} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(category)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedCategories([
-                          ...selectedCategories,
-                          category,
-                        ]);
-                      } else {
-                        setSelectedCategories(
-                          selectedCategories.filter((c) => c !== category)
-                        );
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span className="text-sm">{category}</span>
-                </label>
-              ))}
+              {availableCategories.map((category) => {
+                const checkboxId = `category-${category}`;
+                return (
+                  <div key={category} className="flex items-center gap-2">
+                    <Checkbox
+                      id={checkboxId}
+                      checked={selectedCategories.includes(category)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedCategories([
+                            ...selectedCategories,
+                            category,
+                          ]);
+                        } else {
+                          setSelectedCategories(
+                            selectedCategories.filter((c) => c !== category)
+                          );
+                        }
+                      }}
+                    />
+                    <Label
+                      htmlFor={checkboxId}
+                      className="text-sm cursor-pointer"
+                    >
+                      {category}
+                    </Label>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

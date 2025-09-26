@@ -8,6 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
@@ -618,26 +625,30 @@ export default function MicroclimateCreator() {
                 <Label className="text-sm font-medium">
                   Duration (minutes) <span className="text-red-500">*</span>
                 </Label>
-                <select
-                  value={microclimateData.scheduling.duration_minutes}
-                  onChange={(e) =>
+                <Select
+                  value={microclimateData.scheduling.duration_minutes.toString()}
+                  onValueChange={(value) =>
                     setMicroclimateData((prev) => ({
                       ...prev,
                       scheduling: {
                         ...prev.scheduling,
-                        duration_minutes: parseInt(e.target.value),
+                        duration_minutes: parseInt(value),
                       },
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  <option value={15}>15 minutes</option>
-                  <option value={30}>30 minutes</option>
-                  <option value={45}>45 minutes</option>
-                  <option value={60}>1 hour</option>
-                  <option value={90}>1.5 hours</option>
-                  <option value={120}>2 hours</option>
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">1 hour</SelectItem>
+                    <SelectItem value="90">1.5 hours</SelectItem>
+                    <SelectItem value="120">2 hours</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -755,29 +766,33 @@ export default function MicroclimateCreator() {
                       <Label className="text-sm font-medium">
                         Question Type
                       </Label>
-                      <select
+                      <Select
                         value={question.type}
-                        onChange={(e) =>
+                        onValueChange={(value) =>
                           updateQuestion(index, {
-                            type: e.target.value as
+                            type: value as
                               | 'likert'
                               | 'multiple_choice'
                               | 'open_ended'
                               | 'emoji_rating',
                             options:
-                              e.target.value === 'multiple_choice'
+                              value === 'multiple_choice'
                                 ? ['Option 1', 'Option 2']
                                 : undefined,
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                       >
-                        {QUESTION_TYPES.map((type) => (
-                          <option key={type.value} value={type.value}>
-                            {type.label}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select question type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {QUESTION_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {question.type === 'multiple_choice' && (

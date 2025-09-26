@@ -47,6 +47,23 @@ export interface CorporateBranding {
   support_email?: string;
 }
 
+// User invitation data
+export interface UserInvitationEmailData {
+  recipient_email: string;
+  company_name: string;
+  inviter_name: string;
+  role: string;
+  registration_link: string;
+  expires_at: Date;
+  custom_message?: string;
+  setup_required?: boolean;
+  invitation_type:
+    | 'company_admin_setup'
+    | 'employee_direct'
+    | 'employee_self_signup';
+  company?: ICompany;
+}
+
 // Email service interface
 export interface EmailService {
   sendSurveyInvitation(data: SurveyInvitationData): Promise<boolean>;
@@ -56,6 +73,7 @@ export interface EmailService {
     data: MicroclimateInvitationData
   ): Promise<boolean>;
   sendMicroclimateReminder(data: MicroclimateInvitationData): Promise<boolean>;
+  sendUserInvitation(data: UserInvitationEmailData): Promise<boolean>;
 }
 
 // Generate survey invitation email template with corporate branding
@@ -644,6 +662,174 @@ export function generateSurveyReminderTemplate(
   return { subject, html, text };
 }
 
+// Generate user invitation email template
+export function generateUserInvitationTemplate(
+  data: UserInvitationEmailData,
+  branding?: CorporateBranding
+): EmailTemplate {
+  const {
+    recipient_email,
+    company_name,
+    inviter_name,
+    role,
+    registration_link,
+    expires_at,
+    custom_message,
+    setup_required,
+    invitation_type,
+  } = data;
+
+  const primaryColor = branding?.primary_color || '#007bff';
+  const logoHtml = branding?.logo_url
+    ? `<img src="${branding.logo_url}" alt="${company_name}" style="max-height: 60px; margin-bottom: 20px;">`
+    : '';
+
+  let subject: string;
+  let welcomeMessage: string;
+  let actionText: string;
+
+  if (invitation_type === 'company_admin_setup') {
+    subject = `Welcome to ${company_name} - Complete Your Admin Setup`;
+    welcomeMessage = `You've been invited to set up and manage ${company_name}'s organizational climate platform.`;
+    actionText = 'Complete Setup';
+  } else {
+    subject = `Join ${company_name} on the Organizational Climate Platform`;
+    welcomeMessage = `${inviter_name} has invited you to join ${company_name}'s organizational climate platform.`;
+    actionText = 'Join Now';
+  }
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${subject}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        ${logoHtml}
+        <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 300;">
+          ${invitation_type === 'company_admin_setup' ? 'Welcome to Your Platform' : "You're Invited!"}
+        </h1>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 18px; margin-bottom: 20px;">
+          Hello,
+        </p>
+
+        <p style="font-size: 16px; margin-bottom: 20px;">
+          ${welcomeMessage}
+        </p>
+
+        ${
+          setup_required
+            ? `
+        <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #1976d2; margin-top: 0;">What's Next?</h3>
+          <ul style="margin: 0; padding-left: 20px;">
+            <li>Complete your profile setup</li>
+            <li>Configure your company settings</li>
+            <li>Set up organizational structure</li>
+            <li>Invite your team members</li>
+          </ul>
+        </div>
+        `
+            : `
+        <p style="font-size: 16px; margin-bottom: 20px;">
+          As a <strong>${role}</strong>, you'll be able to participate in surveys, provide feedback, and help improve your workplace culture.
+        </p>
+        `
+        }
+
+        ${
+          custom_message
+            ? `
+        <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+          <p style="margin: 0; font-style: italic;">
+            "${custom_message}"
+          </p>
+          <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">
+            - ${inviter_name}
+          </p>
+        </div>
+        `
+            : ''
+        }
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${registration_link}"
+             style="background: ${primaryColor}; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
+            ${actionText}
+          </a>
+        </div>
+
+        <div style="background: #f1f3f4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0; font-size: 14px; color: #666;">
+            <strong>Important:</strong> This invitation expires on ${expires_at.toLocaleDateString()} at ${expires_at.toLocaleTimeString()}.
+          </p>
+        </div>
+
+        <p style="font-size: 14px; color: #666; margin-top: 30px;">
+          If you can't click the button above, copy and paste this link into your browser:<br>
+          <a href="${registration_link}" style="color: ${primaryColor}; word-break: break-all;">
+            ${registration_link}
+          </a>
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+
+        <p style="font-size: 12px; color: #999; text-align: center;">
+          This invitation was sent by ${inviter_name} from ${company_name}.<br>
+          Questions? Contact ${branding?.support_email || 'your administrator'}.
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+    ${subject}
+
+    Hello,
+
+    ${welcomeMessage}
+
+    ${
+      setup_required
+        ? `
+    What's Next:
+    - Complete your profile setup
+    - Configure your company settings
+    - Set up organizational structure
+    - Invite your team members
+    `
+        : `
+    As a ${role}, you'll be able to participate in surveys, provide feedback, and help improve your workplace culture.
+    `
+    }
+
+    ${
+      custom_message
+        ? `
+    Personal message from ${inviter_name}:
+    "${custom_message}"
+    `
+        : ''
+    }
+
+    ${actionText}: ${registration_link}
+
+    Important: This invitation expires on ${expires_at.toLocaleDateString()} at ${expires_at.toLocaleTimeString()}.
+
+    This invitation was sent by ${inviter_name} from ${company_name}.
+    Questions? Contact ${branding?.support_email || 'your administrator'}.
+  `;
+
+  return { subject, html, text };
+}
+
 // Mock email service implementation (replace with actual email service)
 export class MockEmailService implements EmailService {
   async sendSurveyInvitation(data: SurveyInvitationData): Promise<boolean> {
@@ -693,6 +879,18 @@ export class MockEmailService implements EmailService {
     console.log('Sending microclimate reminder:', {
       to: data.recipient.email,
       subject: template.subject,
+      // In production, send actual email
+    });
+    return true;
+  }
+
+  async sendUserInvitation(data: UserInvitationEmailData): Promise<boolean> {
+    const template = generateUserInvitationTemplate(data);
+    console.log('Sending user invitation:', {
+      to: data.recipient_email,
+      subject: template.subject,
+      type: data.invitation_type,
+      role: data.role,
       // In production, send actual email
     });
     return true;

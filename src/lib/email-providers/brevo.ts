@@ -3,10 +3,12 @@ import {
   EmailService,
   SurveyInvitationData,
   MicroclimateInvitationData,
+  UserInvitationEmailData,
   generateSurveyInvitationTemplate,
   generateSurveyReminderTemplate,
   generateMicroclimateInvitationTemplate,
   generateMicroclimateReminderTemplate,
+  generateUserInvitationTemplate,
 } from '../email';
 
 export class BrevoEmailService implements EmailService {
@@ -274,6 +276,48 @@ export class BrevoEmailService implements EmailService {
         '❌ Failed to send microclimate reminder via Brevo:',
         error
       );
+      return false;
+    }
+  }
+
+  async sendUserInvitation(data: UserInvitationEmailData): Promise<boolean> {
+    try {
+      // Convert company branding to corporate branding format
+      const corporateBranding = data.company?.branding
+        ? {
+            ...data.company.branding,
+            company_name: data.company_name,
+          }
+        : undefined;
+
+      const template = generateUserInvitationTemplate(data, corporateBranding);
+
+      const sendSmtpEmail = new SendSmtpEmail();
+      sendSmtpEmail.subject = template.subject;
+      sendSmtpEmail.htmlContent = template.html;
+      sendSmtpEmail.textContent = template.text;
+      sendSmtpEmail.sender = {
+        name: data.company_name || 'Organizational Climate Platform',
+        email:
+          process.env.BREVO_FROM_EMAIL ||
+          process.env.SMTP_FROM ||
+          'noreply@yourcompany.com',
+      };
+      sendSmtpEmail.to = [
+        {
+          email: data.recipient_email,
+          name: data.recipient_email.split('@')[0], // Use email prefix as name fallback
+        },
+      ];
+
+      // Add tags for tracking
+      sendSmtpEmail.tags = ['user_invitation', data.invitation_type, data.role];
+
+      const result = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      console.log('User invitation sent successfully:', result);
+      return true;
+    } catch (error) {
+      console.error('Failed to send user invitation:', error);
       return false;
     }
   }

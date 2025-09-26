@@ -102,6 +102,19 @@ const UserDemographicsSchema = new Schema(
   { _id: false }
 );
 
+// Consent preferences schema
+const ConsentPreferencesSchema = new Schema(
+  {
+    essential: { type: Boolean, default: true }, // Always required
+    analytics: { type: Boolean, default: false },
+    marketing: { type: Boolean, default: false },
+    personalization: { type: Boolean, default: false },
+    thirdParty: { type: Boolean, default: false },
+    demographics: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
 // Main User schema
 const UserSchema: Schema = new Schema(
   {
@@ -154,6 +167,14 @@ const UserSchema: Schema = new Schema(
     demographics: {
       type: UserDemographicsSchema,
       default: () => ({}),
+    },
+    consent_preferences: {
+      type: ConsentPreferencesSchema,
+      default: () => ({}),
+    },
+    consent_updated_at: {
+      type: Date,
+      default: Date.now,
     },
     is_active: {
       type: Boolean,

@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { Send, CheckCircle } from 'lucide-react';
 
@@ -176,55 +178,67 @@ export default function MicroclimateResponseForm({
           </CardHeader>
           <CardContent>
             {question.type === 'likert' && (
-              <div className="space-y-2">
-                {LIKERT_OPTIONS.map((option) => (
-                  <label
-                    key={option.value}
-                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name={question.id}
-                      value={option.value}
-                      checked={response?.answer === option.value}
-                      onChange={(e) =>
-                        handleResponseChange(
-                          question.id,
-                          parseInt(e.target.value)
-                        )
-                      }
-                      className="text-green-600 focus:ring-green-500"
-                    />
-                    <span className="flex-1">{option.label}</span>
-                  </label>
-                ))}
-              </div>
+              <RadioGroup
+                value={response?.answer?.toString()}
+                onValueChange={(value) =>
+                  handleResponseChange(question.id, parseInt(value))
+                }
+                className="space-y-2"
+              >
+                {LIKERT_OPTIONS.map((option) => {
+                  const radioId = `${question.id}-${option.value}`;
+                  return (
+                    <div
+                      key={option.value}
+                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50"
+                    >
+                      <RadioGroupItem
+                        value={option.value.toString()}
+                        id={radioId}
+                        className="text-green-600"
+                      />
+                      <Label
+                        htmlFor={radioId}
+                        className="flex-1 cursor-pointer"
+                      >
+                        {option.label}
+                      </Label>
+                    </div>
+                  );
+                })}
+              </RadioGroup>
             )}
 
             {question.type === 'multiple_choice' && question.options && (
-              <div className="space-y-2">
-                {question.options.map((option, optionIndex) => (
-                  <label
-                    key={optionIndex}
-                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name={question.id}
-                      value={optionIndex}
-                      checked={response?.answer === optionIndex}
-                      onChange={(e) =>
-                        handleResponseChange(
-                          question.id,
-                          parseInt(e.target.value)
-                        )
-                      }
-                      className="text-green-600 focus:ring-green-500"
-                    />
-                    <span className="flex-1">{option}</span>
-                  </label>
-                ))}
-              </div>
+              <RadioGroup
+                value={response?.answer?.toString()}
+                onValueChange={(value) =>
+                  handleResponseChange(question.id, parseInt(value))
+                }
+                className="space-y-2"
+              >
+                {question.options.map((option, optionIndex) => {
+                  const radioId = `${question.id}-${optionIndex}`;
+                  return (
+                    <div
+                      key={optionIndex}
+                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50"
+                    >
+                      <RadioGroupItem
+                        value={optionIndex.toString()}
+                        id={radioId}
+                        className="text-green-600"
+                      />
+                      <Label
+                        htmlFor={radioId}
+                        className="flex-1 cursor-pointer"
+                      >
+                        {option}
+                      </Label>
+                    </div>
+                  );
+                })}
+              </RadioGroup>
             )}
 
             {question.type === 'emoji_rating' && (

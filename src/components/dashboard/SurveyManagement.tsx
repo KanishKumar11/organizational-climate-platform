@@ -88,6 +88,30 @@ function SurveyResults({ surveyId, onBack }: SurveyResultsProps) {
     }
   };
 
+  const handleExportSurvey = async (surveyId: string) => {
+    try {
+      const response = await fetch(
+        `/api/surveys/${surveyId}/export?format=csv&include_open_text=true`
+      );
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `survey_${surveyId}_results.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        console.error('Failed to export survey');
+      }
+    } catch (error) {
+      console.error('Failed to export survey:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -126,7 +150,10 @@ function SurveyResults({ surveyId, onBack }: SurveyResultsProps) {
             <Share2 className="h-4 w-4 mr-2" />
             Share
           </Button>
-          <Button variant="outline">
+          <Button
+            variant="outline"
+            onClick={() => handleExportSurvey(surveyId)}
+          >
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -397,6 +424,32 @@ export function SurveyManagement({
       return;
     }
 
+    // Handle export action
+    if (action === 'export') {
+      try {
+        const response = await fetch(
+          `/api/surveys/${surveyId}/export?format=csv&include_open_text=true`
+        );
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `survey_${surveyId}_results.csv`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        } else {
+          console.error('Failed to export survey:', await response.text());
+        }
+      } catch (error) {
+        console.error('Failed to export survey:', error);
+      }
+      return;
+    }
+
     // Handle API actions for other operations
     try {
       const response = await fetch(`/api/surveys/${surveyId}/${action}`, {
@@ -419,13 +472,57 @@ export function SurveyManagement({
   const handleBulkAction = async (action: string) => {
     if (selectedSurveys.length === 0) return;
 
+    // Handle bulk export separately
+    if (action === 'export') {
+      try {
+        // Export each survey individually and combine
+        const exportPromises = selectedSurveys.map(async (surveyId) => {
+          const response = await fetch(
+            `/api/surveys/${surveyId}/export?format=json&include_open_text=true`
+          );
+          if (response.ok) {
+            return await response.json();
+          }
+          throw new Error(`Failed to export survey ${surveyId}`);
+        });
+
+        const exportData = await Promise.all(exportPromises);
+
+        // Create combined export
+        const combinedData = {
+          export_type: 'bulk_export',
+          exported_at: new Date(),
+          surveys: exportData,
+          total_surveys: exportData.length,
+        };
+
+        // Download as JSON file
+        const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
+          type: 'application/json',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bulk_survey_export_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        setSelectedSurveys([]);
+      } catch (error) {
+        console.error('Failed to export surveys:', error);
+      }
+      return;
+    }
+
     try {
       const response = await fetch('/api/surveys/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          operation: action,
           survey_ids: selectedSurveys,
-          action,
         }),
       });
 
@@ -529,6 +626,7 @@ export function SurveyManagement({
             <Button
               variant="outline"
               className="flex items-center gap-2 bg-white"
+              onClick={() => handleBulkAction('export')}
             >
               <Download className="h-4 w-4" />
               Export Data

@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/Loading';
+import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/Progress';
 import {
   ChevronLeft,
@@ -334,11 +335,11 @@ export default function AdaptiveQuestionnaireInterface({
 
       case 'open_ended':
         return (
-          <textarea
+          <Textarea
             value={currentResponse || ''}
             onChange={(e) => handleResponseChange(e.target.value)}
             placeholder="Please share your thoughts..."
-            className="w-full p-4 border border-gray-300 rounded-lg resize-none h-32 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="resize-none h-32"
           />
         );
 
