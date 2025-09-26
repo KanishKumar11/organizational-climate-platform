@@ -233,24 +233,38 @@ export default function SuperAdminDashboard() {
     setIsSubmittingCompany(true);
 
     try {
+      console.log('Submitting company data:', companyFormData);
+
       const response = await fetch('/api/admin/companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(companyFormData),
       });
 
+      const responseData = await response.json();
+      console.log('API Response:', responseData);
+
       if (response.ok) {
+        console.log('Company created successfully');
         setShowCreateCompanyDialog(false);
         resetCompanyForm();
         // Refresh dashboard data to show new company
         await fetchDashboardData();
+        // TODO: Add success toast notification
+        alert('Company created successfully!');
       } else {
-        const errorData = await response.json();
-        console.error('Failed to create company:', errorData.message);
-        // You could add a toast notification here
+        console.error('Failed to create company:', responseData);
+        const errorMessage =
+          responseData.error ||
+          responseData.message ||
+          'Unknown error occurred';
+        alert(`Failed to create company: ${errorMessage}`);
       }
     } catch (error) {
       console.error('Error creating company:', error);
+      alert(
+        `Error creating company: ${error instanceof Error ? error.message : 'Network error'}`
+      );
     } finally {
       setIsSubmittingCompany(false);
     }
