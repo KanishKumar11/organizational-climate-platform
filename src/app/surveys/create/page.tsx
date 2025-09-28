@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, Send, Eye, Settings } from 'lucide-react';
+import { Save, Send, Eye, Settings } from 'lucide-react';
 import SurveyBuilder from '@/components/survey/SurveyBuilder';
 import { IQuestion } from '@/models/Survey';
 import {
@@ -99,45 +99,40 @@ export default function CreateSurveyPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">Create New Survey</h1>
-              <p className="text-muted-foreground">
-                Build and configure your organizational survey
-              </p>
+        {/* Modern Gradient Header */}
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-8 text-white shadow-lg">
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold mb-2">Create New Survey</h1>
+                <p className="text-blue-100 text-lg">
+                  Build and configure your organizational survey
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => handleSave('draft')}
+                  disabled={saving}
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Draft
+                </Button>
+                <Button
+                  onClick={() => handleSave('active')}
+                  disabled={saving || !title.trim() || questions.length === 0}
+                  className="bg-white text-blue-600 hover:bg-blue-50 shadow-lg"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {saving ? 'Publishing...' : 'Publish Survey'}
+                </Button>
+              </div>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => handleSave('draft')}
-              disabled={saving}
-              className="flex items-center gap-2"
-            >
-              <Save className="h-4 w-4" />
-              Save Draft
-            </Button>
-            <Button
-              onClick={() => handleSave('active')}
-              disabled={saving || !title.trim() || questions.length === 0}
-              className="flex items-center gap-2"
-            >
-              <Send className="h-4 w-4" />
-              {saving ? 'Publishing...' : 'Publish Survey'}
-            </Button>
-          </div>
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
         </div>
 
         {/* Survey Configuration */}

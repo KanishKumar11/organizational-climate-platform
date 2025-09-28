@@ -53,6 +53,21 @@ services:
     networks:
       - app-network
 
+  # Cron job for processing notifications
+  cron:
+    image: alpine:latest
+    restart: unless-stopped
+    volumes:
+      - ./cron-notifications.sh:/cron-notifications.sh:ro
+    command: sh -c "chmod +x /cron-notifications.sh && echo '*/5 * * * * /cron-notifications.sh' > /etc/crontabs/root && crond -f -l 8"
+    environment:
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+      - APP_URL=http://app:3000
+    depends_on:
+      - app
+    networks:
+      - app-network
+
 volumes:
   mongodb_data:
   redis_data:

@@ -2,6 +2,14 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +42,19 @@ import {
 } from '@/components/ui/dialog';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Loading } from '@/components/ui/Loading';
+import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import {
+  useCompanies,
+  useCreateCompany,
+  useUpdateCompany,
+  useDeleteCompany,
+  useToggleCompanyStatus,
+  useResendInvitation,
+  type Company,
+  type CompanyFormData,
+  type CompanyStats,
+} from '@/hooks/useCompanies';
 import {
   Building2,
   Plus,
@@ -46,7 +68,7 @@ import {
   Download,
   Grid3X3,
   List,
-  CheckCircle,
+  Table as TableIcon,
   Clock,
   Target,
   BarChart3,
@@ -55,36 +77,17 @@ import {
   Crown,
   Shield,
   Briefcase,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  Mail,
 } from 'lucide-react';
-
-interface Company {
-  _id: string;
-  name: string;
-  domain: string;
-  industry: string;
-  size: 'startup' | 'small' | 'medium' | 'large' | 'enterprise';
-  country: string;
-  subscription_tier: 'basic' | 'professional' | 'enterprise';
-  is_active: boolean;
-  userCount?: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface CompanyFormData {
-  name: string;
-  domain: string;
-  industry: string;
-  size: Company['size'];
-  country: string;
-  subscription_tier: Company['subscription_tier'];
-}
 
 const COMPANY_SIZES = [
   { value: 'startup', label: '1-10 employees' },
   { value: 'small', label: '11-50 employees' },
   { value: 'medium', label: '51-200 employees' },
-  { value: 'large', label: '201-1000 employees' },
+  { value: 'large', label: '51-200 employees' },
   { value: 'enterprise', label: '1000+ employees' },
 ];
 
@@ -94,16 +97,60 @@ const SUBSCRIPTION_TIERS = [
   { value: 'enterprise', label: 'Enterprise' },
 ];
 
+const sizeSortOrder: Record<Company['size'], number> = {
+  startup: 0,
+  small: 1,
+  medium: 2,
+  large: 3,
+  enterprise: 4,
+};
+
+const tierSortOrder: Record<Company['subscription_tier'], number> = {
+  basic: 0,
+  professional: 1,
+  enterprise: 2,
+};
+
 interface ModernCompanyManagementProps {
   userRole: string;
+  onStatsChange?: (stats: CompanyStats) => void;
 }
+
+type CompanySortField =
+  | 'name'
+  | 'domain'
+  | 'industry'
+  | 'size'
+  | 'subscription_tier'
+  | 'userCount'
+  | 'created_at'
+  | 'is_active';
 
 export default function ModernCompanyManagement({
   userRole,
+  onStatsChange,
 }: ModernCompanyManagementProps) {
   const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { success: toastSuccess, error: toastError } = useToast();
+
+  // React Query hooks
+  const { data, isLoading, error } = useCompanies();
+  const createCompanyMutation = useCreateCompany();
+  const updateCompanyMutation = useUpdateCompany();
+  const deleteCompanyMutation = useDeleteCompany();
+  const toggleStatusMutation = useToggleCompanyStatus();
+  const resendInvitationMutation = useResendInvitation();
+
+  const companies = data?.companies || [];
+  const companyStats = data?.stats;
+
+  // Update parent with stats when they change
+  useEffect(() => {
+    if (companyStats && onStatsChange) {
+      onStatsChange(companyStats);
+    }
+  }, [companyStats, onStatsChange]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<
     'all' | 'active' | 'inactive'
@@ -113,14 +160,19 @@ export default function ModernCompanyManagement({
   const [selectedCompanies, setSelectedCompanies] = useState<Set<string>>(
     new Set()
   );
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'table'>('table');
+  const [sortField, setSortField] = useState<CompanySortField>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showInactive, setShowInactive] = useState(true);
 
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState<CompanyFormData>({
@@ -130,27 +182,10 @@ export default function ModernCompanyManagement({
     size: 'small',
     country: '',
     subscription_tier: 'basic',
+    admin_email: '',
+    admin_message: '',
+    send_invitation: true,
   });
-
-  // Fetch companies
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  const fetchCompanies = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/admin/companies');
-      if (response.ok) {
-        const data = await response.json();
-        setCompanies(data.companies || []);
-      }
-    } catch (error) {
-      console.error('Error fetching companies:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Filter companies
   const filteredCompanies = useMemo(() => {
@@ -187,8 +222,58 @@ export default function ModernCompanyManagement({
     showInactive,
   ]);
 
+  const sortedCompanies = useMemo(() => {
+    const companiesToSort = [...filteredCompanies];
+
+    const getComparableValue = (company: Company): number | string => {
+      switch (sortField) {
+        case 'name':
+          return company.name?.toLowerCase() ?? '';
+        case 'domain':
+          return company.domain?.toLowerCase() ?? '';
+        case 'industry':
+          return company.industry?.toLowerCase() ?? '';
+        case 'size':
+          return sizeSortOrder[company.size] ?? 0;
+        case 'subscription_tier':
+          return tierSortOrder[company.subscription_tier] ?? 0;
+        case 'userCount':
+          return company.userCount ?? 0;
+        case 'created_at':
+          return company.created_at
+            ? new Date(company.created_at).getTime()
+            : 0;
+        case 'is_active':
+          return company.is_active ? 1 : 0;
+        default:
+          return company.name?.toLowerCase() ?? '';
+      }
+    };
+
+    companiesToSort.sort((a, b) => {
+      const valueA = getComparableValue(a);
+      const valueB = getComparableValue(b);
+
+      if (typeof valueA === 'number' && typeof valueB === 'number') {
+        const diff = valueA - valueB;
+        if (diff === 0) {
+          return a.name.localeCompare(b.name);
+        }
+        return sortOrder === 'asc' ? diff : -diff;
+      }
+
+      const comparison = valueA.toString().localeCompare(valueB.toString());
+      if (comparison === 0) {
+        return a.name.localeCompare(b.name);
+      }
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    return companiesToSort;
+  }, [filteredCompanies, sortField, sortOrder]);
+
   // Statistics
-  const stats = useMemo(() => {
+  const stats = useMemo<CompanyStats>(() => {
     const active = companies.filter((c) => c.is_active).length;
     const inactive = companies.filter((c) => !c.is_active).length;
     const totalUsers = companies.reduce(
@@ -208,6 +293,104 @@ export default function ModernCompanyManagement({
     };
   }, [companies]);
 
+  useEffect(() => {
+    if (onStatsChange) {
+      onStatsChange(stats);
+    }
+  }, [stats, onStatsChange]);
+
+  const numberFormatter = useMemo(() => new Intl.NumberFormat('en-US'), []);
+  const formatNumber = (value: number) => numberFormatter.format(value);
+
+  const activePercent =
+    stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0;
+  const inactivePercent =
+    stats.total > 0 ? Math.round((stats.inactive / stats.total) * 100) : 0;
+  const enterprisePercent =
+    stats.total > 0
+      ? Math.round((stats.enterpriseClients / stats.total) * 100)
+      : 0;
+  const averageUsers =
+    stats.total > 0 ? Math.round(stats.totalUsers / stats.total) : 0;
+
+  const statCards = [
+    {
+      key: 'total',
+      label: 'Total Companies',
+      value: stats.total,
+      icon: Building2,
+      iconBg: 'bg-blue-500/10',
+      iconColor: 'text-blue-600',
+      accent: 'from-blue-500 via-sky-500 to-transparent',
+      badge: stats.total > 0 ? `${activePercent}% active` : 'Syncing',
+      badgeClass: 'bg-blue-50 text-blue-600',
+      description: `${formatNumber(stats.active)} active · ${formatNumber(stats.inactive)} inactive`,
+      progress: null as number | null,
+      progressLabel: null as string | null,
+      progressColor: '',
+    },
+    {
+      key: 'users',
+      label: 'Total Users',
+      value: stats.totalUsers,
+      icon: Users,
+      iconBg: 'bg-emerald-500/10',
+      iconColor: 'text-emerald-600',
+      accent: 'from-emerald-500 via-teal-500 to-transparent',
+      badge: stats.totalUsers > 0 ? 'Adoption' : 'No users',
+      badgeClass: 'bg-emerald-50 text-emerald-600',
+      description:
+        stats.total > 0
+          ? `≈ ${formatNumber(averageUsers)} users per company`
+          : 'Awaiting user data',
+      progress: null,
+      progressLabel: null,
+      progressColor: '',
+    },
+    {
+      key: 'enterprise',
+      label: 'Enterprise Clients',
+      value: stats.enterpriseClients,
+      icon: Crown,
+      iconBg: 'bg-amber-500/10',
+      iconColor: 'text-amber-600',
+      accent: 'from-amber-500 via-orange-500 to-transparent',
+      badge:
+        stats.enterpriseClients > 0
+          ? `${enterprisePercent}% premium`
+          : 'Grow premium',
+      badgeClass: 'bg-amber-50 text-amber-600',
+      description:
+        stats.enterpriseClients > 0
+          ? 'High-value contracts onboard'
+          : 'No enterprise contracts yet',
+      progress: null,
+      progressLabel: null,
+      progressColor: '',
+    },
+    {
+      key: 'inactive',
+      label: 'Inactive Companies',
+      value: stats.inactive,
+      icon: Clock,
+      iconBg: 'bg-rose-500/10',
+      iconColor: 'text-rose-600',
+      accent: 'from-rose-500 via-pink-500 to-transparent',
+      badge: inactivePercent > 0 ? 'Re-engage' : 'All active',
+      badgeClass:
+        inactivePercent > 0
+          ? 'bg-rose-50 text-rose-600'
+          : 'bg-gray-100 text-gray-600',
+      description:
+        inactivePercent > 0
+          ? `${inactivePercent}% of portfolio`
+          : 'All companies active',
+      progress: inactivePercent,
+      progressLabel: 'Inactive share',
+      progressColor: 'bg-rose-500',
+    },
+  ];
+
   // Company selection functions
   const toggleCompanySelection = (companyId: string) => {
     const newSelected = new Set(selectedCompanies);
@@ -220,7 +403,7 @@ export default function ModernCompanyManagement({
   };
 
   const selectAllCompanies = () => {
-    setSelectedCompanies(new Set(filteredCompanies.map((c) => c._id)));
+    setSelectedCompanies(new Set(sortedCompanies.map((c) => c._id)));
   };
 
   const clearSelection = () => {
@@ -236,6 +419,9 @@ export default function ModernCompanyManagement({
       size: 'small',
       country: '',
       subscription_tier: 'basic',
+      admin_email: '',
+      admin_message: '',
+      send_invitation: true,
     });
     setEditingCompany(null);
   };
@@ -248,6 +434,9 @@ export default function ModernCompanyManagement({
       size: company.size,
       country: company.country,
       subscription_tier: company.subscription_tier,
+      admin_email: '',
+      admin_message: '',
+      send_invitation: false,
     });
     setEditingCompany(company);
     setShowEditDialog(true);
@@ -255,49 +444,169 @@ export default function ModernCompanyManagement({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+
+    const { send_invitation, admin_email, admin_message, ...companyPayload } =
+      formData;
+    const isCreating = !editingCompany;
+    const companyName = companyPayload.name;
 
     try {
-      const url = editingCompany
-        ? `/api/admin/companies/${editingCompany._id}`
-        : '/api/admin/companies';
-      const method = editingCompany ? 'PUT' : 'POST';
+      if (isCreating) {
+        // Handle company creation with invitation
+        const createPayload = {
+          ...companyPayload,
+          send_invitation,
+          admin_email,
+          admin_message,
+        };
 
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+        await createCompanyMutation.mutateAsync(createPayload);
 
-      if (response.ok) {
-        await fetchCompanies();
+        // Handle invitation separately if needed
+        if (send_invitation && admin_email) {
+          // The invitation logic is now handled in the API
+          // We could add additional invitation handling here if needed
+        }
+
         setShowCreateDialog(false);
+      } else {
+        // Handle company update
+        await updateCompanyMutation.mutateAsync({
+          id: editingCompany!._id,
+          data: companyPayload,
+        });
         setShowEditDialog(false);
-        resetForm();
       }
+
+      resetForm();
     } catch (error) {
+      // Error handling is done in the mutations
       console.error('Error saving company:', error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   const deleteCompany = (company: Company) => {
+    setCompanyToDelete(company);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteCompany = async () => {
+    if (!companyToDelete) return;
+
+    setDeleteError(null); // Clear any previous error
+
+    try {
+      await deleteCompanyMutation.mutateAsync(companyToDelete._id);
+      setShowDeleteDialog(false);
+      setCompanyToDelete(null);
+    } catch (error) {
+      // Set error message to display in dialog
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to delete company';
+      setDeleteError(errorMessage);
+      console.error('Error deleting company:', error);
+    }
+  };
+
+  const resendInvitation = async (company: Company) => {
+    try {
+      await resendInvitationMutation.mutateAsync(company._id);
+    } catch (error) {
+      // Error handling is done in the mutation
+      console.error('Error resending invitation:', error);
+    }
+  };
+
+  // Export functions
+  const exportCompanies = (companiesToExport: Company[]) => {
+    try {
+      const csvData = companiesToExport.map((company) => ({
+        Name: company.name,
+        Domain: company.domain,
+        Industry: company.industry,
+        Size: company.size,
+        Country: company.country,
+        'Subscription Tier': company.subscription_tier,
+        'User Count': company.userCount || 0,
+        Status: company.is_active ? 'Active' : 'Inactive',
+        'Created At': new Date(company.created_at).toLocaleDateString(),
+        'Updated At': new Date(company.updated_at).toLocaleDateString(),
+      }));
+
+      const headers = Object.keys(csvData[0]);
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map((row) =>
+          headers
+            .map((header) => `"${row[header as keyof typeof row]}"`)
+            .join(',')
+        ),
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `companies_export_${new Date().toISOString().split('T')[0]}.csv`
+      );
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success('Companies exported successfully!', {
+        description: `Exported ${companiesToExport.length} companies to CSV.`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export companies', {
+        description: 'An error occurred while exporting the data.',
+      });
+    }
+  };
+
+  const exportAllCompanies = () => {
+    exportCompanies(companies);
+  };
+
+  const exportSelectedCompanies = () => {
+    const selectedCompaniesData = companies.filter((company) =>
+      selectedCompanies.has(company._id)
+    );
+    if (selectedCompaniesData.length === 0) {
+      toast.error('No companies selected', {
+        description: 'Please select companies to export.',
+      });
+      return;
+    }
+    exportCompanies(selectedCompaniesData);
+  };
+
+  // Settings functions
+  const openSettings = () => {
+    setShowSettingsDialog(true);
+  };
+
+  const deactivateCompany = (company: Company) => {
+    const action = company.is_active ? 'deactivate' : 'activate';
+    const actionText = company.is_active ? 'Deactivate' : 'Activate';
+
     showConfirmation({
-      title: 'Delete Company',
-      description: `Are you sure you want to delete ${company.name}? This action cannot be undone and will affect all users from this company.`,
-      confirmText: 'Delete',
-      variant: 'destructive',
+      title: `${actionText} Company`,
+      description: `Are you sure you want to ${action} ${company.name}? ${company.is_active ? 'This will prevent users from accessing the system.' : 'This will restore access for all users.'}`,
+      confirmText: actionText,
+      variant: company.is_active ? 'default' : 'default',
       onConfirm: async () => {
         try {
-          const response = await fetch(`/api/admin/companies/${company._id}`, {
-            method: 'DELETE',
+          await toggleStatusMutation.mutateAsync({
+            id: company._id,
+            is_active: !company.is_active,
           });
-          if (response.ok) {
-            await fetchCompanies();
-          }
         } catch (error) {
-          console.error('Error deleting company:', error);
+          // Error handling is done in the mutation
+          console.error(`Error ${action}ing company:`, error);
         }
       },
     });
@@ -328,6 +637,30 @@ export default function ModernCompanyManagement({
 
   const getSizeLabel = (size: Company['size']) => {
     return COMPANY_SIZES.find((s) => s.value === size)?.label || size;
+  };
+
+  const formatDate = (value: string) =>
+    value ? new Date(value).toLocaleDateString() : '--';
+
+  const handleSort = (field: CompanySortField) => {
+    if (sortField === field) {
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const getSortIcon = (field: CompanySortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-4 w-4 text-muted-foreground" />;
+    }
+
+    return sortOrder === 'asc' ? (
+      <ArrowUp className="h-4 w-4 text-blue-600" />
+    ) : (
+      <ArrowDown className="h-4 w-4 text-blue-600" />
+    );
   };
 
   // Render company card
@@ -397,7 +730,23 @@ export default function ModernCompanyManagement({
                   <Users className="h-4 w-4 mr-2" />
                   Manage Users
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => resendInvitation(company)}
+                  className="cursor-pointer text-blue-600 focus:text-blue-600"
+                  disabled={!company.is_active}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Resend Invitation
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => deactivateCompany(company)}
+                  className="cursor-pointer text-orange-600 focus:text-orange-600"
+                  disabled={!company.is_active}
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  {company.is_active ? 'Deactivate' : 'Activate'} Company
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => deleteCompany(company)}
                   className="cursor-pointer text-red-600 focus:text-red-600"
@@ -607,6 +956,14 @@ export default function ModernCompanyManagement({
                 <Users className="h-4 w-4 mr-2" />
                 Manage Users
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => resendInvitation(company)}
+                className="cursor-pointer text-blue-600 focus:text-blue-600"
+                disabled={!company.is_active}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Resend Invitation
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => deleteCompany(company)}
@@ -622,7 +979,254 @@ export default function ModernCompanyManagement({
     );
   };
 
-  if (loading) {
+  const renderCompaniesTable = (): React.ReactNode => {
+    const headerState: boolean | 'indeterminate' =
+      sortedCompanies.length > 0 &&
+      selectedCompanies.size === sortedCompanies.length
+        ? true
+        : selectedCompanies.size > 0
+          ? 'indeterminate'
+          : false;
+
+    return (
+      <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={headerState}
+                    onCheckedChange={(checked) => {
+                      if (checked === true) {
+                        setSelectedCompanies(
+                          new Set(sortedCompanies.map((company) => company._id))
+                        );
+                      } else {
+                        setSelectedCompanies(new Set());
+                      }
+                    }}
+                    className="cursor-pointer"
+                  />
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort('name')}
+                  className="cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2">
+                    Company
+                    {getSortIcon('name')}
+                  </div>
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort('industry')}
+                  className="cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2">
+                    Industry
+                    {getSortIcon('industry')}
+                  </div>
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort('size')}
+                  className="cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2">
+                    Size
+                    {getSortIcon('size')}
+                  </div>
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort('subscription_tier')}
+                  className="cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2">
+                    Tier
+                    {getSortIcon('subscription_tier')}
+                  </div>
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort('userCount')}
+                  className="cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2">
+                    Users
+                    {getSortIcon('userCount')}
+                  </div>
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort('created_at')}
+                  className="cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2">
+                    Created
+                    {getSortIcon('created_at')}
+                  </div>
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort('is_active')}
+                  className="cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2">
+                    Status
+                    {getSortIcon('is_active')}
+                  </div>
+                </TableHead>
+                <TableHead className="w-12">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedCompanies.map((company) => {
+                const isSelected = selectedCompanies.has(company._id);
+                const tierIcon = getTierIcon(company.subscription_tier);
+                const tierColor = getTierColor(company.subscription_tier);
+
+                return (
+                  <TableRow
+                    key={company._id}
+                    className={`hover:bg-slate-50/70 ${
+                      isSelected ? 'bg-blue-50/40' : ''
+                    } ${!company.is_active ? 'opacity-80' : ''}`}
+                  >
+                    <TableCell>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() =>
+                          toggleCompanySelection(company._id)
+                        }
+                        className="cursor-pointer"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`relative flex h-10 w-10 items-center justify-center rounded-xl ${tierColor}`}
+                        >
+                          {tierIcon}
+                          {company.is_active && (
+                            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-white bg-emerald-400" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-900 truncate">
+                            {company.name}
+                          </p>
+                          <code className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {company.domain}
+                          </code>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-slate-700">
+                      {company.industry}
+                    </TableCell>
+                    <TableCell className="text-slate-700">
+                      {getSizeLabel(company.size)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          company.subscription_tier === 'enterprise'
+                            ? 'default'
+                            : 'secondary'
+                        }
+                        className="text-xs font-medium"
+                      >
+                        {
+                          SUBSCRIPTION_TIERS.find(
+                            (tier) => tier.value === company.subscription_tier
+                          )?.label
+                        }
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-slate-700">
+                        <Users className="h-4 w-4 text-slate-400" />
+                        <span className="font-medium">
+                          {formatNumber(company.userCount ?? 0)}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-slate-700">
+                      {formatDate(company.created_at)}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          company.is_active
+                            ? 'bg-emerald-50 text-emerald-600'
+                            : 'bg-rose-50 text-rose-600'
+                        }`}
+                      >
+                        {company.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-slate-100 cursor-pointer"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => openEditDialog(company)}
+                            className="cursor-pointer"
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Company
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer">
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer">
+                            <Users className="mr-2 h-4 w-4" />
+                            Manage Users
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => resendInvitation(company)}
+                            className="cursor-pointer text-blue-600 focus:text-blue-600"
+                            disabled={!company.is_active}
+                          >
+                            <Mail className="mr-2 h-4 w-4" />
+                            Resend Invitation
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => deactivateCompany(company)}
+                            className="cursor-pointer text-orange-600 focus:text-orange-600"
+                            disabled={!company.is_active}
+                          >
+                            <Shield className="mr-2 h-4 w-4" />
+                            {company.is_active ? 'Deactivate' : 'Activate'}{' '}
+                            Company
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => deleteCompany(company)}
+                            className="cursor-pointer text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Company
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  };
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loading size="lg" />
@@ -633,76 +1237,63 @@ export default function ModernCompanyManagement({
   return (
     <div className="space-y-6">
       {/* Statistics Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Building2 className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold">{stats.active}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Clock className="h-5 w-5 text-gray-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Inactive</p>
-                <p className="text-2xl font-bold">{stats.inactive}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Users className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Users</p>
-                <p className="text-2xl font-bold">{stats.totalUsers}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Crown className="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Enterprise</p>
-                <p className="text-2xl font-bold">{stats.enterpriseClients}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card
+              key={card.key}
+              className="relative overflow-hidden border border-slate-200/60 bg-white/95 backdrop-blur transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <div
+                className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${card.accent}`}
+              />
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-2xl ${card.iconBg}`}
+                  >
+                    <Icon className={`h-4 w-4 ${card.iconColor}`} />
+                  </div>
+                  {card.badge && (
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${card.badgeClass}`}
+                    >
+                      {card.badge}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  {card.label}
+                </p>
+                <div className="mt-1.5 flex items-baseline gap-2">
+                  <span className="text-2xl font-semibold text-slate-900">
+                    {formatNumber(card.value)}
+                  </span>
+                </div>
+                {card.description && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    {card.description}
+                  </p>
+                )}
+                {card.progress !== null && card.progressLabel && (
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-slate-400">
+                      <span>{card.progressLabel}</span>
+                      <span>{card.progress}%</span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-200/70">
+                      <div
+                        className={`h-full rounded-full ${card.progressColor}`}
+                        style={{ width: `${Math.min(card.progress, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Main Content Card */}
@@ -736,12 +1327,18 @@ export default function ModernCompanyManagement({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="cursor-pointer">
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={exportAllCompanies}
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Export Companies
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer">
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={openSettings}
+                  >
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                   </DropdownMenuItem>
@@ -769,6 +1366,14 @@ export default function ModernCompanyManagement({
             <div className="flex items-center gap-2">
               {/* View Mode Toggle */}
               <div className="flex items-center border rounded-lg p-1">
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('table')}
+                  className="h-8 px-3 cursor-pointer"
+                >
+                  <TableIcon className="h-4 w-4" />
+                </Button>
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="sm"
@@ -864,7 +1469,12 @@ export default function ModernCompanyManagement({
                 >
                   Clear
                 </Button>
-                <Button variant="outline" size="sm" className="cursor-pointer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportSelectedCompanies}
+                  className="cursor-pointer"
+                >
                   Export Selected
                 </Button>
                 <Button variant="outline" size="sm" className="cursor-pointer">
@@ -882,7 +1492,7 @@ export default function ModernCompanyManagement({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              {filteredCompanies.length} of {companies.length} companies
+              {sortedCompanies.length} of {companies.length} companies
             </span>
             {selectedCompanies.size > 0 && (
               <Button
@@ -891,18 +1501,18 @@ export default function ModernCompanyManagement({
                 onClick={selectAllCompanies}
                 className="cursor-pointer"
               >
-                Select All ({filteredCompanies.length})
+                Select All ({sortedCompanies.length})
               </Button>
             )}
           </div>
         </div>
 
         {/* Companies Content */}
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loading size="lg" />
           </div>
-        ) : filteredCompanies.length === 0 ? (
+        ) : sortedCompanies.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Building2 className="h-12 w-12 text-gray-400 mb-4" />
@@ -929,20 +1539,22 @@ export default function ModernCompanyManagement({
               </Button>
             </CardContent>
           </Card>
+        ) : viewMode === 'table' ? (
+          renderCompaniesTable()
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCompanies.map((company) => renderCompanyCard(company))}
+            {sortedCompanies.map((company) => renderCompanyCard(company))}
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredCompanies.map((company) => renderCompanyListItem(company))}
+            {sortedCompanies.map((company) => renderCompanyListItem(company))}
           </div>
         )}
       </div>
 
       {/* Create Company Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Company</DialogTitle>
             <DialogDescription>
@@ -1044,21 +1656,96 @@ export default function ModernCompanyManagement({
                 </Select>
               </div>
             </div>
+            <div className="space-y-4 border-t pt-4">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="send_invitation"
+                  checked={formData.send_invitation}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      send_invitation: checked === true,
+                    })
+                  }
+                />
+                <Label
+                  htmlFor="send_invitation"
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  Send invitation to company administrator
+                </Label>
+              </div>
+
+              {formData.send_invitation && (
+                <div className="space-y-4 pl-6 border-l-2 border-blue-100">
+                  <div className="space-y-2">
+                    <Label htmlFor="admin_email">Administrator Email *</Label>
+                    <Input
+                      id="admin_email"
+                      type="email"
+                      placeholder="admin@company.com"
+                      value={formData.admin_email}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          admin_email: e.target.value,
+                        })
+                      }
+                      required={formData.send_invitation}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="admin_message">
+                      Personal Message (Optional)
+                    </Label>
+                    <Textarea
+                      id="admin_message"
+                      placeholder="Welcome to our organizational climate platform! We're excited to have you on board..."
+                      value={formData.admin_message}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          admin_message: e.target.value,
+                        })
+                      }
+                      rows={3}
+                      className="resize-none"
+                    />
+                  </div>
+                  <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md">
+                    <p className="font-medium">What happens next:</p>
+                    <ul className="mt-1 space-y-1 text-xs">
+                      <li>
+                        • The administrator will receive an invitation email
+                      </li>
+                      <li>
+                        • They can complete their profile and company setup
+                      </li>
+                      <li>
+                        • They'll be able to invite employees and start surveys
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setShowCreateDialog(false)}
-                disabled={isSubmitting}
+                disabled={createCompanyMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={createCompanyMutation.isPending}
                 className="cursor-pointer"
               >
-                {isSubmitting ? 'Creating...' : 'Create Company'}
+                {createCompanyMutation.isPending
+                  ? 'Creating...'
+                  : 'Create Company'}
               </Button>
             </DialogFooter>
           </form>
@@ -1067,7 +1754,7 @@ export default function ModernCompanyManagement({
 
       {/* Edit Company Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Company</DialogTitle>
             <DialogDescription>
@@ -1174,19 +1861,196 @@ export default function ModernCompanyManagement({
                 type="button"
                 variant="outline"
                 onClick={() => setShowEditDialog(false)}
-                disabled={isSubmitting}
+                disabled={updateCompanyMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={updateCompanyMutation.isPending}
                 className="cursor-pointer"
               >
-                {isSubmitting ? 'Updating...' : 'Update Company'}
+                {updateCompanyMutation.isPending
+                  ? 'Updating...'
+                  : 'Update Company'}
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Company Confirmation Dialog */}
+      <Dialog
+        open={showDeleteDialog}
+        onOpenChange={(open) => {
+          setShowDeleteDialog(open);
+          if (!open) {
+            setDeleteError(null);
+            setCompanyToDelete(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <div className="flex flex-col items-center gap-4">
+            <div
+              className="flex size-12 shrink-0 items-center justify-center rounded-full border-2 border-red-200 bg-red-50"
+              aria-hidden="true"
+            >
+              <Trash2 className="text-red-600 opacity-80" size={24} />
+            </div>
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-lg font-semibold">
+                Delete Company
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Are you sure you want to delete {companyToDelete?.name}? This
+                action cannot be undone and will permanently remove the company
+                and all associated data.
+              </DialogDescription>
+              {deleteError && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-600 font-medium">Error</p>
+                  <p className="text-sm text-red-600 mt-1">{deleteError}</p>
+                </div>
+              )}
+            </DialogHeader>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={deleteCompanyMutation.isPending}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={confirmDeleteCompany}
+              disabled={deleteCompanyMutation.isPending}
+              className="flex-1"
+            >
+              {deleteCompanyMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Permanently'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Dialog */}
+      <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Company Management Settings</DialogTitle>
+            <DialogDescription>
+              Configure display and behavior settings for company management.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Show Inactive Companies</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Display companies that have been deactivated
+                  </p>
+                </div>
+                <Switch
+                  checked={showInactive}
+                  onCheckedChange={setShowInactive}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Default View Mode</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Choose the default display mode for companies
+                  </p>
+                </div>
+                <Select
+                  value={viewMode}
+                  onValueChange={(value: 'grid' | 'list' | 'table') =>
+                    setViewMode(value)
+                  }
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="table">Table</SelectItem>
+                    <SelectItem value="grid">Grid</SelectItem>
+                    <SelectItem value="list">List</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Default Sort Field</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Choose how companies are sorted by default
+                  </p>
+                </div>
+                <Select
+                  value={sortField}
+                  onValueChange={(value: CompanySortField) =>
+                    setSortField(value)
+                  }
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Name</SelectItem>
+                    <SelectItem value="created_at">Date Created</SelectItem>
+                    <SelectItem value="userCount">User Count</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Sort Order</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Choose ascending or descending order
+                  </p>
+                </div>
+                <Select
+                  value={sortOrder}
+                  onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="asc">Ascending</SelectItem>
+                    <SelectItem value="desc">Descending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowSettingsDialog(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

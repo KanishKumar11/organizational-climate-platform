@@ -326,6 +326,7 @@ export function SurveyManagement({
   const [selectedSurveys, setSelectedSurveys] = useState<string[]>([]);
   const [currentView, setCurrentView] = useState<'list' | 'results'>('list');
   const [selectedSurveyId, setSelectedSurveyId] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 12,
@@ -589,61 +590,82 @@ export function SurveyManagement({
   return (
     <div className="space-y-6">
       {/* Modern Header */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <FileText className="h-8 w-8 text-blue-600" />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 lg:p-12">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+        <div className="relative">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl shadow-lg">
+                  <FileText className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                    Survey Management
+                  </h1>
+                  <p className="text-lg text-gray-600">
+                    Create, manage, and track your organizational surveys
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Survey Management
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Create, manage, and track your organizational surveys
-                </p>
+
+              <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-green-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {ongoingSurveys.length} Active Surveys
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-blue-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {pastSurveys.length} Completed Surveys
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-purple-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {pagination.total} Total Surveys
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-orange-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {surveys.reduce((acc, s) => acc + (s.response_count || 0), 0)} Total Responses
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-6 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                <span>{ongoingSurveys.length} Active</span>
+            <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  placeholder="Search surveys by title, description, or tags..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 h-12 w-full sm:w-80 text-base border-0 bg-white/80 backdrop-blur shadow-sm focus:shadow-md transition-shadow"
+                />
+                {isSearching && (
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span>{pastSurveys.length} Completed</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                <span>{pagination.total} Total</span>
-              </div>
+              <Button
+                onClick={handleCreateSurvey}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 h-12 px-6 w-full md:w-auto"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Create New Survey
+              </Button>
             </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 bg-white"
-              onClick={() => handleBulkAction('export')}
-            >
-              <Download className="h-4 w-4" />
-              Export Data
-            </Button>
-            <Button
-              onClick={handleCreateSurvey}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="h-4 w-4" />
-              Create New Survey
-            </Button>
           </div>
         </div>
       </div>
 
       {/* Enhanced Search and Filters */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm bg-white/50 backdrop-blur">
         <CardContent className="p-6">
           <div className="space-y-4">
             <div className="flex flex-col lg:flex-row gap-4">
@@ -837,7 +859,7 @@ export function SurveyManagement({
                 <div className="text-left">
                   <div className="font-medium">Active Surveys</div>
                   <div className="text-sm text-gray-500">
-                    {ongoingSurveys.length} ongoing
+                    {ongoingSurveys.length} currently running
                   </div>
                 </div>
               </div>
@@ -853,7 +875,7 @@ export function SurveyManagement({
                 <div className="text-left">
                   <div className="font-medium">Completed</div>
                   <div className="text-sm text-gray-500">
-                    {pastSurveys.length} finished
+                    {pastSurveys.length} finished surveys
                   </div>
                 </div>
               </div>
@@ -869,7 +891,7 @@ export function SurveyManagement({
                 <div className="text-left">
                   <div className="font-medium">All Surveys</div>
                   <div className="text-sm text-gray-500">
-                    {pagination.total} total
+                    {pagination.total} total surveys
                   </div>
                 </div>
               </div>

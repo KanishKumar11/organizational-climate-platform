@@ -3,8 +3,32 @@ import { withAuth } from '../../../../../lib/api-middleware';
 import Company from '../../../../../models/Company';
 import User from '../../../../../models/User';
 import AuditLog from '../../../../../models/AuditLog';
+import UserInvitation from '../../../../../models/UserInvitation';
+import SurveyInvitation from '../../../../../models/SurveyInvitation';
+import MicroclimateInvitation from '../../../../../models/MicroclimateInvitation';
+import Department from '../../../../../models/Department';
+import Survey from '../../../../../models/Survey';
+import SurveyTemplate from '../../../../../models/SurveyTemplate';
+import Microclimate from '../../../../../models/Microclimate';
+import MicroclimateTemplate from '../../../../../models/MicroclimateTemplate';
+import { ActionPlan } from '../../../../../models/ActionPlan';
+import { ActionPlanTemplate } from '../../../../../models/ActionPlanTemplate';
+import Analytics from '../../../../../models/Analytics';
+import Benchmark from '../../../../../models/Benchmark';
+import DemographicSnapshot from '../../../../../models/DemographicSnapshot';
+import Notification from '../../../../../models/Notification';
+import NotificationTemplate from '../../../../../models/NotificationTemplate';
+import QuestionBank from '../../../../../models/QuestionBank';
+import Report from '../../../../../models/Report';
+import Response from '../../../../../models/Response';
 import { createApiResponse } from '../../../../../lib/api-middleware';
 import mongoose from 'mongoose';
+
+interface CleanupOperation {
+  model: mongoose.Model<any>;
+  description: string;
+  filter?: Record<string, any>;
+}
 
 // GET /api/admin/companies/[id] - Get company details
 export const GET = withAuth(async (req, { params }) => {
@@ -19,7 +43,7 @@ export const GET = withAuth(async (req, { params }) => {
   }
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -70,7 +94,7 @@ export const PUT = withAuth(async (req, { params }) => {
   }
 
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -182,6 +206,7 @@ export const PUT = withAuth(async (req, { params }) => {
       action: 'update',
       resource: 'company',
       resource_id: id,
+      success: true,
       details: {
         company_name: updatedCompany?.name,
         changes,
@@ -213,7 +238,7 @@ export const DELETE = withAuth(async (req, { params }) => {
   }
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -241,18 +266,109 @@ export const DELETE = withAuth(async (req, { params }) => {
         createApiResponse(
           false,
           null,
-          `Cannot delete company with ${activeUserCount} active users. Deactivate users first.`
+          `Cannot delete company with ${activeUserCount} active users. Deactivate users first or use deactivation instead.`
         ),
         { status: 400 }
       );
     }
 
-    // Soft delete by setting is_active to false
-    const deletedCompany = await (Company as any).findByIdAndUpdate(
-      id,
-      { is_active: false },
-      { new: true }
-    );
+    // Clean up all related data before deleting the company
+    console.log(`Starting cleanup for company ${company.name} (${id})`);
+
+    // Delete in order of dependencies (most dependent first)
+    const cleanupOperations = [
+      // Invitations
+      { model: UserInvitation as any, description: 'user invitations' },
+      { model: SurveyInvitation as any, description: 'survey invitations' },
+      {
+        model: MicroclimateInvitation as any,
+        description: 'microclimate invitations',
+      },
+
+      // Responses (before surveys)
+      { model: Response as any, description: 'survey responses' },
+
+      // Surveys and related
+      { model: Survey as any, description: 'surveys' },
+      { model: SurveyTemplate as any, description: 'survey templates' },
+
+      // Microclimates
+      { model: Microclimate as any, description: 'microclimates' },
+      {
+        model: MicroclimateTemplate as any,
+        description: 'microclimate templates',
+      },
+
+      // Action plans
+      { model: ActionPlan as any, description: 'action plans' },
+      {
+        model: ActionPlanTemplate as any,
+        description: 'action plan templates',
+      },
+
+      // Analytics and insights
+      {
+        model: Analytics.AnalyticsInsight as any,
+        description: 'analytics insights',
+      },
+      { model: Analytics.AIInsight as any, description: 'AI insights' },
+
+      // Benchmarks and demographics
+      { model: Benchmark as any, description: 'benchmarks' },
+      {
+        model: DemographicSnapshot as any,
+        description: 'demographic snapshots',
+      },
+
+      // Notifications
+      { model: Notification as any, description: 'notifications' },
+      {
+        model: NotificationTemplate as any,
+        description: 'notification templates',
+      },
+
+      // Question banks
+      { model: QuestionBank as any, description: 'question banks' },
+
+      // Reports
+      { model: Report as any, description: 'reports' },
+
+      // Departments (before users)
+      { model: Department as any, description: 'departments' },
+
+      // Users (should be deactivated, not deleted, but clean up any inactive ones)
+      {
+        model: User as any,
+        description: 'inactive users',
+        filter: { is_active: false },
+      },
+
+      // Audit logs for this company
+      { model: AuditLog as any, description: 'audit logs' },
+    ];
+
+    for (const operation of cleanupOperations) {
+      try {
+        const filter = operation.filter
+          ? { company_id: id, ...operation.filter }
+          : { company_id: id };
+        const count = await operation.model.countDocuments(filter);
+
+        if (count > 0) {
+          await operation.model.deleteMany(filter);
+          console.log(
+            `Deleted ${count} ${operation.description} for company ${company.name}`
+          );
+        }
+      } catch (error) {
+        console.error(`Error deleting ${operation.description}:`, error);
+        // Continue with other cleanup operations even if one fails
+      }
+    }
+
+    // Hard delete the company
+    await (Company as any).findByIdAndDelete(id);
+    console.log(`Company ${company.name} deleted successfully`);
 
     // Log the action
     await AuditLog.create({
@@ -261,19 +377,16 @@ export const DELETE = withAuth(async (req, { params }) => {
       action: 'delete',
       resource: 'company',
       resource_id: id,
+      success: true,
       details: {
         company_name: company.name,
         domain: company.domain,
-        soft_delete: true,
+        hard_delete: true,
       },
     });
 
     return NextResponse.json(
-      createApiResponse(
-        true,
-        deletedCompany,
-        'Company deactivated successfully'
-      )
+      createApiResponse(true, null, 'Company permanently deleted successfully')
     );
   } catch (error) {
     console.error('Error deleting company:', error);

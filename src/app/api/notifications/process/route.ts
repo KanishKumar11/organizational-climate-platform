@@ -15,7 +15,14 @@ export async function POST(request: NextRequest) {
       // Fallback to session auth for development
       const session = await getServerSession(authOptions);
       if (!session?.user || session.user.role !== 'super_admin') {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        // TEMPORARY: Allow processing in development without auth
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(
+            'Development mode: allowing notification processing without auth'
+          );
+        } else {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
       }
     }
 
@@ -39,5 +46,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-

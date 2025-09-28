@@ -34,6 +34,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
   Users,
   Search,
   Plus,
@@ -53,7 +61,23 @@ import {
   Crown,
   Shield,
   User,
+  Table as TableIcon,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
+
+export interface UserStats {
+  total: number;
+  active: number;
+  inactive: number;
+  departments: number;
+  roleDistribution: Record<string, number>;
+}
+
+interface UserManagementProps {
+  onStatsChange?: (stats: UserStats) => void;
+}
 
 interface User {
   _id: string;
@@ -106,7 +130,7 @@ const ROLE_COLORS = {
   super_admin: 'bg-red-100 text-red-800',
 };
 
-export default function UserManagement() {
+export default function UserManagement({ onStatsChange }: UserManagementProps) {
   const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
   const { success, error } = useToast();
   const [users, setUsers] = useState<User[]>([]);
@@ -118,8 +142,10 @@ export default function UserManagement() {
   const [statusFilter] = useState<string>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'table'>('table');
   const [showInactive, setShowInactive] = useState(true);
+  const [sortField, setSortField] = useState<keyof User>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: 25,
@@ -128,6 +154,10 @@ export default function UserManagement() {
     hasNext: false,
     hasPrev: false,
   });
+  const [isExporting, setIsExporting] = useState(false);
+
+  const numberFormatter = useMemo(() => new Intl.NumberFormat('en-US'), []);
+  const formatNumber = (value: number) => numberFormatter.format(value);
 
   // Add User Modal State
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -251,6 +281,42 @@ export default function UserManagement() {
     } catch (error) {
       console.error('Error toggling user status:', error);
     }
+  };
+
+  // Sorting functionality
+  const handleSort = (field: keyof User) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const getSortedUsers = (users: User[]) => {
+    return [...users].sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+
+      // Handle different data types
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const getSortIcon = (field: keyof User) => {
+    if (sortField !== field) return <ArrowUpDown className="h-4 w-4" />;
+    return sortOrder === 'asc' ? (
+      <ArrowUp className="h-4 w-4" />
+    ) : (
+      <ArrowDown className="h-4 w-4" />
+    );
   };
 
   const deleteUser = (userId: string, userName: string) => {
@@ -419,7 +485,7 @@ export default function UserManagement() {
   };
 
   // Statistics calculation
-  const stats = useMemo(() => {
+  const stats = useMemo<UserStats>(() => {
     const activeUsers = users.filter((u) => u.is_active).length;
     const inactiveUsers = users.filter((u) => !u.is_active).length;
     const roleDistribution = users.reduce(
@@ -439,28 +505,177 @@ export default function UserManagement() {
     };
   }, [users, pagination.total, departments.length]);
 
-  const exportUsers = () => {
-    const csvContent = [
-      ['Name', 'Email', 'Role', 'Department', 'Status', 'Created At'].join(','),
-      ...users.map((user) =>
-        [
-          user.name,
-          user.email,
-          ROLE_LABELS[user.role],
-          user.department_name || '',
-          user.is_active ? 'Active' : 'Inactive',
-          new Date(user.created_at).toLocaleDateString(),
-        ].join(',')
-      ),
-    ].join('\n');
+  useEffect(() => {
+    if (onStatsChange) {
+      onStatsChange(stats);
+    }
+  }, [stats, onStatsChange]);
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'users.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const activePercent =
+    stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0;
+  const inactivePercent =
+    stats.total > 0 ? Math.round((stats.inactive / stats.total) * 100) : 0;
+  const topRoleEntry = useMemo(() => {
+    return Object.entries(stats.roleDistribution)
+      .sort((a, b) => b[1] - a[1])
+      .find((entry) => entry[1] > 0);
+  }, [stats.roleDistribution]);
+
+  const topRoleLabel = topRoleEntry
+    ? ROLE_LABELS[topRoleEntry[0] as keyof typeof ROLE_LABELS]
+    : null;
+
+  const statCards = [
+    {
+      key: 'total',
+      label: 'Total Users',
+      value: stats.total,
+      icon: Users,
+      iconBg: 'bg-blue-500/10',
+      iconColor: 'text-blue-600',
+      accent: 'from-blue-500 via-sky-500 to-transparent',
+      badge: 'All accounts',
+      badgeClass: 'bg-blue-50 text-blue-600',
+      description: `${formatNumber(stats.departments)} departments represented`,
+      progress: null as number | null,
+      progressLabel: null as string | null,
+      progressColor: '',
+    },
+    {
+      key: 'active',
+      label: 'Active Users',
+      value: stats.active,
+      icon: CheckCircle,
+      iconBg: 'bg-emerald-500/10',
+      iconColor: 'text-emerald-600',
+      accent: 'from-emerald-500 via-green-500 to-transparent',
+      badge: `${activePercent}% active`,
+      badgeClass: 'bg-emerald-50 text-emerald-600',
+      description: `${formatNumber(stats.inactive)} inactive`,
+      progress: activePercent,
+      progressLabel: 'Active coverage',
+      progressColor: 'bg-emerald-500',
+    },
+    {
+      key: 'inactive',
+      label: 'Inactive Users',
+      value: stats.inactive,
+      icon: Clock,
+      iconBg: 'bg-amber-500/10',
+      iconColor: 'text-amber-600',
+      accent: 'from-amber-500 via-orange-500 to-transparent',
+      badge: inactivePercent > 0 ? 'Re-engage' : 'All active',
+      badgeClass: 'bg-amber-50 text-amber-600',
+      description: `${inactivePercent}% of total accounts`,
+      progress: inactivePercent,
+      progressLabel: 'Inactive share',
+      progressColor: 'bg-amber-500',
+    },
+    {
+      key: 'roles',
+      label: 'Role Coverage',
+      value: topRoleEntry ? topRoleEntry[1] : 0,
+      icon: Shield,
+      iconBg: 'bg-purple-500/10',
+      iconColor: 'text-purple-600',
+      accent: 'from-purple-500 via-indigo-500 to-transparent',
+      badge: topRoleLabel || 'Role mix',
+      badgeClass: 'bg-purple-50 text-purple-600',
+      description:
+        topRoleEntry && stats.total > 0
+          ? `${Math.round((topRoleEntry[1] / stats.total) * 100)}% of users`
+          : 'No role data yet',
+      progress: null,
+      progressLabel: null,
+      progressColor: '',
+    },
+  ];
+
+  const exportUsers = async () => {
+    if (isExporting) return;
+
+    try {
+      setIsExporting(true);
+      const allUsers: User[] = [];
+      let page = 1;
+      const limit = 100;
+      let hasNext = true;
+
+      while (hasNext) {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+
+        if (debouncedSearchTerm) params.append('search', debouncedSearchTerm);
+        if (roleFilter !== 'all') params.append('role', roleFilter);
+        if (statusFilter !== 'all') params.append('status', statusFilter);
+        if (departmentFilter !== 'all')
+          params.append('department', departmentFilter);
+
+        const response = await fetch(`/api/admin/users?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch users for export');
+        }
+
+        const data = await response.json();
+        const pageUsers: User[] = data.users || [];
+        allUsers.push(...pageUsers);
+
+        const paginationData = data.pagination;
+        const shouldContinue = Boolean(
+          paginationData &&
+            paginationData.hasNext &&
+            pageUsers.length > 0 &&
+            page < (paginationData.totalPages ?? Number.MAX_SAFE_INTEGER)
+        );
+
+        if (shouldContinue) {
+          page += 1;
+        }
+
+        hasNext = shouldContinue;
+      }
+
+      const csvContent = [
+        ['Name', 'Email', 'Role', 'Department', 'Status', 'Created At'].join(
+          ','
+        ),
+        ...allUsers.map((user) =>
+          [
+            user.name,
+            user.email,
+            ROLE_LABELS[user.role],
+            user.department_name || '',
+            user.is_active ? 'Active' : 'Inactive',
+            new Date(user.created_at).toLocaleDateString(),
+          ].join(',')
+        ),
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'users.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      success(
+        'User export ready',
+        allUsers.length
+          ? `${allUsers.length} users exported to CSV`
+          : 'No users matched the current filters'
+      );
+    } catch (err) {
+      console.error('Error exporting users:', err);
+      error(
+        'Failed to export users',
+        err instanceof Error ? err.message : 'Unexpected error occurred'
+      );
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Render user card
@@ -797,6 +1012,203 @@ export default function UserManagement() {
     );
   };
 
+  // Render users table
+  const renderUsersTable = () => {
+    const sortedUsers = getSortedUsers(users);
+
+    return (
+      <div className="border rounded-lg bg-white shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={
+                    selectedUsers.length === users.length && users.length > 0
+                  }
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedUsers(users.map((u) => u._id));
+                    } else {
+                      setSelectedUsers([]);
+                    }
+                  }}
+                  className="cursor-pointer"
+                />
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => handleSort('name')}
+              >
+                <div className="flex items-center gap-2">
+                  Name
+                  {getSortIcon('name')}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => handleSort('email')}
+              >
+                <div className="flex items-center gap-2">
+                  Email
+                  {getSortIcon('email')}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => handleSort('role')}
+              >
+                <div className="flex items-center gap-2">
+                  Role
+                  {getSortIcon('role')}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => handleSort('department_name')}
+              >
+                <div className="flex items-center gap-2">
+                  Department
+                  {getSortIcon('department_name')}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => handleSort('is_active')}
+              >
+                <div className="flex items-center gap-2">
+                  Status
+                  {getSortIcon('is_active')}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => handleSort('created_at')}
+              >
+                <div className="flex items-center gap-2">
+                  Created
+                  {getSortIcon('created_at')}
+                </div>
+              </TableHead>
+              <TableHead className="w-12">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedUsers.map((user) => {
+              const isSelected = selectedUsers.includes(user._id);
+              const roleIcon = getRoleIcon(user.role);
+
+              return (
+                <TableRow
+                  key={user._id}
+                  className={`hover:bg-gray-50/50 transition-colors ${
+                    isSelected ? 'bg-blue-50/30' : ''
+                  } ${!user.is_active ? 'opacity-75' : ''}`}
+                >
+                  <TableCell>
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleUserSelection(user._id)}
+                      className="cursor-pointer"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`p-2 rounded-lg ${getRoleColorClass(user.role)}`}
+                      >
+                        {roleIcon}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {user.name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          ID: {user._id.slice(-6)}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-gray-900">{user.email}</div>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ROLE_COLORS[user.role]}`}
+                    >
+                      {user.role
+                        .replace('_', ' ')
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-gray-900">
+                      {user.department_name || 'No Department'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        user.is_active
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {user.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm text-gray-500">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-gray-100 cursor-pointer"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem
+                          onClick={() => startEditingUser(user)}
+                          className="cursor-pointer"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit User
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">
+                          <Mail className="h-4 w-4 mr-2" />
+                          Send Email
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => deleteUser(user._id, user.name)}
+                          className="cursor-pointer text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete User
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -814,9 +1226,25 @@ export default function UserManagement() {
           <p className="text-gray-600">Manage users, roles, and permissions</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={exportUsers}>
-            <Download className="w-4 h-4 mr-2" />
-            Export
+          <Button
+            variant="outline"
+            onClick={() => {
+              void exportUsers();
+            }}
+            disabled={isExporting}
+            className={isExporting ? 'cursor-wait' : ''}
+          >
+            {isExporting ? (
+              <>
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </>
+            )}
           </Button>
           <Button onClick={() => setShowAddUserModal(true)}>
             <Plus className="w-4 h-4 mr-2" />
@@ -826,62 +1254,63 @@ export default function UserManagement() {
       </div>
 
       {/* Statistics Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold">{stats.active}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Clock className="h-5 w-5 text-gray-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Inactive</p>
-                <p className="text-2xl font-bold">{stats.inactive}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Building className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Departments</p>
-                <p className="text-2xl font-bold">{stats.departments}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card
+              key={card.key}
+              className="relative overflow-hidden border border-slate-200/60 bg-white/95 backdrop-blur transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <div
+                className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${card.accent}`}
+              />
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-2xl ${card.iconBg}`}
+                  >
+                    <Icon className={`h-4 w-4 ${card.iconColor}`} />
+                  </div>
+                  {card.badge && (
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${card.badgeClass}`}
+                    >
+                      {card.badge}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  {card.label}
+                </p>
+                <div className="mt-1.5 flex items-baseline gap-2">
+                  <span className="text-2xl font-semibold text-slate-900">
+                    {formatNumber(card.value)}
+                  </span>
+                </div>
+                {card.description && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    {card.description}
+                  </p>
+                )}
+                {card.progress !== null && card.progressLabel && (
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-slate-400">
+                      <span>{card.progressLabel}</span>
+                      <span>{card.progress}%</span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-200/70">
+                      <div
+                        className={`h-full rounded-full ${card.progressColor}`}
+                        style={{ width: `${Math.min(card.progress, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Main Content Card */}
@@ -913,11 +1342,23 @@ export default function UserManagement() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
-                    onClick={exportUsers}
+                    onClick={() => {
+                      void exportUsers();
+                    }}
                     className="cursor-pointer"
+                    disabled={isExporting}
                   >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export Users
+                    {isExporting ? (
+                      <>
+                        <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Export Users
+                      </>
+                    )}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer">
@@ -948,6 +1389,14 @@ export default function UserManagement() {
             <div className="flex items-center gap-2">
               {/* View Mode Toggle */}
               <div className="flex items-center border rounded-lg p-1">
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('table')}
+                  className="h-8 px-3 cursor-pointer"
+                >
+                  <TableIcon className="h-4 w-4" />
+                </Button>
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="sm"
@@ -1112,6 +1561,8 @@ export default function UserManagement() {
               </Button>
             </CardContent>
           </Card>
+        ) : viewMode === 'table' ? (
+          renderUsersTable()
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {users.map((user) => renderUserCard(user))}

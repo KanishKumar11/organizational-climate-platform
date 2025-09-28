@@ -417,65 +417,78 @@ export default function SuperAdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Modern Header */}
-      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-8 border border-purple-100">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-purple-100 rounded-xl">
-                <Database className="h-8 w-8 text-purple-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Super Admin Dashboard
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Global system overview and management
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span>
-                  {dashboardData?.globalKPIs.totalCompanies || 0} Companies
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span>{dashboardData?.globalKPIs.totalUsers || 0} Users</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                <span>
-                  {dashboardData?.globalKPIs.activeSurveys || 0} Active Surveys
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                placeholder="Search surveys, users, companies..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 w-full sm:w-80 text-base border-gray-200 focus:border-purple-500 focus:ring-purple-500 bg-white"
-              />
-              {isSearching && (
-                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                  <div className="animate-spin h-4 w-4 border-2 border-purple-500 border-t-transparent rounded-full"></div>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 p-8 lg:p-12">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+        <div className="relative">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-2xl shadow-lg">
+                  <Database className="h-8 w-8 text-white" />
                 </div>
-              )}
+                <div>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                    Super Admin Dashboard
+                  </h1>
+                  <p className="text-lg text-gray-600">
+                    Global system overview and management
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-purple-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData?.globalKPIs.totalCompanies || 0} Companies
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-blue-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData?.globalKPIs.totalUsers || 0} Users
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-green-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData?.globalKPIs.activeSurveys || 0} Active
+                    Surveys
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-orange-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData?.globalKPIs.surveyCompletionRate || 0}%
+                    Completion
+                  </span>
+                </div>
+              </div>
             </div>
-            <Button
-              className="bg-purple-600 hover:bg-purple-700 h-12 px-4 sm:px-6 w-full md:w-auto"
-              onClick={() => router.push('/surveys/create')}
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Create Survey
-            </Button>
+
+            <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  placeholder="Search surveys, users, companies..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 h-12 w-full sm:w-80 text-base border-0 bg-white/80 backdrop-blur shadow-sm focus:shadow-md transition-shadow"
+                />
+                {isSearching && (
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin h-4 w-4 border-2 border-purple-500 border-t-transparent rounded-full" />
+                  </div>
+                )}
+              </div>
+              <Button
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 h-12 px-6 w-full md:w-auto"
+                onClick={() => router.push('/surveys/create')}
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Create Survey
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -485,30 +498,30 @@ export default function SuperAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl border-0 shadow-sm p-6"
+          className="bg-white/80 backdrop-blur rounded-2xl border-0 shadow-sm p-6"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-900">
               Search Results ({searchResults.total})
             </h3>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSearchResults(null)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg"
             >
               ×
             </Button>
           </div>
-          <div className="space-y-3 max-h-96 overflow-y-auto dashboard-scroll">
+          <div className="space-y-4 max-h-96 overflow-y-auto dashboard-scroll">
             {searchResults.surveys?.map((survey) => (
               <div
                 key={survey._id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors"
+                className="flex items-center justify-between p-4 hover:bg-gray-50/50 rounded-xl border border-gray-100/50 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <FileText className="h-4 w-4 text-blue-600" />
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm">
+                    <FileText className="h-4 w-4 text-white" />
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">{survey.title}</p>
@@ -518,12 +531,11 @@ export default function SuperAdminDashboard() {
                   </div>
                 </div>
                 <Badge
-                  variant={survey.status === 'active' ? 'default' : 'secondary'}
-                  className={
+                  className={`${
                     survey.status === 'active'
-                      ? 'bg-green-100 text-green-800'
-                      : ''
-                  }
+                      ? 'bg-green-50 text-green-600 border-green-200'
+                      : 'bg-gray-50 text-gray-600 border-gray-200'
+                  }`}
                 >
                   {survey.status}
                 </Badge>
@@ -532,10 +544,10 @@ export default function SuperAdminDashboard() {
             {searchResults.companies?.map((company) => (
               <div
                 key={company._id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors"
+                className="flex items-center justify-between p-4 hover:bg-gray-50/50 rounded-xl border border-gray-100/50 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-purple-100 rounded-lg">
+                  <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-sm">
                     <Building2 className="h-4 w-4 text-purple-600" />
                   </div>
                   <div>
@@ -545,15 +557,18 @@ export default function SuperAdminDashboard() {
                     </p>
                   </div>
                 </div>
+                <Badge className="bg-purple-50 text-purple-600 border-purple-200">
+                  Company
+                </Badge>
               </div>
             ))}
             {searchResults.users?.map((user) => (
               <div
                 key={user._id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors"
+                className="flex items-center justify-between p-4 hover:bg-gray-50/50 rounded-xl border border-gray-100/50 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-green-100 rounded-lg">
+                  <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-sm">
                     <Users className="h-4 w-4 text-green-600" />
                   </div>
                   <div>
@@ -563,6 +578,15 @@ export default function SuperAdminDashboard() {
                     </p>
                   </div>
                 </div>
+                <Badge
+                  className={`${
+                    user.role === 'company_admin'
+                      ? 'bg-orange-50 text-orange-600 border-orange-200'
+                      : 'bg-blue-50 text-blue-600 border-blue-200'
+                  }`}
+                >
+                  {user.role}
+                </Badge>
               </div>
             ))}
           </div>
@@ -571,94 +595,208 @@ export default function SuperAdminDashboard() {
 
       {/* Enhanced Global KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100">
+        <Card className="border-0 shadow-sm bg-white/50 backdrop-blur">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-700">
-                  Total Companies
-                </p>
-                <p className="text-4xl font-bold text-blue-900">
-                  <AnimatedCounter
-                    value={dashboardData.globalKPIs.totalCompanies}
-                  />
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
+            <div className="flex items-start justify-between mb-4">
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg w-fit">
+                  <Building2 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Companies
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    <AnimatedCounter
+                      value={dashboardData.globalKPIs.totalCompanies}
+                    />
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <Badge className="bg-blue-50 text-blue-600 border-blue-200 mb-2">
                   +{dashboardData.globalKPIs.userGrowthRate.toFixed(1)}% growth
-                </p>
+                </Badge>
+                <p className="text-xs text-gray-500">Monthly growth</p>
               </div>
-              <div className="p-3 bg-blue-200 rounded-full">
-                <Building2 className="h-6 w-6 text-blue-700" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Active</span>
+                <span className="font-medium">
+                  {dashboardData.globalKPIs.totalCompanies}
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full"
+                  style={{ width: '100%' }}
+                ></div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-green-100">
+        <Card className="border-0 shadow-sm bg-white/50 backdrop-blur">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-700">
-                  Total Users
-                </p>
-                <p className="text-4xl font-bold text-green-900">
-                  <AnimatedCounter
-                    value={dashboardData.globalKPIs.totalUsers}
-                  />
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  {dashboardData.globalKPIs.activeUsers} active users
-                </p>
+            <div className="flex items-start justify-between mb-4">
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg w-fit">
+                  <Users className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Users
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    <AnimatedCounter
+                      value={dashboardData.globalKPIs.totalUsers}
+                    />
+                  </p>
+                </div>
               </div>
-              <div className="p-3 bg-green-200 rounded-full">
-                <Users className="h-6 w-6 text-green-700" />
+              <div className="text-right">
+                <Badge className="bg-green-50 text-green-600 border-green-200 mb-2">
+                  {dashboardData.globalKPIs.activeUsers} active
+                </Badge>
+                <p className="text-xs text-gray-500">Active users</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-700">
-                  Total Surveys
-                </p>
-                <p className="text-4xl font-bold text-purple-900">
-                  <AnimatedCounter
-                    value={dashboardData.globalKPIs.totalSurveys}
-                  />
-                </p>
-                <p className="text-xs text-purple-600 mt-1">
-                  {dashboardData.globalKPIs.activeSurveys} currently active
-                </p>
-              </div>
-              <div className="p-3 bg-purple-200 rounded-full">
-                <FileText className="h-6 w-6 text-purple-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-50 to-orange-100">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-700">
-                  Completion Rate
-                </p>
-                <p className="text-4xl font-bold text-orange-900">
-                  <AnimatedCounter
-                    value={dashboardData.globalKPIs.surveyCompletionRate}
-                  />
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Active Rate</span>
+                <span className="font-medium">
+                  {dashboardData.globalKPIs.totalUsers > 0
+                    ? Math.round(
+                        (dashboardData.globalKPIs.activeUsers /
+                          dashboardData.globalKPIs.totalUsers) *
+                          100
+                      )
+                    : 0}
                   %
-                </p>
-                <p className="text-xs text-orange-600 mt-1">
-                  Across all surveys
-                </p>
+                </span>
               </div>
-              <div className="p-3 bg-orange-200 rounded-full">
-                <TrendingUp className="h-6 w-6 text-orange-700" />
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full"
+                  style={{
+                    width: `${
+                      dashboardData.globalKPIs.totalUsers > 0
+                        ? Math.min(
+                            (dashboardData.globalKPIs.activeUsers /
+                              dashboardData.globalKPIs.totalUsers) *
+                              100,
+                            100
+                          )
+                        : 0
+                    }%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-white/50 backdrop-blur">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg w-fit">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Surveys
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    <AnimatedCounter
+                      value={dashboardData.globalKPIs.totalSurveys}
+                    />
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <Badge className="bg-purple-50 text-purple-600 border-purple-200 mb-2">
+                  {dashboardData.globalKPIs.activeSurveys} active
+                </Badge>
+                <p className="text-xs text-gray-500">Currently running</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Active Rate</span>
+                <span className="font-medium">
+                  {dashboardData.globalKPIs.totalSurveys > 0
+                    ? Math.round(
+                        (dashboardData.globalKPIs.activeSurveys /
+                          dashboardData.globalKPIs.totalSurveys) *
+                          100
+                      )
+                    : 0}
+                  %
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full"
+                  style={{
+                    width: `${
+                      dashboardData.globalKPIs.totalSurveys > 0
+                        ? Math.min(
+                            (dashboardData.globalKPIs.activeSurveys /
+                              dashboardData.globalKPIs.totalSurveys) *
+                              100,
+                            100
+                          )
+                        : 0
+                    }%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-white/50 backdrop-blur">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg w-fit">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Completion Rate
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    <AnimatedCounter
+                      value={dashboardData.globalKPIs.surveyCompletionRate}
+                    />
+                    %
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <Badge className="bg-orange-50 text-orange-600 border-orange-200 mb-2">
+                  {dashboardData.globalKPIs.totalResponses} responses
+                </Badge>
+                <p className="text-xs text-gray-500">Total responses</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Completion</span>
+                <span className="font-medium">
+                  {dashboardData.globalKPIs.surveyCompletionRate}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-full"
+                  style={{
+                    width: `${Math.min(dashboardData.globalKPIs.surveyCompletionRate, 100)}%`,
+                  }}
+                ></div>
               </div>
             </div>
           </CardContent>

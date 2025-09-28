@@ -698,96 +698,392 @@ export function generateUserInvitationTemplate(
     actionText = 'Join Now';
   }
 
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${subject}</title>
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #1f2937;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .header {
+      background: linear-gradient(135deg, ${primaryColor} 0%, #6366f1 50%, #8b5cf6 100%);
+      padding: 40px 30px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.15"/><circle cx="10" cy="50" r="0.5" fill="white" opacity="0.15"/><circle cx="90" cy="30" r="0.5" fill="white" opacity="0.15"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .logo-container {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      color: white;
+      font-size: 32px;
+      font-weight: 600;
+      margin: 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .content {
+      padding: 40px 30px;
+    }
+
+    .greeting {
+      font-size: 20px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 16px;
+    }
+
+    .message {
+      font-size: 16px;
+      color: #6b7280;
+      margin-bottom: 24px;
+      line-height: 1.7;
+    }
+
+    .role-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, ${primaryColor}20, ${primaryColor}10);
+      color: ${primaryColor};
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .setup-card {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .setup-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(135deg, ${primaryColor}, #6366f1);
+    }
+
+    .setup-title {
+      color: ${primaryColor};
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .setup-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .setup-list li {
+      padding: 8px 0;
+      padding-left: 24px;
+      position: relative;
+      color: #4b5563;
+      font-size: 15px;
+    }
+
+    .setup-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: ${primaryColor};
+      font-weight: bold;
+    }
+
+    .custom-message {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid #f59e0b;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 24px 0;
+      position: relative;
+    }
+
+    .custom-message::before {
+      content: '"';
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      font-size: 32px;
+      color: #d97706;
+      font-family: Georgia, serif;
+      opacity: 0.3;
+    }
+
+    .custom-text {
+      font-style: italic;
+      color: #92400e;
+      margin: 0;
+      padding-left: 24px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .custom-author {
+      margin: 8px 0 0 24px;
+      font-size: 14px;
+      color: #78350f;
+      font-weight: 500;
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, ${primaryColor} 0%, #6366f1 100%);
+      color: white;
+      padding: 16px 32px;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      text-align: center;
+      margin: 32px 0;
+      box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.3);
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px 0 rgba(99, 102, 241, 0.4);
+    }
+
+    .cta-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .cta-button:hover::before {
+      left: 100%;
+    }
+
+    .expiry-notice {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 24px 0;
+      text-align: center;
+    }
+
+    .expiry-text {
+      color: #dc2626;
+      font-size: 14px;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .expiry-highlight {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    .fallback-link {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 24px 0;
+      font-size: 14px;
+      color: #6b7280;
+      word-break: break-all;
+    }
+
+    .fallback-link a {
+      color: ${primaryColor};
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer {
+      background: #f9fafb;
+      padding: 24px 30px;
+      border-top: 1px solid #e5e7eb;
+      text-align: center;
+    }
+
+    .footer-text {
+      color: #9ca3af;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .footer-link {
+      color: ${primaryColor};
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 10px;
+      }
+
+      .email-container {
+        border-radius: 12px;
+      }
+
+      .header {
+        padding: 30px 20px;
+      }
+
+      .header h1 {
+        font-size: 28px;
+      }
+
+      .content {
+        padding: 30px 20px;
+      }
+
+      .cta-button {
+        padding: 14px 28px;
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <div class="logo-container">
         ${logoHtml}
-        <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 300;">
-          ${invitation_type === 'company_admin_setup' ? 'Welcome to Your Platform' : "You're Invited!"}
-        </h1>
+      </div>
+      <h1>${invitation_type === 'company_admin_setup' ? `Welcome to ${process.env.NEXT_PUBLIC_APP_NAME || 'Climate Platform'}` : "You're Invited!"}</h1>
+    </div>
+
+    <div class="content">
+      <div class="greeting">Hello,</div>
+
+      <div class="message">${welcomeMessage}</div>
+
+      ${
+        setup_required
+          ? `
+      <div class="role-badge">Company Administrator</div>
+      <div class="setup-card">
+        <div class="setup-title">
+          <span>🚀</span>
+          What's Next?
+        </div>
+        <ul class="setup-list">
+          <li>Complete your profile setup</li>
+          <li>Configure your company settings</li>
+          <li>Set up organizational structure</li>
+          <li>Invite your team members</li>
+        </ul>
+      </div>
+      `
+          : `
+      <div class="role-badge">${role}</div>
+      <div class="message">
+        As a <strong>${role}</strong>, you'll be able to participate in surveys, provide feedback, and help improve your workplace culture.
+      </div>
+      `
+      }
+
+      ${
+        custom_message
+          ? `
+      <div class="custom-message">
+        <div class="custom-text">"${custom_message}"</div>
+        <div class="custom-author">— ${inviter_name}</div>
+      </div>
+      `
+          : ''
+      }
+
+      <div style="text-align: center;">
+        <a href="${registration_link}" class="cta-button">${actionText}</a>
       </div>
 
-      <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
-        <p style="font-size: 18px; margin-bottom: 20px;">
-          Hello,
-        </p>
-
-        <p style="font-size: 16px; margin-bottom: 20px;">
-          ${welcomeMessage}
-        </p>
-
-        ${
-          setup_required
-            ? `
-        <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="color: #1976d2; margin-top: 0;">What's Next?</h3>
-          <ul style="margin: 0; padding-left: 20px;">
-            <li>Complete your profile setup</li>
-            <li>Configure your company settings</li>
-            <li>Set up organizational structure</li>
-            <li>Invite your team members</li>
-          </ul>
-        </div>
-        `
-            : `
-        <p style="font-size: 16px; margin-bottom: 20px;">
-          As a <strong>${role}</strong>, you'll be able to participate in surveys, provide feedback, and help improve your workplace culture.
-        </p>
-        `
-        }
-
-        ${
-          custom_message
-            ? `
-        <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
-          <p style="margin: 0; font-style: italic;">
-            "${custom_message}"
-          </p>
-          <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">
-            - ${inviter_name}
-          </p>
-        </div>
-        `
-            : ''
-        }
-
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${registration_link}"
-             style="background: ${primaryColor}; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
-            ${actionText}
-          </a>
-        </div>
-
-        <div style="background: #f1f3f4; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0; font-size: 14px; color: #666;">
-            <strong>Important:</strong> This invitation expires on ${expires_at.toLocaleDateString()} at ${expires_at.toLocaleTimeString()}.
-          </p>
-        </div>
-
-        <p style="font-size: 14px; color: #666; margin-top: 30px;">
-          If you can't click the button above, copy and paste this link into your browser:<br>
-          <a href="${registration_link}" style="color: ${primaryColor}; word-break: break-all;">
-            ${registration_link}
-          </a>
-        </p>
-
-        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-
-        <p style="font-size: 12px; color: #999; text-align: center;">
-          This invitation was sent by ${inviter_name} from ${company_name}.<br>
-          Questions? Contact ${branding?.support_email || 'your administrator'}.
+      <div class="expiry-notice">
+        <p class="expiry-text">
+          <span style="font-size: 18px;">⏰</span>
+          <strong>Important:</strong> This invitation expires on
+          <span class="expiry-highlight">${expires_at.toLocaleDateString()}</span> at
+          <span class="expiry-highlight">${expires_at.toLocaleTimeString()}</span>
         </p>
       </div>
-    </body>
-    </html>
-  `;
+
+      <div class="fallback-link">
+        <strong>If the button doesn't work:</strong><br>
+        Copy and paste this link into your browser:<br>
+        <a href="${registration_link}">${registration_link}</a>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p class="footer-text">
+        This invitation was sent by <strong>${inviter_name}</strong> from <strong>${company_name}</strong>.<br>
+        Need help? Contact <a href="mailto:${branding?.support_email || 'support@company.com'}" class="footer-link">${branding?.support_email || 'your administrator'}</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
 
   const text = `
     ${subject}
@@ -900,7 +1196,7 @@ export class MockEmailService implements EmailService {
 // Email service singleton
 import { BrevoEmailService } from './email-providers/brevo';
 
-// Use Brevo in production, Mock in development/testing
-export const emailService = process.env.BREVO_API_KEY
+// Use Brevo SMTP in production, Mock in development/testing
+export const emailService = process.env.BREVO_SMTP_PASS
   ? new BrevoEmailService()
   : new MockEmailService();

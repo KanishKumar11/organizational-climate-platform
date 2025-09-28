@@ -74,6 +74,19 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+export interface DepartmentStats {
+  total: number;
+  active: number;
+  inactive: number;
+  totalUsers: number;
+  maxLevel: number;
+  withManagers: number;
+}
+
+interface ModernDepartmentManagementProps {
+  onStatsChange?: (stats: DepartmentStats) => void;
+}
+
 interface Department {
   _id: string;
   name: string;
@@ -103,7 +116,9 @@ type ViewMode = 'tree' | 'grid' | 'list';
 type SortField = 'name' | 'user_count' | 'created_at' | 'level';
 type SortOrder = 'asc' | 'desc';
 
-export default function ModernDepartmentManagement() {
+export default function ModernDepartmentManagement({
+  onStatsChange,
+}: ModernDepartmentManagementProps) {
   // State Management
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +133,8 @@ export default function ModernDepartmentManagement() {
     new Set()
   );
   const [showInactive, setShowInactive] = useState(false);
+  const numberFormatter = useMemo(() => new Intl.NumberFormat('en-US'), []);
+  const formatNumber = (value: number) => numberFormatter.format(value);
 
   // Dialog States
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -143,6 +160,12 @@ export default function ModernDepartmentManagement() {
   // Success/Error States
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [draggedDepartmentId, setDraggedDepartmentId] = useState<string | null>(
+    null
+  );
+  const [dragOverDepartmentId, setDragOverDepartmentId] = useState<
+    string | null
+  >(null);
 
   // Data Fetching
   useEffect(() => {
@@ -240,7 +263,7 @@ export default function ModernDepartmentManagement() {
   };
 
   // Statistics
-  const stats = useMemo(() => {
+  const stats = useMemo<DepartmentStats>(() => {
     const flatDepartments = flattenDepartments(departments);
     return {
       total: flatDepartments.length,
@@ -254,6 +277,123 @@ export default function ModernDepartmentManagement() {
       withManagers: flatDepartments.filter((d) => d.manager_id).length,
     };
   }, [departments]);
+
+  useEffect(() => {
+    if (onStatsChange) {
+      onStatsChange(stats);
+    }
+  }, [stats, onStatsChange]);
+
+  const activePercent =
+    stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0;
+  const inactivePercent =
+    stats.total > 0 ? Math.round((stats.inactive / stats.total) * 100) : 0;
+  const managedPercent =
+    stats.total > 0 ? Math.round((stats.withManagers / stats.total) * 100) : 0;
+  const averageTeamSize =
+    stats.total > 0 ? Math.round(stats.totalUsers / stats.total) : 0;
+
+  const statCards = [
+    {
+      key: 'total',
+      label: 'Total Departments',
+      value: stats.total,
+      icon: Building,
+      iconBg: 'bg-blue-500/10',
+      iconColor: 'text-blue-600',
+      accent: 'from-blue-500 via-indigo-500 to-transparent',
+      badge: 'Org-wide',
+      badgeClass: 'bg-blue-50 text-blue-600',
+      description: `${formatNumber(stats.withManagers)} with managers assigned`,
+      progress: null as number | null,
+      progressLabel: null as string | null,
+      progressColor: '',
+    },
+    {
+      key: 'active',
+      label: 'Active Departments',
+      value: stats.active,
+      icon: CheckCircle,
+      iconBg: 'bg-emerald-500/10',
+      iconColor: 'text-emerald-600',
+      accent: 'from-emerald-500 via-teal-500 to-transparent',
+      badge: `${activePercent}% active`,
+      badgeClass: 'bg-emerald-50 text-emerald-600',
+      description: `${formatNumber(stats.inactive)} inactive`,
+      progress: activePercent,
+      progressLabel: 'Active coverage',
+      progressColor: 'bg-emerald-500',
+    },
+    {
+      key: 'inactive',
+      label: 'Inactive Departments',
+      value: stats.inactive,
+      icon: Clock,
+      iconBg: 'bg-amber-500/10',
+      iconColor: 'text-amber-600',
+      accent: 'from-amber-500 via-orange-500 to-transparent',
+      badge: 'Needs attention',
+      badgeClass: 'bg-amber-50 text-amber-600',
+      description: `${inactivePercent}% of all departments`,
+      progress: inactivePercent,
+      progressLabel: 'Inactive share',
+      progressColor: 'bg-amber-500',
+    },
+    {
+      key: 'employees',
+      label: 'Employees Assigned',
+      value: stats.totalUsers,
+      icon: Users,
+      iconBg: 'bg-purple-500/10',
+      iconColor: 'text-purple-600',
+      accent: 'from-purple-500 via-fuchsia-500 to-transparent',
+      badge: `Avg ${formatNumber(averageTeamSize)} / dept`,
+      badgeClass: 'bg-purple-50 text-purple-600',
+      description:
+        stats.totalUsers > 0
+          ? `${formatNumber(stats.totalUsers)} employees mapped`
+          : 'No employees assigned yet',
+      progress: null,
+      progressLabel: null,
+      progressColor: '',
+    },
+    {
+      key: 'levels',
+      label: 'Hierarchy Depth',
+      value: stats.maxLevel,
+      icon: BarChart3,
+      iconBg: 'bg-orange-500/10',
+      iconColor: 'text-orange-600',
+      accent: 'from-orange-500 via-amber-500 to-transparent',
+      badge: stats.maxLevel > 3 ? 'Deep structure' : 'Healthy depth',
+      badgeClass: 'bg-orange-50 text-orange-600',
+      description:
+        stats.maxLevel > 0
+          ? `Max level across the tree`
+          : 'Single-level structure',
+      progress: null,
+      progressLabel: null,
+      progressColor: '',
+    },
+    {
+      key: 'managed',
+      label: 'Managed Teams',
+      value: stats.withManagers,
+      icon: Target,
+      iconBg: 'bg-indigo-500/10',
+      iconColor: 'text-indigo-600',
+      accent: 'from-indigo-500 via-blue-500 to-transparent',
+      badge: `${managedPercent}% covered`,
+      badgeClass: 'bg-indigo-50 text-indigo-600',
+      description:
+        stats.total > 0
+          ? `${formatNumber(Math.max(stats.total - stats.withManagers, 0))} without manager`
+          : 'Assign managers to departments',
+      progress: managedPercent,
+      progressLabel: 'Manager coverage',
+      progressColor: 'bg-indigo-500',
+    },
+  ];
 
   // Event Handlers
   const handleCreateDepartment = async () => {
@@ -439,6 +579,248 @@ export default function ModernDepartmentManagement() {
     setSelectedDepartments(new Set());
   };
 
+  const cloneDepartment = (department: Department): Department => ({
+    ...department,
+    children: department.children
+      ? department.children.map(cloneDepartment)
+      : [],
+  });
+
+  const findDepartmentWithParent = (
+    list: Department[],
+    id: string,
+    parent: Department | null = null
+  ): { department: Department; parent: Department | null } | null => {
+    for (const dept of list) {
+      if (dept._id === id) {
+        return { department: dept, parent };
+      }
+      if (dept.children && dept.children.length > 0) {
+        const found = findDepartmentWithParent(dept.children, id, dept);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  };
+
+  const updateHierarchyLevels = (
+    department: Department,
+    parentId: string | undefined,
+    level: number
+  ) => {
+    department.hierarchy = {
+      ...department.hierarchy,
+      parent_department_id: parentId,
+      level,
+    };
+
+    if (department.children && department.children.length > 0) {
+      department.children.forEach((child) =>
+        updateHierarchyLevels(child, department._id, level + 1)
+      );
+    }
+  };
+
+  const isDescendant = (
+    department: Department,
+    candidateId: string
+  ): boolean => {
+    if (!department.children || department.children.length === 0) {
+      return false;
+    }
+
+    for (const child of department.children) {
+      if (child._id === candidateId || isDescendant(child, candidateId)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const moveDepartmentInTree = (
+    tree: Department[],
+    draggedId: string,
+    targetId: string
+  ): {
+    updatedTree: Department[] | null;
+    draggedName?: string;
+    targetName?: string;
+  } => {
+    const clonedTree = tree.map(cloneDepartment);
+    const draggedInfo = findDepartmentWithParent(clonedTree, draggedId);
+    const targetInfo = findDepartmentWithParent(clonedTree, targetId);
+
+    if (!draggedInfo || !targetInfo) {
+      return { updatedTree: null };
+    }
+
+    if (draggedId === targetId) {
+      return { updatedTree: null };
+    }
+
+    if (isDescendant(draggedInfo.department, targetId)) {
+      return { updatedTree: null };
+    }
+
+    const draggedNode = draggedInfo.department;
+
+    if (draggedInfo.parent) {
+      draggedInfo.parent.children = (draggedInfo.parent.children || []).filter(
+        (child) => child._id !== draggedId
+      );
+    } else {
+      const rootIndex = clonedTree.findIndex((dept) => dept._id === draggedId);
+      if (rootIndex !== -1) {
+        clonedTree.splice(rootIndex, 1);
+      }
+    }
+
+    targetInfo.department.children = targetInfo.department.children || [];
+    updateHierarchyLevels(
+      draggedNode,
+      targetInfo.department._id,
+      (targetInfo.department.hierarchy.level || 0) + 1
+    );
+    targetInfo.department.children.push(draggedNode);
+
+    return {
+      updatedTree: clonedTree,
+      draggedName: draggedNode.name,
+      targetName: targetInfo.department.name,
+    };
+  };
+
+  const canDropOnDepartment = (
+    draggedId: string | null,
+    target: Department
+  ): boolean => {
+    if (!draggedId || draggedId === target._id) {
+      return false;
+    }
+
+    const draggedInfo = findDepartmentWithParent(departments, draggedId);
+
+    if (!draggedInfo) {
+      return false;
+    }
+
+    return !isDescendant(draggedInfo.department, target._id);
+  };
+
+  const moveDepartment = (draggedId: string, targetId: string) => {
+    let moveDetails: {
+      success: boolean;
+      draggedName?: string;
+      targetName?: string;
+    } = { success: false };
+
+    setDepartments((prevTree) => {
+      const result = moveDepartmentInTree(prevTree, draggedId, targetId);
+
+      if (!result.updatedTree) {
+        return prevTree;
+      }
+
+      moveDetails = {
+        success: true,
+        draggedName: result.draggedName,
+        targetName: result.targetName,
+      };
+
+      return result.updatedTree;
+    });
+
+    if (
+      moveDetails.success &&
+      moveDetails.targetName &&
+      moveDetails.draggedName
+    ) {
+      setExpandedDepartments((prevExpanded) => {
+        const next = new Set(prevExpanded);
+        next.add(targetId);
+        return next;
+      });
+    }
+  };
+
+  const handleDragStart = (
+    event: React.DragEvent<HTMLDivElement>,
+    department: Department
+  ) => {
+    event.dataTransfer.setData('text/plain', department._id);
+    event.dataTransfer.effectAllowed = 'move';
+    setDraggedDepartmentId(department._id);
+    setDragOverDepartmentId(null);
+  };
+
+  const handleDragOver = (
+    event: React.DragEvent<HTMLDivElement>,
+    department: Department
+  ) => {
+    if (!canDropOnDepartment(draggedDepartmentId, department)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'move';
+
+    if (dragOverDepartmentId !== department._id) {
+      setDragOverDepartmentId(department._id);
+    }
+  };
+
+  const handleDragEnter = (
+    event: React.DragEvent<HTMLDivElement>,
+    department: Department
+  ) => {
+    if (!canDropOnDepartment(draggedDepartmentId, department)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (dragOverDepartmentId !== department._id) {
+      setDragOverDepartmentId(department._id);
+    }
+  };
+
+  const handleDragLeave = (department: Department) => {
+    if (dragOverDepartmentId === department._id) {
+      setDragOverDepartmentId(null);
+    }
+  };
+
+  const handleDrop = (
+    event: React.DragEvent<HTMLDivElement>,
+    department: Department
+  ) => {
+    if (!draggedDepartmentId) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!canDropOnDepartment(draggedDepartmentId, department)) {
+      setDragOverDepartmentId(null);
+      return;
+    }
+
+    moveDepartment(draggedDepartmentId, department._id);
+    setDragOverDepartmentId(null);
+    setDraggedDepartmentId(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedDepartmentId(null);
+    setDragOverDepartmentId(null);
+  };
+
   // Rendering Functions
   const renderDepartmentTree = (
     department: Department,
@@ -447,22 +829,46 @@ export default function ModernDepartmentManagement() {
     const isExpanded = expandedDepartments.has(department._id);
     const hasChildren = department.children && department.children.length > 0;
     const isSelected = selectedDepartments.has(department._id);
+    const indentation = Math.min(level * 20, 160);
+    const isDragTarget = dragOverDepartmentId === department._id;
+    const isDragging = draggedDepartmentId === department._id;
 
     return (
       <div key={department._id} className="select-none">
         <div
-          className={`flex items-center gap-2 p-3 rounded-lg border transition-colors hover:bg-gray-50 ${
-            isSelected ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
+          draggable
+          onDragStart={(event) => handleDragStart(event, department)}
+          onDragEnter={(event) => handleDragEnter(event, department)}
+          onDragOver={(event) => handleDragOver(event, department)}
+          onDragLeave={() => handleDragLeave(department)}
+          onDrop={(event) => handleDrop(event, department)}
+          onDragEnd={handleDragEnd}
+          className={`group flex items-center gap-3 rounded-md px-3 py-2 transition-all ${
+            isSelected
+              ? 'bg-blue-100/90 shadow-inner'
+              : isDragTarget
+                ? 'bg-blue-50 ring-2 ring-blue-200'
+                : 'bg-slate-100/70 hover:bg-slate-200/80'
+          } ${isDragging ? 'cursor-grabbing ring-2 ring-blue-300 ring-offset-1 ring-offset-slate-50' : 'cursor-grab'} ${
+            !department.is_active ? 'opacity-75' : ''
           }`}
-          style={{ marginLeft: `${level * 24}px` }}
+          style={{ marginLeft: `${indentation}px` }}
         >
-          {/* Expand/Collapse Button */}
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 w-6 p-0"
-            onClick={() => toggleExpanded(department._id)}
+            className={`h-7 w-7 p-0 text-slate-500 transition-colors ${
+              hasChildren ? 'hover:text-blue-600' : 'opacity-0 cursor-default'
+            }`}
+            onClick={() => hasChildren && toggleExpanded(department._id)}
             disabled={!hasChildren}
+            aria-label={
+              hasChildren
+                ? isExpanded
+                  ? `Collapse ${department.name}`
+                  : `Expand ${department.name}`
+                : undefined
+            }
           >
             {hasChildren ? (
               isExpanded ? (
@@ -470,115 +876,90 @@ export default function ModernDepartmentManagement() {
               ) : (
                 <ChevronRight className="h-4 w-4" />
               )
-            ) : (
-              <div className="h-4 w-4" />
-            )}
+            ) : null}
           </Button>
 
-          {/* Selection Checkbox */}
+          <span
+            className="flex items-center text-slate-400 transition-colors group-hover:text-blue-500"
+            aria-hidden="true"
+          >
+            <Move className="h-4 w-4" />
+          </span>
+
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => toggleDepartmentSelection(department._id)}
-            className="h-4 w-4 cursor-pointer"
+            className="h-4 w-4 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 cursor-pointer"
           />
 
-          {/* Department Icon */}
-          <div
-            className={`p-1.5 rounded-lg ${
-              department.is_active ? 'bg-blue-100' : 'bg-gray-100'
-            }`}
-          >
-            <Building
-              className={`h-4 w-4 ${
-                department.is_active ? 'text-blue-600' : 'text-gray-400'
+          <div className="flex flex-1 items-center gap-3 min-w-0">
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${
+                department.is_active ? 'bg-emerald-500' : 'bg-slate-400'
               }`}
+              aria-hidden="true"
             />
-          </div>
-
-          {/* Department Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h4
-                className={`font-medium truncate ${
-                  department.is_active ? 'text-gray-900' : 'text-gray-500'
+            <div className="min-w-0">
+              <p
+                className={`truncate text-sm font-medium ${
+                  department.is_active ? 'text-slate-900' : 'text-slate-500'
                 }`}
               >
                 {department.name}
-              </h4>
-              {!department.is_active && (
-                <Badge variant="secondary" className="text-xs">
-                  Inactive
-                </Badge>
-              )}
-              {department.manager_name && (
-                <Badge variant="outline" className="text-xs">
-                  Manager: {department.manager_name}
-                </Badge>
+              </p>
+              {department.description && (
+                <p className="truncate text-xs text-slate-500">
+                  {department.description}
+                </p>
               )}
             </div>
-            {department.description && (
-              <p className="text-sm text-gray-600 truncate mt-1">
-                {department.description}
-              </p>
+          </div>
+
+          <div className="ml-auto flex items-center gap-3 text-xs text-slate-500">
+            <span className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5" />
+              <span>{department.user_count || 0}</span>
+            </span>
+            {department.manager_name && (
+              <span className="hidden sm:flex items-center gap-1 max-w-[140px] truncate">
+                <Target className="h-3.5 w-3.5" />
+                <span className="truncate">{department.manager_name}</span>
+              </span>
             )}
           </div>
 
-          {/* User Count */}
-          <div className="flex items-center gap-1 text-sm text-gray-500">
-            <Users className="h-4 w-4" />
-            <span>{department.user_count || 0}</span>
-          </div>
-
-          {/* Actions */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 cursor-pointer"
+                className="h-7 w-7 p-0 text-slate-500 opacity-0 transition-opacity hover:text-blue-600 focus:opacity-100 group-hover:opacity-100"
+                aria-label={`Actions for ${department.name}`}
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => openEditDialog(department)}>
-                <Edit className="h-4 w-4 mr-2" />
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem
+                onClick={() => openEditDialog(department)}
+                className="cursor-pointer"
+              >
+                <Edit className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Assign Users
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Copy className="h-4 w-4 mr-2" />
-                Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Move className="h-4 w-4 mr-2" />
-                Move
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => openDeleteDialog(department)}
-                className="text-red-600"
+                className="cursor-pointer text-red-600 focus:text-red-600"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
-        {/* Children */}
         {hasChildren && isExpanded && (
-          <div className="mt-1">
+          <div className="mt-1 space-y-1">
             {department.children!.map((child) =>
               renderDepartmentTree(child, level + 1)
             )}
@@ -893,90 +1274,63 @@ export default function ModernDepartmentManagement() {
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Building className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold">{stats.active}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Clock className="h-5 w-5 text-gray-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Inactive</p>
-                <p className="text-2xl font-bold">{stats.inactive}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Users className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Employees</p>
-                <p className="text-2xl font-bold">{stats.totalUsers}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <BarChart3 className="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Max Level</p>
-                <p className="text-2xl font-bold">{stats.maxLevel}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <Target className="h-5 w-5 text-indigo-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Managed</p>
-                <p className="text-2xl font-bold">{stats.withManagers}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card
+              key={card.key}
+              className="relative overflow-hidden border border-slate-200/60 bg-white/95 backdrop-blur transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <div
+                className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${card.accent}`}
+              />
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-2xl ${card.iconBg}`}
+                  >
+                    <Icon className={`h-4 w-4 ${card.iconColor}`} />
+                  </div>
+                  {card.badge && (
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${card.badgeClass}`}
+                    >
+                      {card.badge}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  {card.label}
+                </p>
+                <div className="mt-1.5 flex items-baseline gap-2">
+                  <span className="text-2xl font-semibold text-slate-900">
+                    {formatNumber(card.value)}
+                  </span>
+                </div>
+                {card.description && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    {card.description}
+                  </p>
+                )}
+                {card.progress !== null && card.progressLabel && (
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-slate-400">
+                      <span>{card.progressLabel}</span>
+                      <span>{card.progress}%</span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-200/70">
+                      <div
+                        className={`h-full rounded-full ${card.progressColor}`}
+                        style={{ width: `${Math.min(card.progress, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Main Content Card */}

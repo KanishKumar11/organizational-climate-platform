@@ -576,6 +576,21 @@ small {
   }
 }
 
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
 /* Utility classes */
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
@@ -599,6 +614,18 @@ small {
 
 .animate-scale-in {
   animation: scaleIn 0.2s ease-out;
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 
 /* Focus management */
@@ -817,4 +844,16 @@ small {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom Sonner toast styles */
+.toaster {
+  --gray1: var(--muted-foreground);
+  --gray2: var(--muted-foreground);
+  --gray3: var(--muted-foreground);
+  --gray4: var(--muted-foreground);
+}
+
+.toaster [data-sonner-toast] [data-description] {
+  color: hsl(var(--muted-foreground)) !important;
 }

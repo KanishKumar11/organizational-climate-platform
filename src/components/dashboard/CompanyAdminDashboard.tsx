@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -138,6 +139,7 @@ interface SearchResult {
 
 export default function CompanyAdminDashboard() {
   const { user } = useAuth();
+  const router = useRouter();
   const [dashboardData, setDashboardData] = useState<{
     companyKPIs: CompanyKPIs;
     departmentAnalytics: DepartmentAnalytic[];
@@ -287,65 +289,76 @@ export default function CompanyAdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Modern Header */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <Building2 className="h-8 w-8 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Company Dashboard
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Organization-wide insights and management
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span>
-                  {dashboardData?.companyKPIs?.totalEmployees || 0} Employees
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                <span>
-                  {dashboardData?.companyKPIs?.activeSurveys || 0} Active
-                  Surveys
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span>
-                  {dashboardData?.companyKPIs?.departmentCount || 0} Departments
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                placeholder="Search surveys, employees, departments..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 w-full sm:w-80 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white"
-              />
-              {isSearching && (
-                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                  <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 lg:p-12">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+        <div className="relative">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl shadow-lg">
+                  <Building2 className="h-8 w-8 text-white" />
                 </div>
-              )}
+                <div>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                    Company Dashboard
+                  </h1>
+                  <p className="text-lg text-gray-600">
+                    Organization-wide insights and management
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-blue-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData?.companyKPIs?.totalEmployees || 0} Employees
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-green-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData?.companyKPIs?.activeSurveys || 0} Active
+                    Surveys
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-purple-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData?.companyKPIs?.departmentCount || 0}{' '}
+                    Departments
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-orange-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData?.companyKPIs?.completionRate || 0}%
+                    Completion
+                  </span>
+                </div>
+              </div>
             </div>
-            <Button className="bg-blue-600 hover:bg-blue-700 h-12 px-4 sm:px-6 w-full md:w-auto">
-              <Plus className="h-5 w-5 mr-2" />
-              Create Survey
-            </Button>
+
+            <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  placeholder="Search surveys, employees, departments..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 h-12 w-full sm:w-80 text-base border-0 bg-white/80 backdrop-blur shadow-sm focus:shadow-md transition-shadow"
+                />
+                {isSearching && (
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+                  </div>
+                )}
+              </div>
+              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 h-12 px-6 w-full md:w-auto">
+                <Plus className="h-5 w-5 mr-2" />
+                Create Survey
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -355,26 +368,42 @@ export default function CompanyAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg border p-4 shadow-sm"
+          className="bg-white/80 backdrop-blur rounded-2xl border-0 shadow-sm p-6"
         >
-          <h3 className="font-semibold mb-3">
-            Search Results ({searchResults.total})
-          </h3>
-          <div className="space-y-3">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-900">
+              Search Results ({searchResults.total})
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchResults(null)}
+              className="text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg"
+            >
+              ×
+            </Button>
+          </div>
+          <div className="space-y-4 max-h-96 overflow-y-auto dashboard-scroll">
             {searchResults.surveys?.map((survey) => (
               <div
                 key={survey._id}
-                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
+                className="flex items-center justify-between p-4 hover:bg-gray-50/50 rounded-xl border border-gray-100/50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <FileText className="h-4 w-4 text-blue-500" />
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm">
+                    <FileText className="h-4 w-4 text-white" />
+                  </div>
                   <div>
-                    <p className="font-medium">{survey.title}</p>
+                    <p className="font-medium text-gray-900">{survey.title}</p>
                     <p className="text-sm text-gray-500">{survey.type}</p>
                   </div>
                 </div>
                 <Badge
-                  variant={survey.status === 'active' ? 'default' : 'secondary'}
+                  className={`${
+                    survey.status === 'active'
+                      ? 'bg-green-50 text-green-600 border-green-200'
+                      : 'bg-gray-50 text-gray-600 border-gray-200'
+                  }`}
                 >
                   {survey.status}
                 </Badge>
@@ -383,33 +412,51 @@ export default function CompanyAdminDashboard() {
             {searchResults.departments?.map((department) => (
               <div
                 key={department._id}
-                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
+                className="flex items-center justify-between p-4 hover:bg-gray-50/50 rounded-xl border border-gray-100/50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <Building2 className="h-4 w-4 text-purple-500" />
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-sm">
+                    <Building2 className="h-4 w-4 text-white" />
+                  </div>
                   <div>
-                    <p className="font-medium">{department.name}</p>
+                    <p className="font-medium text-gray-900">
+                      {department.name}
+                    </p>
                     <p className="text-sm text-gray-500">
                       {department.employee_count} employees
                     </p>
                   </div>
                 </div>
+                <Badge className="bg-purple-50 text-purple-600 border-purple-200">
+                  Department
+                </Badge>
               </div>
             ))}
             {searchResults.users?.map((user) => (
               <div
                 key={user._id}
-                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
+                className="flex items-center justify-between p-4 hover:bg-gray-50/50 rounded-xl border border-gray-100/50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <Users className="h-4 w-4 text-green-500" />
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-sm">
+                    <Users className="h-4 w-4 text-white" />
+                  </div>
                   <div>
-                    <p className="font-medium">{user.name}</p>
+                    <p className="font-medium text-gray-900">{user.name}</p>
                     <p className="text-sm text-gray-500">
                       {user.department_id?.name} • {user.role}
                     </p>
                   </div>
                 </div>
+                <Badge
+                  className={`${
+                    user.role === 'company_admin'
+                      ? 'bg-orange-50 text-orange-600 border-orange-200'
+                      : 'bg-blue-50 text-blue-600 border-blue-200'
+                  }`}
+                >
+                  {user.role}
+                </Badge>
               </div>
             ))}
           </div>
@@ -418,87 +465,218 @@ export default function CompanyAdminDashboard() {
 
       {/* Enhanced Company KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100">
+        <Card className="border-0 shadow-sm bg-white/50 backdrop-blur">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-700">
-                  Total Employees
-                </p>
-                <p className="text-4xl font-bold text-blue-900">
-                  {dashboardData.companyKPIs.totalEmployees}
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
+            <div className="flex items-start justify-between mb-4">
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg w-fit">
+                  <Users className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Employees
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {dashboardData.companyKPIs.totalEmployees}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <Badge className="bg-blue-50 text-blue-600 border-blue-200 mb-2">
                   {dashboardData.companyKPIs.activeEmployees} active
-                </p>
+                </Badge>
+                <p className="text-xs text-gray-500">Active employees</p>
               </div>
-              <div className="p-3 bg-blue-200 rounded-full">
-                <Users className="h-6 w-6 text-blue-700" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Active Rate</span>
+                <span className="font-medium">
+                  {dashboardData.companyKPIs.totalEmployees > 0
+                    ? Math.round(
+                        (dashboardData.companyKPIs.activeEmployees /
+                          dashboardData.companyKPIs.totalEmployees) *
+                          100
+                      )
+                    : 0}
+                  %
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full"
+                  style={{
+                    width: `${
+                      dashboardData.companyKPIs.totalEmployees > 0
+                        ? Math.min(
+                            (dashboardData.companyKPIs.activeEmployees /
+                              dashboardData.companyKPIs.totalEmployees) *
+                              100,
+                            100
+                          )
+                        : 0
+                    }%`,
+                  }}
+                ></div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-green-100">
+        <Card className="border-0 shadow-sm bg-white/50 backdrop-blur">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-700">
-                  Total Surveys
-                </p>
-                <p className="text-4xl font-bold text-green-900">
-                  {dashboardData.companyKPIs.totalSurveys}
-                </p>
-                <p className="text-xs text-green-600 mt-1">
+            <div className="flex items-start justify-between mb-4">
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg w-fit">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Surveys
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {dashboardData.companyKPIs.totalSurveys}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <Badge className="bg-green-50 text-green-600 border-green-200 mb-2">
                   {dashboardData.companyKPIs.activeSurveys} active
-                </p>
+                </Badge>
+                <p className="text-xs text-gray-500">Currently running</p>
               </div>
-              <div className="p-3 bg-green-200 rounded-full">
-                <FileText className="h-6 w-6 text-green-700" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Active Rate</span>
+                <span className="font-medium">
+                  {dashboardData.companyKPIs.totalSurveys > 0
+                    ? Math.round(
+                        (dashboardData.companyKPIs.activeSurveys /
+                          dashboardData.companyKPIs.totalSurveys) *
+                          100
+                      )
+                    : 0}
+                  %
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full"
+                  style={{
+                    width: `${
+                      dashboardData.companyKPIs.totalSurveys > 0
+                        ? Math.min(
+                            (dashboardData.companyKPIs.activeSurveys /
+                              dashboardData.companyKPIs.totalSurveys) *
+                              100,
+                            100
+                          )
+                        : 0
+                    }%`,
+                  }}
+                ></div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100">
+        <Card className="border-0 shadow-sm bg-white/50 backdrop-blur">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-700">
-                  Completion Rate
-                </p>
-                <p className="text-4xl font-bold text-purple-900">
-                  {dashboardData.companyKPIs.completionRate}%
-                </p>
-                <p className="text-xs text-purple-600 mt-1">
+            <div className="flex items-start justify-between mb-4">
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg w-fit">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Completion Rate
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {dashboardData.companyKPIs.completionRate}%
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <Badge className="bg-purple-50 text-purple-600 border-purple-200 mb-2">
                   {dashboardData.companyKPIs.totalResponses} responses
-                </p>
+                </Badge>
+                <p className="text-xs text-gray-500">Total responses</p>
               </div>
-              <div className="p-3 bg-purple-200 rounded-full">
-                <TrendingUp className="h-6 w-6 text-purple-700" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Completion</span>
+                <span className="font-medium">
+                  {dashboardData.companyKPIs.completionRate}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full"
+                  style={{
+                    width: `${Math.min(dashboardData.companyKPIs.completionRate, 100)}%`,
+                  }}
+                ></div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-50 to-orange-100">
+        <Card className="border-0 shadow-sm bg-white/50 backdrop-blur">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-700">
-                  Departments
-                </p>
-                <p className="text-4xl font-bold text-orange-900">
-                  {dashboardData.companyKPIs.departmentCount}
-                </p>
-                <p className="text-xs text-orange-600 mt-1">
-                  {dashboardData.companyKPIs.engagementTrend > 0 ? '+' : ''}
-                  {dashboardData.companyKPIs.engagementTrend.toFixed(1)}%
-                  engagement
-                </p>
+            <div className="flex items-start justify-between mb-4">
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg w-fit">
+                  <Building2 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Departments
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {dashboardData.companyKPIs.departmentCount}
+                  </p>
+                </div>
               </div>
-              <div className="p-3 bg-orange-200 rounded-full">
-                <Building2 className="h-6 w-6 text-orange-700" />
+              <div className="text-right">
+                <Badge className="bg-orange-50 text-orange-600 border-orange-200 mb-2">
+                  {dashboardData.companyKPIs.engagementTrend > 0 ? '+' : ''}
+                  {dashboardData.companyKPIs.engagementTrend.toFixed(1)}% trend
+                </Badge>
+                <p className="text-xs text-gray-500">Engagement trend</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Coverage</span>
+                <span className="font-medium">
+                  {dashboardData.companyKPIs.totalEmployees > 0
+                    ? Math.round(
+                        (dashboardData.companyKPIs.departmentCount /
+                          dashboardData.companyKPIs.totalEmployees) *
+                          100
+                      )
+                    : 0}
+                  % per dept
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-full"
+                  style={{
+                    width: `${
+                      dashboardData.companyKPIs.totalEmployees > 0
+                        ? Math.min(
+                            (dashboardData.companyKPIs.departmentCount /
+                              dashboardData.companyKPIs.totalEmployees) *
+                              100,
+                            100
+                          )
+                        : 0
+                    }%`,
+                  }}
+                ></div>
               </div>
             </div>
           </CardContent>
@@ -545,13 +723,15 @@ export default function CompanyAdminDashboard() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
+        <TabsContent value="overview" className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Enhanced Recent Activity */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Activity className="h-5 w-5 text-blue-600" />
+                  </div>
                   Recent Activity
                 </CardTitle>
               </CardHeader>
@@ -563,19 +743,26 @@ export default function CompanyAdminDashboard() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50"
+                      className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors"
                     >
-                      {getActivityIcon(activity.type)}
+                      <div className="p-2 bg-gray-100 rounded-lg">
+                        {getActivityIcon(activity.type)}
+                      </div>
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{activity.title}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="font-semibold text-gray-900 mb-1">
+                          {activity.title}
+                        </p>
+                        <p className="text-sm text-gray-600 mb-2">
                           {activity.description}
                         </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-400">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs sm:text-sm text-gray-500">
                             {new Date(activity.timestamp).toLocaleDateString()}
                           </span>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge
+                            variant="outline"
+                            className="text-xs sm:text-sm bg-blue-50 text-blue-700 border-blue-200"
+                          >
                             {activity.category}
                           </Badge>
                         </div>
@@ -586,74 +773,322 @@ export default function CompanyAdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+            {/* Enhanced Quick Actions */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Target className="h-5 w-5 text-green-600" />
+                  </div>
+                  Quick Actions
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Button className="w-full justify-start" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create New Survey
+              <CardContent className="space-y-4">
+                <Button
+                  className="w-full justify-start h-auto p-4"
+                  variant="outline"
+                  onClick={() => router.push('/surveys/create')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Plus className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Create New Survey</div>
+                      <div className="text-sm text-gray-500">
+                        Launch organization-wide survey
+                      </div>
+                    </div>
+                  </div>
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <UserCheck className="h-4 w-4 mr-2" />
-                  Manage Invitations
+                <Button
+                  className="w-full justify-start h-auto p-4"
+                  variant="outline"
+                  onClick={() => router.push('/users')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <UserCheck className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Manage Invitations</div>
+                      <div className="text-sm text-gray-500">
+                        Send survey invitations
+                      </div>
+                    </div>
+                  </div>
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Generate Report
+                <Button
+                  className="w-full justify-start h-auto p-4"
+                  variant="outline"
+                  onClick={() => router.push('/reports')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <BarChart3 className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Generate Report</div>
+                      <div className="text-sm text-gray-500">
+                        Analytics and insights
+                      </div>
+                    </div>
+                  </div>
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <GitBranch className="h-4 w-4 mr-2" />
-                  Update Demographics
+                <Button
+                  className="w-full justify-start h-auto p-4"
+                  variant="outline"
+                  onClick={() => router.push('/departments')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <GitBranch className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Update Demographics</div>
+                      <div className="text-sm text-gray-500">
+                        Department structure
+                      </div>
+                    </div>
+                  </div>
                 </Button>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="surveys" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="surveys" className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Ongoing Surveys */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Current Ongoing Surveys</CardTitle>
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                  </div>
+                  Current Ongoing Surveys
+                </CardTitle>
               </CardHeader>
-              <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+              <CardContent className="max-h-64 md:max-h-84 overflow-y-auto scroll-smooth dashboard-scroll">
                 <div className="space-y-4 pr-2">
-                  {dashboardData.ongoingSurveys.map((survey, index) => (
+                  {dashboardData.ongoingSurveys.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                        <FileText className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        No Ongoing Surveys
+                      </h3>
+                      <p className="text-gray-500 mb-6 max-w-sm">
+                        Start gathering valuable insights by creating your first
+                        survey for your organization.
+                      </p>
+                      <Button
+                        onClick={() => router.push('/surveys/create')}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create First Survey
+                      </Button>
+                    </div>
+                  ) : (
+                    dashboardData.ongoingSurveys.map((survey, index) => (
+                      <motion.div
+                        key={survey._id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <FileText className="h-5 w-5 text-green-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">{survey.title}</h4>
+                            <p className="text-sm text-gray-500">
+                              {survey.type}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              Created by {survey.created_by.name}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm">
+                          <div className="text-center">
+                            <p className="font-semibold">
+                              {survey.response_count || 0}
+                            </p>
+                            <p className="text-gray-500">Responses</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-semibold">
+                              {new Date(survey.end_date).toLocaleDateString()}
+                            </p>
+                            <p className="text-gray-500">Ends</p>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Past Surveys */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <BarChart3 className="h-5 w-5 text-green-600" />
+                  </div>
+                  Past Survey Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="max-h-64 md:max-h-84 overflow-y-auto scroll-smooth dashboard-scroll">
+                <div className="space-y-4 pr-2">
+                  {dashboardData.pastSurveys.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                        <BarChart3 className="h-8 w-8 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        No Past Surveys
+                      </h3>
+                      <p className="text-gray-500 mb-6 max-w-sm">
+                        Once you complete surveys, you'll see detailed results
+                        and analytics here.
+                      </p>
+                      <Button
+                        onClick={() => router.push('/surveys')}
+                        variant="outline"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View All Surveys
+                      </Button>
+                    </div>
+                  ) : (
+                    dashboardData.pastSurveys.map((survey, index) => (
+                      <motion.div
+                        key={survey._id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <FileText className="h-5 w-5 text-gray-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">{survey.title}</h4>
+                            <p className="text-sm text-gray-500">
+                              {survey.type}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              Ended{' '}
+                              {new Date(survey.end_date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm">
+                          <div className="text-center">
+                            <p className="font-semibold">
+                              {survey.response_count || 0}
+                            </p>
+                            <p className="text-gray-500">Responses</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-semibold">
+                              {survey.completion_rate?.toFixed(1) || 0}%
+                            </p>
+                            <p className="text-gray-500">Complete</p>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-1" />
+                            Results
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="departments" className="space-y-8">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Building2 className="h-5 w-5 text-purple-600" />
+                </div>
+                Department Analytics
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="max-h-64 md:max-h-84 overflow-y-auto scroll-smooth dashboard-scroll">
+              <div className="space-y-4 pr-2">
+                {dashboardData.departmentAnalytics.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                      <Building2 className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No Departments Yet
+                    </h3>
+                    <p className="text-gray-500 mb-6 max-w-sm">
+                      Organize your company by creating departments to better
+                      track engagement and survey results.
+                    </p>
+                    <Button
+                      onClick={() => router.push('/departments')}
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Department
+                    </Button>
+                  </div>
+                ) : (
+                  dashboardData.departmentAnalytics.map((dept, index) => (
                     <motion.div
-                      key={survey._id}
+                      key={dept._id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <FileText className="h-5 w-5 text-green-600" />
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Building2 className="h-5 w-5 text-blue-600" />
                         </div>
                         <div>
-                          <h4 className="font-semibold">{survey.title}</h4>
-                          <p className="text-sm text-gray-500">{survey.type}</p>
-                          <p className="text-xs text-gray-400">
-                            Created by {survey.created_by.name}
+                          <h4 className="font-semibold">{dept.name}</h4>
+                          <p className="text-sm text-gray-500">
+                            {dept.active_employees} of {dept.employee_count}{' '}
+                            active
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-6 text-sm">
                         <div className="text-center">
-                          <p className="font-semibold">
-                            {survey.response_count || 0}
-                          </p>
-                          <p className="text-gray-500">Responses</p>
+                          <p className="font-semibold">{dept.survey_count}</p>
+                          <p className="text-gray-500">Surveys</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="font-semibold">{dept.active_surveys}</p>
+                          <p className="text-gray-500">Active</p>
                         </div>
                         <div className="text-center">
                           <p className="font-semibold">
-                            {new Date(survey.end_date).toLocaleDateString()}
+                            {dept.engagement_score.toFixed(1)}
                           </p>
-                          <p className="text-gray-500">Ends</p>
+                          <p className="text-gray-500">Engagement</p>
                         </div>
                         <Button variant="outline" size="sm">
                           <Eye className="h-4 w-4 mr-1" />
@@ -661,128 +1096,24 @@ export default function CompanyAdminDashboard() {
                         </Button>
                       </div>
                     </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Past Surveys */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Past Survey Details</CardTitle>
-              </CardHeader>
-              <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
-                <div className="space-y-4 pr-2">
-                  {dashboardData.pastSurveys.map((survey, index) => (
-                    <motion.div
-                      key={survey._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <FileText className="h-5 w-5 text-gray-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold">{survey.title}</h4>
-                          <p className="text-sm text-gray-500">{survey.type}</p>
-                          <p className="text-xs text-gray-400">
-                            Ended{' '}
-                            {new Date(survey.end_date).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="text-center">
-                          <p className="font-semibold">
-                            {survey.response_count || 0}
-                          </p>
-                          <p className="text-gray-500">Responses</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold">
-                            {survey.completion_rate?.toFixed(1) || 0}%
-                          </p>
-                          <p className="text-gray-500">Complete</p>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-1" />
-                          Results
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="departments" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Department Analytics</CardTitle>
-            </CardHeader>
-            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
-              <div className="space-y-4 pr-2">
-                {dashboardData.departmentAnalytics.map((dept, index) => (
-                  <motion.div
-                    key={dept._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Building2 className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">{dept.name}</h4>
-                        <p className="text-sm text-gray-500">
-                          {dept.active_employees} of {dept.employee_count}{' '}
-                          active
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-6 text-sm">
-                      <div className="text-center">
-                        <p className="font-semibold">{dept.survey_count}</p>
-                        <p className="text-gray-500">Surveys</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="font-semibold">{dept.active_surveys}</p>
-                        <p className="text-gray-500">Active</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="font-semibold">
-                          {dept.engagement_score.toFixed(1)}
-                        </p>
-                        <p className="text-gray-500">Engagement</p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                    </div>
-                  </motion.div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="insights" className="space-y-6">
-          <Card>
-            <CardHeader>
+        <TabsContent value="insights" className="space-y-8">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5" />
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <Brain className="h-5 w-5 text-orange-600" />
+                </div>
                 AI Insights & Recommendations
               </CardTitle>
             </CardHeader>
-            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+            <CardContent className="max-h-64 md:max-h-84 overflow-y-auto scroll-smooth dashboard-scroll">
               <div className="space-y-4 pr-2">
                 {dashboardData.aiInsights.map((insight, index) => (
                   <motion.div
@@ -848,15 +1179,17 @@ export default function CompanyAdminDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="demographics" className="space-y-6">
-          <Card>
-            <CardHeader>
+        <TabsContent value="demographics" className="space-y-8">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
-                <GitBranch className="h-5 w-5" />
+                <div className="p-2 bg-indigo-100 rounded-lg">
+                  <GitBranch className="h-5 w-5 text-indigo-600" />
+                </div>
                 Demographic Versioning
               </CardTitle>
             </CardHeader>
-            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+            <CardContent className="max-h-64 md:max-h-84 overflow-y-auto scroll-smooth dashboard-scroll">
               <div className="space-y-4 pr-2">
                 {dashboardData.demographicVersions.map((version, index) => (
                   <motion.div

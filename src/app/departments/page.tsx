@@ -1,16 +1,14 @@
 'use client';
 
+import { useMemo, useState } from 'react';
+
 import { useAuth } from '@/hooks/useAuth';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import ModernDepartmentManagement from '@/components/admin/ModernDepartmentManagement';
+import ModernDepartmentManagement, {
+  type DepartmentStats,
+} from '@/components/admin/ModernDepartmentManagement';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  AlertCircle,
-  Building2,
-  Users,
-  TrendingUp,
-  Settings,
-} from 'lucide-react';
+import { AlertCircle, Building2, Users, Settings } from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,6 +19,65 @@ import {
 } from '@/components/ui/breadcrumb';
 
 export default function DepartmentsPage() {
+  const [departmentStats, setDepartmentStats] =
+    useState<DepartmentStats | null>(null);
+  const numberFormatter = useMemo(() => new Intl.NumberFormat('en-US'), []);
+  const formatValue = (value: number | null | undefined) =>
+    value === null || value === undefined
+      ? '--'
+      : numberFormatter.format(value);
+  const activePercent =
+    departmentStats && departmentStats.total > 0
+      ? Math.round((departmentStats.active / departmentStats.total) * 100)
+      : null;
+  const managedPercent =
+    departmentStats && departmentStats.total > 0
+      ? Math.round((departmentStats.withManagers / departmentStats.total) * 100)
+      : null;
+  const averageTeamSize =
+    departmentStats && departmentStats.total > 0
+      ? Math.round(departmentStats.totalUsers / departmentStats.total)
+      : null;
+
+  const headerCards = [
+    {
+      key: 'structure',
+      label: 'Structure Overview',
+      value: formatValue(departmentStats?.total),
+      icon: Building2,
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      subtitle:
+        departmentStats && activePercent !== null
+          ? `${formatValue(departmentStats.active)} active (${activePercent}%) · ${formatValue(departmentStats.inactive)} inactive`
+          : departmentStats
+            ? `${formatValue(departmentStats.active)} active · ${formatValue(departmentStats.inactive)} inactive`
+            : 'Syncing data…',
+      footer:
+        departmentStats && departmentStats.maxLevel !== undefined
+          ? `Max depth: ${formatValue(departmentStats.maxLevel)}`
+          : null,
+    },
+    {
+      key: 'workforce',
+      label: 'People & Coverage',
+      value: formatValue(departmentStats?.totalUsers),
+      icon: Users,
+      iconBg: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      subtitle:
+        departmentStats && averageTeamSize !== null
+          ? `Avg ${formatValue(averageTeamSize)} per department`
+          : 'No assignments yet',
+      footer:
+        managedPercent !== null
+          ? `${managedPercent}% managed (${formatValue(
+              departmentStats?.withManagers
+            )} teams)`
+          : 'Assign managers to departments',
+    },
+  ];
+
   const { user, isLoading, canManageUsers, isSuperAdmin, isCompanyAdmin } =
     useAuth();
 
@@ -80,8 +137,9 @@ export default function DepartmentsPage() {
                 Access Restricted
               </h3>
               <p className="text-muted-foreground mb-6">
-                You don't have the necessary permissions to manage departments.
-                Contact your system administrator to request access.
+                You don&rsquo;t have the necessary permissions to manage
+                departments. Contact your system administrator to request
+                access.
               </p>
               <div className="bg-muted p-4 rounded-lg text-left">
                 <h4 className="font-medium text-sm mb-2">
@@ -165,35 +223,45 @@ export default function DepartmentsPage() {
               </div>
 
               {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-4 lg:gap-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20">
-                  <div className="p-2 bg-green-100 rounded-lg w-fit mx-auto mb-2">
-                    <Building2 className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900">--</div>
-                  <div className="text-xs text-gray-600">Departments</div>
-                </div>
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20">
-                  <div className="p-2 bg-blue-100 rounded-lg w-fit mx-auto mb-2">
-                    <Users className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900">--</div>
-                  <div className="text-xs text-gray-600">Employees</div>
-                </div>
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20">
-                  <div className="p-2 bg-purple-100 rounded-lg w-fit mx-auto mb-2">
-                    <TrendingUp className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900">--</div>
-                  <div className="text-xs text-gray-600">Levels</div>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                {headerCards.map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div
+                      key={card.key}
+                      className="rounded-2xl border border-white/30 bg-white/90 p-4 text-left shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`rounded-xl p-2 ${card.iconBg}`}>
+                          <Icon className={`h-5 w-5 ${card.iconColor}`} />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-slate-500">
+                            {card.label}
+                          </div>
+                          <div className="text-2xl font-semibold text-slate-900">
+                            {card.value}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs text-slate-500">
+                        {card.subtitle}
+                      </div>
+                      {card.footer && (
+                        <div className="mt-1 text-[11px] uppercase tracking-wide text-slate-400">
+                          {card.footer}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
         </div>
 
         {/* Main Department Management Component */}
-        <ModernDepartmentManagement />
+        <ModernDepartmentManagement onStatsChange={setDepartmentStats} />
 
         {/* Help & Guidelines Section */}
         <Card className="bg-gradient-to-r from-slate-50 to-gray-50 border-slate-200">

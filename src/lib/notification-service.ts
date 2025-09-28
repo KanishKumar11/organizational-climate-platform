@@ -396,9 +396,17 @@ class NotificationService {
       Notification as any
     ).findPendingNotifications(limit);
 
+    console.log(
+      `Found ${pendingNotifications.length} pending notifications to process`
+    );
+
     for (const notification of pendingNotifications) {
       try {
-        await this.sendNotification(notification);
+        console.log(
+          `Processing notification ${notification._id} of type ${notification.type} for channel ${notification.channel}`
+        );
+        await this.processNotification(notification);
+        console.log(`Successfully processed notification ${notification._id}`);
       } catch (error) {
         console.error('Failed to send notification:', notification._id, error);
         notification.markFailed(
@@ -407,15 +415,21 @@ class NotificationService {
         await notification.save();
       }
     }
+
+    console.log(`Processed ${pendingNotifications.length} notifications`);
   }
 
   // Send email notification
   private async sendEmailNotification(
     notification: INotification
   ): Promise<void> {
-    const user = await (User as any).findById(notification.user_id);
-    if (!user) {
-      throw new Error('User not found');
+    // For user invitations, we don't need a user record
+    let user = null;
+    if (notification.type !== 'user_invitation') {
+      user = await (User as any).findById(notification.user_id);
+      if (!user) {
+        throw new Error('User not found');
+      }
     }
 
     // Use existing email service
@@ -457,7 +471,7 @@ class NotificationService {
       case 'microclimate_invitation':
         const microclimateEmailData = {
           microclimate: notification.data.microclimate || {},
-          recipient: user,
+          recipient: user!,
           invitationLink: String(notification.data.link || ''),
           companyName: String(
             notification.data.companyName || 'Your Organization'
@@ -476,9 +490,7 @@ class NotificationService {
       case 'user_invitation':
         // Handle user invitation emails
         const userInvitationEmailData = {
-          recipient_email: String(
-            notification.data?.recipient_email || user.email
-          ),
+          recipient_email: String(notification.data?.recipient_email || ''),
           company_name: String(
             notification.data?.company_name || 'Your Company'
           ),
@@ -506,7 +518,7 @@ class NotificationService {
       default:
         // For other types, send generic email
         console.log('Sending email notification:', {
-          to: user.email,
+          to: user?.email || 'unknown',
           subject: notification.title,
           content: notification.message,
         });
@@ -853,6 +865,34 @@ class NotificationService {
         );
     }
 
+    notification.markSent();
+    await notification.save();
+  }
+
+  // Process a single notification
+  private async processNotification(
+    notification: INotification
+  ): Promise<void> {
+    switch (notification.channel) {
+      case 'email':
+        await this.sendEmailNotification(notification);
+        break;
+      case 'in_app':
+        await this.sendInAppNotification(notification);
+        break;
+      case 'push':
+        await this.sendPushNotification(notification);
+        break;
+      case 'sms':
+        await this.sendSMSNotification(notification);
+        break;
+      default:
+        throw new Error(
+          `Unsupported notification channel: ${notification.channel}`
+        );
+    }
+
+    // Mark as sent
     notification.markSent();
     await notification.save();
   }

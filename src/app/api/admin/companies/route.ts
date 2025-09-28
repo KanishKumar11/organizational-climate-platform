@@ -3,6 +3,7 @@ import { withAuth } from '../../../../lib/api-middleware';
 import Company from '../../../../models/Company';
 import AuditLog from '../../../../models/AuditLog';
 import { createApiResponse } from '../../../../lib/api-middleware';
+import { userInvitationService } from '../../../../lib/user-invitation-service';
 
 // GET /api/admin/companies - List all companies
 export const GET = withAuth(async (req) => {
@@ -92,7 +93,17 @@ export const POST = withAuth(async (req) => {
     const body = await req.json();
     console.log('Received company creation request:', body);
 
-    const { name, domain, industry, size, country, subscription_tier } = body;
+    const {
+      name,
+      domain,
+      industry,
+      size,
+      country,
+      subscription_tier,
+      send_invitation,
+      admin_email,
+      admin_message,
+    } = body;
 
     // Validate required fields
     if (!name || !domain || !industry || !size || !country) {
@@ -198,6 +209,7 @@ export const POST = withAuth(async (req) => {
         action: 'create',
         resource: 'company',
         resource_id: company._id.toString(),
+        success: true,
         details: {
           company_name: company.name,
           domain: company.domain,
@@ -208,6 +220,26 @@ export const POST = withAuth(async (req) => {
     } catch (auditError) {
       console.error('Failed to create audit log (non-critical):', auditError);
       // Don't fail the request if audit logging fails
+    }
+
+    // Send invitation if requested
+    if (send_invitation && admin_email) {
+      try {
+        console.log('Sending invitation to:', admin_email);
+        await userInvitationService.inviteCompanyAdmin({
+          email: admin_email,
+          company_id: company._id.toString(),
+          invited_by: user.id,
+          custom_message: admin_message || '',
+        });
+        console.log('Invitation sent successfully to:', admin_email);
+      } catch (invitationError) {
+        console.error(
+          'Failed to send invitation (non-critical):',
+          invitationError
+        );
+        // Don't fail the company creation if invitation fails
+      }
     }
 
     return NextResponse.json(

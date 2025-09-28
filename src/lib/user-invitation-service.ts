@@ -7,6 +7,7 @@ import User, { IUser } from '@/models/User';
 import Company, { ICompany } from '@/models/Company';
 import Department, { IDepartment } from '@/models/Department';
 import { notificationService } from './notification-service';
+import { emailService } from './email';
 import { connectDB } from './mongodb';
 import { UserRole } from '@/types/user';
 import { v4 as uuidv4 } from 'uuid';
@@ -45,7 +46,9 @@ export interface ShareableRegistrationLinkData {
 
 export class UserInvitationService {
   // Send company admin setup invitation
-  async inviteCompanyAdmin(data: CompanyAdminInvitationData): Promise<IUserInvitation> {
+  async inviteCompanyAdmin(
+    data: CompanyAdminInvitationData
+  ): Promise<IUserInvitation> {
     await connectDB();
 
     const company = await Company.findById(data.company_id);
@@ -59,7 +62,9 @@ export class UserInvitationService {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: data.email.toLowerCase() });
+    const existingUser = await User.findOne({
+      email: data.email.toLowerCase(),
+    });
     if (existingUser) {
       throw new Error('User with this email already exists');
     }
@@ -103,7 +108,9 @@ export class UserInvitationService {
   }
 
   // Send employee invitations
-  async inviteEmployees(data: EmployeeInvitationData): Promise<IUserInvitation[]> {
+  async inviteEmployees(
+    data: EmployeeInvitationData
+  ): Promise<IUserInvitation[]> {
     await connectDB();
 
     const company = await Company.findById(data.company_id);
@@ -226,9 +233,58 @@ export class UserInvitationService {
   }
 
   // Send invitation email
-  private async sendInvitationEmail(invitation: IUserInvitation): Promise<void> {
+  private async sendInvitationEmail(
+    invitation: IUserInvitation
+  ): Promise<void> {
     const registrationLink = invitation.generateRegistrationLink();
 
+    // For critical emails like company admin setup, send immediately
+    if (invitation.invitation_type === 'company_admin_setup') {
+      console.log(
+        '📤 Sending critical company admin invitation immediately...'
+      );
+
+      try {
+        const emailData = {
+          recipient_email: invitation.email,
+          company_name: invitation.invitation_data.company_name,
+          inviter_name: invitation.invitation_data.inviter_name,
+          role: invitation.role,
+          registration_link: registrationLink,
+          expires_at: invitation.expires_at,
+          custom_message: invitation.invitation_data.custom_message,
+          setup_required: invitation.invitation_data.setup_required,
+          invitation_type: invitation.invitation_type as
+            | 'company_admin_setup'
+            | 'employee_direct'
+            | 'employee_self_signup',
+        };
+
+        const emailSent = await emailService.sendUserInvitation(emailData);
+
+        if (emailSent) {
+          console.log(
+            '✅ Company admin invitation sent immediately to:',
+            invitation.email
+          );
+          invitation.markSent();
+          await invitation.save();
+          return;
+        } else {
+          console.error(
+            '❌ Failed to send company admin invitation immediately, falling back to queue'
+          );
+        }
+      } catch (error) {
+        console.error(
+          '❌ Error sending company admin invitation immediately:',
+          error
+        );
+      }
+    }
+
+    // Fallback to notification queue for all other invitation types or if immediate sending failed
+    console.log('📋 Queueing invitation email via notification service...');
     await notificationService.createNotification({
       user_id: 'system', // System notification
       company_id: invitation.company_id,
@@ -246,6 +302,7 @@ export class UserInvitationService {
         registration_link: registrationLink,
         expires_at: invitation.expires_at,
         setup_required: invitation.invitation_data.setup_required,
+        recipient_email: invitation.email,
       },
       variables: {
         recipient_email: invitation.email,
@@ -311,7 +368,9 @@ export class UserInvitationService {
   async sendReminders(): Promise<void> {
     await connectDB();
 
-    const pendingInvitations = await (UserInvitation as any).findPendingReminders();
+    const pendingInvitations = await (
+      UserInvitation as any
+    ).findPendingReminders();
 
     for (const invitation of pendingInvitations) {
       if (invitation.canSendReminder()) {
@@ -332,6 +391,28 @@ export class UserInvitationService {
       invitation.markExpired();
       await invitation.save();
     }
+  }
+
+  // Resend an existing invitation
+  async resendInvitation(invitationId: string): Promise<IUserInvitation> {
+    await connectDB();
+
+    const invitation = await UserInvitation.findById(invitationId);
+    if (!invitation) {
+      throw new Error('Invitation not found');
+    }
+
+    // Send the invitation email
+    await this.sendInvitationEmail(invitation);
+
+    // Update invitation status and reminder count
+    invitation.status = 'sent';
+    invitation.sent_at = new Date();
+    invitation.reminder_count = (invitation.reminder_count || 0) + 1;
+    invitation.last_reminder_sent = new Date();
+
+    await invitation.save();
+    return invitation;
   }
 }
 

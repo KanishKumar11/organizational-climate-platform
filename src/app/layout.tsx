@@ -3,6 +3,7 @@ import { Inter, Roboto } from 'next/font/google';
 import './globals.css';
 import SessionProvider from '../components/providers/SessionProvider';
 import { PWAProvider } from '../components/providers/PWAProvider';
+import { QueryProvider } from '../components/providers/QueryProvider';
 import { Toaster } from '../components/ui/sonner';
 
 const inter = Inter({
@@ -41,8 +42,10 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${roboto.variable} font-sans`}>
         <SessionProvider>
-          <PWAProvider>{children}</PWAProvider>
-          <Toaster />
+          <QueryProvider>
+            <PWAProvider>{children}</PWAProvider>
+            <Toaster />
+          </QueryProvider>
         </SessionProvider>
       </body>
     </html>

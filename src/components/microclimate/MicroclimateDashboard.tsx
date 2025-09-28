@@ -36,6 +36,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { formatUTCDateForDisplay, getUserTimezone } from '@/lib/datetime-utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui';
 
 interface Microclimate {
   _id: string;
@@ -90,7 +91,6 @@ export default function MicroclimateDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
-  const [showFilters, setShowFilters] = useState(false);
 
   const fetchMicroclimates = useCallback(async () => {
     try {
@@ -261,135 +261,85 @@ export default function MicroclimateDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Modern Header */}
-      <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-2xl p-8 border border-teal-100">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-          <div className="space-y-4">
+      {/* Modern Gradient Header */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 p-8 text-white shadow-lg">
+        <div className="relative z-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Microclimates</h1>
+              <p className="text-teal-100 text-lg">
+                Manage real-time feedback sessions and pulse surveys
+              </p>
+            </div>
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-teal-100 rounded-xl">
-                <Activity className="h-8 w-8 text-teal-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Microclimates
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Manage real-time feedback sessions and pulse surveys
-                </p>
-              </div>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/microclimates/analytics')}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analytics
+              </Button>
+              <Button
+                onClick={() => router.push('/microclimates/create')}
+                className="bg-white text-teal-600 hover:bg-teal-50 shadow-lg"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Microclimate
+              </Button>
             </div>
-
-            <div className="flex items-center gap-6 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span>
-                  {microclimates.filter((m) => m.status === 'active').length}{' '}
-                  Active
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span>
-                  {microclimates.filter((m) => m.status === 'scheduled').length}{' '}
-                  Scheduled
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                <span>{microclimates.length} Total</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              variant="outline"
-              onClick={() => router.push('/microclimates/analytics')}
-              className="flex items-center gap-2 bg-white h-12 px-6 border-gray-200 hover:bg-gray-50"
-            >
-              <BarChart3 className="h-4 w-4" />
-              Analytics
-            </Button>
-            <Button
-              onClick={() => router.push('/microclimates/create')}
-              className="bg-teal-600 hover:bg-teal-700 h-12 px-6 shadow-sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Microclimate
-            </Button>
           </div>
         </div>
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
       </div>
 
-      {/* Enhanced Filters and Search */}
+      {/* Enhanced Search and Filters */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 placeholder="Search microclimates by title, description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 text-base border-gray-200 focus:border-teal-500 focus:ring-teal-500 bg-white"
+                className="pl-12 h-12 w-full sm:w-80 text-base border-0 bg-white/80 backdrop-blur shadow-sm focus:shadow-md transition-shadow"
               />
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 h-12 px-6 border-gray-200 bg-white hover:bg-gray-50"
-            >
-              <Filter className="w-4 h-4" />
-              <span>Filters</span>
-              {showFilters && <span className="ml-1 text-teal-600">•</span>}
-            </Button>
-          </div>
 
-          {showFilters && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-4 pt-4 border-t border-gray-200"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="scheduled">Scheduled</option>
-                    <option value="active">Active</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Department
-                  </label>
-                  <select
-                    value={departmentFilter}
-                    onChange={(e) => setDepartmentFilter(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="all">All Departments</option>
-                    {departments.map((dept) => (
-                      <option key={dept._id} value={dept._id}>
-                        {dept.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </motion.div>
-          )}
+            <div className="flex items-center gap-3">
+              <Filter className="w-5 h-5 text-gray-500" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40 h-12 border-gray-200 bg-white/80 backdrop-blur">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="scheduled">Scheduled</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger className="w-40 h-12 border-gray-200 bg-white/80 backdrop-blur">
+                  <SelectValue placeholder="All Departments" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept._id} value={dept._id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

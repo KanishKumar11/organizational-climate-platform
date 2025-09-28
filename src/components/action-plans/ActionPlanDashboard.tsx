@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -109,95 +109,53 @@ export function ActionPlanDashboard({
   ];
 
   return (
-    <div className="h-full flex flex-col min-w-0 overflow-hidden">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 mb-6">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900 truncate">
-            Action Plans
-          </h1>
-          <p className="text-gray-600 mt-1 text-sm">
-            Track progress and manage organizational improvements
-          </p>
+    <div className="space-y-6">
+      {/* Modern Gradient Header */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 p-8 text-white shadow-lg">
+        <div className="relative z-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Action Plans</h1>
+              <p className="text-orange-100 text-lg">
+                Track progress and manage organizational improvements
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {canCreate && (
+                <Button
+                  onClick={handleCreateActionPlan}
+                  className="bg-white text-orange-600 hover:bg-orange-50 shadow-lg"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Action Plan
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-          {canCreate && (
-            <Button
-              onClick={handleCreateActionPlan}
-              className="bg-orange-600 hover:bg-orange-700 flex-shrink-0"
-              size="sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Create Action Plan</span>
-              <span className="sm:hidden">Create</span>
-            </Button>
-          )}
-
-          <Button
-            variant="outline"
-            className="flex items-center flex-shrink-0"
-            size="sm"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Export</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            className="flex items-center flex-shrink-0"
-            size="sm"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Settings</span>
-          </Button>
-        </div>
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
       </div>
 
-      {/* View Navigation and Filters */}
-      {activeView !== 'create' && activeView !== 'progress' && (
-        <div className="flex flex-col space-y-4 mb-6">
-          {/* View Toggle */}
-          <div className="flex items-center space-x-2 flex-wrap">
-            {viewOptions.map((option) => {
-              const IconComponent = option.icon;
-              return (
-                <Button
-                  key={option.id}
-                  variant={activeView === option.id ? 'default' : 'outline'}
-                  onClick={() =>
-                    setActiveView(option.id as 'kanban' | 'timeline')
-                  }
-                  className="flex items-center flex-shrink-0"
-                  size="sm"
-                >
-                  <IconComponent className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">{option.label}</span>
-                  <span className="sm:hidden">
-                    {option.label.split(' ')[0]}
-                  </span>
-                </Button>
-              );
-            })}
-          </div>
-
-          {/* Search and Filters */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
+      {/* Enhanced Search and Filters */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
-                type="text"
-                placeholder="Search action plans..."
+                placeholder="Search action plans by title, description, or tags..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-12 h-12 w-full sm:w-80 text-base border-0 bg-white/80 backdrop-blur shadow-sm focus:shadow-md transition-shadow"
               />
             </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Filter className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            <div className="flex items-center gap-3">
+              <Filter className="w-5 h-5 text-gray-500" />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-40 h-12 border-gray-200 bg-white/80 backdrop-blur">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -210,7 +168,7 @@ export function ActionPlanDashboard({
               </Select>
 
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-40 h-12 border-gray-200 bg-white/80 backdrop-blur">
                   <SelectValue placeholder="All Priority" />
                 </SelectTrigger>
                 <SelectContent>
@@ -223,21 +181,34 @@ export function ActionPlanDashboard({
               </Select>
             </div>
           </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
 
-      {/* Back Button for Progress View */}
-      {activeView === 'progress' && (
-        <div className="mb-6">
-          <Button
-            variant="outline"
-            onClick={() => setActiveView('kanban')}
-            className="flex items-center"
-          >
-            ← Back to Dashboard
-          </Button>
-        </div>
-      )}
+      {/* Enhanced View Tabs */}
+      <div className="flex items-center gap-2">
+        {viewOptions.map((option) => {
+          const IconComponent = option.icon;
+          return (
+            <Button
+              key={option.id}
+              variant={activeView === option.id ? 'default' : 'outline'}
+              onClick={() =>
+                setActiveView(
+                  option.id as 'kanban' | 'timeline' | 'progress' | 'create'
+                )
+              }
+              className={`flex items-center gap-2 h-12 px-6 ${
+                activeView === option.id
+                  ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white shadow-lg'
+                  : 'border-gray-200 bg-white/80 backdrop-blur hover:bg-white'
+              }`}
+            >
+              <IconComponent className="h-5 w-5" />
+              {option.label}
+            </Button>
+          );
+        })}
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden min-w-0">
@@ -280,33 +251,16 @@ export function ActionPlanDashboard({
         </AnimatePresence>
       </div>
 
-      {/* Quick Stats Footer */}
-      {activeView !== 'create' && activeView !== 'progress' && (
-        <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="p-4 text-center">
-            <div className="text-3xl font-bold text-blue-600 leading-none">
-              12
-            </div>
-            <div className="text-sm text-gray-600 mt-1">Active Plans</div>
-          </Card>
-          <Card className="p-4 text-center">
-            <div className="text-3xl font-bold text-green-600 leading-none">
-              8
-            </div>
-            <div className="text-sm text-gray-600 mt-1">Completed</div>
-          </Card>
-          <Card className="p-4 text-center">
-            <div className="text-3xl font-bold text-orange-600 leading-none">
-              3
-            </div>
-            <div className="text-sm text-gray-600 mt-1">Due This Week</div>
-          </Card>
-          <Card className="p-4 text-center">
-            <div className="text-3xl font-bold text-red-600 leading-none">
-              2
-            </div>
-            <div className="text-sm text-gray-600 mt-1">Overdue</div>
-          </Card>
+      {/* Back Button for Progress View */}
+      {activeView === 'progress' && (
+        <div className="mt-6">
+          <Button
+            variant="outline"
+            onClick={() => setActiveView('kanban')}
+            className="flex items-center"
+          >
+            ← Back to Dashboard
+          </Button>
         </div>
       )}
     </div>

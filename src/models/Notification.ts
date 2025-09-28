@@ -94,6 +94,7 @@ const NotificationSchema: Schema = new Schema(
         'survey_reminder',
         'survey_completion',
         'microclimate_invitation',
+        'user_invitation',
         'action_plan_alert',
         'deadline_reminder',
         'ai_insight_alert',
