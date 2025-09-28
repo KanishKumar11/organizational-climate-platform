@@ -36,7 +36,13 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { formatUTCDateForDisplay, getUserTimezone } from '@/lib/datetime-utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui';
 
 interface Microclimate {
   _id: string;
@@ -325,7 +331,10 @@ export default function MicroclimateDashboard() {
                 </SelectContent>
               </Select>
 
-              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+              <Select
+                value={departmentFilter}
+                onValueChange={setDepartmentFilter}
+              >
                 <SelectTrigger className="w-40 h-12 border-gray-200 bg-white/80 backdrop-blur">
                   <SelectValue placeholder="All Departments" />
                 </SelectTrigger>

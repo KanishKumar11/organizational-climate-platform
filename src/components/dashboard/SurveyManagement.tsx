@@ -631,7 +631,11 @@ export function SurveyManagement({
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-orange-400 rounded-full shadow-sm" />
                   <span className="font-medium">
-                    {surveys.reduce((acc, s) => acc + (s.response_count || 0), 0)} Total Responses
+                    {surveys.reduce(
+                      (acc, s) => acc + (s.response_count || 0),
+                      0
+                    )}{' '}
+                    Total Responses
                   </span>
                 </div>
               </div>
