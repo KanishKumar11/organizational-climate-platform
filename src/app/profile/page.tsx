@@ -137,32 +137,37 @@ const ProfilePage = () => {
     }
   };
 
-  const loadActivities = useCallback(async (page = 1) => {
-    setActivitiesLoading(true);
-    try {
-      const offset = (page - 1) * activityLimit;
-      const response = await fetch(`/api/profile/activity?limit=${activityLimit}&offset=${offset}`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Activity API Response:', data);
-        console.log('Activities received:', data.activities?.length || 0);
-        setActivities(data.activities || []);
-        setActivityTotal(data.total || 0);
-        setHasMoreActivities(data.hasMore || false);
-        setActivityPage(page);
-        setHasLoadedActivities(true);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Activity API Error:', response.status, errorData);
-        toast.error(`Failed to load activity data: ${response.status}`);
+  const loadActivities = useCallback(
+    async (page = 1) => {
+      setActivitiesLoading(true);
+      try {
+        const offset = (page - 1) * activityLimit;
+        const response = await fetch(
+          `/api/profile/activity?limit=${activityLimit}&offset=${offset}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Activity API Response:', data);
+          console.log('Activities received:', data.activities?.length || 0);
+          setActivities(data.activities || []);
+          setActivityTotal(data.total || 0);
+          setHasMoreActivities(data.hasMore || false);
+          setActivityPage(page);
+          setHasLoadedActivities(true);
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Activity API Error:', response.status, errorData);
+          toast.error(`Failed to load activity data: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Activity fetch error:', error);
+        toast.error('Failed to load activity data');
+      } finally {
+        setActivitiesLoading(false);
       }
-    } catch (error) {
-      console.error('Activity fetch error:', error);
-      toast.error('Failed to load activity data');
-    } finally {
-      setActivitiesLoading(false);
-    }
-  }, [activityLimit]);
+    },
+    [activityLimit]
+  );
 
   const handlePasswordChange = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -220,7 +225,7 @@ const ProfilePage = () => {
 
   // Helper function to get activity icon
   const getActivityIcon = (type: string) => {
-    const iconProps = { className: "h-4 w-4" };
+    const iconProps = { className: 'h-4 w-4' };
     switch (type) {
       case 'survey_created':
         return <Plus {...iconProps} className="h-4 w-4 text-blue-600" />;
@@ -785,13 +790,18 @@ const ProfilePage = () => {
                             <TableHead className="w-[50px]">Type</TableHead>
                             <TableHead>Activity</TableHead>
                             <TableHead>Description</TableHead>
-                            <TableHead className="w-[200px]">Date & Time</TableHead>
+                            <TableHead className="w-[200px]">
+                              Date & Time
+                            </TableHead>
                             <TableHead className="w-[120px]">Status</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {activities.map((activity, index) => (
-                            <TableRow key={activity.id || index} className="hover:bg-muted/50">
+                            <TableRow
+                              key={activity.id || index}
+                              className="hover:bg-muted/50"
+                            >
                               <TableCell>
                                 <div className="flex items-center justify-center p-2 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 border">
                                   {getActivityIcon(activity.type)}
@@ -827,7 +837,11 @@ const ProfilePage = () => {
                               </TableCell>
                               <TableCell>
                                 <Badge
-                                  variant={activity.success === false ? 'destructive' : 'outline'}
+                                  variant={
+                                    activity.success === false
+                                      ? 'destructive'
+                                      : 'outline'
+                                  }
                                   className="text-xs capitalize"
                                 >
                                   {activity.type.replace(/_/g, ' ')}
@@ -842,7 +856,9 @@ const ProfilePage = () => {
                     {/* Pagination Controls */}
                     <div className="flex items-center justify-between mt-6">
                       <div className="text-sm text-muted-foreground">
-                        Showing {((activityPage - 1) * activityLimit) + 1} to {Math.min(activityPage * activityLimit, activityTotal)} of {activityTotal} activities
+                        Showing {(activityPage - 1) * activityLimit + 1} to{' '}
+                        {Math.min(activityPage * activityLimit, activityTotal)}{' '}
+                        of {activityTotal} activities
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
@@ -856,18 +872,29 @@ const ProfilePage = () => {
                         </Button>
                         <div className="flex items-center gap-1">
                           {(() => {
-                            const totalPages = Math.ceil(activityTotal / activityLimit);
+                            const totalPages = Math.ceil(
+                              activityTotal / activityLimit
+                            );
                             const maxPagesToShow = 5;
-                            let startPage = Math.max(1, activityPage - Math.floor(maxPagesToShow / 2));
-                            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-                            
+                            let startPage = Math.max(
+                              1,
+                              activityPage - Math.floor(maxPagesToShow / 2)
+                            );
+                            let endPage = Math.min(
+                              totalPages,
+                              startPage + maxPagesToShow - 1
+                            );
+
                             // Adjust startPage if we're near the end
                             if (endPage - startPage < maxPagesToShow - 1) {
-                              startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                              startPage = Math.max(
+                                1,
+                                endPage - maxPagesToShow + 1
+                              );
                             }
-                            
+
                             const pages = [];
-                            
+
                             // Always show first page
                             if (startPage > 1) {
                               pages.push(
@@ -883,16 +910,22 @@ const ProfilePage = () => {
                                 </Button>
                               );
                               if (startPage > 2) {
-                                pages.push(<span key="ellipsis1" className="px-2">...</span>);
+                                pages.push(
+                                  <span key="ellipsis1" className="px-2">
+                                    ...
+                                  </span>
+                                );
                               }
                             }
-                            
+
                             // Show page range
                             for (let i = startPage; i <= endPage; i++) {
                               pages.push(
                                 <Button
                                   key={i}
-                                  variant={activityPage === i ? 'default' : 'outline'}
+                                  variant={
+                                    activityPage === i ? 'default' : 'outline'
+                                  }
                                   size="sm"
                                   onClick={() => loadActivities(i)}
                                   disabled={activitiesLoading}
@@ -902,11 +935,15 @@ const ProfilePage = () => {
                                 </Button>
                               );
                             }
-                            
+
                             // Always show last page
                             if (endPage < totalPages) {
                               if (endPage < totalPages - 1) {
-                                pages.push(<span key="ellipsis2" className="px-2">...</span>);
+                                pages.push(
+                                  <span key="ellipsis2" className="px-2">
+                                    ...
+                                  </span>
+                                );
                               }
                               pages.push(
                                 <Button
@@ -921,7 +958,7 @@ const ProfilePage = () => {
                                 </Button>
                               );
                             }
-                            
+
                             return pages;
                           })()}
                         </div>
@@ -929,7 +966,11 @@ const ProfilePage = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => loadActivities(activityPage + 1)}
-                          disabled={activityPage >= Math.ceil(activityTotal / activityLimit) || activitiesLoading}
+                          disabled={
+                            activityPage >=
+                              Math.ceil(activityTotal / activityLimit) ||
+                            activitiesLoading
+                          }
                         >
                           Next
                           <ChevronRight className="h-4 w-4 ml-1" />
