@@ -291,7 +291,7 @@ async function getCompanyRecentActivity(companyId: string) {
     ...recentUsers.map((user: any) => ({
       type: 'user_registered',
       title: `New ${user.role} joined`,
-      description: `${user.name} joined ${user.department_id?.name || 'Unknown Department'}`,
+      description: `${user.name} joined ${user.department_id?.name || 'General Department'}`,
       timestamp: user.created_at,
       category: 'user',
     })),

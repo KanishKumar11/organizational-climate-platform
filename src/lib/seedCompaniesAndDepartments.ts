@@ -4,6 +4,69 @@ import Department from '@/models/Department';
 import User from '@/models/User';
 import mongoose from 'mongoose';
 
+// Migration function to ensure all companies have a default department
+// and update users with 'unassigned' department_id
+export async function migrateDepartments() {
+  try {
+    await connectDB();
+
+    console.log('Starting department migration...');
+
+    // Get all companies
+    const companies = await Company.find({ is_active: true });
+
+    for (const company of companies) {
+      console.log(`Processing company: ${company.name}`);
+
+      // Ensure default department exists
+      let defaultDepartment = await Department.findOne({
+        company_id: company._id.toString(),
+        name: 'General',
+      });
+
+      if (!defaultDepartment) {
+        console.log(`Creating default department for ${company.name}`);
+        defaultDepartment = await Department.create({
+          name: 'General',
+          description: 'Default department for all employees',
+          company_id: company._id.toString(),
+          hierarchy: {
+            level: 0,
+            path: 'general',
+          },
+          is_active: true,
+        });
+      }
+
+      // Update users with 'unassigned' department_id
+      const usersToUpdate = await User.find({
+        company_id: company._id.toString(),
+        department_id: 'unassigned',
+      });
+
+      if (usersToUpdate.length > 0) {
+        console.log(
+          `Updating ${usersToUpdate.length} users in ${company.name}`
+        );
+        await User.updateMany(
+          {
+            company_id: company._id.toString(),
+            department_id: 'unassigned',
+          },
+          {
+            department_id: defaultDepartment._id.toString(),
+          }
+        );
+      }
+    }
+
+    console.log('Department migration completed successfully');
+  } catch (error) {
+    console.error('Error during department migration:', error);
+    throw error;
+  }
+}
+
 // Generate consistent ObjectIds for demo data
 const companyId1 = new mongoose.Types.ObjectId('507f1f77bcf86cd799439011');
 const companyId2 = new mongoose.Types.ObjectId('507f1f77bcf86cd799439012');

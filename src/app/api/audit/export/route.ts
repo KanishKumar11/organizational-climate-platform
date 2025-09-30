@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '../../../../lib/auth';
 import AuditService, { AuditQueryFilters } from '../../../../lib/audit-service';
 import { withSecurity } from '../../../../middleware/security';
 
@@ -8,7 +9,7 @@ import { withSecurity } from '../../../../middleware/security';
  */
 async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -39,11 +40,14 @@ async function GET(request: NextRequest) {
       filters.company_id = (session.user as any).company_id;
     }
 
-    if (searchParams.get('action')) {
+    if (searchParams.get('action') && searchParams.get('action') !== 'all') {
       filters.action = searchParams.get('action') as any;
     }
 
-    if (searchParams.get('resource')) {
+    if (
+      searchParams.get('resource') &&
+      searchParams.get('resource') !== 'all'
+    ) {
       filters.resource = searchParams.get('resource') as any;
     }
 
@@ -97,5 +101,3 @@ async function GET(request: NextRequest) {
 
 const secureGET = withSecurity(GET);
 export { secureGET as GET };
-
-

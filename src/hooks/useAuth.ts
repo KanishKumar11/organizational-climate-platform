@@ -1,6 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import { useMemo } from 'react';
 import { UserRole, AuthUser } from '../types/user';
 import {
   hasPermission,
@@ -11,18 +12,20 @@ import {
 export function useAuth() {
   const { data: session, status } = useSession();
 
-  const user: AuthUser | null = session?.user
-    ? {
-        id: session.user.id,
-        name: session.user.name || '',
-        email: session.user.email || '',
-        role: session.user.role,
-        companyId: session.user.companyId,
-        departmentId: session.user.departmentId,
-        isActive: session.user.isActive,
-        image: session.user.image,
-      }
-    : null;
+  const user: AuthUser | null = useMemo(() => {
+    return session?.user
+      ? {
+          id: session.user.id,
+          name: session.user.name || '',
+          email: session.user.email || '',
+          role: session.user.role,
+          companyId: session.user.companyId,
+          departmentId: session.user.departmentId,
+          isActive: session.user.isActive,
+          image: session.user.image,
+        }
+      : null;
+  }, [session?.user]);
 
   const isLoading = status === 'loading';
   const isAuthenticated = status === 'authenticated' && !!user;

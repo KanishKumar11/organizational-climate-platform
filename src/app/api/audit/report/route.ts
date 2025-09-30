@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '../../../../lib/auth';
 import AuditService from '../../../../lib/audit-service';
 import { withSecurity } from '../../../../middleware/security';
 
@@ -8,7 +9,7 @@ import { withSecurity } from '../../../../middleware/security';
  */
 async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -77,5 +78,3 @@ async function GET(request: NextRequest) {
 
 const secureGET = withSecurity(GET);
 export { secureGET as GET };
-
-

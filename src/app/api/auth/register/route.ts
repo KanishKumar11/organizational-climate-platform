@@ -9,6 +9,31 @@ import { createApiResponse } from '../../../../lib/api-middleware';
 import { userInvitationService } from '../../../../lib/user-invitation-service';
 import { UserDemographics } from '../../../../types/user';
 
+// Helper function to ensure a default department exists
+async function ensureDefaultDepartment(companyId: string) {
+  // Check if a default "General" department already exists
+  let defaultDepartment = await Department.findOne({
+    company_id: companyId,
+    name: 'General',
+  });
+
+  if (!defaultDepartment) {
+    // Create the default department
+    defaultDepartment = await Department.create({
+      name: 'General',
+      description: 'Default department for all employees',
+      company_id: companyId,
+      hierarchy: {
+        level: 0,
+        path: 'general',
+      },
+      is_active: true,
+    });
+  }
+
+  return defaultDepartment;
+}
+
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
@@ -152,6 +177,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Ensure a default department exists for the company
+    if (!department) {
+      department = await ensureDefaultDepartment(company._id.toString());
+    }
+
     // Hash password
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
@@ -163,7 +193,7 @@ export async function POST(request: NextRequest) {
       password_hash: passwordHash,
       role: userRole,
       company_id: company._id.toString(),
-      department_id: department?._id.toString() || 'unassigned',
+      department_id: department._id.toString(),
       job_title: job_title || '',
       is_active: true,
     };

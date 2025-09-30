@@ -25,6 +25,7 @@ import { Separator } from '../ui/separator';
 import { Badge } from '../ui/badge';
 import { Bell, Settings, User, LogOut, Menu } from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
 interface DashboardLayoutProps {
@@ -33,6 +34,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -148,7 +150,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/profile')}>
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>

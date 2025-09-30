@@ -58,6 +58,7 @@ export interface AuditReport {
   events_by_resource: Record<AuditResource, number>;
   events_by_user: Record<string, number>;
   recent_failures: IAuditLog[];
+  recent_activities: IAuditLog[];
   date_range: {
     start: Date;
     end: Date;
@@ -316,6 +317,13 @@ export class AuditService {
         .limit(10)
         .lean();
 
+      // Get recent activities (both successful and failed)
+      const recent_activities = await (AuditLog as any)
+        .find(query)
+        .sort({ timestamp: -1 })
+        .limit(20)
+        .lean();
+
       return {
         total_events,
         success_rate,
@@ -324,6 +332,7 @@ export class AuditService {
         events_by_resource,
         events_by_user,
         recent_failures,
+        recent_activities,
         date_range: dateRange,
       };
     } catch (error) {
@@ -511,5 +520,3 @@ export function createAuditMiddleware() {
 export default AuditService;
 // Export a default instance for convenience
 export const auditLog = new AuditService();
-
-

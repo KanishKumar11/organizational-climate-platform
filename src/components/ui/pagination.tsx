@@ -70,7 +70,7 @@ export function Pagination({
   return (
     <div
       className={cn(
-        'flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6',
+        'flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200 sm:px-8 rounded-b-xl shadow-sm',
         className
       )}
     >
@@ -81,11 +81,12 @@ export function Pagination({
           disabled={currentPage <= 1 || loading}
           variant="outline"
           size="sm"
+          className="border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200"
         >
           <ChevronLeftIcon className="h-4 w-4 mr-1" />
           Previous
         </Button>
-        <span className="text-sm text-gray-700 flex items-center">
+        <span className="text-sm text-gray-700 flex items-center font-medium">
           Page {currentPage} of {totalPages}
         </span>
         <Button
@@ -93,6 +94,7 @@ export function Pagination({
           disabled={currentPage >= totalPages || loading}
           variant="outline"
           size="sm"
+          className="border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200"
         >
           Next
           <ChevronRightIcon className="h-4 w-4 ml-1" />
@@ -103,21 +105,24 @@ export function Pagination({
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         {showInfo && totalItems && itemsPerPage && (
           <div>
-            <p className="text-sm text-gray-700">
-              Showing <span className="font-medium">{startItem}</span> to{' '}
-              <span className="font-medium">{endItem}</span> of{' '}
-              <span className="font-medium">{totalItems}</span> results
+            <p className="text-sm text-gray-600">
+              Showing{' '}
+              <span className="font-semibold text-gray-900">{startItem}</span>{' '}
+              to <span className="font-semibold text-gray-900">{endItem}</span>{' '}
+              of{' '}
+              <span className="font-semibold text-gray-900">{totalItems}</span>{' '}
+              results
             </p>
           </div>
         )}
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-2">
           <Button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage <= 1 || loading}
             variant="outline"
             size="sm"
-            className="px-2"
+            className="px-3 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 disabled:opacity-50"
           >
             <ChevronLeftIcon className="h-4 w-4" />
           </Button>
@@ -132,7 +137,12 @@ export function Pagination({
                   disabled={loading}
                   variant={currentPage === page ? 'default' : 'outline'}
                   size="sm"
-                  className="px-3"
+                  className={cn(
+                    'px-3 min-w-[40px] transition-all duration-200',
+                    currentPage === page
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
+                      : 'border-gray-300 hover:bg-gray-50 hover:border-gray-400'
+                  )}
                 >
                   {page}
                 </Button>
@@ -145,7 +155,7 @@ export function Pagination({
             disabled={currentPage >= totalPages || loading}
             variant="outline"
             size="sm"
-            className="px-2"
+            className="px-3 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 disabled:opacity-50"
           >
             <ChevronRightIcon className="h-4 w-4" />
           </Button>
