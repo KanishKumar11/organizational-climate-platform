@@ -105,10 +105,7 @@ export default function CompanyDetailPage() {
       } catch (err) {
         console.error('Error fetching company:', err);
         setError('Failed to load company details');
-        toastError(
-          'Error',
-          'Failed to load company details'
-        );
+        toastError('Error', 'Failed to load company details');
       } finally {
         setLoading(false);
       }
@@ -170,9 +167,7 @@ export default function CompanyDetailPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Error Loading Company
             </h3>
-            <p className="text-gray-600 mb-4">
-              {error || 'Company not found'}
-            </p>
+            <p className="text-gray-600 mb-4">{error || 'Company not found'}</p>
             <Button onClick={() => router.push('/admin/companies')}>
               Back to Companies
             </Button>
@@ -217,7 +212,9 @@ export default function CompanyDetailPage() {
                     </h1>
                     <Badge
                       variant={company.is_active ? 'default' : 'secondary'}
-                      className={company.is_active ? 'bg-green-100 text-green-800' : ''}
+                      className={
+                        company.is_active ? 'bg-green-100 text-green-800' : ''
+                      }
                     >
                       {company.is_active ? 'Active' : 'Inactive'}
                     </Badge>
@@ -240,19 +237,26 @@ export default function CompanyDetailPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      Created {new Date(company.created_at).toLocaleDateString()}
+                      Created{' '}
+                      {new Date(company.created_at).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-col gap-3">
-                <Badge className={`px-4 py-2 text-sm font-medium ${getTierColor(company.subscription_tier)}`}>
+                <Badge
+                  className={`px-4 py-2 text-sm font-medium ${getTierColor(company.subscription_tier)}`}
+                >
                   <Crown className="h-4 w-4 mr-2" />
-                  {company.subscription_tier.charAt(0).toUpperCase() + company.subscription_tier.slice(1)} Plan
+                  {company.subscription_tier.charAt(0).toUpperCase() +
+                    company.subscription_tier.slice(1)}{' '}
+                  Plan
                 </Badge>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{company.userCount}</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {company.userCount}
+                  </div>
                   <div className="text-sm text-gray-600">Active Users</div>
                 </div>
               </div>
@@ -281,8 +285,12 @@ export default function CompanyDetailPage() {
                       <Mail className="h-4 w-4 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</p>
-                      <p className="text-sm font-medium text-gray-900">{company.contact.email}</p>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        Email
+                      </p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {company.contact.email}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -292,8 +300,12 @@ export default function CompanyDetailPage() {
                       <Phone className="h-4 w-4 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Phone</p>
-                      <p className="text-sm font-medium text-gray-900">{company.contact.phone}</p>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        Phone
+                      </p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {company.contact.phone}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -303,7 +315,9 @@ export default function CompanyDetailPage() {
                       <Globe className="h-4 w-4 text-purple-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Website</p>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        Website
+                      </p>
                       <a
                         href={company.contact.website}
                         target="_blank"
@@ -315,15 +329,21 @@ export default function CompanyDetailPage() {
                     </div>
                   </div>
                 )}
-                {!company.contact?.email && !company.contact?.phone && !company.contact?.website && (
-                  <div className="text-center py-8">
-                    <div className="p-4 bg-gray-50 rounded-full w-16 h-16 mx-auto mb-4">
-                      <Mail className="h-8 w-8 text-gray-400 mx-auto" />
+                {!company.contact?.email &&
+                  !company.contact?.phone &&
+                  !company.contact?.website && (
+                    <div className="text-center py-8">
+                      <div className="p-4 bg-gray-50 rounded-full w-16 h-16 mx-auto mb-4">
+                        <Mail className="h-8 w-8 text-gray-400 mx-auto" />
+                      </div>
+                      <p className="text-sm font-medium text-gray-900 mb-1">
+                        No Contact Information
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Contact details will appear here when available
+                      </p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900 mb-1">No Contact Information</p>
-                    <p className="text-xs text-gray-500">Contact details will appear here when available</p>
-                  </div>
-                )}
+                  )}
               </CardContent>
             </div>
           </Card>
@@ -341,7 +361,12 @@ export default function CompanyDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {company.address && (company.address.street || company.address.city || company.address.state || company.address.zipCode || company.address.country) ? (
+                {company.address &&
+                (company.address.street ||
+                  company.address.city ||
+                  company.address.state ||
+                  company.address.zipCode ||
+                  company.address.country) ? (
                   <div className="space-y-3">
                     {company.address.street && (
                       <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-100">
@@ -349,20 +374,32 @@ export default function CompanyDetailPage() {
                           <MapPin className="h-4 w-4 text-green-600" />
                         </div>
                         <div>
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Street Address</p>
-                          <p className="text-sm font-medium text-gray-900">{company.address.street}</p>
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            Street Address
+                          </p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {company.address.street}
+                          </p>
                         </div>
                       </div>
                     )}
-                    {(company.address.city || company.address.state || company.address.zipCode) && (
+                    {(company.address.city ||
+                      company.address.state ||
+                      company.address.zipCode) && (
                       <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-100">
                         <div className="p-2 bg-blue-50 rounded-lg mt-0.5">
                           <Building2 className="h-4 w-4 text-blue-600" />
                         </div>
                         <div>
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">City & Postal</p>
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            City & Postal
+                          </p>
                           <p className="text-sm font-medium text-gray-900">
-                            {[company.address.city, company.address.state, company.address.zipCode]
+                            {[
+                              company.address.city,
+                              company.address.state,
+                              company.address.zipCode,
+                            ]
                               .filter(Boolean)
                               .join(', ')}
                           </p>
@@ -375,8 +412,12 @@ export default function CompanyDetailPage() {
                           <Globe className="h-4 w-4 text-purple-600" />
                         </div>
                         <div>
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Country</p>
-                          <p className="text-sm font-medium text-gray-900">{company.address.country}</p>
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            Country
+                          </p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {company.address.country}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -386,8 +427,12 @@ export default function CompanyDetailPage() {
                     <div className="p-4 bg-gray-50 rounded-full w-16 h-16 mx-auto mb-4">
                       <MapPin className="h-8 w-8 text-gray-400 mx-auto" />
                     </div>
-                    <p className="text-sm font-medium text-gray-900 mb-1">No Address Information</p>
-                    <p className="text-xs text-gray-500">Address details will appear here when available</p>
+                    <p className="text-sm font-medium text-gray-900 mb-1">
+                      No Address Information
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Address details will appear here when available
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -403,9 +448,15 @@ export default function CompanyDetailPage() {
             <CardContent className="relative p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Total Users</p>
-                  <p className="text-3xl font-bold text-gray-900">{company.userCount}</p>
-                  <p className="text-xs text-blue-600 font-medium">Active members</p>
+                  <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">
+                    Total Users
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {company.userCount}
+                  </p>
+                  <p className="text-xs text-blue-600 font-medium">
+                    Active members
+                  </p>
                 </div>
                 <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Users className="h-8 w-8 text-white" />
@@ -420,19 +471,25 @@ export default function CompanyDetailPage() {
             <CardContent className="relative p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-green-700 uppercase tracking-wide">Status</p>
+                  <p className="text-sm font-semibold text-green-700 uppercase tracking-wide">
+                    Status
+                  </p>
                   <p className="text-3xl font-bold text-gray-900">
                     {company.is_active ? 'Active' : 'Inactive'}
                   </p>
                   <p className="text-xs text-green-600 font-medium">
-                    {company.is_active ? 'Fully operational' : 'Currently inactive'}
+                    {company.is_active
+                      ? 'Fully operational'
+                      : 'Currently inactive'}
                   </p>
                 </div>
-                <div className={`p-4 bg-gradient-to-br rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 ${
-                  company.is_active
-                    ? 'from-green-500 to-green-600'
-                    : 'from-gray-400 to-gray-500'
-                }`}>
+                <div
+                  className={`p-4 bg-gradient-to-br rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 ${
+                    company.is_active
+                      ? 'from-green-500 to-green-600'
+                      : 'from-gray-400 to-gray-500'
+                  }`}
+                >
                   <Activity className="h-8 w-8 text-white" />
                 </div>
               </div>
@@ -445,11 +502,15 @@ export default function CompanyDetailPage() {
             <CardContent className="relative p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-purple-700 uppercase tracking-wide">Subscription</p>
+                  <p className="text-sm font-semibold text-purple-700 uppercase tracking-wide">
+                    Subscription
+                  </p>
                   <p className="text-3xl font-bold text-gray-900 capitalize">
                     {company.subscription_tier}
                   </p>
-                  <p className="text-xs text-purple-600 font-medium">Current plan</p>
+                  <p className="text-xs text-purple-600 font-medium">
+                    Current plan
+                  </p>
                 </div>
                 <div className="p-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <TrendingUp className="h-8 w-8 text-white" />

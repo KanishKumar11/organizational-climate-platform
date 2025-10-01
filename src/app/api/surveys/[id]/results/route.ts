@@ -117,7 +117,8 @@ export async function GET(
           const yesNoCommentDistribution = {};
           questionResponses.forEach((r) => {
             const value = String(r.response_value);
-            yesNoCommentDistribution[value] = (yesNoCommentDistribution[value] || 0) + 1;
+            yesNoCommentDistribution[value] =
+              (yesNoCommentDistribution[value] || 0) + 1;
           });
           analytics.distribution = Object.entries(yesNoCommentDistribution).map(
             ([label, count]) => ({
@@ -171,7 +172,8 @@ export async function GET(
               ([label, count]) => ({
                 label,
                 count: count as number,
-                percentage: ((count as number) / questionResponses.length) * 100,
+                percentage:
+                  ((count as number) / questionResponses.length) * 100,
               })
             );
           }

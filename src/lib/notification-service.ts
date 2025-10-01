@@ -851,8 +851,6 @@ class NotificationService {
     }
   }
 
-
-
   // Send notification immediately
   async sendNotification(notificationId: string): Promise<void> {
     await connectDB();
@@ -981,7 +979,12 @@ class NotificationService {
   }
 
   // Get user notifications
-  async getUserNotifications(userId: string, limit: number = 50, status?: string[], skip: number = 0): Promise<any[]> {
+  async getUserNotifications(
+    userId: string,
+    limit: number = 50,
+    status?: string[],
+    skip: number = 0
+  ): Promise<any[]> {
     await connectDB();
 
     const statusFilter = status || ['delivered', 'opened'];
@@ -989,7 +992,7 @@ class NotificationService {
     const notifications = await (Notification as any)
       .find({
         user_id: userId,
-        status: { $in: statusFilter }
+        status: { $in: statusFilter },
       })
       .sort({ created_at: -1 })
       .skip(skip)
@@ -1001,7 +1004,12 @@ class NotificationService {
   }
 
   // Get company notifications
-  async getCompanyNotifications(companyId: string, limit: number = 50, status?: string[], skip: number = 0): Promise<any[]> {
+  async getCompanyNotifications(
+    companyId: string,
+    limit: number = 50,
+    status?: string[],
+    skip: number = 0
+  ): Promise<any[]> {
     await connectDB();
 
     const statusFilter = status || ['delivered', 'opened'];
@@ -1009,7 +1017,7 @@ class NotificationService {
     const notifications = await (Notification as any)
       .find({
         company_id: companyId,
-        status: { $in: statusFilter }
+        status: { $in: statusFilter },
       })
       .sort({ created_at: -1 })
       .skip(skip)

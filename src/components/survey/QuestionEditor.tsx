@@ -233,7 +233,9 @@ export default function QuestionEditor({
                 </Label>
                 <Input
                   id={`comment-prompt-${question.id}`}
-                  value={question.comment_prompt || 'Please explain your answer:'}
+                  value={
+                    question.comment_prompt || 'Please explain your answer:'
+                  }
                   onChange={(e) =>
                     updateQuestion({ comment_prompt: e.target.value })
                   }
@@ -301,9 +303,9 @@ export default function QuestionEditor({
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        const newOptions = (question.emoji_options || []).filter(
-                          (_, i) => i !== index
-                        );
+                        const newOptions = (
+                          question.emoji_options || []
+                        ).filter((_, i) => i !== index);
                         updateQuestion({ emoji_options: newOptions });
                       }}
                       className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
@@ -589,7 +591,8 @@ export default function QuestionEditor({
                       </RadioGroup>
                       <div className="pl-0 space-y-2">
                         <Label className="text-xs text-gray-600">
-                          {question.comment_prompt || 'Please explain your answer:'}
+                          {question.comment_prompt ||
+                            'Please explain your answer:'}
                         </Label>
                         <Textarea
                           disabled
@@ -603,18 +606,22 @@ export default function QuestionEditor({
 
                   {question.type === 'emoji_scale' && (
                     <div className="flex justify-center gap-3">
-                      {(question.emoji_options || []).map((emojiOption, index) => (
-                        <button
-                          key={index}
-                          disabled
-                          className="flex flex-col items-center gap-2 p-3 rounded-lg border border-gray-200 bg-gray-50 disabled:opacity-70"
-                        >
-                          <span className="text-3xl">{emojiOption.emoji}</span>
-                          <span className="text-xs text-gray-600 text-center">
-                            {emojiOption.label}
-                          </span>
-                        </button>
-                      ))}
+                      {(question.emoji_options || []).map(
+                        (emojiOption, index) => (
+                          <button
+                            key={index}
+                            disabled
+                            className="flex flex-col items-center gap-2 p-3 rounded-lg border border-gray-200 bg-gray-50 disabled:opacity-70"
+                          >
+                            <span className="text-3xl">
+                              {emojiOption.emoji}
+                            </span>
+                            <span className="text-xs text-gray-600 text-center">
+                              {emojiOption.label}
+                            </span>
+                          </button>
+                        )
+                      )}
                     </div>
                   )}
 

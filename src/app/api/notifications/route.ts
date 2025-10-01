@@ -49,185 +49,213 @@ const querySchema = z.object({
 });
 
 // GET /api/notifications - Get notifications
-export const GET = withRateLimit(notificationApiLimiter, async (request: NextRequest) => {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    await connectDB();
-
-    const { searchParams } = new URL(request.url);
-    const query = querySchema.parse(Object.fromEntries(searchParams));
-
-    const limit = query.limit || 50;
-    const page = query.page || 1;
-    const skip = (page - 1) * limit;
-    const statusFilter = query.status ? query.status.split(',').map(s => s.trim()) : undefined;
-
-    // Authorization checks
-    if (query.user_id && query.user_id !== session.user.id) {
-      // Only allow users to access their own notifications or if they have admin role
-      const isAdmin = session.user.role === 'super_admin' || session.user.role === 'company_admin';
-      if (!isAdmin) {
-        return NextResponse.json(
-          { error: 'Unauthorized: Cannot access other users\' notifications' },
-          { status: 403 }
-        );
+export const GET = withRateLimit(
+  notificationApiLimiter,
+  async (request: NextRequest) => {
+    try {
+      const session = await getServerSession(authOptions);
+      if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
-    }
 
-    if (query.company_id && query.company_id !== session.user.companyId) {
-      // Only allow users to access their own company notifications or if they have super admin role
-      const isSuperAdmin = session.user.role === 'super_admin';
-      if (!isSuperAdmin) {
-        return NextResponse.json(
-          { error: 'Unauthorized: Cannot access other companies\' notifications' },
-          { status: 403 }
-        );
+      await connectDB();
+
+      const { searchParams } = new URL(request.url);
+      const query = querySchema.parse(Object.fromEntries(searchParams));
+
+      const limit = query.limit || 50;
+      const page = query.page || 1;
+      const skip = (page - 1) * limit;
+      const statusFilter = query.status
+        ? query.status.split(',').map((s) => s.trim())
+        : undefined;
+
+      // Authorization checks
+      if (query.user_id && query.user_id !== session.user.id) {
+        // Only allow users to access their own notifications or if they have admin role
+        const isAdmin =
+          session.user.role === 'super_admin' ||
+          session.user.role === 'company_admin';
+        if (!isAdmin) {
+          return NextResponse.json(
+            { error: "Unauthorized: Cannot access other users' notifications" },
+            { status: 403 }
+          );
+        }
       }
+
+      if (query.company_id && query.company_id !== session.user.companyId) {
+        // Only allow users to access their own company notifications or if they have super admin role
+        const isSuperAdmin = session.user.role === 'super_admin';
+        if (!isSuperAdmin) {
+          return NextResponse.json(
+            {
+              error:
+                "Unauthorized: Cannot access other companies' notifications",
+            },
+            { status: 403 }
+          );
+        }
+      }
+
+      let notifications;
+      let total = 0;
+
+      if (query.user_id) {
+        // Get user-specific notifications (already validated above)
+        notifications = await notificationService.getUserNotifications(
+          query.user_id,
+          limit,
+          statusFilter,
+          skip
+        );
+
+        // Get total count for pagination
+        const statusFilterForCount = statusFilter || ['delivered', 'opened'];
+        total = await (Notification as any).countDocuments({
+          user_id: query.user_id,
+          status: { $in: statusFilterForCount },
+        });
+      } else if (query.company_id) {
+        // Get company-specific notifications (already validated above)
+        notifications = await notificationService.getCompanyNotifications(
+          query.company_id,
+          limit,
+          statusFilter,
+          skip
+        );
+
+        // Get total count for pagination
+        const statusFilterForCount = statusFilter || ['delivered', 'opened'];
+        total = await (Notification as any).countDocuments({
+          company_id: query.company_id,
+          status: { $in: statusFilterForCount },
+        });
+      } else {
+        // Get notifications for current user
+        notifications = await notificationService.getUserNotifications(
+          session.user.id,
+          limit,
+          statusFilter,
+          skip
+        );
+
+        // Get total count for pagination
+        const statusFilterForCount = statusFilter || ['delivered', 'opened'];
+        total = await (Notification as any).countDocuments({
+          user_id: session.user.id,
+          status: { $in: statusFilterForCount },
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: notifications,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNext: page * limit < total,
+          hasPrev: page > 1,
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch notifications' },
+        { status: 500 }
+      );
     }
-
-    let notifications;
-    let total = 0;
-
-    if (query.user_id) {
-      // Get user-specific notifications (already validated above)
-      notifications = await notificationService.getUserNotifications(
-        query.user_id,
-        limit,
-        statusFilter,
-        skip
-      );
-
-      // Get total count for pagination
-      const statusFilterForCount = statusFilter || ['delivered', 'opened'];
-      total = await (Notification as any).countDocuments({
-        user_id: query.user_id,
-        status: { $in: statusFilterForCount }
-      });
-    } else if (query.company_id) {
-      // Get company-specific notifications (already validated above)
-      notifications = await notificationService.getCompanyNotifications(
-        query.company_id,
-        limit,
-        statusFilter,
-        skip
-      );
-
-      // Get total count for pagination
-      const statusFilterForCount = statusFilter || ['delivered', 'opened'];
-      total = await (Notification as any).countDocuments({
-        company_id: query.company_id,
-        status: { $in: statusFilterForCount }
-      });
-    } else {
-      // Get notifications for current user
-      notifications = await notificationService.getUserNotifications(
-        session.user.id,
-        limit,
-        statusFilter,
-        skip
-      );
-
-      // Get total count for pagination
-      const statusFilterForCount = statusFilter || ['delivered', 'opened'];
-      total = await (Notification as any).countDocuments({
-        user_id: session.user.id,
-        status: { $in: statusFilterForCount }
-      });
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: notifications,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNext: page * limit < total,
-        hasPrev: page > 1,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch notifications' },
-      { status: 500 }
-    );
   }
-});
+);
 
 // POST /api/notifications - Create notification
-export const POST = withRateLimit(notificationApiLimiter, async (request: NextRequest) => {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const validatedData = createNotificationSchema.parse(body);
-
-    // Authorization checks for creating notifications
-    if (validatedData.user_id && validatedData.user_id !== session.user.id) {
-      // Only allow admins to create notifications for other users
-      const isAdmin = session.user.role === 'super_admin' || session.user.role === 'company_admin';
-      if (!isAdmin) {
-        return NextResponse.json(
-          { error: 'Unauthorized: Cannot create notifications for other users' },
-          { status: 403 }
-        );
+export const POST = withRateLimit(
+  notificationApiLimiter,
+  async (request: NextRequest) => {
+    try {
+      const session = await getServerSession(authOptions);
+      if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
-    }
 
-    if (validatedData.company_id && validatedData.company_id !== session.user.companyId) {
-      // Only allow super admins to create notifications for other companies
-      const isSuperAdmin = session.user.role === 'super_admin';
-      if (!isSuperAdmin) {
-        return NextResponse.json(
-          { error: 'Unauthorized: Cannot create notifications for other companies' },
-          { status: 403 }
-        );
+      const body = await request.json();
+      const validatedData = createNotificationSchema.parse(body);
+
+      // Authorization checks for creating notifications
+      if (validatedData.user_id && validatedData.user_id !== session.user.id) {
+        // Only allow admins to create notifications for other users
+        const isAdmin =
+          session.user.role === 'super_admin' ||
+          session.user.role === 'company_admin';
+        if (!isAdmin) {
+          return NextResponse.json(
+            {
+              error:
+                'Unauthorized: Cannot create notifications for other users',
+            },
+            { status: 403 }
+          );
+        }
       }
-    }
 
-    await connectDB();
+      if (
+        validatedData.company_id &&
+        validatedData.company_id !== session.user.companyId
+      ) {
+        // Only allow super admins to create notifications for other companies
+        const isSuperAdmin = session.user.role === 'super_admin';
+        if (!isSuperAdmin) {
+          return NextResponse.json(
+            {
+              error:
+                'Unauthorized: Cannot create notifications for other companies',
+            },
+            { status: 403 }
+          );
+        }
+      }
 
-    // Add company_id from session if not provided and user is not super admin
-    const notificationData = {
-      ...validatedData,
-      company_id: validatedData.company_id || (session.user.role !== 'super_admin' ? session.user.companyId : validatedData.company_id),
-      scheduled_for: validatedData.scheduled_for
-        ? new Date(validatedData.scheduled_for)
-        : undefined,
-    };
+      await connectDB();
 
-    const notification =
-      await notificationService.createNotification(notificationData);
+      // Add company_id from session if not provided and user is not super admin
+      const notificationData = {
+        ...validatedData,
+        company_id:
+          validatedData.company_id ||
+          (session.user.role !== 'super_admin'
+            ? session.user.companyId
+            : validatedData.company_id),
+        scheduled_for: validatedData.scheduled_for
+          ? new Date(validatedData.scheduled_for)
+          : undefined,
+      };
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: notification,
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error('Error creating notification:', error);
+      const notification =
+        await notificationService.createNotification(notificationData);
 
-    if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.issues },
-        { status: 400 }
+        {
+          success: true,
+          data: notification,
+        },
+        { status: 201 }
+      );
+    } catch (error) {
+      console.error('Error creating notification:', error);
+
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: error.issues },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: 'Failed to create notification' },
+        { status: 500 }
       );
     }
-
-    return NextResponse.json(
-      { error: 'Failed to create notification' },
-      { status: 500 }
-    );
   }
-});
+);

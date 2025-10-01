@@ -63,9 +63,7 @@ export default function SurveyBuilder({
       scale_max: type === 'likert' ? 5 : undefined,
       comment_required: type === 'yes_no_comment' ? true : undefined,
       comment_prompt:
-        type === 'yes_no_comment'
-          ? 'Please explain your answer:'
-          : undefined,
+        type === 'yes_no_comment' ? 'Please explain your answer:' : undefined,
       emoji_options:
         type === 'emoji_scale'
           ? [

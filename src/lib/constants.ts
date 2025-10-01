@@ -28,7 +28,7 @@ export const INDUSTRIES = [
 ];
 
 // Legacy string array for backward compatibility
-export const INDUSTRY_OPTIONS = INDUSTRIES.map(industry => industry.label);
+export const INDUSTRY_OPTIONS = INDUSTRIES.map((industry) => industry.label);
 
 // Subscription tiers
 export const SUBSCRIPTION_TIERS = [

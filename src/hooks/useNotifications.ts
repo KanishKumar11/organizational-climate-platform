@@ -3,25 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
-
-export interface NotificationItem {
-  _id: string;
-  user_id: string;
-  company_id: string;
-  type: string;
-  channel: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  status: 'pending' | 'sent' | 'delivered' | 'opened' | 'failed' | 'cancelled';
-  title: string;
-  message: string;
-  data: Record<string, any>;
-  scheduled_for: string;
-  sent_at?: string;
-  delivered_at?: string;
-  opened_at?: string;
-  created_at: string;
-  updated_at: string;
-}
+import { INotification } from '@/types/notifications';
 
 export interface NotificationStats {
   total: number;
@@ -48,7 +30,7 @@ export function useNotifications() {
 
   // Cache for preventing duplicate requests
   const requestCache = useRef<Map<string, Promise<any>>>(new Map());
-  
+
   // Throttling for fetch requests
   const lastFetchTime = useRef<number>(0);
   const FETCH_THROTTLE_MS = 30000; // 30 seconds minimum between automatic fetches
@@ -58,7 +40,9 @@ export function useNotifications() {
   const calculatedStats = useMemo(() => {
     return {
       total: notifications.length,
-      unread: notifications.filter((n: NotificationItem) => n.status === 'delivered').length,
+      unread: notifications.filter(
+        (n: NotificationItem) => n.status === 'delivered'
+      ).length,
       today: notifications.filter((n: NotificationItem) => {
         const today = new Date();
         const notificationDate = new Date(n.created_at);
@@ -74,128 +58,150 @@ export function useNotifications() {
   }, [notifications]);
 
   // Fetch notifications with caching and throttling
-  const fetchNotifications = useCallback(async (limit = 20, page = 1, force = false) => {
-    if (!user?.id) return;
+  const fetchNotifications = useCallback(
+    async (limit = 20, page = 1, force = false) => {
+      if (!user?.id) return;
 
-    const now = Date.now();
-    const timeSinceLastFetch = now - lastFetchTime.current;
-    const throttleTime = force ? MANUAL_REFRESH_THROTTLE_MS : FETCH_THROTTLE_MS;
-    
-    // Throttle requests unless forced
-    if (!force && timeSinceLastFetch < throttleTime) {
-      console.log(`[useNotifications] Throttling fetch. Wait ${Math.ceil((throttleTime - timeSinceLastFetch) / 1000)}s (${force ? 'manual' : 'auto'})`);
-      return;
-    }
+      const now = Date.now();
+      const timeSinceLastFetch = now - lastFetchTime.current;
+      const throttleTime = force
+        ? MANUAL_REFRESH_THROTTLE_MS
+        : FETCH_THROTTLE_MS;
 
-    // Create cache key
-    const cacheKey = `${user.id}-${limit}-${page}`;
+      // Throttle requests unless forced
+      if (!force && timeSinceLastFetch < throttleTime) {
+        console.log(
+          `[useNotifications] Throttling fetch. Wait ${Math.ceil((throttleTime - timeSinceLastFetch) / 1000)}s (${force ? 'manual' : 'auto'})`
+        );
+        return;
+      }
 
-    // Check if request is already in progress
-    if (!force && requestCache.current.has(cacheKey)) {
-      console.log(`[useNotifications] Request already in progress: ${cacheKey}`);
-      return requestCache.current.get(cacheKey);
-    }
+      // Create cache key
+      const cacheKey = `${user.id}-${limit}-${page}`;
 
-    const request = (async () => {
+      // Check if request is already in progress
+      if (!force && requestCache.current.has(cacheKey)) {
+        console.log(
+          `[useNotifications] Request already in progress: ${cacheKey}`
+        );
+        return requestCache.current.get(cacheKey);
+      }
+
+      const request = (async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          setCurrentRequest(cacheKey);
+
+          // Update last fetch time
+          lastFetchTime.current = Date.now();
+
+          console.log(
+            `[useNotifications] Fetching notifications for user ${user.id} (page ${page}, limit ${limit}, force: ${force})`
+          );
+
+          const params = new URLSearchParams({
+            user_id: user.id,
+            limit: limit.toString(),
+            page: page.toString(),
+            status: 'delivered,opened',
+          });
+
+          const response = await fetch(`/api/notifications?${params}`, {
+            headers: {
+              'Cache-Control': 'no-cache',
+            },
+            credentials: 'include', // Include cookies for authentication
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+
+          if (data.success && data.data) {
+            setNotifications((prev) =>
+              page === 1 ? data.data : [...prev, ...data.data]
+            );
+            setPagination(data.pagination);
+            setError(null); // Clear any previous errors on successful fetch
+
+            // Stats will be automatically recalculated via memoization
+          } else {
+            throw new Error(data.message || 'Failed to fetch notifications');
+          }
+        } catch (err) {
+          console.error('Error fetching notifications:', err);
+          setError(
+            err instanceof Error ? err.message : 'Failed to fetch notifications'
+          );
+          toast({
+            title: 'Error',
+            description: 'Failed to load notifications. Please try again.',
+          });
+        } finally {
+          setLoading(false);
+          setCurrentRequest(null);
+          // Remove from cache after completion
+          requestCache.current.delete(cacheKey);
+        }
+      })();
+
+      // Store in cache
+      requestCache.current.set(cacheKey, request);
+      return request;
+    },
+    [user?.id, toast]
+  ); // Removed notifications from dependencies
+
+  // Mark notification as read
+  const markAsRead = useCallback(
+    async (notificationId: string) => {
       try {
-        setLoading(true);
-        setError(null);
-        setCurrentRequest(cacheKey);
-        
-        // Update last fetch time
-        lastFetchTime.current = Date.now();
-        
-        console.log(`[useNotifications] Fetching notifications for user ${user.id} (page ${page}, limit ${limit}, force: ${force})`);
-
-        const params = new URLSearchParams({
-          user_id: user.id,
-          limit: limit.toString(),
-          page: page.toString(),
-          status: 'delivered,opened',
-        });
-
-        const response = await fetch(`/api/notifications?${params}`, {
+        const response = await fetch(`/api/notifications/${notificationId}`, {
+          method: 'PATCH',
           headers: {
-            'Cache-Control': 'no-cache',
+            'Content-Type': 'application/json',
           },
           credentials: 'include', // Include cookies for authentication
+          body: JSON.stringify({
+            action: 'mark_opened',
+          }),
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new Error('Failed to mark notification as read');
         }
 
         const data = await response.json();
 
-        if (data.success && data.data) {
-          setNotifications(prev => page === 1 ? data.data : [...prev, ...data.data]);
-          setPagination(data.pagination);
-          setError(null); // Clear any previous errors on successful fetch
+        if (data.success) {
+          // Update local state
+          setNotifications((prev) =>
+            prev.map((notification) =>
+              notification._id === notificationId
+                ? {
+                    ...notification,
+                    status: 'opened' as const,
+                    opened_at: new Date().toISOString(),
+                  }
+                : notification
+            )
+          );
 
           // Stats will be automatically recalculated via memoization
-        } else {
-          throw new Error(data.message || 'Failed to fetch notifications');
         }
       } catch (err) {
-        console.error('Error fetching notifications:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch notifications');
+        console.error('Error marking notification as read:', err);
         toast({
           title: 'Error',
-          description: 'Failed to load notifications. Please try again.',
+          description: 'Failed to mark notification as read',
         });
-      } finally {
-        setLoading(false);
-        setCurrentRequest(null);
-        // Remove from cache after completion
-        requestCache.current.delete(cacheKey);
       }
-    })();
-
-    // Store in cache
-    requestCache.current.set(cacheKey, request);
-    return request;
-  }, [user?.id, toast]); // Removed notifications from dependencies
-
-  // Mark notification as read
-  const markAsRead = useCallback(async (notificationId: string) => {
-    try {
-      const response = await fetch(`/api/notifications/${notificationId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Include cookies for authentication
-        body: JSON.stringify({
-          action: 'mark_opened',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to mark notification as read');
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Update local state
-        setNotifications(prev =>
-          prev.map(notification =>
-            notification._id === notificationId
-              ? { ...notification, status: 'opened' as const, opened_at: new Date().toISOString() }
-              : notification
-          )
-        );
-
-        // Stats will be automatically recalculated via memoization
-      }
-    } catch (err) {
-      console.error('Error marking notification as read:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to mark notification as read',
-      });
-    }
-  }, [toast]);
+    },
+    [toast]
+  );
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
@@ -225,10 +231,14 @@ export function useNotifications() {
 
       if (data.success) {
         // Update local state
-        setNotifications(prev =>
-          prev.map(notification =>
+        setNotifications((prev) =>
+          prev.map((notification) =>
             notification.status === 'delivered'
-              ? { ...notification, status: 'opened' as const, opened_at: new Date().toISOString() }
+              ? {
+                  ...notification,
+                  status: 'opened' as const,
+                  opened_at: new Date().toISOString(),
+                }
               : notification
           )
         );
@@ -250,38 +260,43 @@ export function useNotifications() {
   }, [user, toast]);
 
   // Delete notification
-  const deleteNotification = useCallback(async (notificationId: string) => {
-    try {
-      const response = await fetch(`/api/notifications/${notificationId}`, {
-        method: 'DELETE',
-        credentials: 'include', // Include cookies for authentication
-      });
+  const deleteNotification = useCallback(
+    async (notificationId: string) => {
+      try {
+        const response = await fetch(`/api/notifications/${notificationId}`, {
+          method: 'DELETE',
+          credentials: 'include', // Include cookies for authentication
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to delete notification');
-      }
+        if (!response.ok) {
+          throw new Error('Failed to delete notification');
+        }
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (data.success) {
-        // Update local state
-        setNotifications(prev => prev.filter(n => n._id !== notificationId));
+        if (data.success) {
+          // Update local state
+          setNotifications((prev) =>
+            prev.filter((n) => n._id !== notificationId)
+          );
 
-        // Stats will be automatically recalculated via memoization
+          // Stats will be automatically recalculated via memoization
 
+          toast({
+            title: 'Success',
+            description: 'Notification deleted',
+          });
+        }
+      } catch (err) {
+        console.error('Error deleting notification:', err);
         toast({
-          title: 'Success',
-          description: 'Notification deleted',
+          title: 'Error',
+          description: 'Failed to delete notification',
         });
       }
-    } catch (err) {
-      console.error('Error deleting notification:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete notification',
-      });
-    }
-  }, [toast]);
+    },
+    [toast]
+  );
 
   // Get notification icon based on type
   const getNotificationIcon = useCallback((type: string) => {
@@ -333,8 +348,10 @@ export function useNotifications() {
 
     if (diffInSeconds < 60) return 'Just now';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 604800)
+      return `${Math.floor(diffInSeconds / 86400)}d ago`;
 
     return date.toLocaleDateString();
   }, []);

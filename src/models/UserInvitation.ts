@@ -2,18 +2,18 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { UserRole } from '../types/user';
 
 // User invitation status
-export type UserInvitationStatus = 
-  | 'pending' 
-  | 'sent' 
-  | 'opened' 
-  | 'accepted' 
-  | 'expired' 
+export type UserInvitationStatus =
+  | 'pending'
+  | 'sent'
+  | 'opened'
+  | 'accepted'
+  | 'expired'
   | 'cancelled';
 
 // User invitation type
-export type UserInvitationType = 
-  | 'company_admin_setup' 
-  | 'employee_direct' 
+export type UserInvitationType =
+  | 'company_admin_setup'
+  | 'employee_direct'
   | 'employee_self_signup';
 
 // User invitation interface
@@ -99,7 +99,13 @@ const UserInvitationSchema: Schema = new Schema(
     },
     role: {
       type: String,
-      enum: ['employee', 'supervisor', 'leader', 'department_admin', 'company_admin'],
+      enum: [
+        'employee',
+        'supervisor',
+        'leader',
+        'department_admin',
+        'company_admin',
+      ],
       required: [true, 'Role is required'],
     },
     status: {
@@ -189,7 +195,7 @@ UserInvitationSchema.methods.canSendReminder = function (): boolean {
   if (this.status !== 'sent' && this.status !== 'opened') return false;
   if (this.reminder_count >= 3) return false;
   if (this.isExpired()) return false;
-  
+
   // Can send reminder if no reminder sent yet, or last reminder was sent more than 3 days ago
   if (!this.last_reminder_sent) return true;
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
@@ -227,6 +233,9 @@ UserInvitationSchema.statics.findExpired = function () {
 };
 
 const UserInvitation = (mongoose.models.UserInvitation ||
-  mongoose.model<IUserInvitation>('UserInvitation', UserInvitationSchema)) as mongoose.Model<IUserInvitation>;
+  mongoose.model<IUserInvitation>(
+    'UserInvitation',
+    UserInvitationSchema
+  )) as mongoose.Model<IUserInvitation>;
 
 export default UserInvitation;

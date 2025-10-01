@@ -309,7 +309,9 @@ export function QuestionRenderer({
 
   const renderYesNoComment = () => {
     const current = response?.response_value as string;
-    const [commentText, setCommentText] = useState(response?.response_text || '');
+    const [commentText, setCommentText] = useState(
+      response?.response_text || ''
+    );
 
     return (
       <div className="space-y-4 mt-6">
@@ -322,7 +324,9 @@ export function QuestionRenderer({
                 key={option}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => handleResponse(option.toLowerCase(), commentText)}
+                onClick={() =>
+                  handleResponse(option.toLowerCase(), commentText)
+                }
                 className={`
                   px-8 py-3 rounded-lg border-2 font-medium transition-colors min-w-[100px]
                   ${

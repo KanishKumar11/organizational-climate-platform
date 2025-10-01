@@ -57,7 +57,9 @@ export async function PATCH(request: NextRequest) {
     const { action, user_id, status, filters } = body;
 
     // Validate action
-    if (!['mark_opened', 'mark_delivered', 'cancel', 'delete'].includes(action)) {
+    if (
+      !['mark_opened', 'mark_delivered', 'cancel', 'delete'].includes(action)
+    ) {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
@@ -133,102 +135,105 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
-export const POST = withRateLimit(notificationBulkLimiter, async (request: NextRequest) => {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export const POST = withRateLimit(
+  notificationBulkLimiter,
+  async (request: NextRequest) => {
+    try {
+      const session = await getServerSession(authOptions);
+      if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
 
-    // Only admins can perform bulk notification operations
-    if (!['super_admin', 'company_admin'].includes(session.user.role)) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
-    }
-
-    await connectDB();
-
-    const body = await request.json();
-    const {
-      operation,
-      notification_ids,
-      notifications,
-      filters,
-      template_data,
-    } = bulkNotificationSchema.parse(body);
-
-    let result;
-
-    switch (operation) {
-      case 'create':
-        result = await bulkCreateNotifications(
-          notifications || [],
-          session.user,
-          template_data
-        );
-        break;
-      case 'send':
-        result = await bulkSendNotifications(
-          notification_ids || [],
-          session.user
-        );
-        break;
-      case 'cancel':
-        result = await bulkCancelNotifications(
-          notification_ids || [],
-          session.user
-        );
-        break;
-      case 'mark_read':
-        result = await bulkMarkNotifications(
-          notification_ids || [],
-          'read',
-          session.user
-        );
-        break;
-      case 'mark_unread':
-        result = await bulkMarkNotifications(
-          notification_ids || [],
-          'unread',
-          session.user
-        );
-        break;
-      case 'delete':
-        result = await bulkDeleteNotifications(
-          notification_ids || [],
-          session.user
-        );
-        break;
-      default:
+      // Only admins can perform bulk notification operations
+      if (!['super_admin', 'company_admin'].includes(session.user.role)) {
         return NextResponse.json(
-          { error: 'Invalid operation' },
+          { error: 'Insufficient permissions' },
+          { status: 403 }
+        );
+      }
+
+      await connectDB();
+
+      const body = await request.json();
+      const {
+        operation,
+        notification_ids,
+        notifications,
+        filters,
+        template_data,
+      } = bulkNotificationSchema.parse(body);
+
+      let result;
+
+      switch (operation) {
+        case 'create':
+          result = await bulkCreateNotifications(
+            notifications || [],
+            session.user,
+            template_data
+          );
+          break;
+        case 'send':
+          result = await bulkSendNotifications(
+            notification_ids || [],
+            session.user
+          );
+          break;
+        case 'cancel':
+          result = await bulkCancelNotifications(
+            notification_ids || [],
+            session.user
+          );
+          break;
+        case 'mark_read':
+          result = await bulkMarkNotifications(
+            notification_ids || [],
+            'read',
+            session.user
+          );
+          break;
+        case 'mark_unread':
+          result = await bulkMarkNotifications(
+            notification_ids || [],
+            'unread',
+            session.user
+          );
+          break;
+        case 'delete':
+          result = await bulkDeleteNotifications(
+            notification_ids || [],
+            session.user
+          );
+          break;
+        default:
+          return NextResponse.json(
+            { error: 'Invalid operation' },
+            { status: 400 }
+          );
+      }
+
+      return NextResponse.json({
+        success: true,
+        operation,
+        result,
+      });
+    } catch (error) {
+      console.error('Error performing bulk notification operation:', error);
+
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: error.issues },
           { status: 400 }
         );
-    }
+      }
 
-    return NextResponse.json({
-      success: true,
-      operation,
-      result,
-    });
-  } catch (error) {
-    console.error('Error performing bulk notification operation:', error);
-
-    if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.issues },
-        { status: 400 }
+        { error: 'Failed to perform bulk operation' },
+        { status: 500 }
       );
     }
-
-    return NextResponse.json(
-      { error: 'Failed to perform bulk operation' },
-      { status: 500 }
-    );
   }
-});
+);
 
 async function bulkCreateNotifications(
   notifications: any[],

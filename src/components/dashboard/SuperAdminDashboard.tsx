@@ -998,9 +998,12 @@ export default function SuperAdminDashboard() {
                         <Building2 className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-gray-900 text-lg">{company.name}</h4>
+                        <h4 className="font-bold text-gray-900 text-lg">
+                          {company.name}
+                        </h4>
                         <p className="text-sm text-gray-600">
-                          Added {new Date(company.created_at).toLocaleDateString()}
+                          Added{' '}
+                          {new Date(company.created_at).toLocaleDateString()}
                         </p>
                         <div className="flex items-center gap-4 mt-2">
                           <Badge className="bg-purple-50 text-purple-600 border-purple-200">
@@ -1025,7 +1028,9 @@ export default function SuperAdminDashboard() {
                       <Button
                         className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl transition-all duration-200"
                         size="sm"
-                        onClick={() => router.push(`/admin/companies/${company._id}`)}
+                        onClick={() =>
+                          router.push(`/admin/companies/${company._id}`)
+                        }
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         View Details
@@ -1193,7 +1198,9 @@ export default function SuperAdminDashboard() {
                         <FileText className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-gray-900 text-lg">{survey.title}</h4>
+                        <h4 className="font-bold text-gray-900 text-lg">
+                          {survey.title}
+                        </h4>
                         <p className="text-sm text-gray-600">
                           {survey.company_id.name} • {survey.type}
                         </p>
@@ -1213,14 +1220,19 @@ export default function SuperAdminDashboard() {
                     <div className="flex items-center gap-4">
                       <div className="text-right mr-4">
                         <div className="text-2xl font-bold text-gray-900">
-                          {Math.round(((survey.response_count || 0) / survey.target_responses) * 100)}%
+                          {Math.round(
+                            ((survey.response_count || 0) /
+                              survey.target_responses) *
+                              100
+                          )}
+                          %
                         </div>
                         <div className="text-sm text-gray-500">Completion</div>
                         <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
                           <div
                             className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full"
                             style={{
-                              width: `${Math.min(((survey.response_count || 0) / survey.target_responses) * 100, 100)}%`
+                              width: `${Math.min(((survey.response_count || 0) / survey.target_responses) * 100, 100)}%`,
                             }}
                           ></div>
                         </div>
@@ -1245,7 +1257,8 @@ export default function SuperAdminDashboard() {
                       No Ongoing Surveys
                     </h3>
                     <p className="text-gray-500 mb-6">
-                      Create your first global survey to gather insights across organizations.
+                      Create your first global survey to gather insights across
+                      organizations.
                     </p>
                     <Button
                       onClick={handleCreateGlobalSurvey}

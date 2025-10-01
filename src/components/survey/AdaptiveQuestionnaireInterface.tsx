@@ -151,9 +151,9 @@ export default function AdaptiveQuestionnaireInterface({
     const newResponse: QuestionResponse = {
       questionId: currentQuestion.id,
       response: currentResponse,
-      responseText: currentResponseText || (
-        typeof currentResponse === 'string' ? currentResponse : undefined
-      ),
+      responseText:
+        currentResponseText ||
+        (typeof currentResponse === 'string' ? currentResponse : undefined),
       timestamp: new Date(),
       category: currentQuestion.category,
     };

@@ -5,6 +5,7 @@
 ### Test 1: Yes/No with Comment
 
 **Steps:**
+
 1. Navigate to `/surveys/templates/create` or use survey wizard
 2. Click "Add Question"
 3. Select **"Yes/No with Comment"** (indigo card)
@@ -16,16 +17,18 @@
 6. Create survey and test response
 
 **Expected Result:**
+
 - Question shows Yes/No buttons (indigo when selected)
 - After clicking Yes or No, comment field appears smoothly
 - Comment field shows custom prompt
-- Required indicator (*) appears if enabled
+- Required indicator (\*) appears if enabled
 
 ---
 
 ### Test 2: Emoji Scale
 
 **Steps:**
+
 1. Navigate to survey builder
 2. Click "Add Question"
 3. Select **"Emoji Scale"** (pink card with smile icon)
@@ -39,6 +42,7 @@
 7. Preview and create survey
 
 **Expected Result:**
+
 - Preview shows emoji buttons with labels
 - Each emoji is large (4xl size) and clickable
 - Hover effect scales emoji up
@@ -63,13 +67,14 @@ Q2: [Yes/No with Comment]
 Comment prompt: "What's the main reason for your answer?"
 Required: Yes
 
-Q3: [Yes/No with Comment]  
+Q3: [Yes/No with Comment]
 "Do you feel you have opportunities for growth?"
 Comment prompt: "What opportunities would you like to see?"
 Required: No
 ```
 
 **Test Response:**
+
 1. Create the survey with above questions
 2. Launch survey (mark as active)
 3. Take the survey as a respondent:
@@ -80,6 +85,7 @@ Required: No
 4. Submit survey
 
 **Verify:**
+
 - All responses saved correctly
 - Comment text stored with yes/no answer
 - Emoji value recorded
@@ -90,6 +96,7 @@ Required: No
 ### Test 4: Template Creation
 
 **Steps:**
+
 1. Go to `/surveys/templates/create`
 2. Create template: "Employee Satisfaction - Enhanced"
 3. Add both new question types
@@ -98,6 +105,7 @@ Required: No
 6. Use template to create new survey
 
 **Expected:**
+
 - Template saves with new question types
 - Template preview shows correct question types
 - Creating survey from template works
@@ -108,15 +116,17 @@ Required: No
 ### Visual Verification Checklist
 
 #### Yes/No with Comment
+
 - [ ] Indigo color scheme matches design
 - [ ] MessageSquare icon displays in builder
 - [ ] Buttons are properly sized (min-width 100px)
 - [ ] Comment field slides in smoothly (0.3s animation)
 - [ ] Comment prompt text displays correctly
-- [ ] Required indicator (*) appears when enabled
+- [ ] Required indicator (\*) appears when enabled
 - [ ] Preview matches actual question appearance
 
 #### Emoji Scale
+
 - [ ] Pink color scheme matches design
 - [ ] Smile icon displays in builder
 - [ ] Emojis are large and readable (text-4xl)
@@ -131,6 +141,7 @@ Required: No
 ### Browser Testing
 
 Test in multiple browsers:
+
 - [ ] Chrome/Edge (Chromium)
 - [ ] Firefox
 - [ ] Safari (if available)
@@ -140,6 +151,7 @@ Test in multiple browsers:
 ### Mobile Responsiveness
 
 Test on mobile viewport:
+
 - [ ] Emoji buttons wrap properly
 - [ ] Yes/No buttons stack on small screens
 - [ ] Comment field is fully visible
@@ -150,6 +162,7 @@ Test on mobile viewport:
 ### Error Handling
 
 Test edge cases:
+
 - [ ] Create yes_no_comment without comment prompt (should use default)
 - [ ] Remove all emoji options except 2 (should prevent removal)
 - [ ] Submit survey without required comment (should show validation)
@@ -208,6 +221,7 @@ Test edge cases:
 ## Success Criteria
 
 ✅ **All tests pass if:**
+
 1. Both question types appear in SurveyBuilder
 2. Configuration UI works correctly
 3. Preview shows accurate rendering
@@ -222,15 +236,19 @@ Test edge cases:
 ## Troubleshooting
 
 ### Issue: Comment field doesn't appear
+
 **Solution:** Check that question.type === 'yes_no_comment' and a Yes/No option is selected
 
 ### Issue: Emojis not displaying
+
 **Solution:** Ensure emoji_options array is populated with valid emoji characters
 
 ### Issue: Question type not in dropdown
+
 **Solution:** Check SurveyBuilder.tsx questionTypes array includes new types
 
 ### Issue: Response not saving
+
 **Solution:** Verify API endpoint accepts comment_text for yes_no_comment and response_value for emoji_scale
 
 ---

@@ -40,20 +40,25 @@ class NotificationErrorBoundary extends Component<
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback || (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-10 w-10 sm:h-9 sm:w-9"
-          disabled
-        >
-          <Bell className="h-5 w-5 sm:h-4 sm:w-4" />
-          <div className="absolute -top-1 -right-1">
-            <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs">
-              !
-            </Badge>
-          </div>
-        </Button>
+      return (
+        this.props.fallback || (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-10 w-10 sm:h-9 sm:w-9"
+            disabled
+          >
+            <Bell className="h-5 w-5 sm:h-4 sm:w-4" />
+            <div className="absolute -top-1 -right-1">
+              <Badge
+                variant="destructive"
+                className="h-5 w-5 flex items-center justify-center p-0 text-xs"
+              >
+                !
+              </Badge>
+            </div>
+          </Button>
+        )
       );
     }
 
@@ -79,9 +84,14 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const unreadNotifications = notifications.filter(n => n.status === 'delivered');
+  const unreadNotifications = notifications.filter(
+    (n) => n.status === 'delivered'
+  );
 
-  const handleMarkAsRead = async (notificationId: string, e: React.MouseEvent) => {
+  const handleMarkAsRead = async (
+    notificationId: string,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
     await markAsRead(notificationId);
   };
@@ -140,9 +150,14 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
           aria-label="Notifications menu"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b" role="banner">
+          <div
+            className="flex items-center justify-between p-4 border-b"
+            role="banner"
+          >
             <div>
-              <h3 className="font-semibold text-sm" id="notifications-heading">Notifications</h3>
+              <h3 className="font-semibold text-sm" id="notifications-heading">
+                Notifications
+              </h3>
               <p className="text-xs text-muted-foreground">
                 {stats.unread > 0 ? `${stats.unread} unread` : 'All caught up!'}
               </p>
@@ -177,15 +192,21 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-0 border-b">
             <div className="p-3 text-center border-r">
-              <div className="text-lg font-bold text-primary">{stats.total}</div>
+              <div className="text-lg font-bold text-primary">
+                {stats.total}
+              </div>
               <div className="text-xs text-muted-foreground">Total</div>
             </div>
             <div className="p-3 text-center border-r">
-              <div className="text-lg font-bold text-orange-600">{stats.today}</div>
+              <div className="text-lg font-bold text-orange-600">
+                {stats.today}
+              </div>
               <div className="text-xs text-muted-foreground">Today</div>
             </div>
             <div className="p-3 text-center">
-              <div className="text-lg font-bold text-blue-600">{stats.thisWeek}</div>
+              <div className="text-lg font-bold text-blue-600">
+                {stats.thisWeek}
+              </div>
               <div className="text-xs text-muted-foreground">This week</div>
             </div>
           </div>
@@ -194,18 +215,26 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
           <ScrollArea className="max-h-96">
             {/* Live region for dynamic updates */}
             <div aria-live="polite" aria-atomic="true" className="sr-only">
-              {loading && "Loading notifications"}
+              {loading && 'Loading notifications'}
               {error && `Error: ${error}`}
-              {!loading && notifications.length === 0 && "No notifications"}
-              {!loading && stats.unread > 0 && `${stats.unread} unread notifications`}
+              {!loading && notifications.length === 0 && 'No notifications'}
+              {!loading &&
+                stats.unread > 0 &&
+                `${stats.unread} unread notifications`}
             </div>
 
             {error ? (
-              <div className="flex flex-col items-center justify-center py-8 px-4" role="alert" aria-label="Error loading notifications">
+              <div
+                className="flex flex-col items-center justify-center py-8 px-4"
+                role="alert"
+                aria-label="Error loading notifications"
+              >
                 <div className="p-3 bg-red-50 rounded-full mb-3">
                   <X className="h-6 w-6 text-red-600" aria-hidden="true" />
                 </div>
-                <p className="text-sm font-medium text-center text-red-900">Failed to load notifications</p>
+                <p className="text-sm font-medium text-center text-red-900">
+                  Failed to load notifications
+                </p>
                 <p className="text-xs text-red-700 text-center mt-1">{error}</p>
                 <Button
                   variant="outline"
@@ -218,7 +247,11 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                 </Button>
               </div>
             ) : loading ? (
-              <div className="space-y-4 p-4" role="status" aria-label="Loading notifications">
+              <div
+                className="space-y-4 p-4"
+                role="status"
+                aria-label="Loading notifications"
+              >
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="flex items-start gap-3 animate-pulse">
                     <div className="w-6 h-6 bg-muted rounded-full flex-shrink-0 mt-0.5"></div>
@@ -232,17 +265,30 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                 ))}
               </div>
             ) : notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 px-4" role="status" aria-label="No notifications">
+              <div
+                className="flex flex-col items-center justify-center py-12 px-4"
+                role="status"
+                aria-label="No notifications"
+              >
                 <div className="p-3 bg-muted rounded-full mb-3">
-                  <Bell className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+                  <Bell
+                    className="h-6 w-6 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </div>
-                <p className="text-sm font-medium text-center">No notifications yet</p>
+                <p className="text-sm font-medium text-center">
+                  No notifications yet
+                </p>
                 <p className="text-xs text-muted-foreground text-center mt-1">
                   We'll notify you when something important happens
                 </p>
               </div>
             ) : (
-              <div className="divide-y" role="list" aria-labelledby="notifications-heading">
+              <div
+                className="divide-y"
+                role="list"
+                aria-labelledby="notifications-heading"
+              >
                 {notifications.map((notification) => (
                   <motion.div
                     key={notification._id}
@@ -253,7 +299,10 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                       'p-4 hover:bg-accent/50 transition-colors cursor-pointer group relative',
                       notification.status === 'delivered' && 'bg-blue-50/30'
                     )}
-                    onClick={() => notification.status === 'delivered' && markAsRead(notification._id)}
+                    onClick={() =>
+                      notification.status === 'delivered' &&
+                      markAsRead(notification._id)
+                    }
                     role="listitem"
                     aria-label={`${sanitizeText(notification.title)}. ${sanitizeText(notification.message)}. ${formatRelativeTime(notification.created_at)}. ${notification.status === 'delivered' ? 'Unread' : 'Read'}. Priority: ${notification.priority}.`}
                     tabIndex={0}
@@ -267,13 +316,15 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                     }}
                   >
                     {/* Priority indicator */}
-                    <div className={cn(
-                      'absolute left-0 top-0 bottom-0 w-1 rounded-r',
-                      notification.priority === 'critical' && 'bg-red-500',
-                      notification.priority === 'high' && 'bg-orange-500',
-                      notification.priority === 'medium' && 'bg-blue-500',
-                      notification.priority === 'low' && 'bg-gray-400'
-                    )} />
+                    <div
+                      className={cn(
+                        'absolute left-0 top-0 bottom-0 w-1 rounded-r',
+                        notification.priority === 'critical' && 'bg-red-500',
+                        notification.priority === 'high' && 'bg-orange-500',
+                        notification.priority === 'medium' && 'bg-blue-500',
+                        notification.priority === 'low' && 'bg-gray-400'
+                      )}
+                    />
 
                     <div className="flex items-start gap-3 ml-2">
                       {/* Icon */}
@@ -296,16 +347,25 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex items-center gap-1" role="group" aria-label="Notification actions">
+                          <div
+                            className="flex items-center gap-1"
+                            role="group"
+                            aria-label="Notification actions"
+                          >
                             {notification.status === 'delivered' && (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={(e) => handleMarkAsRead(notification._id, e)}
+                                onClick={(e) =>
+                                  handleMarkAsRead(notification._id, e)
+                                }
                                 className="h-6 w-6 p-0 hover:bg-green-100"
                                 aria-label={`Mark notification "${sanitizeText(notification.title)}" as read`}
                               >
-                                <Check className="h-3 w-3 text-green-600" aria-hidden="true" />
+                                <Check
+                                  className="h-3 w-3 text-green-600"
+                                  aria-hidden="true"
+                                />
                               </Button>
                             )}
                             <Button
@@ -315,7 +375,10 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                               className="h-6 w-6 p-0 hover:bg-red-100"
                               aria-label={`Delete notification "${sanitizeText(notification.title)}"`}
                             >
-                              <Trash2 className="h-3 w-3 text-red-600" aria-hidden="true" />
+                              <Trash2
+                                className="h-3 w-3 text-red-600"
+                                aria-hidden="true"
+                              />
                             </Button>
                           </div>
                         </div>
@@ -326,7 +389,10 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                             {formatRelativeTime(notification.created_at)}
                           </span>
                           {notification.status === 'delivered' && (
-                            <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+                            <Badge
+                              variant="secondary"
+                              className="text-xs px-1.5 py-0.5"
+                            >
                               New
                             </Badge>
                           )}
@@ -350,9 +416,7 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                   className="w-full text-xs"
                   asChild
                 >
-                  <a href="/notifications">
-                    View all notifications
-                  </a>
+                  <a href="/notifications">View all notifications</a>
                 </Button>
               </div>
             </>

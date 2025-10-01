@@ -33,7 +33,7 @@ export interface IMicroclimateInvitation extends Document {
   };
   created_at: Date;
   updated_at: Date;
-  
+
   // Instance methods
   markSent(): void;
   markOpened(metadata?: any): void;
@@ -46,8 +46,11 @@ export interface IMicroclimateInvitation extends Document {
 }
 
 // Model interface with static methods
-export interface IMicroclimateInvitationModel extends Model<IMicroclimateInvitation> {
-  findByMicroclimate(microclimateId: string): Promise<IMicroclimateInvitation[]>;
+export interface IMicroclimateInvitationModel
+  extends Model<IMicroclimateInvitation> {
+  findByMicroclimate(
+    microclimateId: string
+  ): Promise<IMicroclimateInvitation[]>;
   findByToken(token: string): Promise<IMicroclimateInvitation | null>;
   findByUser(userId: string): Promise<IMicroclimateInvitation[]>;
   findPendingReminders(): Promise<IMicroclimateInvitation[]>;
@@ -134,13 +137,18 @@ const MicroclimateInvitationSchema: Schema = new Schema(
 );
 
 // Indexes
-MicroclimateInvitationSchema.index({ microclimate_id: 1, user_id: 1 }, { unique: true });
+MicroclimateInvitationSchema.index(
+  { microclimate_id: 1, user_id: 1 },
+  { unique: true }
+);
 MicroclimateInvitationSchema.index({ status: 1 });
 MicroclimateInvitationSchema.index({ expires_at: 1 });
 MicroclimateInvitationSchema.index({ company_id: 1 });
 
 // Static methods
-MicroclimateInvitationSchema.statics.findByMicroclimate = function (microclimateId: string) {
+MicroclimateInvitationSchema.statics.findByMicroclimate = function (
+  microclimateId: string
+) {
   return this.find({ microclimate_id: microclimateId });
 };
 
@@ -158,7 +166,9 @@ MicroclimateInvitationSchema.methods.markSent = function (): void {
   this.sent_at = new Date();
 };
 
-MicroclimateInvitationSchema.methods.markOpened = function (metadata?: any): void {
+MicroclimateInvitationSchema.methods.markOpened = function (
+  metadata?: any
+): void {
   if (this.status === 'sent') {
     this.status = 'opened';
     this.opened_at = new Date();
@@ -201,27 +211,28 @@ MicroclimateInvitationSchema.methods.canSendReminder = function (): boolean {
   if (this.status === 'participated' || this.status === 'expired') {
     return false;
   }
-  
+
   if (this.reminder_count >= 2) {
     return false;
   }
-  
+
   if (this.isExpired()) {
     return false;
   }
-  
+
   // Can send reminder if no reminder sent yet, or last reminder was sent more than 24 hours ago
   if (!this.last_reminder_sent) {
     return true;
   }
-  
-  const hoursSinceLastReminder = 
-    (new Date().getTime() - this.last_reminder_sent.getTime()) / (1000 * 60 * 60);
+
+  const hoursSinceLastReminder =
+    (new Date().getTime() - this.last_reminder_sent.getTime()) /
+    (1000 * 60 * 60);
   return hoursSinceLastReminder >= 24;
 };
 
 // Static methods for finding reminders and expired invitations
-MicroclimateInvitationSchema.statics.findPendingReminders = 
+MicroclimateInvitationSchema.statics.findPendingReminders =
   async function (): Promise<IMicroclimateInvitation[]> {
     const now = new Date();
     return this.find({
