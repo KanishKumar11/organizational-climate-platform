@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,8 +11,8 @@ import { Progress } from '@/components/ui/Progress';
 import {
   EnhancedTabs as Tabs,
   EnhancedTabsContent as TabsContent,
-  CompactTabsList as TabsList,
-  CompactTabsTrigger as TabsTrigger,
+  EnhancedTabsList as TabsList,
+  EnhancedTabsTrigger as TabsTrigger,
 } from '@/components/ui/enhanced-tabs';
 
 import {
@@ -117,6 +118,7 @@ interface UpcomingDeadline {
 }
 
 export default function EvaluatedUserDashboard() {
+  const router = useRouter();
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState<{
     user: UserInfo;
@@ -223,27 +225,74 @@ export default function EvaluatedUserDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-6 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">
-              Welcome back, {dashboardData.user.name}!
-            </h1>
-            <p className="text-blue-100">
-              {dashboardData.user.department} • {dashboardData.user.company}
-            </p>
-          </div>
-          <div className="text-right">
-            <Badge variant="secondary" className="mb-2">
-              {dashboardData.user.role.replace('_', ' ').toUpperCase()}
-            </Badge>
-            <p className="text-sm text-blue-100">
-              Last active:{' '}
-              {new Date(
-                dashboardData.engagementMetrics.last_activity
-              ).toLocaleDateString()}
-            </p>
+      {/* Modern Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-8 lg:p-12">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+        <div className="relative">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl shadow-lg">
+                  <User className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                    Welcome back, {dashboardData.user.name}!
+                  </h1>
+                  <p className="text-lg text-gray-600">
+                    Your engagement matters • {dashboardData.user.department}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-green-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData.engagementMetrics.surveys_completed} Surveys
+                    Completed
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-blue-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData.engagementMetrics.participation_streak} Day
+                    Streak
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-purple-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData.engagementMetrics.completion_rate.toFixed(1)}
+                    % Completion Rate
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-orange-400 rounded-full shadow-sm" />
+                  <span className="font-medium">
+                    {dashboardData.assignedSurveys.length} Pending Surveys
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 w-full lg:w-auto">
+              <div className="text-right">
+                <Badge className="bg-green-50 text-green-600 border-green-200 mb-2 text-sm px-3 py-1">
+                  {dashboardData.user.role.replace('_', ' ').toUpperCase()}
+                </Badge>
+                <p className="text-sm text-gray-500">
+                  Last active:{' '}
+                  {new Date(
+                    dashboardData.engagementMetrics.last_activity
+                  ).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="text-right text-sm text-gray-600">
+                <p className="font-medium">{dashboardData.user.company}</p>
+                <p>{dashboardData.user.email}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -315,7 +364,15 @@ export default function EvaluatedUserDashboard() {
                             ? 'Due tomorrow'
                             : `${deadline.days_remaining} days left`}
                       </Badge>
-                      <Button size="sm">
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          window.open(
+                            `/surveys/${deadline.survey_id}`,
+                            '_blank'
+                          )
+                        }
+                      >
                         Start Survey
                         <ArrowRight className="h-4 w-4 ml-1" />
                       </Button>
@@ -328,19 +385,54 @@ export default function EvaluatedUserDashboard() {
       )}
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="surveys" className="space-y-6">
+      <Tabs defaultValue="surveys" className="space-y-8">
         <TabsList>
-          <TabsTrigger value="surveys">My Surveys</TabsTrigger>
-          <TabsTrigger value="adaptive">AI Questionnaires</TabsTrigger>
-          <TabsTrigger value="microclimates">Microclimates</TabsTrigger>
-          <TabsTrigger value="insights">Personal Insights</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger
+            value="surveys"
+            icon={<FileText className="h-5 w-5" />}
+            description={`${dashboardData.assignedSurveys.length} pending`}
+          >
+            My Surveys
+          </TabsTrigger>
+          <TabsTrigger
+            value="adaptive"
+            icon={<Brain className="h-5 w-5" />}
+            description={`${dashboardData.adaptiveQuestionnaires.length} available`}
+          >
+            AI Questionnaires
+          </TabsTrigger>
+          <TabsTrigger
+            value="microclimates"
+            icon={<Zap className="h-5 w-5" />}
+            description={`${dashboardData.microclimateHistory.length} completed`}
+          >
+            Microclimates
+          </TabsTrigger>
+          <TabsTrigger
+            value="insights"
+            icon={<Award className="h-5 w-5" />}
+            description={`${dashboardData.personalInsights.insights.length} insights`}
+          >
+            Personal Insights
+          </TabsTrigger>
+          <TabsTrigger
+            value="history"
+            icon={<Calendar className="h-5 w-5" />}
+            description={`${dashboardData.participationHistory.length} completed`}
+          >
+            History
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="surveys" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Assigned Surveys</CardTitle>
+        <TabsContent value="surveys" className="space-y-8">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <FileText className="h-5 w-5 text-green-600" />
+                </div>
+                Assigned Surveys
+              </CardTitle>
             </CardHeader>
             <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
               <div className="space-y-4 pr-2">
@@ -377,7 +469,11 @@ export default function EvaluatedUserDashboard() {
                         </p>
                         <p className="text-gray-500">Due date</p>
                       </div>
-                      <Button>
+                      <Button
+                        onClick={() =>
+                          window.open(`/surveys/${survey._id}`, '_blank')
+                        }
+                      >
                         <PlayCircle className="h-4 w-4 mr-2" />
                         Start Survey
                       </Button>
@@ -396,11 +492,13 @@ export default function EvaluatedUserDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="adaptive" className="space-y-6">
-          <Card>
-            <CardHeader>
+        <TabsContent value="adaptive" className="space-y-8">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5" />
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Brain className="h-5 w-5 text-purple-600" />
+                </div>
                 AI-Tailored Questionnaires
               </CardTitle>
             </CardHeader>
@@ -451,7 +549,15 @@ export default function EvaluatedUserDashboard() {
                             questionnaire.due_date
                           ).toLocaleDateString()}
                         </span>
-                        <Button size="sm">
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            window.open(
+                              `/surveys/${questionnaire.id}`,
+                              '_blank'
+                            )
+                          }
+                        >
                           <PlayCircle className="h-4 w-4 mr-2" />
                           Start Questionnaire
                         </Button>
@@ -464,11 +570,13 @@ export default function EvaluatedUserDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="microclimates" className="space-y-6">
-          <Card>
-            <CardHeader>
+        <TabsContent value="microclimates" className="space-y-8">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5" />
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Zap className="h-5 w-5 text-blue-600" />
+                </div>
                 Microclimate Participation
               </CardTitle>
             </CardHeader>
@@ -516,7 +624,15 @@ export default function EvaluatedUserDashboard() {
                           {microclimate.participation_status}
                         </Badge>
                         {microclimate.insights_generated && (
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              router.push(
+                                `/microclimates/${microclimate.id}/results`
+                              )
+                            }
+                          >
                             <Eye className="h-4 w-4 mr-1" />
                             View Results
                           </Button>
@@ -640,7 +756,13 @@ export default function EvaluatedUserDashboard() {
                           </p>
                           <p className="text-gray-500">Survey ended</p>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            router.push(`/surveys/${participation._id}`)
+                          }
+                        >
                           <Eye className="h-4 w-4 mr-1" />
                           View Details
                         </Button>

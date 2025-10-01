@@ -50,6 +50,7 @@ import {
   Eye,
   BarChart3,
 } from 'lucide-react';
+import { INDUSTRIES } from '@/lib/constants';
 
 interface GlobalKPIs {
   totalCompanies: number;
@@ -972,12 +973,17 @@ export default function SuperAdminDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="companies" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Company Performance</CardTitle>
+        <TabsContent value="companies" className="space-y-8">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Building2 className="h-5 w-5 text-purple-600" />
+                </div>
+                Company Performance
+              </CardTitle>
             </CardHeader>
-            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+            <CardContent className="max-h-96 overflow-y-auto scroll-smooth dashboard-scroll">
               <div className="space-y-4 pr-2">
                 {dashboardData.companyMetrics.map((company, index) => (
                   <motion.div
@@ -985,42 +991,68 @@ export default function SuperAdminDashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                    className="flex items-center justify-between p-6 bg-gradient-to-r from-white to-gray-50/50 border border-gray-100 rounded-xl hover:shadow-md hover:border-purple-200 transition-all duration-200"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Building2 className="h-5 w-5 text-blue-600" />
+                      <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg">
+                        <Building2 className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h4 className="font-semibold">{company.name}</h4>
-                        <p className="text-sm text-gray-500">
-                          Added{' '}
-                          {new Date(company.created_at).toLocaleDateString()}
+                        <h4 className="font-bold text-gray-900 text-lg">{company.name}</h4>
+                        <p className="text-sm text-gray-600">
+                          Added {new Date(company.created_at).toLocaleDateString()}
                         </p>
+                        <div className="flex items-center gap-4 mt-2">
+                          <Badge className="bg-purple-50 text-purple-600 border-purple-200">
+                            {company.user_count} users
+                          </Badge>
+                          <Badge className="bg-blue-50 text-blue-600 border-blue-200">
+                            {company.survey_count} surveys
+                          </Badge>
+                          <Badge className="bg-green-50 text-green-600 border-green-200">
+                            {company.active_surveys} active
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6 text-sm">
-                      <div className="text-center">
-                        <p className="font-semibold">{company.user_count}</p>
-                        <p className="text-gray-500">Users</p>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right mr-4">
+                        <div className="text-2xl font-bold text-gray-900">
+                          {company.user_count}
+                        </div>
+                        <div className="text-sm text-gray-500">Total Users</div>
                       </div>
-                      <div className="text-center">
-                        <p className="font-semibold">{company.survey_count}</p>
-                        <p className="text-gray-500">Surveys</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="font-semibold">
-                          {company.active_surveys}
-                        </p>
-                        <p className="text-gray-500">Active</p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
+                      <Button
+                        className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl transition-all duration-200"
+                        size="sm"
+                        onClick={() => router.push(`/admin/companies/${company._id}`)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
                       </Button>
                     </div>
                   </motion.div>
                 ))}
+                {dashboardData.companyMetrics.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Building2 className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No Companies Yet
+                    </h3>
+                    <p className="text-gray-500 mb-6">
+                      Start by adding your first company to the platform.
+                    </p>
+                    <Button
+                      onClick={handleAddCompany}
+                      className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Company
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -1136,12 +1168,17 @@ export default function SuperAdminDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="surveys" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Ongoing Surveys</CardTitle>
+        <TabsContent value="surveys" className="space-y-8">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                </div>
+                Current Ongoing Surveys
+              </CardTitle>
             </CardHeader>
-            <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
+            <CardContent className="max-h-96 overflow-y-auto scroll-smooth dashboard-scroll">
               <div className="space-y-4 pr-2">
                 {dashboardData.ongoingSurveys.map((survey, index) => (
                   <motion.div
@@ -1149,42 +1186,76 @@ export default function SuperAdminDashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                    className="flex items-center justify-between p-6 bg-gradient-to-r from-white to-gray-50/50 border border-gray-100 rounded-xl hover:shadow-md hover:border-blue-200 transition-all duration-200"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-green-600" />
+                      <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
+                        <FileText className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h4 className="font-semibold">{survey.title}</h4>
-                        <p className="text-sm text-gray-500">
+                        <h4 className="font-bold text-gray-900 text-lg">{survey.title}</h4>
+                        <p className="text-sm text-gray-600">
                           {survey.company_id.name} • {survey.type}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-500">
                           Created by {survey.created_by.name}
                         </p>
+                        <div className="flex items-center gap-4 mt-2">
+                          <Badge className="bg-blue-50 text-blue-600 border-blue-200">
+                            {survey.response_count || 0} responses
+                          </Badge>
+                          <Badge className="bg-green-50 text-green-600 border-green-200">
+                            Target: {survey.target_responses}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6 text-sm">
-                      <div className="text-center">
-                        <p className="font-semibold">
-                          {survey.response_count || 0}
-                        </p>
-                        <p className="text-gray-500">Responses</p>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right mr-4">
+                        <div className="text-2xl font-bold text-gray-900">
+                          {Math.round(((survey.response_count || 0) / survey.target_responses) * 100)}%
+                        </div>
+                        <div className="text-sm text-gray-500">Completion</div>
+                        <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
+                          <div
+                            className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full"
+                            style={{
+                              width: `${Math.min(((survey.response_count || 0) / survey.target_responses) * 100, 100)}%`
+                            }}
+                          ></div>
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <p className="font-semibold">
-                          {new Date(survey.end_date).toLocaleDateString()}
-                        </p>
-                        <p className="text-gray-500">Ends</p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
+                      <Button
+                        className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
+                        size="sm"
+                        onClick={() => router.push(`/surveys/${survey._id}`)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
                         View Details
                       </Button>
                     </div>
                   </motion.div>
                 ))}
+                {dashboardData.ongoingSurveys.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FileText className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No Ongoing Surveys
+                    </h3>
+                    <p className="text-gray-500 mb-6">
+                      Create your first global survey to gather insights across organizations.
+                    </p>
+                    <Button
+                      onClick={handleCreateGlobalSurvey}
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create First Survey
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -1239,18 +1310,26 @@ export default function SuperAdminDashboard() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="industry">Industry *</Label>
-                <Input
-                  id="industry"
+                <Select
                   value={companyFormData.industry}
-                  onChange={(e) =>
+                  onValueChange={(value: string) =>
                     setCompanyFormData({
                       ...companyFormData,
-                      industry: e.target.value,
+                      industry: value,
                     })
                   }
-                  placeholder="Technology"
-                  required
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INDUSTRIES.map((industry) => (
+                      <SelectItem key={industry.value} value={industry.value}>
+                        {industry.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="country">Country *</Label>

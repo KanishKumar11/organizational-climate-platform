@@ -149,7 +149,6 @@ const UserInvitationSchema: Schema = new Schema(
 
 // Indexes
 UserInvitationSchema.index({ email: 1, company_id: 1 });
-UserInvitationSchema.index({ invitation_token: 1 }, { unique: true });
 UserInvitationSchema.index({ company_id: 1, status: 1 });
 UserInvitationSchema.index({ expires_at: 1 });
 UserInvitationSchema.index({ invited_by: 1 });

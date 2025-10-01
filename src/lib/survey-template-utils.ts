@@ -31,8 +31,10 @@ export function mapQuestionType(templateQuestionType: string): QuestionType {
     ranking: 'ranking',
     open_ended: 'open_ended',
     yes_no: 'yes_no',
+    yes_no_comment: 'yes_no_comment',
     rating: 'rating',
-    emoji_rating: 'rating', // Map emoji_rating to rating
+    emoji_rating: 'rating', // Map emoji_rating to rating (for backward compatibility)
+    emoji_scale: 'emoji_scale',
   };
 
   return typeMapping[templateQuestionType] || 'likert';
@@ -52,6 +54,9 @@ export function transformTemplateQuestions(
     scale_min: question.scale_min,
     scale_max: question.scale_max,
     scale_labels: question.scale_labels,
+    comment_required: question.comment_required,
+    comment_prompt: question.comment_prompt,
+    emoji_options: question.emoji_options,
     required: question.required !== undefined ? question.required : true,
     conditional_logic: question.conditional_logic,
     order: question.order !== undefined ? question.order : index,

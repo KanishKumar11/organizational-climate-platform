@@ -27,6 +27,8 @@ interface AdaptiveQuestion {
     | 'ranking'
     | 'open_ended'
     | 'yes_no'
+    | 'yes_no_comment'
+    | 'emoji_scale'
     | 'rating';
   category: string;
   subcategory?: string;
@@ -34,6 +36,9 @@ interface AdaptiveQuestion {
   scale_min?: number;
   scale_max?: number;
   scale_labels?: { min: string; max: string };
+  comment_required?: boolean;
+  comment_prompt?: string;
+  emoji_options?: Array<{ emoji: string; label: string; value: number }>;
   required: boolean;
   adaptationType: 'original' | 'combined' | 'reformulated' | 'generated';
   adaptationReason?: string;
@@ -82,6 +87,7 @@ export default function AdaptiveQuestionnaireInterface({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState<QuestionResponse[]>([]);
   const [currentResponse, setCurrentResponse] = useState<any>(null);
+  const [currentResponseText, setCurrentResponseText] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [adapting, setAdapting] = useState(false);
   const [adaptationTriggers, setAdaptationTriggers] = useState<
@@ -145,8 +151,9 @@ export default function AdaptiveQuestionnaireInterface({
     const newResponse: QuestionResponse = {
       questionId: currentQuestion.id,
       response: currentResponse,
-      responseText:
-        typeof currentResponse === 'string' ? currentResponse : undefined,
+      responseText: currentResponseText || (
+        typeof currentResponse === 'string' ? currentResponse : undefined
+      ),
       timestamp: new Date(),
       category: currentQuestion.category,
     };
@@ -154,6 +161,7 @@ export default function AdaptiveQuestionnaireInterface({
     const updatedResponses = [...responses, newResponse];
     setResponses(updatedResponses);
     setCurrentResponse(null);
+    setCurrentResponseText('');
 
     // Check if we need to adapt questions based on the response
     await checkForAdaptation(updatedResponses, currentQuestionIndex + 1);
@@ -178,6 +186,7 @@ export default function AdaptiveQuestionnaireInterface({
       const previousResponse = responses[currentQuestionIndex - 1];
       if (previousResponse) {
         setCurrentResponse(previousResponse.response);
+        setCurrentResponseText(previousResponse.responseText || '');
         // Remove the response from the array since we're going back
         setResponses(responses.slice(0, -1));
       }
@@ -301,6 +310,62 @@ export default function AdaptiveQuestionnaireInterface({
                 {option}
               </button>
             ))}
+          </div>
+        );
+
+      case 'yes_no_comment':
+        return (
+          <div className="space-y-4">
+            <div className="flex gap-4 justify-center">
+              {['Yes', 'No'].map((option) => (
+                <button
+                  key={option}
+                  onClick={() => handleResponseChange(option)}
+                  className={`px-8 py-4 rounded-lg border-2 font-medium transition-colors ${
+                    currentResponse === option
+                      ? 'border-blue-500 bg-blue-500 text-white'
+                      : 'border-gray-300 hover:border-blue-300'
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+            {currentResponse && (
+              <div className="mt-4">
+                <Textarea
+                  value={currentResponseText || ''}
+                  onChange={(e) => setCurrentResponseText(e.target.value)}
+                  placeholder={
+                    question.comment_prompt || 'Please add your comment...'
+                  }
+                  className="resize-none h-24"
+                  required={question.comment_required}
+                />
+              </div>
+            )}
+          </div>
+        );
+
+      case 'emoji_scale':
+        return (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-4 justify-center">
+              {question.emoji_options?.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleResponseChange(option.value)}
+                  className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all ${
+                    currentResponse === option.value
+                      ? 'border-pink-500 bg-pink-50 scale-110'
+                      : 'border-gray-300 hover:border-pink-300 hover:scale-105'
+                  }`}
+                >
+                  <span className="text-4xl mb-2">{option.emoji}</span>
+                  <span className="text-sm font-medium">{option.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         );
 

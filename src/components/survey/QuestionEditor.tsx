@@ -202,6 +202,141 @@ export default function QuestionEditor({
           </div>
         );
 
+      case 'yes_no_comment':
+        return (
+          <div className="space-y-4">
+            <Label className="text-sm font-medium">
+              Comment Field Configuration
+            </Label>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <Switch
+                  id={`comment-required-${question.id}`}
+                  checked={question.comment_required !== false}
+                  onCheckedChange={(checked) =>
+                    updateQuestion({ comment_required: checked })
+                  }
+                />
+                <Label
+                  htmlFor={`comment-required-${question.id}`}
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  Require comment explanation
+                </Label>
+              </div>
+              <div className="space-y-2">
+                <Label
+                  htmlFor={`comment-prompt-${question.id}`}
+                  className="text-xs text-gray-600"
+                >
+                  Comment Prompt
+                </Label>
+                <Input
+                  id={`comment-prompt-${question.id}`}
+                  value={question.comment_prompt || 'Please explain your answer:'}
+                  onChange={(e) =>
+                    updateQuestion({ comment_prompt: e.target.value })
+                  }
+                  placeholder="e.g., Please explain your answer:"
+                  className="border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'emoji_scale':
+        return (
+          <div className="space-y-4">
+            <Label className="text-sm font-medium">Emoji Scale Options</Label>
+            <div className="space-y-3">
+              {(question.emoji_options || []).map((emojiOption, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                >
+                  <Input
+                    value={emojiOption.emoji}
+                    onChange={(e) => {
+                      const newOptions = [...(question.emoji_options || [])];
+                      newOptions[index] = {
+                        ...emojiOption,
+                        emoji: e.target.value,
+                      };
+                      updateQuestion({ emoji_options: newOptions });
+                    }}
+                    placeholder="😊"
+                    className="w-16 text-center text-xl border-gray-200"
+                  />
+                  <Input
+                    value={emojiOption.label}
+                    onChange={(e) => {
+                      const newOptions = [...(question.emoji_options || [])];
+                      newOptions[index] = {
+                        ...emojiOption,
+                        label: e.target.value,
+                      };
+                      updateQuestion({ emoji_options: newOptions });
+                    }}
+                    placeholder="Label"
+                    className="flex-1 border-gray-200"
+                  />
+                  <Input
+                    type="number"
+                    value={emojiOption.value}
+                    onChange={(e) => {
+                      const newOptions = [...(question.emoji_options || [])];
+                      newOptions[index] = {
+                        ...emojiOption,
+                        value: parseInt(e.target.value),
+                      };
+                      updateQuestion({ emoji_options: newOptions });
+                    }}
+                    placeholder="Value"
+                    className="w-20 border-gray-200"
+                  />
+                  {(question.emoji_options || []).length > 2 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const newOptions = (question.emoji_options || []).filter(
+                          (_, i) => i !== index
+                        );
+                        updateQuestion({ emoji_options: newOptions });
+                      }}
+                      className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newOptions = [
+                    ...(question.emoji_options || []),
+                    {
+                      emoji: '😊',
+                      label: 'New Option',
+                      value: (question.emoji_options || []).length + 1,
+                    },
+                  ];
+                  updateQuestion({ emoji_options: newOptions });
+                }}
+                className="w-full bg-pink-50 hover:bg-pink-100 text-pink-600 border-pink-200"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add Emoji Option
+              </Button>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -420,6 +555,67 @@ export default function QuestionEditor({
                         </Label>
                       </div>
                     </RadioGroup>
+                  )}
+
+                  {question.type === 'yes_no_comment' && (
+                    <div className="space-y-3">
+                      <RadioGroup disabled className="flex gap-6">
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem
+                            value="yes"
+                            id={`preview-${question.id}-yes-comment`}
+                            disabled
+                          />
+                          <Label
+                            htmlFor={`preview-${question.id}-yes-comment`}
+                            className="text-sm text-gray-700 cursor-pointer"
+                          >
+                            Yes
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem
+                            value="no"
+                            id={`preview-${question.id}-no-comment`}
+                            disabled
+                          />
+                          <Label
+                            htmlFor={`preview-${question.id}-no-comment`}
+                            className="text-sm text-gray-700 cursor-pointer"
+                          >
+                            No
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                      <div className="pl-0 space-y-2">
+                        <Label className="text-xs text-gray-600">
+                          {question.comment_prompt || 'Please explain your answer:'}
+                        </Label>
+                        <Textarea
+                          disabled
+                          placeholder="Comment will appear here when Yes or No is selected..."
+                          className="bg-gray-50 text-gray-500 resize-none"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {question.type === 'emoji_scale' && (
+                    <div className="flex justify-center gap-3">
+                      {(question.emoji_options || []).map((emojiOption, index) => (
+                        <button
+                          key={index}
+                          disabled
+                          className="flex flex-col items-center gap-2 p-3 rounded-lg border border-gray-200 bg-gray-50 disabled:opacity-70"
+                        >
+                          <span className="text-3xl">{emojiOption.emoji}</span>
+                          <span className="text-xs text-gray-600 text-center">
+                            {emojiOption.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   )}
 
                   {question.type === 'rating' && (

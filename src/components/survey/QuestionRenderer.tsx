@@ -307,6 +307,105 @@ export function QuestionRenderer({
     );
   };
 
+  const renderYesNoComment = () => {
+    const current = response?.response_value as string;
+    const [commentText, setCommentText] = useState(response?.response_text || '');
+
+    return (
+      <div className="space-y-4 mt-6">
+        <div className="flex justify-center space-x-6">
+          {['Yes', 'No'].map((option) => {
+            const isSelected = current === option.toLowerCase();
+
+            return (
+              <motion.button
+                key={option}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleResponse(option.toLowerCase(), commentText)}
+                className={`
+                  px-8 py-3 rounded-lg border-2 font-medium transition-colors min-w-[100px]
+                  ${
+                    isSelected
+                      ? 'bg-indigo-500 border-indigo-500 text-white'
+                      : 'bg-white border-gray-300 text-gray-700 hover:border-indigo-300'
+                  }
+                `}
+              >
+                {option}
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {current && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="pt-4"
+          >
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {question.comment_prompt || 'Please explain your answer:'}
+              {question.comment_required && (
+                <span className="text-red-500 ml-1">*</span>
+              )}
+            </label>
+            <Textarea
+              value={commentText}
+              onChange={(e) => {
+                setCommentText(e.target.value);
+                handleResponse(current, e.target.value);
+              }}
+              placeholder="Enter your explanation here..."
+              className="resize-none"
+              rows={4}
+            />
+          </motion.div>
+        )}
+      </div>
+    );
+  };
+
+  const renderEmojiScale = () => {
+    const current = response?.response_value as number;
+
+    return (
+      <div className="flex flex-wrap justify-center gap-4 mt-6">
+        {(question.emoji_options || []).map((emojiOption) => {
+          const isSelected = current === emojiOption.value;
+
+          return (
+            <motion.button
+              key={emojiOption.value}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleResponse(emojiOption.value)}
+              className={`
+                flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all min-w-[100px]
+                ${
+                  isSelected
+                    ? 'bg-pink-50 border-pink-400 shadow-lg'
+                    : 'bg-white border-gray-200 hover:border-pink-300 hover:shadow-md'
+                }
+              `}
+            >
+              <span className="text-4xl">{emojiOption.emoji}</span>
+              <span
+                className={`text-sm font-medium text-center ${
+                  isSelected ? 'text-pink-700' : 'text-gray-700'
+                }`}
+              >
+                {emojiOption.label}
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderQuestion = () => {
     switch (question.type) {
       case 'likert':
@@ -319,6 +418,10 @@ export function QuestionRenderer({
         return renderOpenEnded();
       case 'yes_no':
         return renderYesNo();
+      case 'yes_no_comment':
+        return renderYesNoComment();
+      case 'emoji_scale':
+        return renderEmojiScale();
       case 'rating':
         return renderRating();
       default:

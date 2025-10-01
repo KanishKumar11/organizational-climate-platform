@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -97,6 +98,20 @@ const SUBSCRIPTION_TIERS = [
   { value: 'enterprise', label: 'Enterprise' },
 ];
 
+const INDUSTRIES = [
+  { value: 'technology', label: 'Technology' },
+  { value: 'healthcare', label: 'Healthcare' },
+  { value: 'finance', label: 'Finance' },
+  { value: 'education', label: 'Education' },
+  { value: 'retail', label: 'Retail' },
+  { value: 'manufacturing', label: 'Manufacturing' },
+  { value: 'consulting', label: 'Consulting' },
+  { value: 'real_estate', label: 'Real Estate' },
+  { value: 'non_profit', label: 'Non-Profit' },
+  { value: 'government', label: 'Government' },
+  { value: 'other', label: 'Other' },
+];
+
 const sizeSortOrder: Record<Company['size'], number> = {
   startup: 0,
   small: 1,
@@ -130,6 +145,7 @@ export default function ModernCompanyManagement({
   userRole,
   onStatsChange,
 }: ModernCompanyManagementProps) {
+  const router = useRouter();
   const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
   const { success: toastSuccess, error: toastError } = useToast();
 
@@ -584,6 +600,21 @@ export default function ModernCompanyManagement({
     exportCompanies(selectedCompaniesData);
   };
 
+  // Navigation functions
+  const viewCompanyDetails = (company: Company) => {
+    router.push(`/admin/companies/${company._id}`);
+  };
+
+  const manageUsers = (company: Company) => {
+    // TODO: Navigate to user management page for this company
+    toast.info(`User management for ${company.name} - Feature coming soon`);
+  };
+
+  const handleBulkActions = () => {
+    // TODO: Implement bulk actions functionality
+    toast.info('Bulk actions - Feature coming soon');
+  };
+
   // Settings functions
   const openSettings = () => {
     setShowSettingsDialog(true);
@@ -722,37 +753,12 @@ export default function ModernCompanyManagement({
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Company
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Details
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Users className="h-4 w-4 mr-2" />
-                  Manage Users
-                </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => resendInvitation(company)}
-                  className="cursor-pointer text-blue-600 focus:text-blue-600"
-                  disabled={!company.is_active}
+                  onClick={() => openSettings()}
+                  className="cursor-pointer"
                 >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Resend Invitation
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => deactivateCompany(company)}
-                  className="cursor-pointer text-orange-600 focus:text-orange-600"
-                  disabled={!company.is_active}
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  {company.is_active ? 'Deactivate' : 'Activate'} Company
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => deleteCompany(company)}
-                  className="cursor-pointer text-red-600 focus:text-red-600"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Company
+                  <Settings className="h-4 w-4 mr-2" />
+                  Manage Settings
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -948,29 +954,12 @@ export default function ModernCompanyManagement({
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Company
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Users className="h-4 w-4 mr-2" />
-                Manage Users
-              </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => resendInvitation(company)}
-                className="cursor-pointer text-blue-600 focus:text-blue-600"
-                disabled={!company.is_active}
+                onClick={() => openSettings()}
+                className="cursor-pointer"
               >
-                <Mail className="h-4 w-4 mr-2" />
-                Resend Invitation
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => deleteCompany(company)}
-                className="cursor-pointer text-red-600 focus:text-red-600"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Company
+                <Settings className="h-4 w-4 mr-2" />
+                Manage Settings
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1180,38 +1169,12 @@ export default function ModernCompanyManagement({
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Company
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer">
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer">
-                            <Users className="mr-2 h-4 w-4" />
-                            Manage Users
-                          </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => resendInvitation(company)}
-                            className="cursor-pointer text-blue-600 focus:text-blue-600"
-                            disabled={!company.is_active}
+                            onClick={() => openSettings()}
+                            className="cursor-pointer"
                           >
-                            <Mail className="mr-2 h-4 w-4" />
-                            Resend Invitation
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => deactivateCompany(company)}
-                            className="cursor-pointer text-orange-600 focus:text-orange-600"
-                            disabled={!company.is_active}
-                          >
-                            <Shield className="mr-2 h-4 w-4" />
-                            {company.is_active ? 'Deactivate' : 'Activate'}{' '}
-                            Company
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => deleteCompany(company)}
-                            className="cursor-pointer text-red-600 focus:text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Company
+                            <Settings className="mr-2 h-4 w-4" />
+                            Manage Settings
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -1477,7 +1440,12 @@ export default function ModernCompanyManagement({
                 >
                   Export Selected
                 </Button>
-                <Button variant="outline" size="sm" className="cursor-pointer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBulkActions}
+                  className="cursor-pointer"
+                >
                   Bulk Actions
                 </Button>
               </div>
@@ -1591,15 +1559,23 @@ export default function ModernCompanyManagement({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="industry">Industry *</Label>
-                <Input
-                  id="industry"
+                <Select
                   value={formData.industry}
-                  onChange={(e) =>
-                    setFormData({ ...formData, industry: e.target.value })
+                  onValueChange={(value: string) =>
+                    setFormData({ ...formData, industry: value })
                   }
-                  placeholder="Technology"
-                  required
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INDUSTRIES.map((industry) => (
+                      <SelectItem key={industry.value} value={industry.value}>
+                        {industry.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="country">Country *</Label>
@@ -1791,15 +1767,23 @@ export default function ModernCompanyManagement({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-industry">Industry *</Label>
-                <Input
-                  id="edit-industry"
+                <Select
                   value={formData.industry}
-                  onChange={(e) =>
-                    setFormData({ ...formData, industry: e.target.value })
+                  onValueChange={(value: string) =>
+                    setFormData({ ...formData, industry: value })
                   }
-                  placeholder="Technology"
-                  required
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INDUSTRIES.map((industry) => (
+                      <SelectItem key={industry.value} value={industry.value}>
+                        {industry.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-country">Country *</Label>

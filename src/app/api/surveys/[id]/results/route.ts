@@ -112,6 +112,71 @@ export async function GET(
           );
           break;
 
+        case 'yes_no_comment':
+          // Distribution of yes/no responses
+          const yesNoCommentDistribution = {};
+          questionResponses.forEach((r) => {
+            const value = String(r.response_value);
+            yesNoCommentDistribution[value] = (yesNoCommentDistribution[value] || 0) + 1;
+          });
+          analytics.distribution = Object.entries(yesNoCommentDistribution).map(
+            ([label, count]) => ({
+              label,
+              count: count as number,
+              percentage: ((count as number) / questionResponses.length) * 100,
+            })
+          );
+
+          // Include comments if requested
+          if (includeOpenText) {
+            analytics.comments = questionResponses
+              .filter((r) => r.response_text && r.response_text.trim())
+              .map((r) => ({
+                response: String(r.response_value),
+                comment: r.response_text,
+              }));
+          }
+          analytics.comment_count = questionResponses.filter(
+            (r) => r.response_text && r.response_text.trim()
+          ).length;
+          break;
+
+        case 'emoji_scale':
+          // Calculate distribution and average for emoji scale
+          const emojiValues = questionResponses
+            .map((r) => Number(r.response_value))
+            .filter((v) => !isNaN(v));
+
+          if (emojiValues.length > 0) {
+            analytics.average =
+              emojiValues.reduce((a, b) => a + b, 0) / emojiValues.length;
+
+            // Create distribution based on emoji options
+            const emojiDistribution = {};
+            questionResponses.forEach((r) => {
+              const value = Number(r.response_value);
+              if (!isNaN(value)) {
+                // Find the matching emoji option
+                const emojiOption = question.emoji_options?.find(
+                  (opt) => opt.value === value
+                );
+                const label = emojiOption
+                  ? `${emojiOption.emoji} ${emojiOption.label}`
+                  : `Value ${value}`;
+                emojiDistribution[label] = (emojiDistribution[label] || 0) + 1;
+              }
+            });
+
+            analytics.distribution = Object.entries(emojiDistribution).map(
+              ([label, count]) => ({
+                label,
+                count: count as number,
+                percentage: ((count as number) / questionResponses.length) * 100,
+              })
+            );
+          }
+          break;
+
         case 'ranking':
           // Calculate average ranking for each option
           const rankingData = {};

@@ -16,6 +16,8 @@ import {
   Copy,
   ChevronDown,
   ChevronRight,
+  MessageSquare,
+  Smile,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -59,6 +61,21 @@ export default function SurveyBuilder({
         type === 'multiple_choice' || type === 'ranking' ? [''] : undefined,
       scale_min: type === 'likert' ? 1 : undefined,
       scale_max: type === 'likert' ? 5 : undefined,
+      comment_required: type === 'yes_no_comment' ? true : undefined,
+      comment_prompt:
+        type === 'yes_no_comment'
+          ? 'Please explain your answer:'
+          : undefined,
+      emoji_options:
+        type === 'emoji_scale'
+          ? [
+              { emoji: '😞', label: 'Very Dissatisfied', value: 1 },
+              { emoji: '😕', label: 'Dissatisfied', value: 2 },
+              { emoji: '😐', label: 'Neutral', value: 3 },
+              { emoji: '🙂', label: 'Satisfied', value: 4 },
+              { emoji: '😊', label: 'Very Satisfied', value: 5 },
+            ]
+          : undefined,
     };
 
     onQuestionsChange([...questions, newQuestion]);
@@ -145,12 +162,28 @@ export default function SurveyBuilder({
       bgColor: 'bg-red-50 border-red-200',
     },
     {
+      type: 'yes_no_comment',
+      label: 'Yes/No with Comment',
+      description: 'Binary choice with follow-up comment',
+      icon: MessageSquare,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50 border-indigo-200',
+    },
+    {
       type: 'rating',
       label: 'Star Rating',
       description: '1-10 star rating scale',
       icon: Star,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50 border-yellow-200',
+    },
+    {
+      type: 'emoji_scale',
+      label: 'Emoji Scale',
+      description: 'Emoji-based rating scale',
+      icon: Smile,
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50 border-pink-200',
     },
   ];
 

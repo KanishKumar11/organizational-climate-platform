@@ -10,9 +10,35 @@ import NotificationTemplate, {
 import User, { IUser } from '@/models/User';
 import { emailService } from './email';
 import { connectDB } from './mongodb';
+import DOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
+
+// Initialize DOMPurify with JSDOM for server-side usage
+const window = new JSDOM('').window;
+const DOMPurifyServer = DOMPurify(window as any);
+
+// Sanitization utility functions
+export const sanitizeHtml = (html: string): string => {
+  return DOMPurifyServer.sanitize(html, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'span'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+    ALLOW_DATA_ATTR: false,
+  });
+};
+
+export const sanitizeText = (text: string): string => {
+  // For plain text, escape HTML entities and remove potentially dangerous characters
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+};
 
 // Helper function to safely check if a value is a Date
-function isDate(value: any): value is Date {
+function isDate(value: unknown): value is Date {
   return value instanceof Date && !isNaN(value.getTime());
 }
 
@@ -128,6 +154,17 @@ class NotificationService {
         message = message || rendered.content;
         htmlContent = rendered.html_content;
       }
+    }
+
+    // Sanitize content to prevent XSS attacks
+    if (title) {
+      title = sanitizeText(title);
+    }
+    if (message) {
+      message = sanitizeText(message);
+    }
+    if (htmlContent) {
+      htmlContent = sanitizeHtml(htmlContent);
     }
 
     // Optimize send time if not specified
@@ -814,23 +851,7 @@ class NotificationService {
     }
   }
 
-  // Get user notifications
-  async getUserNotifications(
-    userId: string,
-    limit = 50
-  ): Promise<INotification[]> {
-    await connectDB();
-    return await (Notification as any).findByUser(userId, limit);
-  }
 
-  // Get company notifications
-  async getCompanyNotifications(
-    companyId: string,
-    limit = 100
-  ): Promise<INotification[]> {
-    await connectDB();
-    return await (Notification as any).findByCompany(companyId, limit);
-  }
 
   // Send notification immediately
   async sendNotification(notificationId: string): Promise<void> {
@@ -957,6 +978,46 @@ class NotificationService {
     await connectDB();
     const user = await (User as any).findById(userId);
     return user?.preferences || null;
+  }
+
+  // Get user notifications
+  async getUserNotifications(userId: string, limit: number = 50, status?: string[], skip: number = 0): Promise<any[]> {
+    await connectDB();
+
+    const statusFilter = status || ['delivered', 'opened'];
+
+    const notifications = await (Notification as any)
+      .find({
+        user_id: userId,
+        status: { $in: statusFilter }
+      })
+      .sort({ created_at: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('user_id', 'name email')
+      .populate('company_id', 'name');
+
+    return notifications;
+  }
+
+  // Get company notifications
+  async getCompanyNotifications(companyId: string, limit: number = 50, status?: string[], skip: number = 0): Promise<any[]> {
+    await connectDB();
+
+    const statusFilter = status || ['delivered', 'opened'];
+
+    const notifications = await (Notification as any)
+      .find({
+        company_id: companyId,
+        status: { $in: statusFilter }
+      })
+      .sort({ created_at: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('user_id', 'name email')
+      .populate('company_id', 'name');
+
+    return notifications;
   }
 
   // Get optimal send time for user

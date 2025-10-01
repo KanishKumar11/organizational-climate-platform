@@ -135,7 +135,6 @@ const MicroclimateInvitationSchema: Schema = new Schema(
 
 // Indexes
 MicroclimateInvitationSchema.index({ microclimate_id: 1, user_id: 1 }, { unique: true });
-MicroclimateInvitationSchema.index({ invitation_token: 1 }, { unique: true });
 MicroclimateInvitationSchema.index({ status: 1 });
 MicroclimateInvitationSchema.index({ expires_at: 1 });
 MicroclimateInvitationSchema.index({ company_id: 1 });

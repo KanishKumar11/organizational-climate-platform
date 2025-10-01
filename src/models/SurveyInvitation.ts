@@ -130,7 +130,6 @@ const SurveyInvitationSchema: Schema = new Schema(
 
 // Indexes
 SurveyInvitationSchema.index({ survey_id: 1, user_id: 1 }, { unique: true });
-SurveyInvitationSchema.index({ invitation_token: 1 }, { unique: true });
 SurveyInvitationSchema.index({ status: 1 });
 SurveyInvitationSchema.index({ expires_at: 1 });
 SurveyInvitationSchema.index({ company_id: 1 });

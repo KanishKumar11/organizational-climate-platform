@@ -107,6 +107,42 @@ export function validateQuestionResponse(
         errors.push(`Invalid yes/no response for question "${question.text}"`);
       }
       break;
+
+    case 'yes_no_comment':
+      const yesNoCommentValue = String(response.response_value).toLowerCase();
+      if (!['yes', 'no', 'true', 'false', '1', '0'].includes(yesNoCommentValue)) {
+        errors.push(`Invalid yes/no response for question "${question.text}"`);
+      }
+      
+      // Check if comment is required and provided
+      if (question.comment_required && question.comment_required === true) {
+        if (!response.response_text || response.response_text.trim() === '') {
+          errors.push(`Comment is required for question "${question.text}"`);
+        }
+      }
+      
+      // Validate comment length if provided
+      if (response.response_text && response.response_text.length > 2000) {
+        errors.push(
+          `Comment too long for question "${question.text}" (max 2000 characters)`
+        );
+      }
+      break;
+
+    case 'emoji_scale':
+      const emojiValue = Number(response.response_value);
+      if (isNaN(emojiValue)) {
+        errors.push(`Invalid emoji scale value for question "${question.text}"`);
+      } else if (question.emoji_options) {
+        // Validate that the selected value matches one of the emoji options
+        const validValues = question.emoji_options.map((opt) => opt.value);
+        if (!validValues.includes(emojiValue)) {
+          errors.push(
+            `Invalid emoji option selected for question "${question.text}"`
+          );
+        }
+      }
+      break;
   }
 
   return {

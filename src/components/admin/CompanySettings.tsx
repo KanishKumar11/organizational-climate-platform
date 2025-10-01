@@ -31,6 +31,7 @@ import {
   Shield,
   Clock,
 } from 'lucide-react';
+import { INDUSTRY_OPTIONS, COMPANY_SIZE_OPTIONS } from '@/lib/constants';
 
 interface CompanySettings {
   _id: string;
@@ -66,28 +67,6 @@ interface CompanySettings {
   created_at: string;
   updated_at: string;
 }
-
-const INDUSTRY_OPTIONS = [
-  'Technology',
-  'Healthcare',
-  'Finance',
-  'Education',
-  'Manufacturing',
-  'Retail',
-  'Consulting',
-  'Government',
-  'Non-profit',
-  'Other',
-];
-
-const COMPANY_SIZE_OPTIONS = [
-  '1-10',
-  '11-50',
-  '51-200',
-  '201-500',
-  '501-1000',
-  '1000+',
-];
 
 const TIMEZONE_OPTIONS = [
   'America/New_York',

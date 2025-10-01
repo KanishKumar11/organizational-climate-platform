@@ -124,6 +124,24 @@ export const uploadLimiter = rateLimit({
   maxRequests: 10,
 });
 
+// Notification API rate limiter - 50 requests per 15 minutes
+export const notificationApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxRequests: 50,
+});
+
+// Notification creation rate limiter - 10 notifications per hour per user
+export const notificationCreateLimiter = userSpecificLimiter({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  maxRequests: 10,
+});
+
+// Notification bulk operations rate limiter - 5 bulk operations per hour
+export const notificationBulkLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  maxRequests: 5,
+});
+
 /**
  * Middleware helper to apply rate limiting to API routes
  */

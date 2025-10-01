@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { notificationService } from '@/lib/notification-service';
+import Notification from '@/models/Notification';
 import { connectDB } from '@/lib/mongodb';
 import { z } from 'zod';
+import { withRateLimit, notificationBulkLimiter } from '@/lib/rate-limiting';
 
 // Validation schema for bulk notification operations
 const bulkNotificationSchema = z.object({
@@ -41,8 +43,97 @@ const bulkNotificationSchema = z.object({
     .optional(),
 });
 
-// POST /api/notifications/bulk - Bulk operations on notifications
-export async function POST(request: NextRequest) {
+// PATCH /api/notifications/bulk - Bulk update operations
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await connectDB();
+
+    const body = await request.json();
+    const { action, user_id, status, filters } = body;
+
+    // Validate action
+    if (!['mark_opened', 'mark_delivered', 'cancel', 'delete'].includes(action)) {
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    }
+
+    // Build query based on user permissions
+    const query: any = {};
+
+    if (user_id && user_id === session.user.id) {
+      // User can only update their own notifications
+      query.user_id = user_id;
+    } else if (['super_admin', 'company_admin'].includes(session.user.role)) {
+      // Admins can update notifications for their company
+      query.company_id = session.user.companyId;
+      if (user_id) query.user_id = user_id;
+    } else {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    // Apply filters
+    if (filters) {
+      if (filters.status) query.status = filters.status;
+      if (filters.type) query.type = filters.type;
+      if (filters.priority) query.priority = filters.priority;
+    }
+
+    // Apply status filter for mark_opened action
+    if (action === 'mark_opened') {
+      query.status = 'delivered';
+    }
+
+    const updateData: any = {};
+
+    switch (action) {
+      case 'mark_opened':
+        updateData.status = 'opened';
+        updateData.opened_at = new Date();
+        break;
+      case 'mark_delivered':
+        updateData.status = 'delivered';
+        updateData.delivered_at = new Date();
+        break;
+      case 'cancel':
+        updateData.status = 'cancelled';
+        break;
+      case 'delete':
+        // For delete, we'll use deleteMany instead of update
+        break;
+    }
+
+    let result;
+
+    if (action === 'delete') {
+      result = await Notification.deleteMany(query);
+    } else {
+      result = await Notification.updateMany(query, {
+        $set: updateData,
+        $inc: { retry_count: 1 },
+        updated_at: new Date(),
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        matched: result.matchedCount || result.deletedCount,
+        modified: result.modifiedCount || result.deletedCount,
+      },
+    });
+  } catch (error) {
+    console.error('Error in bulk notification update:', error);
+    return NextResponse.json(
+      { error: 'Failed to update notifications' },
+      { status: 500 }
+    );
+  }
+}
+export const POST = withRateLimit(notificationBulkLimiter, async (request: NextRequest) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -137,7 +228,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 async function bulkCreateNotifications(
   notifications: any[],

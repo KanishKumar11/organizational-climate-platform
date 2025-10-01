@@ -354,7 +354,10 @@ export default function CompanyAdminDashboard() {
                   </div>
                 )}
               </div>
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 h-12 px-6 w-full md:w-auto">
+              <Button 
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 h-12 px-6 w-full md:w-auto"
+                onClick={() => router.push('/surveys/create')}
+              >
                 <Plus className="h-5 w-5 mr-2" />
                 Create Survey
               </Button>
@@ -927,7 +930,11 @@ export default function CompanyAdminDashboard() {
                             </p>
                             <p className="text-gray-500">Ends</p>
                           </div>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => router.push(`/surveys/${survey._id}`)}
+                          >
                             <Eye className="h-4 w-4 mr-1" />
                             View
                           </Button>
