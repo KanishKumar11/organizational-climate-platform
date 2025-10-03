@@ -28,6 +28,7 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
 ```
 
 **Installed:**
+
 - `@dnd-kit/core@6.x` - Core drag-and-drop functionality
 - `@dnd-kit/sortable@8.x` - Sortable lists and reordering
 - `@dnd-kit/utilities@3.x` - Helper utilities (CSS transforms, etc.)
@@ -75,6 +76,7 @@ import { GripVertical } from 'lucide-react';
 **Purpose:** Reusable draggable question card with visual feedback.
 
 **Features:**
+
 - Drag handle with `GripVertical` icon
 - Question number badge (auto-incremented)
 - Question text display (truncated with ellipsis)
@@ -134,15 +136,15 @@ function SortableQuestionItem({
       >
         <GripVertical className="w-4 h-4 text-gray-500" />
       </div>
-      
+
       {/* Question Number */}
       <Badge variant="outline" className="shrink-0">
         {index + 1}
       </Badge>
-      
+
       {/* Question Text */}
       <span className="text-sm flex-1 min-w-0 truncate">{text}</span>
-      
+
       {/* Remove Button */}
       {onRemove && (
         <Button variant="ghost" size="sm" onClick={onRemove} className="shrink-0">
@@ -174,6 +176,7 @@ const sensors = useSensors(
 ```
 
 **Features:**
+
 - **PointerSensor:** Mouse and touch support
 - **8px activation distance:** Prevents accidental drags on click
 - **KeyboardSensor:** Full keyboard navigation (Space + Arrow keys)
@@ -197,11 +200,9 @@ const handleDragEnd = (event: DragEndEvent) => {
         ...prev,
         questionIds: arrayMove(prev.questionIds, oldIndex, newIndex),
       }));
-      
+
       toast.success(
-        language === 'es' 
-          ? 'Pregunta reordenada' 
-          : 'Question reordered'
+        language === 'es' ? 'Pregunta reordenada' : 'Question reordered'
       );
     }
   }
@@ -209,6 +210,7 @@ const handleDragEnd = (event: DragEndEvent) => {
 ```
 
 **Features:**
+
 - Uses `arrayMove` utility for immutable reordering
 - Bilingual success toast (ES/EN)
 - Only updates if indices are valid
@@ -248,6 +250,7 @@ const handleDragEnd = (event: DragEndEvent) => {
 ```
 
 **Features:**
+
 - **DndContext:** Manages drag state and sensors
 - **SortableContext:** Tracks sortable items and strategy
 - **verticalListSortingStrategy:** Optimized for vertical lists
@@ -283,18 +286,21 @@ const handleDragEnd = (event: DragEndEvent) => {
 ## 🎨 Visual Design
 
 ### **Library Questions**
+
 - Background: `bg-gray-50` / `dark:bg-gray-900`
 - Border: `border-gray-200` / `dark:border-gray-800`
 - Padding: `p-3`
 - Rounded: `rounded-lg`
 
 ### **Custom Questions**
+
 - Background: `bg-blue-50` / `dark:bg-blue-900/20`
 - Border: `border-blue-200` / `dark:border-blue-800`
 - Padding: `p-3`
 - Rounded: `rounded-lg`
 
 ### **Drag Handle**
+
 - Icon: `GripVertical` (4x4)
 - Color: `text-gray-500`
 - Hover: `hover:bg-gray-200 dark:hover:bg-gray-700`
@@ -305,6 +311,7 @@ const handleDragEnd = (event: DragEndEvent) => {
 ## 🧪 Testing Checklist
 
 ### **Mouse/Touch Interaction**
+
 - [x] Drag question with mouse
 - [x] Drag question with touch
 - [x] 8px threshold prevents accidental drags
@@ -313,6 +320,7 @@ const handleDragEnd = (event: DragEndEvent) => {
 - [x] Success toast appears on drop
 
 ### **Keyboard Interaction**
+
 - [x] Tab to drag handle
 - [x] Space activates drag mode
 - [x] Arrow Up moves question up
@@ -321,6 +329,7 @@ const handleDragEnd = (event: DragEndEvent) => {
 - [x] Escape cancels drag
 
 ### **Edge Cases**
+
 - [x] Single question (no drag)
 - [x] Empty question list
 - [x] Remove question during drag (should work)
@@ -328,6 +337,7 @@ const handleDragEnd = (event: DragEndEvent) => {
 - [x] Mobile responsiveness
 
 ### **Integration**
+
 - [x] Drag-drop works with library questions
 - [x] Custom questions display separately (non-draggable)
 - [x] Question numbers update after reorder
@@ -367,8 +377,8 @@ MicroclimateWizard
 ```typescript
 // Step2Data stores question IDs
 interface Step2Data {
-  questionIds: string[];        // Library question IDs (draggable)
-  customQuestions: CustomQuestion[];  // Custom questions (separate)
+  questionIds: string[]; // Library question IDs (draggable)
+  customQuestions: CustomQuestion[]; // Custom questions (separate)
 }
 
 // Drag updates questionIds array
@@ -420,11 +430,13 @@ setStep2Data((prev) => ({
 ## 🎉 Success Metrics
 
 **Before:**
+
 - ❌ No way to reorder questions
 - ❌ Questions shown in order added
 - ❌ No visual feedback for drag operations
 
 **After:**
+
 - ✅ Full drag-and-drop reordering
 - ✅ Keyboard-accessible (WCAG AAA)
 - ✅ Visual feedback (opacity, shadow, cursor)

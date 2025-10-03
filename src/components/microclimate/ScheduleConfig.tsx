@@ -456,7 +456,9 @@ Human Resources Team`,
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <CheckCircle2 className="w-5 h-5" />
-            {language === 'es' ? 'Configuración Adicional' : 'Additional Settings'}
+            {language === 'es'
+              ? 'Configuración Adicional'
+              : 'Additional Settings'}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

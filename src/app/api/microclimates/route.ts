@@ -251,13 +251,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for inactive departments and include warning
-    const inactiveDepartments = departments.filter(dept => !dept.is_active);
+    const inactiveDepartments = departments.filter((dept) => !dept.is_active);
     const warnings = [];
     if (inactiveDepartments.length > 0) {
       warnings.push({
         type: 'inactive_departments',
         message: `${inactiveDepartments.length} selected department(s) are inactive`,
-        departments: inactiveDepartments.map(d => ({ id: d._id, name: d.name }))
+        departments: inactiveDepartments.map((d) => ({
+          id: d._id,
+          name: d.name,
+        })),
       });
     }
 

@@ -14,6 +14,7 @@ Phase 2 focused on **High-Priority UX Enhancements** to improve the survey creat
 ### **Completed Features:**
 
 #### **1. ✅ CSV Import 4-Stage State Machine** (100%)
+
 - **Purpose:** Professional multi-stage CSV employee upload flow
 - **Stages:** Upload → Mapping → Validation → Review
 - **Features Implemented:**
@@ -26,6 +27,7 @@ Phase 2 focused on **High-Priority UX Enhancements** to improve the survey creat
   - ✅ Bilingual support (ES/EN)
 
 #### **2. ✅ Drag-and-Drop Question Reordering** (100%)
+
 - **Purpose:** Intuitive question reordering in Step 2
 - **Library:** @dnd-kit v6.x (modern, accessible, performant)
 - **Features Implemented:**
@@ -45,6 +47,7 @@ Phase 2 focused on **High-Priority UX Enhancements** to improve the survey creat
 ### **CSV Import Flow**
 
 **Before Phase 2:**
+
 - ❌ CSVImporter, ColumnMapper, ValidationPanel existed but disconnected
 - ❌ No progress indicators
 - ❌ Duplicate employees could be imported
@@ -52,6 +55,7 @@ Phase 2 focused on **High-Priority UX Enhancements** to improve the survey creat
 - ❌ Unclear workflow progression
 
 **After Phase 2:**
+
 - ✅ 4-stage state machine with clear progression
 - ✅ Badge-based progress indicators (1. Upload, 2. Map, 3. Validate, 4. Review)
 - ✅ Automatic de-duplication with user notification
@@ -61,11 +65,13 @@ Phase 2 focused on **High-Priority UX Enhancements** to improve the survey creat
 ### **Question Reordering**
 
 **Before Phase 2:**
+
 - ❌ No way to reorder questions
 - ❌ Questions shown in order added only
 - ❌ Had to remove and re-add to change order
 
 **After Phase 2:**
+
 - ✅ Full drag-and-drop reordering
 - ✅ Keyboard-accessible (Space + Arrow keys)
 - ✅ Visual feedback (opacity, shadow, cursor changes)
@@ -111,28 +117,28 @@ Phase 2 focused on **High-Priority UX Enhancements** to improve the survey creat
 
 ### **CSV Import Flow - Test Cases**
 
-| Test Case | Status | Notes |
-|-----------|--------|-------|
-| Upload valid CSV | ✅ Pass | Transitions to mapping stage |
-| Map required columns | ✅ Pass | Email, Name validation enforced |
-| Detect duplicate emails | ✅ Pass | De-duplication removes duplicates |
-| Validation with errors | ✅ Pass | Shows error count and details |
-| Review summary stats | ✅ Pass | Displays employee/department/location counts |
-| Navigate back to mapping | ✅ Pass | Back button works correctly |
-| Start Over functionality | ✅ Pass | Resets to upload stage |
+| Test Case                | Status  | Notes                                        |
+| ------------------------ | ------- | -------------------------------------------- |
+| Upload valid CSV         | ✅ Pass | Transitions to mapping stage                 |
+| Map required columns     | ✅ Pass | Email, Name validation enforced              |
+| Detect duplicate emails  | ✅ Pass | De-duplication removes duplicates            |
+| Validation with errors   | ✅ Pass | Shows error count and details                |
+| Review summary stats     | ✅ Pass | Displays employee/department/location counts |
+| Navigate back to mapping | ✅ Pass | Back button works correctly                  |
+| Start Over functionality | ✅ Pass | Resets to upload stage                       |
 
 ### **Drag-and-Drop - Test Cases**
 
-| Test Case | Status | Notes |
-|-----------|--------|-------|
-| Drag with mouse | ✅ Pass | Visual feedback, cursor changes |
-| Drag with touch | ✅ Pass | Works on mobile devices |
-| Keyboard navigation | ✅ Pass | Space + Arrow keys work |
-| 8px threshold | ✅ Pass | Prevents accidental drags |
-| Remove question | ✅ Pass | Updates question numbers correctly |
-| Empty list handling | ✅ Pass | Shows "No questions selected" |
-| Dark mode styling | ✅ Pass | Colors adapt correctly |
-| Success toast | ✅ Pass | Bilingual ES/EN messages |
+| Test Case           | Status  | Notes                              |
+| ------------------- | ------- | ---------------------------------- |
+| Drag with mouse     | ✅ Pass | Visual feedback, cursor changes    |
+| Drag with touch     | ✅ Pass | Works on mobile devices            |
+| Keyboard navigation | ✅ Pass | Space + Arrow keys work            |
+| 8px threshold       | ✅ Pass | Prevents accidental drags          |
+| Remove question     | ✅ Pass | Updates question numbers correctly |
+| Empty list handling | ✅ Pass | Shows "No questions selected"      |
+| Dark mode styling   | ✅ Pass | Colors adapt correctly             |
+| Success toast       | ✅ Pass | Bilingual ES/EN messages           |
 
 ---
 
@@ -198,12 +204,12 @@ After Phase 2:
 
 ## 🔄 Phase Progress Overview
 
-| Phase | Focus | Status | Completion |
-|-------|-------|--------|------------|
-| Phase 1 | Critical Blockers | ✅ Complete | 100% (4/4) |
+| Phase       | Focus                | Status          | Completion     |
+| ----------- | -------------------- | --------------- | -------------- |
+| Phase 1     | Critical Blockers    | ✅ Complete     | 100% (4/4)     |
 | **Phase 2** | **High Priority UX** | **✅ Complete** | **100% (2/2)** |
-| Phase 3 | Medium Priority | 🟡 Pending | 0% (0/3) |
-| Phase 4 | Low Priority | ⚪ Not Started | 0% (0/4) |
+| Phase 3     | Medium Priority      | 🟡 Pending      | 0% (0/3)       |
+| Phase 4     | Low Priority         | ⚪ Not Started  | 0% (0/4)       |
 
 ### **Overall Implementation Progress**
 

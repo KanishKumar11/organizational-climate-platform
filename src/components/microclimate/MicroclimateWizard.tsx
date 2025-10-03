@@ -140,7 +140,12 @@ function SortableQuestionItem({
       </Badge>
       <span className="text-sm flex-1 min-w-0 truncate">{text}</span>
       {onRemove && (
-        <Button variant="ghost" size="sm" onClick={onRemove} className="shrink-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          className="shrink-0"
+        >
           <X className="w-4 h-4" />
         </Button>
       )}
@@ -193,8 +198,8 @@ export function MicroclimateWizard({
   const { data: session } = useSession();
 
   // State
-  const [step1Data, setStep1Data] = useState<Step1Data>({ 
-    title: '', 
+  const [step1Data, setStep1Data] = useState<Step1Data>({
+    title: '',
     description: '',
     companyId: initialCompanyId || '',
     surveyType: '',
@@ -347,37 +352,42 @@ export function MicroclimateWizard({
     discardDraft,
     isRecovering,
     isDiscarding,
-  } = useDraftRecovery(step1Data.companyId || 'pending', session?.user?.id || '', {
-    onRecover: (draft) => {
-      // Load all step data with type safety
-      if (draft.step1_data) setStep1Data(draft.step1_data as unknown as Step1Data);
-      if (draft.step2_data) setStep2Data(draft.step2_data as any);
-      if (draft.step3_data) setStep3Data(draft.step3_data as any);
-      if (draft.step4_data) setStep4Data(draft.step4_data as any);
-      setDraftId(draft.id);
+  } = useDraftRecovery(
+    step1Data.companyId || 'pending',
+    session?.user?.id || '',
+    {
+      onRecover: (draft) => {
+        // Load all step data with type safety
+        if (draft.step1_data)
+          setStep1Data(draft.step1_data as unknown as Step1Data);
+        if (draft.step2_data) setStep2Data(draft.step2_data as any);
+        if (draft.step3_data) setStep3Data(draft.step3_data as any);
+        if (draft.step4_data) setStep4Data(draft.step4_data as any);
+        setDraftId(draft.id);
 
-      toast.success(
-        language === 'es' ? 'Borrador Recuperado' : 'Draft Recovered',
-        {
-          description:
-            language === 'es'
-              ? 'Continuando donde lo dejaste'
-              : 'Continuing where you left off',
-        }
-      );
-    },
-    onDiscard: () => {
-      toast.info(
-        language === 'es' ? 'Borrador Descartado' : 'Draft Discarded',
-        {
-          description:
-            language === 'es'
-              ? 'Comenzando una nueva encuesta'
-              : 'Starting a new survey',
-        }
-      );
-    },
-  });
+        toast.success(
+          language === 'es' ? 'Borrador Recuperado' : 'Draft Recovered',
+          {
+            description:
+              language === 'es'
+                ? 'Continuando donde lo dejaste'
+                : 'Continuing where you left off',
+          }
+        );
+      },
+      onDiscard: () => {
+        toast.info(
+          language === 'es' ? 'Borrador Descartado' : 'Draft Discarded',
+          {
+            description:
+              language === 'es'
+                ? 'Comenzando una nueva encuesta'
+                : 'Starting a new survey',
+          }
+        );
+      },
+    }
+  );
 
   const { timeRemaining, isExpiringSoon } = useTimeUntilExpiry(draft?.id || '');
   const draftAge = draft
@@ -394,21 +404,29 @@ export function MicroclimateWizard({
         validate: async () => {
           // Validate all required Step 1 fields
           const errors = [];
-          
+
           if (!step1Data.title.trim()) {
-            errors.push(language === 'es' ? 'Título requerido' : 'Title required');
+            errors.push(
+              language === 'es' ? 'Título requerido' : 'Title required'
+            );
           }
           if (!step1Data.companyId) {
-            errors.push(language === 'es' ? 'Empresa requerida' : 'Company required');
+            errors.push(
+              language === 'es' ? 'Empresa requerida' : 'Company required'
+            );
           }
           if (!step1Data.surveyType) {
-            errors.push(language === 'es' ? 'Tipo de encuesta requerido' : 'Survey type required');
+            errors.push(
+              language === 'es'
+                ? 'Tipo de encuesta requerido'
+                : 'Survey type required'
+            );
           }
-          
+
           if (errors.length > 0) {
             throw new Error(errors.join(', '));
           }
-          
+
           return true;
         },
       },
@@ -472,7 +490,9 @@ export function MicroclimateWizard({
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = step2Data.questionIds.findIndex((id) => id === active.id);
+      const oldIndex = step2Data.questionIds.findIndex(
+        (id) => id === active.id
+      );
       const newIndex = step2Data.questionIds.findIndex((id) => id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
@@ -480,11 +500,9 @@ export function MicroclimateWizard({
           ...prev,
           questionIds: arrayMove(prev.questionIds, oldIndex, newIndex),
         }));
-        
+
         toast.success(
-          language === 'es' 
-            ? 'Pregunta reordenada' 
-            : 'Question reordered'
+          language === 'es' ? 'Pregunta reordenada' : 'Question reordered'
         );
       }
     }
@@ -526,32 +544,44 @@ export function MicroclimateWizard({
       try {
         const [deptsResponse, employeesResponse] = await Promise.all([
           fetch(`/api/companies/${step1Data.companyId}/departments`),
-          fetch(`/api/companies/${step1Data.companyId}/users`)
+          fetch(`/api/companies/${step1Data.companyId}/users`),
         ]);
 
         const depts = deptsResponse.ok ? await deptsResponse.json() : [];
-        const employees = employeesResponse.ok ? await employeesResponse.json() : [];
+        const employees = employeesResponse.ok
+          ? await employeesResponse.json()
+          : [];
 
-        setStep3Data(prev => ({
+        setStep3Data((prev) => ({
           ...prev,
-          availableDepartments: Array.isArray(depts) ? depts : depts.departments || [],
-          availableEmployees: Array.isArray(employees) ? employees : employees.users || [],
+          availableDepartments: Array.isArray(depts)
+            ? depts
+            : depts.departments || [],
+          availableEmployees: Array.isArray(employees)
+            ? employees
+            : employees.users || [],
         }));
 
         toast.success(
-          language === 'es' ? 'Datos de empresa cargados' : 'Company data loaded',
+          language === 'es'
+            ? 'Datos de empresa cargados'
+            : 'Company data loaded',
           {
-            description: language === 'es' 
-              ? `${depts.length || 0} departamentos, ${employees.length || 0} empleados`
-              : `${depts.length || 0} departments, ${employees.length || 0} employees`
+            description:
+              language === 'es'
+                ? `${depts.length || 0} departamentos, ${employees.length || 0} empleados`
+                : `${depts.length || 0} departments, ${employees.length || 0} employees`,
           }
         );
       } catch (error) {
         console.error('Error loading company data:', error);
         toast.error(
-          language === 'es' ? 'Error al cargar datos' : 'Failed to load company data',
+          language === 'es'
+            ? 'Error al cargar datos'
+            : 'Failed to load company data',
           {
-            description: error instanceof Error ? error.message : 'Unknown error'
+            description:
+              error instanceof Error ? error.message : 'Unknown error',
           }
         );
       } finally {
@@ -595,12 +625,14 @@ export function MicroclimateWizard({
   };
 
   // Helper function: De-duplicate employees by email
-  const deduplicateEmployees = (employees: TargetEmployee[]): TargetEmployee[] => {
+  const deduplicateEmployees = (
+    employees: TargetEmployee[]
+  ): TargetEmployee[] => {
     const seen = new Set<string>();
     const unique: TargetEmployee[] = [];
     let duplicateCount = 0;
 
-    employees.forEach(emp => {
+    employees.forEach((emp) => {
       const key = emp.email?.toLowerCase() || emp.employeeId || '';
       if (!key || seen.has(key)) {
         duplicateCount++;
@@ -614,9 +646,10 @@ export function MicroclimateWizard({
       toast.info(
         language === 'es' ? 'Duplicados Eliminados' : 'Duplicates Removed',
         {
-          description: language === 'es'
-            ? `${duplicateCount} entrada(s) duplicada(s) eliminada(s)`
-            : `${duplicateCount} duplicate entry(ies) removed`,
+          description:
+            language === 'es'
+              ? `${duplicateCount} entrada(s) duplicada(s) eliminada(s)`
+              : `${duplicateCount} duplicate entry(ies) removed`,
         }
       );
     }
@@ -701,12 +734,18 @@ export function MicroclimateWizard({
               </Label>
               <Select
                 value={step1Data.surveyType}
-                onValueChange={(value: 'microclimate' | 'climate' | 'culture') =>
-                  setStep1Data({ ...step1Data, surveyType: value })
-                }
+                onValueChange={(
+                  value: 'microclimate' | 'climate' | 'culture'
+                ) => setStep1Data({ ...step1Data, surveyType: value })}
               >
                 <SelectTrigger className="mt-2">
-                  <SelectValue placeholder={language === 'es' ? 'Seleccionar tipo...' : 'Select type...'} />
+                  <SelectValue
+                    placeholder={
+                      language === 'es'
+                        ? 'Seleccionar tipo...'
+                        : 'Select type...'
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="microclimate">
@@ -721,7 +760,7 @@ export function MicroclimateWizard({
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
-                {language === 'es' 
+                {language === 'es'
                   ? 'El tipo de encuesta determina las preguntas disponibles y la duración'
                   : 'Survey type determines available questions and duration'}
               </p>
@@ -735,13 +774,17 @@ export function MicroclimateWizard({
               <CompanySearchableDropdown
                 value={step1Data.companyId}
                 onChange={(companyId, company) => {
-                  setStep1Data({ 
-                    ...step1Data, 
+                  setStep1Data({
+                    ...step1Data,
                     companyId,
-                    companyType: company?.type || ''
+                    companyType: company?.type || '',
                   });
                 }}
-                placeholder={language === 'es' ? 'Seleccionar empresa...' : 'Select company...'}
+                placeholder={
+                  language === 'es'
+                    ? 'Seleccionar empresa...'
+                    : 'Select company...'
+                }
                 language={language}
                 className="mt-2"
               />
@@ -761,10 +804,12 @@ export function MicroclimateWizard({
                 onChange={(e) =>
                   setStep1Data({ ...step1Data, title: e.target.value })
                 }
-                onBlur={() => autosave.forceSave({
-                  current_step: 1,
-                  step1_data: step1Data as unknown as Record<string, unknown>
-                })}
+                onBlur={() =>
+                  autosave.forceSave({
+                    current_step: 1,
+                    step1_data: step1Data as unknown as Record<string, unknown>,
+                  })
+                }
                 placeholder={t.titlePlaceholder}
                 className="mt-2"
               />
@@ -779,10 +824,12 @@ export function MicroclimateWizard({
                 onChange={(e) =>
                   setStep1Data({ ...step1Data, description: e.target.value })
                 }
-                onBlur={() => autosave.forceSave({
-                  current_step: 1,
-                  step1_data: step1Data as unknown as Record<string, unknown>
-                })}
+                onBlur={() =>
+                  autosave.forceSave({
+                    current_step: 1,
+                    step1_data: step1Data as unknown as Record<string, unknown>,
+                  })
+                }
                 placeholder={t.descriptionPlaceholder}
                 rows={4}
                 className="mt-2"
@@ -792,7 +839,10 @@ export function MicroclimateWizard({
             {/* Language Selection */}
             <div>
               <Label>
-                {language === 'es' ? 'Idioma de la Encuesta' : 'Survey Language'} *
+                {language === 'es'
+                  ? 'Idioma de la Encuesta'
+                  : 'Survey Language'}{' '}
+                *
               </Label>
               <RadioGroup
                 value={step1Data.language}
@@ -803,20 +853,32 @@ export function MicroclimateWizard({
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="es" id="lang-es" />
-                  <Label htmlFor="lang-es" className="font-normal cursor-pointer">
+                  <Label
+                    htmlFor="lang-es"
+                    className="font-normal cursor-pointer"
+                  >
                     🇪🇸 {language === 'es' ? 'Solo Español' : 'Spanish Only'}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="en" id="lang-en" />
-                  <Label htmlFor="lang-en" className="font-normal cursor-pointer">
+                  <Label
+                    htmlFor="lang-en"
+                    className="font-normal cursor-pointer"
+                  >
                     🇬🇧 {language === 'es' ? 'Solo Inglés' : 'English Only'}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="both" id="lang-both" />
-                  <Label htmlFor="lang-both" className="font-normal cursor-pointer">
-                    🌎 {language === 'es' ? 'Bilingüe (Español + Inglés)' : 'Bilingual (Spanish + English)'}
+                  <Label
+                    htmlFor="lang-both"
+                    className="font-normal cursor-pointer"
+                  >
+                    🌎{' '}
+                    {language === 'es'
+                      ? 'Bilingüe (Español + Inglés)'
+                      : 'Bilingual (Spanish + English)'}
                   </Label>
                 </div>
               </RadioGroup>
@@ -831,7 +893,9 @@ export function MicroclimateWizard({
             {step1Data.companyType && (
               <Alert>
                 <AlertDescription>
-                  <strong>{language === 'es' ? 'Tipo de Empresa:' : 'Company Type:'}</strong>{' '}
+                  <strong>
+                    {language === 'es' ? 'Tipo de Empresa:' : 'Company Type:'}
+                  </strong>{' '}
                   {step1Data.companyType}
                 </AlertDescription>
               </Alert>
@@ -1017,16 +1081,40 @@ export function MicroclimateWizard({
                 {/* Stage indicator */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <Badge variant={step3Data.csvUploadStage === 'upload' ? 'default' : 'outline'}>
+                    <Badge
+                      variant={
+                        step3Data.csvUploadStage === 'upload'
+                          ? 'default'
+                          : 'outline'
+                      }
+                    >
                       1. {t.uploadCSV}
                     </Badge>
-                    <Badge variant={step3Data.csvUploadStage === 'mapping' ? 'default' : 'outline'}>
+                    <Badge
+                      variant={
+                        step3Data.csvUploadStage === 'mapping'
+                          ? 'default'
+                          : 'outline'
+                      }
+                    >
                       2. {t.configureMapping}
                     </Badge>
-                    <Badge variant={step3Data.csvUploadStage === 'validation' ? 'default' : 'outline'}>
+                    <Badge
+                      variant={
+                        step3Data.csvUploadStage === 'validation'
+                          ? 'default'
+                          : 'outline'
+                      }
+                    >
                       3. {t.validateData}
                     </Badge>
-                    <Badge variant={step3Data.csvUploadStage === 'review' ? 'default' : 'outline'}>
+                    <Badge
+                      variant={
+                        step3Data.csvUploadStage === 'review'
+                          ? 'default'
+                          : 'outline'
+                      }
+                    >
                       4. {t.reviewAudience}
                     </Badge>
                   </div>
@@ -1049,7 +1137,11 @@ export function MicroclimateWizard({
                           });
                           autosave.save({
                             current_step: 3,
-                            step3_data: { ...step3Data, csvData: data, csvUploadStage: 'mapping' },
+                            step3_data: {
+                              ...step3Data,
+                              csvData: data,
+                              csvUploadStage: 'mapping',
+                            },
                           });
                         }}
                         language={language}
@@ -1059,95 +1151,99 @@ export function MicroclimateWizard({
                 )}
 
                 {/* Step 2: Column Mapping */}
-                {step3Data.csvUploadStage === 'mapping' && step3Data.csvData && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{t.configureMapping}</CardTitle>
-                      <CardDescription>
-                        {language === 'es'
-                          ? 'Mapea las columnas de tu CSV a los campos requeridos'
-                          : 'Map your CSV columns to the required fields'}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ColumnMapper
-                        headers={step3Data.csvData.headers}
-                        rows={step3Data.csvData.rows}
-                        onMappingChange={(mapping) => {
-                          setStep3Data({
-                            ...step3Data,
-                            mapping,
-                          });
-                        }}
-                        language={language}
-                      />
-                      <div className="flex gap-2 mt-4">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
+                {step3Data.csvUploadStage === 'mapping' &&
+                  step3Data.csvData && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t.configureMapping}</CardTitle>
+                        <CardDescription>
+                          {language === 'es'
+                            ? 'Mapea las columnas de tu CSV a los campos requeridos'
+                            : 'Map your CSV columns to the required fields'}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ColumnMapper
+                          headers={step3Data.csvData.headers}
+                          rows={step3Data.csvData.rows}
+                          onMappingChange={(mapping) => {
                             setStep3Data({
                               ...step3Data,
-                              csvData: undefined,
-                              mapping: undefined,
-                              csvUploadStage: 'upload',
+                              mapping,
                             });
                           }}
-                        >
-                          <ArrowLeft className="w-4 h-4 mr-2" />
-                          {language === 'es' ? 'Volver' : 'Back'}
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            if (
-                              step3Data.mapping?.email &&
-                              step3Data.mapping?.name
-                            ) {
-                              // Process mapping
-                              const mappedEmployees: MappedEmployee[] =
-                                step3Data.csvData!.rows.map((row, index) => ({
-                                  email: row[step3Data.mapping!.email!] || '',
-                                  name: row[step3Data.mapping!.name!] || '',
-                                  department: step3Data.mapping!.department
-                                    ? row[step3Data.mapping!.department]
-                                    : undefined,
-                                  location: step3Data.mapping!.location
-                                    ? row[step3Data.mapping!.location]
-                                    : undefined,
-                                  position: step3Data.mapping!.position
-                                    ? row[step3Data.mapping!.position]
-                                    : undefined,
-                                  employeeId: step3Data.mapping!.employeeId
-                                    ? row[step3Data.mapping!.employeeId]
-                                    : undefined,
-                                  rowIndex: index + 1,
-                                }));
-
-                              // De-duplicate employees
-                              const deduplicated = deduplicateEmployees(mappedEmployees as TargetEmployee[]);
-
-                              // Store and move to validation
+                          language={language}
+                        />
+                        <div className="flex gap-2 mt-4">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
                               setStep3Data({
                                 ...step3Data,
-                                targetEmployees: deduplicated,
-                                csvUploadStage: 'validation',
+                                csvData: undefined,
+                                mapping: undefined,
+                                csvUploadStage: 'upload',
                               });
+                            }}
+                          >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            {language === 'es' ? 'Volver' : 'Back'}
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              if (
+                                step3Data.mapping?.email &&
+                                step3Data.mapping?.name
+                              ) {
+                                // Process mapping
+                                const mappedEmployees: MappedEmployee[] =
+                                  step3Data.csvData!.rows.map((row, index) => ({
+                                    email: row[step3Data.mapping!.email!] || '',
+                                    name: row[step3Data.mapping!.name!] || '',
+                                    department: step3Data.mapping!.department
+                                      ? row[step3Data.mapping!.department]
+                                      : undefined,
+                                    location: step3Data.mapping!.location
+                                      ? row[step3Data.mapping!.location]
+                                      : undefined,
+                                    position: step3Data.mapping!.position
+                                      ? row[step3Data.mapping!.position]
+                                      : undefined,
+                                    employeeId: step3Data.mapping!.employeeId
+                                      ? row[step3Data.mapping!.employeeId]
+                                      : undefined,
+                                    rowIndex: index + 1,
+                                  }));
+
+                                // De-duplicate employees
+                                const deduplicated = deduplicateEmployees(
+                                  mappedEmployees as TargetEmployee[]
+                                );
+
+                                // Store and move to validation
+                                setStep3Data({
+                                  ...step3Data,
+                                  targetEmployees: deduplicated,
+                                  csvUploadStage: 'validation',
+                                });
+                              }
+                            }}
+                            disabled={
+                              !step3Data.mapping?.email ||
+                              !step3Data.mapping?.name
                             }
-                          }}
-                          disabled={
-                            !step3Data.mapping?.email ||
-                            !step3Data.mapping?.name
-                          }
-                        >
-                          {language === 'es' ? 'Continuar' : 'Continue'}
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                          >
+                            {language === 'es' ? 'Continuar' : 'Continue'}
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                 {/* Step 3: Validation */}
-                {step3Data.csvUploadStage === 'validation' && step3Data.targetEmployees.length > 0 && (
+                {step3Data.csvUploadStage === 'validation' &&
+                  step3Data.targetEmployees.length > 0 && (
                     <Card>
                       <CardHeader>
                         <CardTitle>{t.validateData}</CardTitle>
@@ -1162,10 +1258,17 @@ export function MicroclimateWizard({
                           data={step3Data.targetEmployees as MappedEmployee[]}
                           onValidationComplete={(result) => {
                             // Filter to only valid employees (no errors)
-                            const validEmployees = step3Data.targetEmployees.filter(emp => 
-                              emp.email && emp.name && 
-                              !result.errors.some(err => err.rowIndex === step3Data.targetEmployees.indexOf(emp))
-                            );
+                            const validEmployees =
+                              step3Data.targetEmployees.filter(
+                                (emp) =>
+                                  emp.email &&
+                                  emp.name &&
+                                  !result.errors.some(
+                                    (err) =>
+                                      err.rowIndex ===
+                                      step3Data.targetEmployees.indexOf(emp)
+                                  )
+                              );
 
                             setStep3Data({
                               ...step3Data,
@@ -1173,7 +1276,7 @@ export function MicroclimateWizard({
                               targetEmployees: validEmployees,
                               csvUploadStage: 'review',
                             });
-                            
+
                             autosave.save({
                               current_step: 3,
                               step3_data: {
@@ -1206,110 +1309,131 @@ export function MicroclimateWizard({
                   )}
 
                 {/* Step 4: Audience Preview */}
-                {step3Data.csvUploadStage === 'review' && step3Data.validationResult && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{t.reviewAudience}</CardTitle>
-                      <CardDescription>
-                        {language === 'es'
-                          ? 'Revisa el resumen de tu audiencia objetivo'
-                          : 'Review your target audience summary'}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Summary Stats */}
-                      <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-blue-600">
-                            {step3Data.targetEmployees.length}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {language === 'es' ? 'Empleados' : 'Employees'}
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-green-600">
-                            {new Set(step3Data.targetEmployees.map(e => e.department).filter(Boolean)).size}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {language === 'es' ? 'Departamentos' : 'Departments'}
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-purple-600">
-                            {new Set(step3Data.targetEmployees.map(e => e.location).filter(Boolean)).size}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {language === 'es' ? 'Ubicaciones' : 'Locations'}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Validation Summary */}
-                      {step3Data.validationResult && (
-                        <Alert>
-                          <CheckCircle className="w-4 h-4" />
-                          <AlertDescription>
-                            <strong>
-                              {language === 'es' ? 'Validación Completada:' : 'Validation Complete:'}
-                            </strong>
-                            {' '}
-                            {step3Data.validationResult.validCount || step3Data.targetEmployees.length}
-                            {' '}
-                            {language === 'es' ? 'registros válidos' : 'valid records'}
-                            {step3Data.validationResult.invalidCount > 0 && (
-                              <>
-                                {', '}
-                                {step3Data.validationResult.invalidCount}
-                                {' '}
-                                {language === 'es' ? 'registros con errores fueron excluidos' : 'records with errors were excluded'}
-                              </>
-                            )}
-                          </AlertDescription>
-                        </Alert>
-                      )}
-
-                      {/* Employee List */}
-                      <AudiencePreviewCard
-                        employees={step3Data.targetEmployees}
-                        language={language}
-                      />
-                      
-                      <div className="flex gap-2 mt-4">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setStep3Data({
-                              targetEmployees: [],
-                              uploadMethod: 'csv',
-                              csvData: undefined,
-                              mapping: undefined,
-                              validationResult: undefined,
-                              csvUploadStage: 'upload',
-                            });
-                          }}
-                        >
-                          <RefreshCw className="w-4 h-4 mr-2" />
+                {step3Data.csvUploadStage === 'review' &&
+                  step3Data.validationResult && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t.reviewAudience}</CardTitle>
+                        <CardDescription>
                           {language === 'es'
-                            ? 'Empezar de Nuevo'
-                            : 'Start Over'}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setStep3Data({
-                              ...step3Data,
-                              csvUploadStage: 'validation',
-                            });
-                          }}
-                        >
-                          <ArrowLeft className="w-4 h-4 mr-2" />
-                          {language === 'es' ? 'Volver a Validación' : 'Back to Validation'}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                            ? 'Revisa el resumen de tu audiencia objetivo'
+                            : 'Review your target audience summary'}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Summary Stats */}
+                        <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                          <div className="text-center">
+                            <div className="text-3xl font-bold text-blue-600">
+                              {step3Data.targetEmployees.length}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {language === 'es' ? 'Empleados' : 'Employees'}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-3xl font-bold text-green-600">
+                              {
+                                new Set(
+                                  step3Data.targetEmployees
+                                    .map((e) => e.department)
+                                    .filter(Boolean)
+                                ).size
+                              }
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {language === 'es'
+                                ? 'Departamentos'
+                                : 'Departments'}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-3xl font-bold text-purple-600">
+                              {
+                                new Set(
+                                  step3Data.targetEmployees
+                                    .map((e) => e.location)
+                                    .filter(Boolean)
+                                ).size
+                              }
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {language === 'es' ? 'Ubicaciones' : 'Locations'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Validation Summary */}
+                        {step3Data.validationResult && (
+                          <Alert>
+                            <CheckCircle className="w-4 h-4" />
+                            <AlertDescription>
+                              <strong>
+                                {language === 'es'
+                                  ? 'Validación Completada:'
+                                  : 'Validation Complete:'}
+                              </strong>{' '}
+                              {step3Data.validationResult.validCount ||
+                                step3Data.targetEmployees.length}{' '}
+                              {language === 'es'
+                                ? 'registros válidos'
+                                : 'valid records'}
+                              {step3Data.validationResult.invalidCount > 0 && (
+                                <>
+                                  {', '}
+                                  {step3Data.validationResult.invalidCount}{' '}
+                                  {language === 'es'
+                                    ? 'registros con errores fueron excluidos'
+                                    : 'records with errors were excluded'}
+                                </>
+                              )}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+
+                        {/* Employee List */}
+                        <AudiencePreviewCard
+                          employees={step3Data.targetEmployees}
+                          language={language}
+                        />
+
+                        <div className="flex gap-2 mt-4">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setStep3Data({
+                                targetEmployees: [],
+                                uploadMethod: 'csv',
+                                csvData: undefined,
+                                mapping: undefined,
+                                validationResult: undefined,
+                                csvUploadStage: 'upload',
+                              });
+                            }}
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            {language === 'es'
+                              ? 'Empezar de Nuevo'
+                              : 'Start Over'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setStep3Data({
+                                ...step3Data,
+                                csvUploadStage: 'validation',
+                              });
+                            }}
+                          >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            {language === 'es'
+                              ? 'Volver a Validación'
+                              : 'Back to Validation'}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
               </TabsContent>
 
               <TabsContent value="manual" className="space-y-4">

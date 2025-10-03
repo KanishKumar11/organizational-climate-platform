@@ -26,6 +26,7 @@ Enhanced the QuestionLibraryBrowser component with bulk category selection capab
 ## 🎯 User Experience Flow
 
 ### **Before Enhancement:**
+
 ```
 User wants to add 20 questions from "Leadership" category:
 1. Click on Leadership category → Opens category
@@ -37,6 +38,7 @@ User wants to add 20 questions from "Leadership" category:
 ```
 
 ### **After Enhancement:**
+
 ```
 User wants to add 20 questions from "Leadership" category:
 1. Click on Leadership category → Opens category
@@ -48,7 +50,7 @@ OR
 
 User wants questions from multiple categories:
 1. Check "Leadership" checkbox
-2. Check "Communication" checkbox  
+2. Check "Communication" checkbox
 3. Check "Work-Life Balance" checkbox
 4. Click "Add from 3 Categories" button
 ⏱️ Time: ~10 seconds
@@ -70,6 +72,7 @@ const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
 ```
 
 **Why Set?**
+
 - O(1) lookup for checking if category is selected
 - No duplicates automatically
 - Easy add/remove operations
@@ -88,6 +91,7 @@ Each category now has a checkbox for bulk selection:
 ```
 
 **Key Details:**
+
 - `stopPropagation()`: Prevents checkbox click from triggering category expansion
 - `shrink-0`: Ensures checkbox doesn't compress in flexbox layout
 - Synced with `selectedCategories` Set
@@ -115,6 +119,7 @@ Quick action button next to each category with questions:
 ```
 
 **Features:**
+
 - Only shows if category has questions (`question_count > 0`)
 - Disabled when max selections reached
 - Small size (`h-6 px-2 text-xs`) to fit in category row
@@ -193,6 +198,7 @@ const addAllQuestionsFromCategory = async (categoryId: string) => {
 ```
 
 **Smart Features:**
+
 1. **De-duplication** - Skips already selected questions
 2. **Max Limit Handling** - Auto-truncates to fit available slots
 3. **User Feedback** - Toast for every outcome (success/warning/error)
@@ -209,13 +215,13 @@ Header button for adding from all selected categories:
     size="sm"
     onClick={async () => {
       const initialCount = selectedQuestions.length;
-      
+
       // Bulk add all questions from selected categories
       const promises = Array.from(selectedCategories).map(
         (categoryId) => addAllQuestionsFromCategory(categoryId)
       );
       await Promise.all(promises);
-      
+
       const addedCount = selectedQuestions.length - initialCount;
       if (addedCount > 0) {
         toast.success(
@@ -224,20 +230,21 @@ Header button for adding from all selected categories:
             : `${addedCount} questions added from ${selectedCategories.size} categories`
         );
       }
-      
+
       setSelectedCategories(new Set()); // Clear selection after adding
     }}
     disabled={isMaxReached}
   >
     <Plus className="w-4 h-4 mr-2" />
-    {language === 'es' 
-      ? `Agregar de ${selectedCategories.size} Categorías` 
+    {language === 'es'
+      ? `Agregar de ${selectedCategories.size} Categorías`
       : `Add from ${selectedCategories.size} Categories`}
   </Button>
 )}
 ```
 
 **Features:**
+
 - Only visible when categories selected (`selectedCategories.size > 0`)
 - Shows count of selected categories dynamically
 - Parallel fetching with `Promise.all()` for performance
@@ -263,7 +270,7 @@ Header button for adding from all selected categories:
 
 Legend:
 ☑️ = Selected category checkbox
-☐ = Unselected category checkbox  
+☐ = Unselected category checkbox
 ▶ = Expandable (has children)
 📁 = Folder icon
 [12] = Question count badge
@@ -288,40 +295,40 @@ Legend:
 
 ```typescript
 // Single category - all questions added
-toast.success('12 questions added')
-toast.success('12 preguntas agregadas')
+toast.success('12 questions added');
+toast.success('12 preguntas agregadas');
 
 // Multiple categories - bulk add
-toast.success('35 questions added from 3 categories')
-toast.success('35 preguntas agregadas de 3 categorías')
+toast.success('35 questions added from 3 categories');
+toast.success('35 preguntas agregadas de 3 categorías');
 ```
 
 ### **Warning Messages**
 
 ```typescript
 // Some questions added, but limit reached
-toast.warning('8 questions added (limit reached)')
-toast.warning('8 preguntas agregadas (límite alcanzado)')
+toast.warning('8 questions added (limit reached)');
+toast.warning('8 preguntas agregadas (límite alcanzado)');
 ```
 
 ### **Info Messages**
 
 ```typescript
 // All questions already selected
-toast.info('All questions already selected')
-toast.info('Todas las preguntas ya están seleccionadas')
+toast.info('All questions already selected');
+toast.info('Todas las preguntas ya están seleccionadas');
 ```
 
 ### **Error Messages**
 
 ```typescript
 // API call failed
-toast.error('Error adding questions')
-toast.error('Error al agregar preguntas')
+toast.error('Error adding questions');
+toast.error('Error al agregar preguntas');
 
 // Max limit already reached
-toast.error('Maximum limit reached')
-toast.error('Límite máximo alcanzado')
+toast.error('Maximum limit reached');
+toast.error('Límite máximo alcanzado');
 ```
 
 ---
@@ -329,6 +336,7 @@ toast.error('Límite máximo alcanzado')
 ## 🧪 Testing Scenarios
 
 ### **Test Case 1: Add All from Empty Category**
+
 ```
 Given: Category "Leadership" with 0 questions
 When: User clicks "Add All" button
@@ -337,6 +345,7 @@ Result: ✅ PASS - Button only shows when question_count > 0
 ```
 
 ### **Test Case 2: Add All with No Duplicates**
+
 ```
 Given: Category "Communication" with 8 questions, none selected
 When: User clicks "Add All" button
@@ -345,6 +354,7 @@ Result: ✅ PASS
 ```
 
 ### **Test Case 3: Add All with Some Duplicates**
+
 ```
 Given: Category "Leadership" with 12 questions, 4 already selected
 When: User clicks "Add All" button
@@ -353,6 +363,7 @@ Result: ✅ PASS - De-duplication working
 ```
 
 ### **Test Case 4: Add All When All Selected**
+
 ```
 Given: Category "Work-Life" with 10 questions, all already selected
 When: User clicks "Add All" button
@@ -361,6 +372,7 @@ Result: ✅ PASS
 ```
 
 ### **Test Case 5: Add All with Max Limit (Partial)**
+
 ```
 Given: Max selections = 50, currently 45 selected
 Given: Category "Engagement" with 10 questions
@@ -370,6 +382,7 @@ Result: ✅ PASS - Smart truncation working
 ```
 
 ### **Test Case 6: Add All with Max Limit (Reached)**
+
 ```
 Given: Max selections = 50, currently 50 selected
 Given: Category "Culture" with 8 questions
@@ -379,6 +392,7 @@ Result: ✅ PASS
 ```
 
 ### **Test Case 7: Bulk Add from Multiple Categories**
+
 ```
 Given: 3 categories selected (Leadership=12, Comms=8, Work-Life=10)
 Given: Total = 30 questions, max = 100
@@ -388,6 +402,7 @@ Result: ✅ PASS
 ```
 
 ### **Test Case 8: Category Checkbox Selection**
+
 ```
 Given: 0 categories selected
 When: User checks "Leadership" checkbox
@@ -398,6 +413,7 @@ Result: ✅ PASS
 ```
 
 ### **Test Case 9: API Error Handling**
+
 ```
 Given: Network error during fetch
 When: User clicks "Add All" button
@@ -412,10 +428,10 @@ Result: ✅ PASS - Graceful error handling
 
 ### **Time Savings**
 
-| Scenario | Before | After | Improvement |
-|----------|--------|-------|-------------|
-| Add 10 questions from 1 category | ~30 seconds | ~2 seconds | **93% faster** |
-| Add 30 questions from 3 categories | ~90 seconds | ~5 seconds | **94% faster** |
+| Scenario                           | Before       | After      | Improvement    |
+| ---------------------------------- | ------------ | ---------- | -------------- |
+| Add 10 questions from 1 category   | ~30 seconds  | ~2 seconds | **93% faster** |
+| Add 30 questions from 3 categories | ~90 seconds  | ~5 seconds | **94% faster** |
 | Add 50 questions from 5 categories | ~150 seconds | ~8 seconds | **95% faster** |
 
 ### **API Calls**
@@ -444,16 +460,19 @@ Runtime Performance: Excellent (Promise.all for parallel fetching)
 ## 🎓 Best Practices Demonstrated
 
 ### **1. De-duplication**
+
 ```typescript
 const newQuestions = categoryQuestionIds.filter(
   (id: string) => !selectedQuestions.includes(id)
 );
 ```
+
 - Prevents duplicate questions
 - Clean user experience
 - No confusing duplicates
 
 ### **2. Max Limit Handling**
+
 ```typescript
 if (maxSelections && totalAfterAdd > maxSelections) {
   const availableSlots = maxSelections - selectedQuestions.length;
@@ -463,39 +482,46 @@ if (maxSelections && totalAfterAdd > maxSelections) {
   }
 }
 ```
+
 - Smart truncation to fit available slots
 - Clear user feedback (warning toast)
 - No silent failures
 
 ### **3. User Feedback**
+
 ```typescript
 toast.success(`${newQuestions.length} ${t.questionsAdded}`);
 toast.warning(`${questionsToAdd.length} questions added (limit reached)`);
 toast.info('All questions already selected');
 toast.error('Error adding questions');
 ```
+
 - Every action has feedback
 - Bilingual messages
 - Appropriate toast types (success/warning/info/error)
 
 ### **4. Event Handling**
+
 ```typescript
 onClick={(e) => {
   e.stopPropagation(); // Prevent parent click handlers
   addAllQuestionsFromCategory(category._id);
 }}
 ```
+
 - Prevents unintended category expansion
 - Clean interaction model
 - No event bubbling issues
 
 ### **5. Parallel Fetching**
+
 ```typescript
-const promises = Array.from(selectedCategories).map(
-  (categoryId) => addAllQuestionsFromCategory(categoryId)
+const promises = Array.from(selectedCategories).map((categoryId) =>
+  addAllQuestionsFromCategory(categoryId)
 );
 await Promise.all(promises);
 ```
+
 - Fetches all categories simultaneously
 - Much faster than sequential
 - Better user experience
@@ -507,19 +533,20 @@ await Promise.all(promises);
 All UI text fully translated:
 
 ```typescript
-const t = language === 'es'
-  ? {
-      addAllFromCategory: 'Agregar Todas',
-      categoriesSelected: 'categorías seleccionadas',
-      questionsAdded: 'preguntas agregadas',
-      noCategoryQuestions: 'No hay preguntas en esta categoría',
-    }
-  : {
-      addAllFromCategory: 'Add All',
-      categoriesSelected: 'categories selected',
-      questionsAdded: 'questions added',
-      noCategoryQuestions: 'No questions in this category',
-    };
+const t =
+  language === 'es'
+    ? {
+        addAllFromCategory: 'Agregar Todas',
+        categoriesSelected: 'categorías seleccionadas',
+        questionsAdded: 'preguntas agregadas',
+        noCategoryQuestions: 'No hay preguntas en esta categoría',
+      }
+    : {
+        addAllFromCategory: 'Add All',
+        categoriesSelected: 'categories selected',
+        questionsAdded: 'questions added',
+        noCategoryQuestions: 'No questions in this category',
+      };
 ```
 
 ---
@@ -585,12 +612,14 @@ const t = language === 'es'
 ## 🎉 Success Metrics
 
 **Before Enhancement:**
+
 - ❌ No bulk selection capabilities
 - ❌ Manual individual question selection only
 - ❌ Time-consuming for large categories
 - ❌ High user frustration
 
 **After Enhancement:**
+
 - ✅ Category checkboxes for bulk selection
 - ✅ "Add All" buttons per category
 - ✅ Bulk add from multiple categories

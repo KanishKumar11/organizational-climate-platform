@@ -68,6 +68,7 @@
 ```
 
 **✅ Features:**
+
 - ✅ Company searchable dropdown with real-time search
 - ✅ Survey type selection (3 options)
 - ✅ Language selector (ES/EN/Both)
@@ -117,6 +118,7 @@
 ```
 
 **✅ Drag-and-Drop Features:**
+
 - ✅ Mouse/touch drag support
 - ✅ Keyboard navigation (Space + Arrow keys)
 - ✅ Visual feedback (opacity, shadow, cursor)
@@ -126,6 +128,7 @@
 - ✅ Success toast on reorder
 
 **Keyboard Shortcuts:**
+
 1. **Tab** to drag handle
 2. **Space** to activate drag mode
 3. **↑/↓** to move question
@@ -226,6 +229,7 @@
 ```
 
 **✅ CSV Flow Features:**
+
 - ✅ 4-stage state machine (Upload → Map → Validate → Review)
 - ✅ Progress indicators (badges with checkmarks)
 - ✅ Automatic de-duplication (removes duplicate emails/IDs)
@@ -491,6 +495,7 @@ Escape            Cancel drag operation
 **Ready to proceed to Phase 3!** 🚀
 
 Next features:
+
 - Bulk category selection
 - Reminders configuration
 - Distribution type selector

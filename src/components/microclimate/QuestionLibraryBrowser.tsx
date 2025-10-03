@@ -270,7 +270,9 @@ export function QuestionLibraryBrowser({
               'w-5 h-5 cursor-pointer',
               isSelected ? 'text-blue-600' : 'text-gray-400'
             )}
-            onClick={() => setSelectedCategory(isSelected ? null : category._id)}
+            onClick={() =>
+              setSelectedCategory(isSelected ? null : category._id)
+            }
           />
 
           {/* Category Name */}
@@ -281,7 +283,9 @@ export function QuestionLibraryBrowser({
                 ? 'text-blue-700 dark:text-blue-400'
                 : 'text-gray-700 dark:text-gray-300'
             )}
-            onClick={() => setSelectedCategory(isSelected ? null : category._id)}
+            onClick={() =>
+              setSelectedCategory(isSelected ? null : category._id)
+            }
           >
             {language === 'en' ? category.name_en : category.name_es}
           </span>
@@ -455,13 +459,13 @@ export function QuestionLibraryBrowser({
               size="sm"
               onClick={async () => {
                 const initialCount = selectedQuestions.length;
-                
+
                 // Bulk add all questions from selected categories
                 const promises = Array.from(selectedCategories).map(
                   (categoryId) => addAllQuestionsFromCategory(categoryId)
                 );
                 await Promise.all(promises);
-                
+
                 const addedCount = selectedQuestions.length - initialCount;
                 if (addedCount > 0) {
                   toast.success(
@@ -470,14 +474,14 @@ export function QuestionLibraryBrowser({
                       : `${addedCount} questions added from ${selectedCategories.size} categories`
                   );
                 }
-                
+
                 setSelectedCategories(new Set()); // Clear selection after adding
               }}
               disabled={isMaxReached}
             >
               <Plus className="w-4 h-4 mr-2" />
-              {language === 'es' 
-                ? `Agregar de ${selectedCategories.size} Categorías` 
+              {language === 'es'
+                ? `Agregar de ${selectedCategories.size} Categorías`
                 : `Add from ${selectedCategories.size} Categories`}
             </Button>
           )}

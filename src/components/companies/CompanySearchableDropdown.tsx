@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Check, ChevronsUpDown, Building2, Loader2, Search } from 'lucide-react';
+import {
+  Check,
+  ChevronsUpDown,
+  Building2,
+  Loader2,
+  Search,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,14 +46,14 @@ interface CompanySearchableDropdownProps {
 
 /**
  * CompanySearchableDropdown Component
- * 
+ *
  * Searchable dropdown for selecting companies with:
  * - Real-time search/filter
  * - Company metadata display
  * - Loading states
  * - Keyboard navigation
  * - Active/inactive filtering
- * 
+ *
  * Used in Step 1 of microclimate wizard
  */
 export function CompanySearchableDropdown({
@@ -64,21 +70,24 @@ export function CompanySearchableDropdown({
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const t = language === 'es' ? {
-    placeholder: 'Seleccionar empresa...',
-    search: 'Buscar empresa...',
-    noResults: 'No se encontraron empresas',
-    loading: 'Cargando...',
-    employees: 'empleados',
-    inactive: 'Inactiva',
-  } : {
-    placeholder: 'Select company...',
-    search: 'Search company...',
-    noResults: 'No companies found',
-    loading: 'Loading...',
-    employees: 'employees',
-    inactive: 'Inactive',
-  };
+  const t =
+    language === 'es'
+      ? {
+          placeholder: 'Seleccionar empresa...',
+          search: 'Buscar empresa...',
+          noResults: 'No se encontraron empresas',
+          loading: 'Cargando...',
+          employees: 'empleados',
+          inactive: 'Inactiva',
+        }
+      : {
+          placeholder: 'Select company...',
+          search: 'Search company...',
+          noResults: 'No companies found',
+          loading: 'Loading...',
+          employees: 'employees',
+          inactive: 'Inactive',
+        };
 
   // Fetch companies on mount
   useEffect(() => {
@@ -87,10 +96,10 @@ export function CompanySearchableDropdown({
       try {
         const response = await fetch('/api/admin/companies');
         if (!response.ok) throw new Error('Failed to fetch companies');
-        
+
         const data = await response.json();
         const companyList = data.companies || data;
-        
+
         setCompanies(companyList);
       } catch (error) {
         console.error('Error fetching companies:', error);

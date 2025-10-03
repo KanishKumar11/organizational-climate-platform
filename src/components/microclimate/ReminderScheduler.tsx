@@ -96,12 +96,14 @@ export function ReminderScheduler({
     language === 'es'
       ? {
           title: 'Recordatorios Automáticos',
-          description: 'Configura recordatorios por email antes del cierre de la encuesta',
+          description:
+            'Configura recordatorios por email antes del cierre de la encuesta',
           enableReminders: 'Habilitar Recordatorios',
           reminderSchedule: 'Programación de Recordatorios',
           addReminder: 'Agregar Recordatorio',
           maxReminders: 'Máximo de Recordatorios',
-          maxRemindersDesc: 'Límite de recordatorios que se enviarán a cada empleado',
+          maxRemindersDesc:
+            'Límite de recordatorios que se enviarán a cada empleado',
           timeBefore: 'Tiempo Antes del Cierre',
           hours: 'Horas',
           days: 'Días',
@@ -133,7 +135,8 @@ export function ReminderScheduler({
           reminderSchedule: 'Reminder Schedule',
           addReminder: 'Add Reminder',
           maxReminders: 'Maximum Reminders',
-          maxRemindersDesc: 'Limit of reminders that will be sent to each employee',
+          maxRemindersDesc:
+            'Limit of reminders that will be sent to each employee',
           timeBefore: 'Time Before End',
           hours: 'Hours',
           days: 'Days',
@@ -191,7 +194,7 @@ Human Resources Team`,
   // Toggle reminder system
   const toggleReminders = (enabled: boolean) => {
     updateConfig({ enabled });
-    
+
     // Initialize with default template if enabling for first time
     if (enabled && localConfig.intervals.length === 0) {
       addReminder(24, 'hours');
@@ -199,7 +202,10 @@ Human Resources Team`,
   };
 
   // Add a new reminder interval
-  const addReminder = (value: number = 24, unit: 'hours' | 'days' = 'hours') => {
+  const addReminder = (
+    value: number = 24,
+    unit: 'hours' | 'days' = 'hours'
+  ) => {
     const newInterval: ReminderInterval = {
       id: `reminder-${Date.now()}`,
       value,
@@ -224,7 +230,7 @@ Human Resources Team`,
       const endDateTime = new Date(endDate);
       const now = new Date();
       const surveyDurationHours = differenceInHours(endDateTime, now);
-      
+
       if (normalizedValue > surveyDurationHours) {
         toast.warning(t.validateError, { description: t.intervalTooLarge });
         // Don't prevent adding, just warn
@@ -249,7 +255,7 @@ Human Resources Team`,
     updateConfig({
       intervals: localConfig.intervals.filter((interval) => interval.id !== id),
     });
-    
+
     toast.success(
       language === 'es' ? 'Recordatorio eliminado' : 'Reminder removed'
     );
@@ -308,7 +314,9 @@ Human Resources Team`,
         sendTime,
         formatted: format(
           sendTime,
-          language === 'es' ? "d 'de' MMMM, yyyy 'a las' HH:mm" : "MMMM d, yyyy 'at' HH:mm",
+          language === 'es'
+            ? "d 'de' MMMM, yyyy 'a las' HH:mm"
+            : "MMMM d, yyyy 'at' HH:mm",
           { locale: language === 'es' ? es : enUS }
         ),
       };
@@ -438,7 +446,9 @@ Human Resources Team`,
                     min="1"
                     max="10"
                     value={localConfig.maxReminders}
-                    onChange={(e) => updateMaxReminders(parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      updateMaxReminders(parseInt(e.target.value) || 1)
+                    }
                     className="w-20"
                   />
                 </div>
@@ -467,7 +477,11 @@ Human Resources Team`,
                         <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
                         <div className="flex-1">
                           <p className="text-sm font-medium">
-                            {reminder.interval.value} {reminder.interval.unit === 'days' ? t.days : t.hours} {t.beforeEnd}
+                            {reminder.interval.value}{' '}
+                            {reminder.interval.unit === 'days'
+                              ? t.days
+                              : t.hours}{' '}
+                            {t.beforeEnd}
                           </p>
                           <p className="text-xs text-gray-600 dark:text-gray-400">
                             {reminder.formatted}
@@ -519,7 +533,9 @@ Human Resources Team`,
                       <Label>{t.body}</Label>
                       <Textarea
                         value={localConfig.emailTemplate.body_es}
-                        onChange={(e) => updateTemplate('body_es', e.target.value)}
+                        onChange={(e) =>
+                          updateTemplate('body_es', e.target.value)
+                        }
                         placeholder={defaultTemplates.body_es}
                         rows={8}
                         className="mt-1 font-mono text-sm"
@@ -544,7 +560,9 @@ Human Resources Team`,
                       <Label>{t.body}</Label>
                       <Textarea
                         value={localConfig.emailTemplate.body_en}
-                        onChange={(e) => updateTemplate('body_en', e.target.value)}
+                        onChange={(e) =>
+                          updateTemplate('body_en', e.target.value)
+                        }
                         placeholder={defaultTemplates.body_en}
                         rows={8}
                         className="mt-1 font-mono text-sm"
