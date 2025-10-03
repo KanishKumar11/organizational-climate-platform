@@ -126,16 +126,19 @@ export default function SurveyCreationWizard() {
   const [draftId, setDraftId] = useState<string | null>(null);
 
   // Autosave hook - Updated to match new useAutosave interface
-  const { status, forceSave, save, isSaving, lastSavedAt } = useAutosave(draftId, {
-    debounceMs: 8000, // 8 seconds
-    enabled: true,
-    onSuccess: (data) => {
-      console.log('Draft saved successfully', data);
-    },
-    onError: (error) => {
-      console.error('Draft save error:', error);
-    },
-  });
+  const { status, forceSave, save, isSaving, lastSavedAt } = useAutosave(
+    draftId,
+    {
+      debounceMs: 8000, // 8 seconds
+      enabled: true,
+      onSuccess: (data) => {
+        console.log('Draft saved successfully', data);
+      },
+      onError: (error) => {
+        console.error('Draft save error:', error);
+      },
+    }
+  );
 
   // Handle draft restoration
   const handleRestoreDraft = (draftData: any) => {
@@ -340,24 +343,24 @@ export default function SurveyCreationWizard() {
           if (draftId) {
             forceSave({
               current_step: currentStep,
-              step1_data: { 
+              step1_data: {
                 title: formData.title,
                 description: formData.description,
                 company_id: formData.company_id,
-                company_name: formData.company_name
+                company_name: formData.company_name,
               },
               step2_data: { questions: formData.questions },
-              step3_data: { 
+              step3_data: {
                 target_type: formData.target_type,
                 department_ids: formData.department_ids,
                 target_user_ids: formData.target_user_ids,
-                target_emails: formData.target_emails
+                target_emails: formData.target_emails,
               },
-              step4_data: { 
+              step4_data: {
                 start_date: formData.start_date,
                 end_date: formData.end_date,
                 timezone: formData.timezone,
-                distribution_type: formData.distribution_type
+                distribution_type: formData.distribution_type,
               },
             });
           }
@@ -822,24 +825,24 @@ export default function SurveyCreationWizard() {
               if (draftId) {
                 forceSave({
                   current_step: currentStep,
-                  step1_data: { 
+                  step1_data: {
                     title: formData.title,
                     description: formData.description,
                     company_id: formData.company_id,
-                    company_name: formData.company_name
+                    company_name: formData.company_name,
                   },
                   step2_data: { questions: formData.questions },
-                  step3_data: { 
+                  step3_data: {
                     target_type: formData.target_type,
                     department_ids: formData.department_ids,
                     target_user_ids: formData.target_user_ids,
-                    target_emails: formData.target_emails
+                    target_emails: formData.target_emails,
                   },
-                  step4_data: { 
+                  step4_data: {
                     start_date: formData.start_date,
                     end_date: formData.end_date,
                     timezone: formData.timezone,
-                    distribution_type: formData.distribution_type
+                    distribution_type: formData.distribution_type,
                   },
                 });
               }
