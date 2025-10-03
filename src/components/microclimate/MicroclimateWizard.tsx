@@ -1118,3 +1118,6 @@ export function MicroclimateWizard({
     </div>
   );
 }
+
+// Also export as default for better compatibility
+export default MicroclimateWizard;

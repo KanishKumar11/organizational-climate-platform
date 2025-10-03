@@ -22,10 +22,16 @@ export { QuestionPreviewModal } from './components/microclimate/QuestionPreviewM
 
 // Auto-save & Draft Recovery
 export { AutosaveIndicator } from './components/microclimate/AutosaveIndicator';
-export { DraftRecoveryBanner, DraftRecoveryContainer } from './components/microclimate/DraftRecoveryBanner';
+export {
+  DraftRecoveryBanner,
+  DraftRecoveryContainer,
+} from './components/microclimate/DraftRecoveryBanner';
 
 // Wizard Navigation
-export { WizardStepper, CompactWizardStepper } from './components/microclimate/WizardStepper';
+export {
+  WizardStepper,
+  CompactWizardStepper,
+} from './components/microclimate/WizardStepper';
 
 // Hooks
 export { useAutosave } from './hooks/useAutosave';

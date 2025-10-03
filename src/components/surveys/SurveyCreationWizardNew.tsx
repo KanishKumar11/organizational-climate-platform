@@ -123,16 +123,16 @@ export default function SurveyCreationWizard() {
   const [loading, setLoading] = useState(false);
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [sessionExpiresIn, setSessionExpiresIn] = useState(300); // 5 minutes
+  const [draftId, setDraftId] = useState<string | null>(null);
 
-  // Autosave hook
-  const { status, saveNow } = useAutosave(formData, {
-    interval: 8000, // 8 seconds
-    endpoint: '/api/surveys/drafts',
-    sessionId,
-    onSaveSuccess: () => {
-      console.log('Draft saved successfully');
+  // Autosave hook - Updated to match new useAutosave interface
+  const { status, forceSave, save, isSaving, lastSavedAt } = useAutosave(draftId, {
+    debounceMs: 8000, // 8 seconds
+    enabled: true,
+    onSuccess: (data) => {
+      console.log('Draft saved successfully', data);
     },
-    onSaveError: (error) => {
+    onError: (error) => {
       console.error('Draft save error:', error);
     },
   });
@@ -337,7 +337,30 @@ export default function SurveyCreationWizard() {
         expiresInSeconds={sessionExpiresIn}
         onExtendSession={() => setShowSessionWarning(false)}
         onSaveAndClose={async () => {
-          await saveNow();
+          if (draftId) {
+            forceSave({
+              current_step: currentStep,
+              step1_data: { 
+                title: formData.title,
+                description: formData.description,
+                company_id: formData.company_id,
+                company_name: formData.company_name
+              },
+              step2_data: { questions: formData.questions },
+              step3_data: { 
+                target_type: formData.target_type,
+                department_ids: formData.department_ids,
+                target_user_ids: formData.target_user_ids,
+                target_emails: formData.target_emails
+              },
+              step4_data: { 
+                start_date: formData.start_date,
+                end_date: formData.end_date,
+                timezone: formData.timezone,
+                distribution_type: formData.distribution_type
+              },
+            });
+          }
           router.push('/surveys');
         }}
       />
@@ -357,12 +380,12 @@ export default function SurveyCreationWizard() {
             Step {currentStep} of {STEPS.length}
           </span>
           <span className="text-sm text-muted-foreground">
-            {status.isSaving ? (
+            {isSaving ? (
               <span className="flex items-center gap-1">
                 <span className="animate-spin">⏳</span> Saving...
               </span>
-            ) : status.lastSaved ? (
-              `Saved ${new Date(status.lastSaved).toLocaleTimeString()}`
+            ) : lastSavedAt ? (
+              `Saved ${lastSavedAt.toLocaleTimeString()}`
             ) : (
               'Not saved'
             )}
@@ -795,8 +818,33 @@ export default function SurveyCreationWizard() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={saveNow}
-            disabled={status.isSaving}
+            onClick={() => {
+              if (draftId) {
+                forceSave({
+                  current_step: currentStep,
+                  step1_data: { 
+                    title: formData.title,
+                    description: formData.description,
+                    company_id: formData.company_id,
+                    company_name: formData.company_name
+                  },
+                  step2_data: { questions: formData.questions },
+                  step3_data: { 
+                    target_type: formData.target_type,
+                    department_ids: formData.department_ids,
+                    target_user_ids: formData.target_user_ids,
+                    target_emails: formData.target_emails
+                  },
+                  step4_data: { 
+                    start_date: formData.start_date,
+                    end_date: formData.end_date,
+                    timezone: formData.timezone,
+                    distribution_type: formData.distribution_type
+                  },
+                });
+              }
+            }}
+            disabled={isSaving}
           >
             <Save className="h-4 w-4 mr-2" />
             Save Draft
