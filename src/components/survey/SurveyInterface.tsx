@@ -4,9 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ISurvey, IQuestion } from '@/models/Survey';
-import { IQuestionResponse, IDemographicResponse } from '@/models/Response';
+import { IQuestionResponse } from '@/models/Response';
 import { QuestionRenderer } from './QuestionRenderer';
-import { DemographicForm } from './DemographicForm';
 import { ProgressBar } from './ProgressBar';
 import { SurveyNavigation } from './SurveyNavigation';
 import { SurveyCompletion } from './SurveyCompletion';
@@ -27,7 +26,6 @@ export function SurveyInterface({
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<IQuestionResponse[]>([]);
-  const [demographics, setDemographics] = useState<IDemographicResponse[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random()}`);
@@ -42,13 +40,11 @@ export function SurveyInterface({
     shouldShowQuestion(question, responses)
   );
 
-  const totalSteps =
-    visibleQuestions.length + (survey.demographics.length > 0 ? 1 : 0);
+  const totalSteps = visibleQuestions.length;
   const currentQuestion =
     currentStep < visibleQuestions.length
       ? visibleQuestions[currentStep]
       : null;
-  const isOnDemographics = currentStep >= visibleQuestions.length;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   // Auto-save functionality
@@ -58,7 +54,6 @@ export function SurveyInterface({
     try {
       const payload = {
         responses,
-        demographics,
         is_complete: false,
         session_id: sessionId,
         invitation_token: invitationToken,
@@ -84,7 +79,6 @@ export function SurveyInterface({
     survey.settings.auto_save,
     survey._id,
     responses,
-    demographics,
     sessionId,
     invitationToken,
     isOnline,
@@ -103,7 +97,6 @@ export function SurveyInterface({
       try {
         const draft = JSON.parse(savedDraft);
         setResponses(draft.responses || []);
-        setDemographics(draft.demographics || []);
       } catch (error) {
         console.error('Failed to load saved draft:', error);
       }
@@ -145,19 +138,6 @@ export function SurveyInterface({
     });
   };
 
-  const handleDemographicResponse = (field: string, value: any) => {
-    setDemographics((prev) => {
-      const existing = prev.find((d) => d.field === field);
-      const newResponse: IDemographicResponse = { field, value };
-
-      if (existing) {
-        return prev.map((d) => (d.field === field ? newResponse : d));
-      } else {
-        return [...prev, newResponse];
-      }
-    });
-  };
-
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep((prev) => prev + 1);
@@ -178,7 +158,6 @@ export function SurveyInterface({
     try {
       const payload = {
         responses,
-        demographics,
         is_complete: true,
         session_id: sessionId,
         invitation_token: invitationToken,
@@ -216,14 +195,7 @@ export function SurveyInterface({
     : null;
 
   const canProceed = () => {
-    if (isOnDemographics) {
-      // Check required demographics
-      return survey.demographics.every(
-        (demo) =>
-          !demo.required ||
-          demographics.some((d) => d.field === demo.field && d.value)
-      );
-    } else if (currentQuestion) {
+    if (currentQuestion) {
       // Check if current question is answered (if required)
       return (
         !currentQuestion.required ||
@@ -283,21 +255,7 @@ export function SurveyInterface({
         {/* Survey Content */}
         <Card className="p-8 ">
           <AnimatePresence mode="wait">
-            {isOnDemographics ? (
-              <motion.div
-                key="demographics"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <DemographicForm
-                  demographics={survey.demographics}
-                  responses={demographics}
-                  onResponse={handleDemographicResponse}
-                />
-              </motion.div>
-            ) : currentQuestion ? (
+            {currentQuestion ? (
               <motion.div
                 key={currentQuestion.id}
                 initial={{ opacity: 0, x: 20 }}
@@ -312,7 +270,30 @@ export function SurveyInterface({
                   questionNumber={currentStep + 1}
                 />
               </motion.div>
-            ) : null}
+            ) : (
+              <motion.div
+                key="completion"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="text-center py-8">
+                  <h3 className="text-xl font-semibold mb-4">
+                    Ready to submit your survey?
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Please review your answers before submitting.
+                  </p>
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit Survey'}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           {/* Navigation */}

@@ -5,6 +5,13 @@ import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import AnimatedBarChart from '@/components/charts/AnimatedBarChart';
 import AnimatedPieChart from '@/components/charts/AnimatedPieChart';
@@ -90,9 +97,39 @@ export default function SurveyResults({ surveyId }: SurveyResultsProps) {
   const [results, setResults] = useState<SurveyResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDemographic] = useState<string | null>(null);
+  const [selectedDemographic, setSelectedDemographic] = useState<string | null>(
+    null
+  );
   const [showOpenText, setShowOpenText] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [demographicFields, setDemographicFields] = useState<any[]>([]);
+
+  const fetchDemographicFields = useCallback(async () => {
+    try {
+      // First get the survey to get demographic_field_ids
+      const surveyResponse = await fetch(`/api/surveys/${surveyId}`);
+      if (!surveyResponse.ok) return;
+
+      const survey = await surveyResponse.json();
+      const fieldIds = survey.demographic_field_ids || [];
+
+      if (fieldIds.length === 0) return;
+
+      // Then get the demographic field definitions
+      const fieldsResponse = await fetch(
+        `/api/admin/demographics?companyId=${survey.company_id}`
+      );
+      if (!fieldsResponse.ok) return;
+
+      const data = await fieldsResponse.json();
+      const fields = data.data.filter((field: any) =>
+        fieldIds.includes(field._id)
+      );
+      setDemographicFields(fields);
+    } catch (err) {
+      console.error('Failed to fetch demographic fields:', err);
+    }
+  }, [surveyId]);
 
   const fetchResults = useCallback(async () => {
     try {
@@ -119,6 +156,10 @@ export default function SurveyResults({ surveyId }: SurveyResultsProps) {
   }, [surveyId, selectedDemographic, showOpenText]);
 
   useEffect(() => {
+    fetchDemographicFields();
+  }, [fetchDemographicFields]);
+
+  useEffect(() => {
     fetchResults();
   }, [fetchResults]);
 
@@ -127,6 +168,8 @@ export default function SurveyResults({ surveyId }: SurveyResultsProps) {
       setExporting(true);
       const params = new URLSearchParams();
       params.append('format', format);
+      if (selectedDemographic)
+        params.append('demographic', selectedDemographic);
       if (showOpenText) params.append('include_open_text', 'true');
 
       const response = await fetch(`/api/surveys/${surveyId}/export?${params}`);
@@ -224,6 +267,24 @@ export default function SurveyResults({ surveyId }: SurveyResultsProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          {demographicFields.length > 0 && (
+            <Select
+              value={selectedDemographic || ''}
+              onValueChange={setSelectedDemographic}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select demographic" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All responses</SelectItem>
+                {demographicFields.map((field) => (
+                  <SelectItem key={field._id} value={field.field}>
+                    {field.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Button
             variant="outline"
             onClick={() => setShowOpenText(!showOpenText)}

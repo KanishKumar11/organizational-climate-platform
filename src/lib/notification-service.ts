@@ -3,6 +3,8 @@ import Notification, {
   NotificationType,
   NotificationChannel,
   NotificationPriority,
+  NotificationStatus,
+  NotificationMetadata,
 } from '@/models/Notification';
 import NotificationTemplate, {
   INotificationTemplate,
@@ -12,6 +14,22 @@ import { emailService } from './email';
 import { connectDB } from './mongodb';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
+import {
+  NotificationData,
+  SendTimeOptimization,
+  ParticipationForecast,
+  DeliveryAnalytics,
+  ChannelMetrics,
+  TypeMetrics,
+  TimeMetrics,
+  NotificationFilters,
+  NotificationPreferences,
+  PerformanceMetrics,
+  NotificationUpdateData,
+  NotificationQuery,
+  TimeConstraints,
+  ContentAnalysisResult,
+} from '@/types/notifications';
 
 // Initialize DOMPurify with JSDOM for server-side usage
 const window = new JSDOM('').window;
@@ -40,95 +58,6 @@ export const sanitizeText = (text: string): string => {
 // Helper function to safely check if a value is a Date
 function isDate(value: unknown): value is Date {
   return value instanceof Date && !isNaN(value.getTime());
-}
-
-// Notification data interface
-export interface NotificationData {
-  user_id: string;
-  company_id: string;
-  type: NotificationType;
-  channel: NotificationChannel;
-  priority?: NotificationPriority;
-  title?: string;
-  message?: string;
-  data?: Record<string, any>;
-  template_id?: string;
-  scheduled_for?: Date;
-  variables?: Record<string, any>;
-}
-
-// Send time optimization interface
-export interface SendTimeOptimization {
-  user_id: string;
-  optimal_send_times: {
-    email: Date[];
-    push: Date[];
-    in_app: Date[];
-  };
-  timezone: string;
-  engagement_patterns: {
-    best_day_of_week: number; // 0-6, Sunday-Saturday
-    best_hour_of_day: number; // 0-23
-    response_rate_by_hour: Record<number, number>;
-    response_rate_by_day: Record<number, number>;
-  };
-}
-
-// Participation forecast interface
-export interface ParticipationForecast {
-  survey_id: string;
-  company_id: string;
-  total_invitations: number;
-  predicted_responses: number;
-  predicted_response_rate: number;
-  confidence_score: number;
-  factors: {
-    historical_response_rate: number;
-    survey_length: number;
-    time_of_year: number;
-    department_engagement: Record<string, number>;
-  };
-  recommendations: string[];
-}
-
-// Delivery analytics interface
-export interface DeliveryAnalytics {
-  total_sent: number;
-  total_delivered: number;
-  total_opened: number;
-  total_failed: number;
-  delivery_rate: number;
-  open_rate: number;
-  failure_rate: number;
-  engagement_metrics: {
-    by_channel: Record<
-      NotificationChannel,
-      {
-        sent: number;
-        delivered: number;
-        opened: number;
-        engagement_rate: number;
-      }
-    >;
-    by_type: Record<
-      NotificationType,
-      {
-        sent: number;
-        delivered: number;
-        opened: number;
-        engagement_rate: number;
-      }
-    >;
-    by_time: Record<
-      string,
-      {
-        sent: number;
-        delivered: number;
-        opened: number;
-        engagement_rate: number;
-      }
-    >;
-  };
 }
 
 class NotificationService {
@@ -808,15 +737,15 @@ class NotificationService {
     }
 
     // Calculate engagement rates
-    Object.values(byChannel).forEach((metrics: any) => {
+    Object.values(byChannel).forEach((metrics: ChannelMetrics) => {
       metrics.engagement_rate =
         metrics.delivered > 0 ? metrics.opened / metrics.delivered : 0;
     });
-    Object.values(byType).forEach((metrics: any) => {
+    Object.values(byType).forEach((metrics: TypeMetrics) => {
       metrics.engagement_rate =
         metrics.delivered > 0 ? metrics.opened / metrics.delivered : 0;
     });
-    Object.values(byTime).forEach((metrics: any) => {
+    Object.values(byTime).forEach((metrics: TimeMetrics) => {
       metrics.engagement_rate =
         metrics.delivered > 0 ? metrics.opened / metrics.delivered : 0;
     });
@@ -840,7 +769,7 @@ class NotificationService {
   // Mark notification as opened (for tracking)
   async markNotificationOpened(
     notificationId: string,
-    metadata?: any
+    metadata?: NotificationMetadata
   ): Promise<void> {
     await connectDB();
 
@@ -919,12 +848,12 @@ class NotificationService {
   // Bulk update notifications
   async bulkUpdateNotifications(
     notificationIds: string[],
-    updates: any,
+    updates: NotificationUpdateData,
     companyId?: string
   ): Promise<any> {
     await connectDB();
 
-    let query: any = { _id: { $in: notificationIds } };
+    let query: NotificationQuery = { _id: { $in: notificationIds } };
     if (companyId) {
       query.company_id = companyId;
     }
@@ -939,7 +868,7 @@ class NotificationService {
   ): Promise<any> {
     await connectDB();
 
-    let query: any = { _id: { $in: notificationIds } };
+    let query: NotificationQuery = { _id: { $in: notificationIds } };
     if (companyId) {
       query.company_id = companyId;
     }
@@ -956,9 +885,9 @@ class NotificationService {
   }): Promise<INotification[]> {
     await connectDB();
 
-    const query: any = { company_id: filters.company_id };
+    const query: NotificationQuery = { company_id: filters.company_id };
     if (filters.status) {
-      query.status = filters.status;
+      query.status = { $in: [filters.status as NotificationStatus] };
     }
 
     const limit = filters.limit || 50;
@@ -1058,28 +987,28 @@ class NotificationService {
     startDate.setDate(startDate.getDate() - timeframe);
 
     // Build query
-    let query: any = {
+    let query: NotificationQuery = {
       company_id,
       created_at: { $gte: startDate },
     };
 
     if (user_id) query.user_id = user_id;
-    if (notification_type) query.type = notification_type;
+    if (notification_type) query.type = { $in: [notification_type as NotificationType] };
 
     const notifications = await (Notification as any).find(query);
 
     // Analyze optimal delivery times
     const hourlyPerformance: Record<
       number,
-      { sent: number; opened: number; rate: number }
+      { sent: number; opened: number; engagement_rate: number }
     > = {};
     const dailyPerformance: Record<
       number,
-      { sent: number; opened: number; rate: number }
+      { sent: number; opened: number; engagement_rate: number }
     > = {};
     const channelPerformance: Record<
       string,
-      { sent: number; opened: number; rate: number }
+      { sent: number; opened: number; engagement_rate: number }
     > = {};
 
     for (const notification of notifications) {
@@ -1089,13 +1018,13 @@ class NotificationService {
 
       // Initialize if not exists
       if (!hourlyPerformance[hour]) {
-        hourlyPerformance[hour] = { sent: 0, opened: 0, rate: 0 };
+        hourlyPerformance[hour] = { sent: 0, opened: 0, engagement_rate: 0 };
       }
       if (!dailyPerformance[day]) {
-        dailyPerformance[day] = { sent: 0, opened: 0, rate: 0 };
+        dailyPerformance[day] = { sent: 0, opened: 0, engagement_rate: 0 };
       }
       if (!channelPerformance[channel]) {
-        channelPerformance[channel] = { sent: 0, opened: 0, rate: 0 };
+        channelPerformance[channel] = { sent: 0, opened: 0, engagement_rate: 0 };
       }
 
       // Count sent notifications
@@ -1113,26 +1042,26 @@ class NotificationService {
       }
     }
 
-    // Calculate rates
-    Object.values(hourlyPerformance).forEach((perf: any) => {
-      perf.rate = perf.sent > 0 ? perf.opened / perf.sent : 0;
+    // Calculate engagement rates
+    Object.values(hourlyPerformance).forEach((perf) => {
+      perf.engagement_rate = perf.sent > 0 ? perf.opened / perf.sent : 0;
     });
-    Object.values(dailyPerformance).forEach((perf: any) => {
-      perf.rate = perf.sent > 0 ? perf.opened / perf.sent : 0;
+    Object.values(dailyPerformance).forEach((perf) => {
+      perf.engagement_rate = perf.sent > 0 ? perf.opened / perf.sent : 0;
     });
-    Object.values(channelPerformance).forEach((perf: any) => {
-      perf.rate = perf.sent > 0 ? perf.opened / perf.sent : 0;
+    Object.values(channelPerformance).forEach((perf) => {
+      perf.engagement_rate = perf.sent > 0 ? perf.opened / perf.sent : 0;
     });
 
     // Find optimal times
     const bestHour = Object.entries(hourlyPerformance).sort(
-      ([, a], [, b]) => b.rate - a.rate
+      ([, a], [, b]) => b.engagement_rate - a.engagement_rate
     )[0];
     const bestDay = Object.entries(dailyPerformance).sort(
-      ([, a], [, b]) => b.rate - a.rate
+      ([, a], [, b]) => b.engagement_rate - a.engagement_rate
     )[0];
     const bestChannel = Object.entries(channelPerformance).sort(
-      ([, a], [, b]) => b.rate - a.rate
+      ([, a], [, b]) => b.engagement_rate - a.engagement_rate
     )[0];
 
     return {
@@ -1167,7 +1096,7 @@ class NotificationService {
     notification_type: string;
     content_template: string;
     target_engagement_rate?: number;
-    time_constraints?: any;
+    time_constraints?: TimeConstraints;
   }): Promise<any> {
     await connectDB();
 
@@ -1209,28 +1138,27 @@ class NotificationService {
         // Apply time constraints if provided
         if (time_constraints) {
           const constraints = time_constraints;
-          if (optimalTime.getHours() < constraints.earliest_hour) {
-            optimalTime.setHours(constraints.earliest_hour);
-          }
-          if (optimalTime.getHours() > constraints.latest_hour) {
-            optimalTime.setHours(constraints.latest_hour);
+          
+          // Parse business hours
+          const startHour = parseInt(constraints.business_hours_start.split(':')[0]);
+          const endHour = parseInt(constraints.business_hours_end.split(':')[0]);
+          
+          if (constraints.business_hours_only) {
+            if (optimalTime.getHours() < startHour) {
+              optimalTime.setHours(startHour);
+            }
+            if (optimalTime.getHours() > endHour) {
+              optimalTime.setHours(endHour);
+            }
           }
 
-          // Check if day is allowed
-          if (
-            constraints.allowed_days &&
-            !constraints.allowed_days.includes(optimalTime.getDay())
-          ) {
-            // Move to next allowed day
-            const nextAllowedDay =
-              constraints.allowed_days.find(
-                (day: number) => day > optimalTime.getDay()
-              ) || constraints.allowed_days[0];
-            const daysToAdd =
-              nextAllowedDay > optimalTime.getDay()
-                ? nextAllowedDay - optimalTime.getDay()
-                : 7 - optimalTime.getDay() + nextAllowedDay;
+          // Check if day is weekend and should be excluded
+          const isWeekend = optimalTime.getDay() === 0 || optimalTime.getDay() === 6;
+          if (constraints.exclude_weekends && isWeekend) {
+            // Move to next Monday
+            const daysToAdd = optimalTime.getDay() === 0 ? 1 : 2;
             optimalTime.setDate(optimalTime.getDate() + daysToAdd);
+            optimalTime.setHours(startHour);
           }
         }
       } else {
@@ -1290,12 +1218,12 @@ class NotificationService {
     startDate.setDate(startDate.getDate() - timeframe);
 
     // Build query
-    let query: any = {
+    let query: NotificationQuery = {
       company_id,
       created_at: { $gte: startDate },
     };
 
-    if (notification_type) query.type = notification_type;
+    if (notification_type) query.type = { $in: [notification_type as NotificationType] };
     if (user_id) query.user_id = user_id;
     if (campaign_id) query['data.campaign_id'] = campaign_id;
 
@@ -1353,7 +1281,7 @@ class NotificationService {
     user_id: string;
     event_type: 'delivered' | 'opened' | 'clicked' | 'dismissed' | 'converted';
     timestamp: Date;
-    metadata?: any;
+    metadata?: NotificationMetadata;
   }): Promise<any> {
     await connectDB();
 
@@ -1405,7 +1333,7 @@ class NotificationService {
   // Update engagement preferences
   async updateEngagementPreferences(
     userId: string,
-    preferences: any
+    preferences: NotificationPreferences
   ): Promise<any> {
     await connectDB();
 
@@ -1491,7 +1419,7 @@ class NotificationService {
 
   // Calculate engagement over time
   private calculateEngagementOverTime(
-    notifications: any[],
+    notifications: INotification[],
     timeframe: number
   ): any[] {
     const dailyEngagement: Record<
@@ -1526,7 +1454,7 @@ class NotificationService {
   }
 
   // Get top performing content
-  private getTopPerformingContent(notifications: any[]): unknown[] {
+  private getTopPerformingContent(notifications: INotification[]): unknown[] {
     const contentPerformance: Record<
       string,
       { sent: number; opened: number; rate: number; title: string }

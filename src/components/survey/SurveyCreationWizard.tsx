@@ -60,6 +60,7 @@ export interface SurveyCreationData {
 
   // Step 3: Questions & Demographics
   questions: any[];
+  demographic_field_ids?: string[]; // Dynamic demographic field IDs
   demographics: any[];
 
   // Step 4: Settings & Schedule
@@ -90,6 +91,7 @@ export function SurveyCreationWizard({
   const [isLoading, setIsLoading] = useState(false);
   const [departments, setDepartments] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
+  const [demographicFields, setDemographicFields] = useState<any[]>([]);
 
   const [surveyData, setSurveyData] = useState<SurveyCreationData>({
     title: '',
@@ -99,6 +101,7 @@ export function SurveyCreationWizard({
     target_responses: 50,
     estimated_duration: 10,
     questions: [],
+    demographic_field_ids: [],
     demographics: [],
     start_date: new Date().toISOString().split('T')[0],
     end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
@@ -165,6 +168,7 @@ export function SurveyCreationWizard({
 
   useEffect(() => {
     fetchDepartments();
+    fetchDemographicFields();
     if (session?.user.role === 'super_admin') {
       fetchCompanies();
     }
@@ -191,6 +195,18 @@ export function SurveyCreationWizard({
       }
     } catch (error) {
       console.error('Error fetching companies:', error);
+    }
+  };
+
+  const fetchDemographicFields = async () => {
+    try {
+      const response = await fetch('/api/admin/demographics');
+      if (response.ok) {
+        const data = await response.json();
+        setDemographicFields(data.demographics || []);
+      }
+    } catch (error) {
+      console.error('Error fetching demographic fields:', error);
     }
   };
 
@@ -428,54 +444,29 @@ export function SurveyCreationWizard({
         <div>
           <Label>Demographics Collection</Label>
           <div className="mt-2 space-y-2">
-            {[
-              { field: 'gender', label: 'Gender', type: 'select' },
-              {
-                field: 'education_level',
-                label: 'Education Level',
-                type: 'select',
-              },
-              { field: 'job_title', label: 'Job Title', type: 'text' },
-              {
-                field: 'work_location',
-                label: 'Work Location',
-                type: 'select',
-              },
-              {
-                field: 'tenure_months',
-                label: 'Tenure (months)',
-                type: 'number',
-              },
-            ].map((demo) => (
-              <div key={demo.field} className="flex items-center space-x-2">
+            {demographicFields.map((demo) => (
+              <div key={demo._id} className="flex items-center space-x-2">
                 <Checkbox
-                  id={demo.field}
-                  checked={surveyData.demographics.some(
-                    (d) => d.field === demo.field
-                  )}
+                  id={demo._id}
+                  checked={surveyData.demographic_field_ids?.includes(demo._id)}
                   onCheckedChange={(checked) => {
                     if (checked) {
                       updateSurveyData({
-                        demographics: [
-                          ...surveyData.demographics,
-                          {
-                            field: demo.field,
-                            label: demo.label,
-                            type: demo.type,
-                            required: false,
-                          },
+                        demographic_field_ids: [
+                          ...(surveyData.demographic_field_ids || []),
+                          demo._id,
                         ],
                       });
                     } else {
                       updateSurveyData({
-                        demographics: surveyData.demographics.filter(
-                          (d) => d.field !== demo.field
-                        ),
+                        demographic_field_ids: (
+                          surveyData.demographic_field_ids || []
+                        ).filter((id) => id !== demo._id),
                       });
                     }
                   }}
                 />
-                <Label htmlFor={demo.field} className="text-sm font-normal">
+                <Label htmlFor={demo._id} className="text-sm font-normal">
                   {demo.label}
                 </Label>
               </div>

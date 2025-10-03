@@ -32,7 +32,7 @@ const createNotificationSchema = z.object({
   variables: z
     .record(
       z.string(),
-      z.union([z.string(), z.number(), z.boolean(), z.date()])
+      z.union([z.string(), z.number(), z.boolean()])
     )
     .optional(),
   company_id: z.string().optional(),

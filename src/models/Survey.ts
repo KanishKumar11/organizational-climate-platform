@@ -25,6 +25,16 @@ export interface ConditionalLogic {
   target_question_id?: string;
 }
 
+// Binary question comment configuration
+export interface BinaryCommentConfig {
+  enabled: boolean; // Enable comment field when "Yes" is selected
+  label?: string; // Label for the comment field (e.g., "Please explain your answer")
+  placeholder?: string; // Placeholder text
+  max_length?: number; // Maximum character length
+  required?: boolean; // Make comment mandatory when "Yes" is selected
+  min_length?: number; // Minimum character length for validation
+}
+
 // Question interface
 export interface IQuestion {
   id: string;
@@ -35,8 +45,9 @@ export interface IQuestion {
   scale_max?: number;
   scale_labels?: { min: string; max: string };
   emoji_options?: EmojiOption[];
-  comment_required?: boolean; // For yes_no_comment type
-  comment_prompt?: string; // Custom prompt for comment field
+  comment_required?: boolean; // For yes_no_comment type (legacy)
+  comment_prompt?: string; // Custom prompt for comment field (legacy)
+  binary_comment_config?: BinaryCommentConfig; // New: Detailed config for binary questions
   required: boolean;
   conditional_logic?: ConditionalLogic;
   order: number;
@@ -95,7 +106,8 @@ export interface ISurvey extends Document {
   created_by: string;
   department_ids?: string[];
   questions: IQuestion[];
-  demographics: DemographicConfig[];
+  demographic_field_ids?: string[]; // References to DemographicField IDs
+  demographics: DemographicConfig[]; // Keep for backward compatibility during migration
   settings: SurveySettings;
   start_date: Date;
   end_date: Date;
@@ -145,6 +157,14 @@ const QuestionSchema = new Schema(
     ],
     comment_required: { type: Boolean, default: true },
     comment_prompt: { type: String, default: 'Please explain your answer:' },
+    binary_comment_config: {
+      enabled: { type: Boolean, default: false },
+      label: { type: String, default: 'Please explain your answer' },
+      placeholder: { type: String, default: 'Enter your explanation here...' },
+      max_length: { type: Number, default: 500, min: 10, max: 5000 },
+      required: { type: Boolean, default: false },
+      min_length: { type: Number, default: 0, min: 0 },
+    },
     required: { type: Boolean, default: false },
     conditional_logic: {
       condition_question_id: { type: String },
@@ -244,7 +264,8 @@ const SurveySchema: Schema = new Schema(
         message: 'Survey must have at least one question',
       },
     },
-    demographics: [DemographicConfigSchema],
+    demographic_field_ids: [{ type: String }], // References to DemographicField IDs
+    demographics: [DemographicConfigSchema], // Keep for backward compatibility
     settings: {
       type: SurveySettingsSchema,
       default: () => ({}),

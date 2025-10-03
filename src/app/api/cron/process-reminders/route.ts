@@ -52,17 +52,17 @@ export async function POST(request: NextRequest) {
           data: {
             survey_id: invitation.survey_id,
             invitation_id: invitation._id.toString(),
-            survey: survey,
+            survey_id_ref: survey._id.toString(),
             reminder_count: invitation.reminder_count + 1,
             link: `${process.env.NEXTAUTH_URL}/survey/invitation/${invitation.invitation_token}`,
           },
           variables: {
-            recipient: user,
-            survey: survey,
-            company: company,
-            invitationLink: `${process.env.NEXTAUTH_URL}/survey/invitation/${invitation.invitation_token}`,
+            recipientName: user.name,
+            recipientEmail: user.email,
+            surveyTitle: survey.title,
             companyName: company.name,
-            expiryDate: invitation.expires_at,
+            invitationLink: `${process.env.NEXTAUTH_URL}/survey/invitation/${invitation.invitation_token}`,
+            expiryDate: invitation.expires_at.toISOString(),
             reminderCount: invitation.reminder_count + 1,
           },
         });

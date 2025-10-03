@@ -11,6 +11,25 @@ import {
   INotification,
 } from '@/models/Notification';
 
+// Notification item for frontend use (extends INotification with string dates)
+export interface NotificationItem
+  extends Omit<
+    INotification,
+    | 'scheduled_for'
+    | 'sent_at'
+    | 'delivered_at'
+    | 'opened_at'
+    | 'created_at'
+    | 'updated_at'
+  > {
+  scheduled_for: string;
+  sent_at?: string;
+  delivered_at?: string;
+  opened_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Notification data for creation
 export interface NotificationData {
   user_id: string;
@@ -134,12 +153,15 @@ export interface NotificationPreferences {
   push_enabled: boolean;
   in_app_enabled: boolean;
   sms_enabled: boolean;
-  types: Record<NotificationType, {
-    email: boolean;
-    push: boolean;
-    in_app: boolean;
-    sms: boolean;
-  }>;
+  types: Record<
+    NotificationType,
+    {
+      email: boolean;
+      push: boolean;
+      in_app: boolean;
+      sms: boolean;
+    }
+  >;
   quiet_hours: {
     enabled: boolean;
     start: string; // HH:MM format
@@ -170,6 +192,10 @@ export interface NotificationUpdateData {
   sent_at?: Date;
   delivered_at?: Date;
   opened_at?: Date;
+  cancelled_at?: Date;
+  cancelled_by?: string;
+  is_read?: boolean;
+  read_at?: Date | null;
   metadata?: NotificationMetadata;
   error_message?: string;
 }
@@ -198,12 +224,13 @@ export interface BulkOperationResponse {
 
 // Database query interfaces
 export interface NotificationQuery {
+  _id?: string | { $in: string[] };
   user_id?: string | { $in: string[] };
   company_id?: string;
-  type?: { $in: NotificationType[] };
+  type?: { $in: NotificationType[] } | NotificationType | string;
   channel?: { $in: NotificationChannel[] };
   priority?: { $in: NotificationPriority[] };
-  status?: { $in: NotificationStatus[] };
+  status?: { $in: NotificationStatus[] } | NotificationStatus | string;
   created_at?: {
     $gte?: Date;
     $lte?: Date;

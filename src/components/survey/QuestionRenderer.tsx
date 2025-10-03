@@ -23,6 +23,7 @@ export function QuestionRenderer({
 }: QuestionRendererProps) {
   const [textValue, setTextValue] = useState(response?.response_text || '');
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [commentText, setCommentText] = useState(response?.response_text || '');
 
   const handleResponse = (value: unknown, text?: string) => {
     onResponse(question.id, value, text);
@@ -309,9 +310,6 @@ export function QuestionRenderer({
 
   const renderYesNoComment = () => {
     const current = response?.response_value as string;
-    const [commentText, setCommentText] = useState(
-      response?.response_text || ''
-    );
 
     return (
       <div className="space-y-4 mt-6">

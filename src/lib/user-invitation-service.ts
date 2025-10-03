@@ -32,6 +32,7 @@ export interface EmployeeInvitationData {
   custom_message?: string;
   expires_in_days?: number;
   send_immediately?: boolean;
+  demographics?: Record<string, any>; // Dynamic demographics data
 }
 
 // Shareable registration link data
@@ -171,6 +172,7 @@ export class UserInvitationService {
           custom_message: data.custom_message,
           setup_required: false,
         },
+        demographics: data.demographics || {},
       });
 
       await invitation.save();
@@ -298,10 +300,10 @@ export class UserInvitationService {
         role: invitation.role,
         company_name: invitation.invitation_data.company_name,
         inviter_name: invitation.invitation_data.inviter_name,
-        custom_message: invitation.invitation_data.custom_message,
+        custom_message: invitation.invitation_data.custom_message || null,
         registration_link: registrationLink,
-        expires_at: invitation.expires_at,
-        setup_required: invitation.invitation_data.setup_required,
+        expires_at: invitation.expires_at.toISOString(),
+        setup_required: invitation.invitation_data.setup_required || false,
         recipient_email: invitation.email,
       },
       variables: {
@@ -309,7 +311,7 @@ export class UserInvitationService {
         company_name: invitation.invitation_data.company_name,
         inviter_name: invitation.invitation_data.inviter_name,
         registration_link: registrationLink,
-        expires_at: invitation.expires_at,
+        expires_at: invitation.expires_at.toISOString(),
         role: invitation.role,
       },
     });

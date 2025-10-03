@@ -291,7 +291,7 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
               >
                 {notifications.map((notification) => (
                   <motion.div
-                    key={notification._id}
+                    key={notification._id?.toString()}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -300,16 +300,22 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                       notification.status === 'delivered' && 'bg-blue-50/30'
                     )}
                     onClick={() =>
-                      notification.status === 'delivered' &&
+                      notification?.status === 'delivered' &&
+                      notification?._id &&
+                      typeof notification._id === 'string' &&
                       markAsRead(notification._id)
                     }
                     role="listitem"
-                    aria-label={`${sanitizeText(notification.title)}. ${sanitizeText(notification.message)}. ${formatRelativeTime(notification.created_at)}. ${notification.status === 'delivered' ? 'Unread' : 'Read'}. Priority: ${notification.priority}.`}
+                    aria-label={`${sanitizeText(notification.title || 'Untitled Notification')}. ${sanitizeText(notification.message || 'No message content')}. ${formatRelativeTime(notification.created_at)}. ${notification.status === 'delivered' ? 'Unread' : 'Read'}. Priority: ${notification.priority}.`}
                     tabIndex={0}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        if (notification.status === 'delivered') {
+                        if (
+                          notification.status === 'delivered' &&
+                          notification._id &&
+                          typeof notification._id === 'string'
+                        ) {
                           markAsRead(notification._id);
                         }
                       }
@@ -339,10 +345,14 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
                             <h4 className="text-sm font-medium text-foreground line-clamp-1">
-                              {sanitizeText(notification.title)}
+                              {sanitizeText(
+                                notification.title || 'Untitled Notification'
+                              )}
                             </h4>
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                              {sanitizeText(notification.message)}
+                              {sanitizeText(
+                                notification.message || 'No message content'
+                              )}
                             </p>
                           </div>
 
@@ -352,28 +362,34 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                             role="group"
                             aria-label="Notification actions"
                           >
-                            {notification.status === 'delivered' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) =>
-                                  handleMarkAsRead(notification._id, e)
-                                }
-                                className="h-6 w-6 p-0 hover:bg-green-100"
-                                aria-label={`Mark notification "${sanitizeText(notification.title)}" as read`}
-                              >
-                                <Check
-                                  className="h-3 w-3 text-green-600"
-                                  aria-hidden="true"
-                                />
-                              </Button>
-                            )}
+                            {notification.status === 'delivered' &&
+                              notification._id &&
+                              typeof notification._id === 'string' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) =>
+                                    handleMarkAsRead(notification._id?.toString() || '', e)
+                                  }
+                                  className="h-6 w-6 p-0 hover:bg-green-100"
+                                  aria-label={`Mark notification "${sanitizeText(notification.title || 'Untitled Notification')}" as read`}
+                                >
+                                  <Check
+                                    className="h-3 w-3 text-green-600"
+                                    aria-hidden="true"
+                                  />
+                                </Button>
+                              )}
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={(e) => handleDelete(notification._id, e)}
+                              onClick={(e) =>
+                                notification._id &&
+                                typeof notification._id === 'string' &&
+                                handleDelete(notification._id, e)
+                              }
                               className="h-6 w-6 p-0 hover:bg-red-100"
-                              aria-label={`Delete notification "${sanitizeText(notification.title)}"`}
+                              aria-label={`Delete notification "${sanitizeText(notification.title || 'Untitled Notification')}"`}
                             >
                               <Trash2
                                 className="h-3 w-3 text-red-600"

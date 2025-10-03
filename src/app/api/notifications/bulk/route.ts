@@ -6,6 +6,12 @@ import Notification from '@/models/Notification';
 import { connectDB } from '@/lib/mongodb';
 import { z } from 'zod';
 import { withRateLimit, notificationBulkLimiter } from '@/lib/rate-limiting';
+import {
+  NotificationData,
+  NotificationQuery,
+  NotificationTemplateData,
+  NotificationUpdateData,
+} from '@/types/notifications';
 
 // Validation schema for bulk notification operations
 const bulkNotificationSchema = z.object({
@@ -64,7 +70,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Build query based on user permissions
-    const query: any = {};
+    const query: NotificationQuery = {};
 
     if (user_id && user_id === session.user.id) {
       // User can only update their own notifications
@@ -79,17 +85,17 @@ export async function PATCH(request: NextRequest) {
 
     // Apply filters
     if (filters) {
-      if (filters.status) query.status = filters.status;
+      if (filters.status) query.status = { $in: filters.status };
       if (filters.type) query.type = filters.type;
       if (filters.priority) query.priority = filters.priority;
     }
 
     // Apply status filter for mark_opened action
     if (action === 'mark_opened') {
-      query.status = 'delivered';
+      query.status = { $in: ['delivered'] };
     }
 
-    const updateData: any = {};
+    const updateData: NotificationUpdateData = {};
 
     switch (action) {
       case 'mark_opened':
@@ -165,44 +171,53 @@ export const POST = withRateLimit(
 
       let result;
 
+      // Create user object with proper type
+      const userInfo = {
+        id: session.user.id,
+        name: session.user.name || '',
+        email: session.user.email || '',
+        role: session.user.role,
+        companyId: session.user.companyId,
+      };
+
       switch (operation) {
         case 'create':
           result = await bulkCreateNotifications(
             notifications || [],
-            session.user,
+            userInfo,
             template_data
           );
           break;
         case 'send':
           result = await bulkSendNotifications(
             notification_ids || [],
-            session.user
+            userInfo
           );
           break;
         case 'cancel':
           result = await bulkCancelNotifications(
             notification_ids || [],
-            session.user
+            userInfo
           );
           break;
         case 'mark_read':
           result = await bulkMarkNotifications(
             notification_ids || [],
             'read',
-            session.user
+            userInfo
           );
           break;
         case 'mark_unread':
           result = await bulkMarkNotifications(
             notification_ids || [],
             'unread',
-            session.user
+            userInfo
           );
           break;
         case 'delete':
           result = await bulkDeleteNotifications(
             notification_ids || [],
-            session.user
+            userInfo
           );
           break;
         default:
@@ -236,9 +251,15 @@ export const POST = withRateLimit(
 );
 
 async function bulkCreateNotifications(
-  notifications: any[],
-  user: any,
-  templateData?: any
+  notifications: NotificationData[],
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    companyId?: string;
+  },
+  templateData?: NotificationTemplateData
 ) {
   const results = {
     created: 0,
@@ -271,7 +292,10 @@ async function bulkCreateNotifications(
   return results;
 }
 
-async function bulkSendNotifications(notificationIds: string[], user: any) {
+async function bulkSendNotifications(
+  notificationIds: string[],
+  user: { id: string; name: string; email: string; role: string }
+) {
   const results = {
     sent: 0,
     errors: [] as any[],
@@ -292,7 +316,16 @@ async function bulkSendNotifications(notificationIds: string[], user: any) {
   return results;
 }
 
-async function bulkCancelNotifications(notificationIds: string[], user: any) {
+async function bulkCancelNotifications(
+  notificationIds: string[],
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    companyId?: string;
+  }
+) {
   const result = await notificationService.bulkUpdateNotifications(
     notificationIds,
     {
@@ -331,7 +364,16 @@ async function bulkMarkNotifications(
   };
 }
 
-async function bulkDeleteNotifications(notificationIds: string[], user: any) {
+async function bulkDeleteNotifications(
+  notificationIds: string[],
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    companyId?: string;
+  }
+) {
   const result = await notificationService.bulkDeleteNotifications(
     notificationIds,
     user.companyId

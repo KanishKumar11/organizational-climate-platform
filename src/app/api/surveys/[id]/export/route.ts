@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import Survey from '@/models/Survey';
 import Response from '@/models/Response';
+import {
+  getBinaryQuestionHeaders,
+  getBinaryQuestionRowValues,
+} from '@/lib/binary-question-export';
 // import { hasPermission } from '@/lib/permissions';
 
 // Export survey results
@@ -25,6 +29,7 @@ export async function GET(
     const format = searchParams.get('format') || 'csv';
     const includeOpenText = searchParams.get('include_open_text') === 'true';
     const departmentId = searchParams.get('department');
+    const demographic = searchParams.get('demographic');
 
     // Get survey
     const survey = await Survey.findById(surveyId);
@@ -35,6 +40,22 @@ export async function GET(
     // Check permissions
     if (survey.company_id !== session.user.companyId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Validate demographic parameter if provided
+    if (demographic) {
+      const surveyDemographicFields = survey.demographic_field_ids || [];
+      // For backward compatibility, also check legacy demographics
+      const legacyDemographics = survey.demographics || [];
+      const hasField =
+        surveyDemographicFields.includes(demographic) ||
+        legacyDemographics.some((d) => d.field === demographic);
+      if (!hasField) {
+        return NextResponse.json(
+          { error: 'Invalid demographic field' },
+          { status: 400 }
+        );
+      }
     }
 
     // Build response query
@@ -110,11 +131,16 @@ function generateCSV(
 
   // Add question headers
   survey.questions.forEach((question: any) => {
-    headers.push(
-      `Q${question.order + 1}: ${question.text.substring(0, 50)}...`
-    );
-    if (includeOpenText && question.type === 'open_ended') {
-      headers.push(`Q${question.order + 1} (Text)`);
+    // Binary questions need special handling for conditional comments
+    if (question.type === 'yes_no' && question.binary_comment_config?.enabled) {
+      headers.push(...getBinaryQuestionHeaders(question));
+    } else {
+      headers.push(
+        `Q${question.order + 1}: ${question.text.substring(0, 50)}...`
+      );
+      if (includeOpenText && question.type === 'open_ended') {
+        headers.push(`Q${question.order + 1} (Text)`);
+      }
     }
   });
 
@@ -144,7 +170,18 @@ function generateCSV(
       const questionResponse = response.responses.find(
         (r: any) => r.question_id === question.id
       );
-      if (questionResponse) {
+
+      // Handle binary questions with conditional comments
+      if (
+        question.type === 'yes_no' &&
+        question.binary_comment_config?.enabled
+      ) {
+        const binaryValues = getBinaryQuestionRowValues(
+          question,
+          questionResponse
+        );
+        row.push(...binaryValues);
+      } else if (questionResponse) {
         let value = questionResponse.response_value;
         if (Array.isArray(value)) {
           value = value.join('; ');

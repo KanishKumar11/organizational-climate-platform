@@ -31,26 +31,8 @@ export interface UserPreferences {
   theme?: 'light' | 'dark' | 'auto';
 }
 
-// Enhanced demographic information for users
-export interface UserDemographics {
-  gender?: 'male' | 'female' | 'non_binary' | 'prefer_not_to_say' | 'other';
-  education_level?:
-    | 'high_school'
-    | 'associate'
-    | 'bachelor'
-    | 'master'
-    | 'doctorate'
-    | 'other';
-  job_title?: string;
-  hierarchy_level?: 'entry' | 'mid' | 'senior' | 'executive' | 'c_level';
-  work_location?: 'remote' | 'hybrid' | 'onsite';
-  site_location?: string;
-  tenure_months?: number; // Time with company in months
-  previous_experience_years?: number;
-  team_size?: number;
-  reports_count?: number;
-  custom_attributes?: Record<string, any>;
-}
+// Dynamic demographic information for users (company-specific)
+export type UserDemographics = Record<string, any>;
 
 /**
  * Consent preferences interface

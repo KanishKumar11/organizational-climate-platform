@@ -131,21 +131,21 @@ class InvitationService {
         data: {
           survey_id: data.survey_id,
           invitation_id: invitation._id.toString(),
-          survey: survey,
+          survey_id_ref: survey._id.toString(),
           companyName: company?.name || 'Your Organization',
-          expiryDate: expiresAt,
+          expiryDate: expiresAt.toISOString(),
           link: this.generateInvitationLink(invitation.invitation_token),
-          custom_message: data.custom_message,
+          custom_message: data.custom_message || null,
         },
         variables: {
-          recipient: user,
-          survey: survey,
-          company: company,
+          recipientName: user.name,
+          recipientEmail: user.email,
+          surveyTitle: survey.title,
+          companyName: company?.name || 'Your Organization',
           invitationLink: this.generateInvitationLink(
             invitation.invitation_token
           ),
-          companyName: company?.name || 'Your Organization',
-          expiryDate: expiresAt,
+          expiryDate: expiresAt.toISOString(),
         },
       });
     }

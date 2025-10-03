@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
-import { INotification } from '@/types/notifications';
+import { NotificationItem } from '@/types/notifications';
 
 export interface NotificationStats {
   total: number;

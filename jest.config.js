@@ -27,6 +27,9 @@ const customJestConfig = {
     TextEncoder: TextEncoder,
     TextDecoder: TextDecoder,
   },
+  // Global setup and teardown for MongoDB
+  globalSetup: '<rootDir>/jest.global-setup.ts',
+  globalTeardown: '<rootDir>/jest.global-teardown.ts',
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

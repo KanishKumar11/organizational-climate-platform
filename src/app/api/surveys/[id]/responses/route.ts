@@ -8,6 +8,7 @@ import Response, {
   IDemographicResponse,
 } from '@/models/Response';
 import SurveyInvitation from '@/models/SurveyInvitation';
+import User from '@/models/User';
 import { validateSurveyResponse } from '@/lib/validation';
 
 // Submit survey response
@@ -83,11 +84,41 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Validate responses
+    // Get demographics from user or invitation
+    let responseDemographics: any[] = [];
+    if (userId && !isAnonymous) {
+      // Get demographics from authenticated user
+      const user = await User.findById(userId);
+      if (user?.demographics) {
+        // Convert user demographics object to response format
+        responseDemographics = Object.entries(user.demographics).map(
+          ([field, value]) => ({
+            field,
+            value,
+          })
+        );
+      }
+    } else if (invitation_token) {
+      // Get demographics from invitation (for pre-assigned users)
+      const invitation = await SurveyInvitation.findOne({ invitation_token });
+      if (invitation?.user_id) {
+        const user = await User.findById(invitation.user_id);
+        if (user?.demographics) {
+          responseDemographics = Object.entries(user.demographics).map(
+            ([field, value]) => ({
+              field,
+              value,
+            })
+          );
+        }
+      }
+    }
+
+    // Validate responses (without demographics since we get them from user)
     const validationResult = validateSurveyResponse(
       survey,
       responses,
-      demographics
+      responseDemographics // Use demographics from user instead of request
     );
     if (!validationResult.isValid) {
       return NextResponse.json(
@@ -109,11 +140,10 @@ export async function POST(
       );
     }
 
-    // Create or update response
     if (existingResponse) {
       // Update existing response
       existingResponse.responses = responses;
-      existingResponse.demographics = demographics;
+      existingResponse.demographics = responseDemographics;
       existingResponse.is_complete = is_complete;
 
       if (is_complete) {
@@ -130,7 +160,7 @@ export async function POST(
         company_id: companyId,
         department_id: departmentId,
         responses: responses,
-        demographics: demographics,
+        demographics: responseDemographics,
         is_complete: is_complete,
         is_anonymous: isAnonymous,
         start_time: new Date(),

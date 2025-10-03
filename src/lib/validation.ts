@@ -1,5 +1,6 @@
 import { ISurvey, IQuestion } from '@/models/Survey';
 import { IQuestionResponse, IDemographicResponse } from '@/models/Response';
+import { validateBinaryQuestionResponse } from './binary-question-validator';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -102,8 +103,18 @@ export function validateQuestionResponse(
       break;
 
     case 'yes_no':
-      const yesNoValue = String(response.response_value).toLowerCase();
-      if (!['yes', 'no', 'true', 'false', '1', '0'].includes(yesNoValue)) {
+      // Use the dedicated binary question validator for yes_no questions
+      const binaryValidation = validateBinaryQuestionResponse(
+        question,
+        response
+      );
+      if (!binaryValidation.valid) {
+        errors.push(...binaryValidation.errors.map((err) => err.message));
+      }
+
+      // Also validate the response value format
+      const yesNoValue = response.response_value;
+      if (typeof yesNoValue !== 'boolean') {
         errors.push(`Invalid yes/no response for question "${question.text}"`);
       }
       break;

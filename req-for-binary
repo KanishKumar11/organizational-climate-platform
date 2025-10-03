@@ -1,0 +1,36 @@
+Title: Binary (Yes/No) response with conditional comment
+
+Short description:
+When configuring a binary (Yes/No) question, the system must allow enabling an option so that if the answer is “Yes,” a text field appears for the respondent to provide an explanation/comment.
+
+Functional requirements:
+
+In the question builder, when selecting Type: Binary (Yes/No), show a setting:
+
+“Require text if the answer is ‘Yes’” (ON/OFF).
+
+If this option is ON:
+
+Selecting “Yes” in the survey reveals a text field right below.
+
+Selecting “No” does not show the text field.
+
+Configurable parameters for the text field (in the builder):
+
+Label (e.g., “Please explain your answer”)
+
+Placeholder
+
+Max length (characters)
+
+Required (make the text mandatory when the answer is “Yes”)
+
+Validations (min characters, text only, etc.).
+
+Preview and runtime must reflect the behavior.
+
+Data & reporting: export the comment in a dedicated field/column (e.g., Comment (if Yes)).
+
+Acceptance criteria:
+
+For a Binary (Yes/No) question with “Require text

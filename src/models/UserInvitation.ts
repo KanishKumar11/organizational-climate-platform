@@ -45,6 +45,7 @@ export interface IUserInvitation extends Document {
     custom_message?: string;
     setup_required?: boolean; // For company admin setup
   };
+  demographics?: Record<string, any>; // Dynamic demographics data
   created_at: Date;
   updated_at: Date;
 
@@ -146,6 +147,11 @@ const UserInvitationSchema: Schema = new Schema(
       inviter_name: { type: String, required: true },
       custom_message: { type: String },
       setup_required: { type: Boolean, default: false },
+    },
+    demographics: {
+      type: Map,
+      of: Schema.Types.Mixed,
+      default: {},
     },
   },
   {

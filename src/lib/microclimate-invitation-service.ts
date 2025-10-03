@@ -120,19 +120,19 @@ class MicroclimateInvitationService {
         data: {
           microclimate_id: data.microclimate_id,
           invitation_id: invitation._id.toString(),
-          microclimate: microclimate,
+          microclimate_id_ref: microclimate._id.toString(),
           companyName: company?.name || 'Your Organization',
-          expiryDate: expiresAt,
+          expiryDate: expiresAt.toISOString(),
           link: this.generateInvitationLink(invitation.invitation_token),
-          custom_message: data.custom_message,
+          custom_message: data.custom_message || null,
         },
         variables: {
-          recipient: user,
-          microclimate: microclimate,
-          company: company,
-          invitationLink: this.generateInvitationLink(invitation.invitation_token),
+          recipientName: user.name,
+          recipientEmail: user.email,
+          microclimateName: microclimate.name,
           companyName: company?.name || 'Your Organization',
-          expiryDate: expiresAt,
+          invitationLink: this.generateInvitationLink(invitation.invitation_token),
+          expiryDate: expiresAt.toISOString(),
         },
       });
 

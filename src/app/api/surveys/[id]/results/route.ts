@@ -38,6 +38,22 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Validate demographic parameter if provided
+    if (demographic) {
+      const surveyDemographicFields = survey.demographic_field_ids || [];
+      // For backward compatibility, also check legacy demographics
+      const legacyDemographics = survey.demographics || [];
+      const hasField =
+        surveyDemographicFields.includes(demographic) ||
+        legacyDemographics.some((d) => d.field === demographic);
+      if (!hasField) {
+        return NextResponse.json(
+          { error: 'Invalid demographic field' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Build response query
     let responseQuery: any = {
       survey_id: surveyId,

@@ -198,8 +198,15 @@ export async function POST(request: NextRequest) {
       is_active: true,
     };
 
-    // Add demographics if provided
-    if (demographics) {
+    // Add demographics from invitation or request body
+    if (
+      invitation?.demographics &&
+      Object.keys(invitation.demographics).length > 0
+    ) {
+      // Use demographics from invitation (preferred for pre-assigned users)
+      userData.demographics = invitation.demographics;
+    } else if (demographics) {
+      // Fallback to request body demographics (for manual entry or legacy support)
       userData.demographics = {
         age_range: demographics.age_range,
         gender: demographics.gender,
