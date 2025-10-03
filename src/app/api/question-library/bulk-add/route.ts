@@ -6,9 +6,9 @@ import QuestionCategory from '@/models/QuestionCategory';
 
 /**
  * POST Bulk Add Questions from Category
- * 
+ *
  * Adds all questions from a specific category
- * 
+ *
  * Body:
  * - categoryId: Category ID to add all questions from
  * - filters: Optional filters (type, isRequired, etc.)
@@ -17,10 +17,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
@@ -88,7 +85,6 @@ export async function POST(req: NextRequest) {
         name_en: category.name_en,
       },
     });
-
   } catch (error) {
     console.error('Bulk add questions error:', error);
     return NextResponse.json(

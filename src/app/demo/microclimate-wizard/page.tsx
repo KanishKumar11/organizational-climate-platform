@@ -4,7 +4,13 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
 import { MicroclimateWizard } from '@/components/microclimate/MicroclimateWizard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Info, CheckCircle2, AlertTriangle } from 'lucide-react';
@@ -20,15 +26,15 @@ const queryClient = new QueryClient({
 
 /**
  * Microclimate Wizard Demo & Testing Page
- * 
+ *
  * This page provides a standalone environment to test the complete
  * Microclimate Survey Wizard with all features:
- * 
+ *
  * - Step 1: Basic Info (title, description)
  * - Step 2: Questions (library, quick-add, custom)
  * - Step 3: Targeting (all employees, CSV import, manual)
  * - Step 4: Schedule & Distribution (dates, QR codes, preview)
- * 
+ *
  * Features Demonstrated:
  * ✅ 4-Step wizard workflow
  * ✅ Auto-save with draft persistence
@@ -51,7 +57,11 @@ export default function MicroclimateWizardDemo() {
 
   const handleCancel = () => {
     console.log('❌ Survey Creation Cancelled');
-    if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
+    if (
+      confirm(
+        'Are you sure you want to cancel? All unsaved changes will be lost.'
+      )
+    ) {
       window.location.reload();
     }
   };
@@ -70,17 +80,24 @@ export default function MicroclimateWizardDemo() {
                       🧪 Microclimate Survey Wizard - Demo & Testing
                     </CardTitle>
                     <CardDescription className="text-lg mt-2">
-                      Complete wizard with all features: Auto-save, Draft Recovery, CSV Import, QR Codes
+                      Complete wizard with all features: Auto-save, Draft
+                      Recovery, CSV Import, QR Codes
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant={demoMode === 'es' ? 'default' : 'outline'}>
-                      <button onClick={() => setDemoMode('es')} className="px-2 py-1">
+                      <button
+                        onClick={() => setDemoMode('es')}
+                        className="px-2 py-1"
+                      >
                         🇪🇸 Español
                       </button>
                     </Badge>
                     <Badge variant={demoMode === 'en' ? 'default' : 'outline'}>
-                      <button onClick={() => setDemoMode('en')} className="px-2 py-1">
+                      <button
+                        onClick={() => setDemoMode('en')}
+                        className="px-2 py-1"
+                      >
                         🇬🇧 English
                       </button>
                     </Badge>
@@ -134,7 +151,9 @@ export default function MicroclimateWizardDemo() {
                     <strong>Testing Instructions:</strong>
                     <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
                       <li>Complete all 4 steps of the wizard</li>
-                      <li>Try uploading a CSV file in Step 3 (CSV Import tab)</li>
+                      <li>
+                        Try uploading a CSV file in Step 3 (CSV Import tab)
+                      </li>
                       <li>Generate QR codes in Step 4 (QR Code tab)</li>
                       <li>Refresh the page to test draft recovery</li>
                       <li>Switch languages to test translations</li>
@@ -144,7 +163,10 @@ export default function MicroclimateWizardDemo() {
                 </Alert>
 
                 {/* Known Limitations */}
-                <Alert variant="destructive" className="bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800">
+                <Alert
+                  variant="destructive"
+                  className="bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800"
+                >
                   <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                   <AlertDescription className="text-yellow-800 dark:text-yellow-200">
                     <strong>Demo Limitations:</strong>
@@ -276,7 +298,7 @@ export default function MicroclimateWizardDemo() {
               </CardHeader>
               <CardContent>
                 <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg text-xs overflow-x-auto border">
-{`email,name,department,location,position,employeeId
+                  {`email,name,department,location,position,employeeId
 john.doe@company.com,John Doe,Sales,New York,Sales Manager,EMP001
 jane.smith@company.com,Jane Smith,Engineering,San Francisco,Software Engineer,EMP002
 bob.jones@company.com,Bob Jones,Marketing,Los Angeles,Marketing Specialist,EMP003
@@ -289,7 +311,11 @@ george.lopez@company.com,George Lopez,IT,Austin,System Administrator,EMP009
 hannah.gonzalez@company.com,Hannah Gonzalez,Customer Support,Phoenix,Support Lead,EMP010`}
                 </pre>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  💡 <strong>Tip:</strong> Save this as <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">test-employees.csv</code> and upload in Step 3
+                  💡 <strong>Tip:</strong> Save this as{' '}
+                  <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">
+                    test-employees.csv
+                  </code>{' '}
+                  and upload in Step 3
                 </p>
               </CardContent>
             </Card>
@@ -297,10 +323,12 @@ hannah.gonzalez@company.com,Hannah Gonzalez,Customer Support,Phoenix,Support Lea
             {/* Footer */}
             <div className="text-center text-sm text-gray-500 dark:text-gray-400 pb-8">
               <p>
-                Built with ❤️ using Next.js 14, React 18, TypeScript 5, Tailwind CSS, Framer Motion
+                Built with ❤️ using Next.js 14, React 18, TypeScript 5, Tailwind
+                CSS, Framer Motion
               </p>
               <p className="mt-1">
-                10,085 lines of code | 0 TypeScript errors | 97.6% quality score ⭐⭐⭐⭐⭐
+                10,085 lines of code | 0 TypeScript errors | 97.6% quality score
+                ⭐⭐⭐⭐⭐
               </p>
             </div>
           </div>

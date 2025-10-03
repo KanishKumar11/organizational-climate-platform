@@ -3,6 +3,7 @@
 ## Overview
 
 Successfully implemented a comprehensive question library system with:
+
 - ✅ 8 API endpoints (CRUD, search, quick-add, bulk-add)
 - ✅ 5 frontend components (Browser, QuickAdd, Multilingual Editor)
 - ✅ Full integration with Step 2 of the wizard
@@ -17,14 +18,15 @@ Successfully implemented a comprehensive question library system with:
 ### Backend API Endpoints (5 files, 687 lines)
 
 #### 1. **src/app/api/question-library/route.ts** (206 lines)
+
 **Purpose**: Main question library CRUD operations
 
 **Endpoints**:
+
 - `GET /api/question-library` - List questions with filters
   - Query params: `page`, `limit`, `category`, `type`, `search`, `language`, `isActive`
   - Returns paginated results with category names enriched
   - Sorts by usage count (descending), then created date
-  
 - `POST /api/question-library` - Create new question
   - Validates both ES/EN question text required
   - Validates category exists
@@ -32,6 +34,7 @@ Successfully implemented a comprehensive question library system with:
   - Sets created_by to current user
 
 **Features**:
+
 - Full-text search across ES/EN question text
 - Filter by category, type, active status
 - Pagination support
@@ -39,28 +42,32 @@ Successfully implemented a comprehensive question library system with:
 - Usage tracking ready
 
 #### 2. **src/app/api/question-library/[id]/route.ts** (172 lines)
+
 **Purpose**: Single question operations
 
 **Endpoints**:
+
 - `GET /api/question-library/[id]` - Get single question
 - `PUT /api/question-library/[id]` - Update question
   - Handles category changes (updates counts)
   - Validates new category exists
   - Allows partial updates
-  
 - `DELETE /api/question-library/[id]` - Delete question
   - Decrements category question_count
   - Hard delete (consider soft delete for production)
 
 **Features**:
+
 - Category count synchronization
 - Atomic updates
 - Proper error handling
 
 #### 3. **src/app/api/question-library/quick-add/route.ts** (45 lines)
+
 **Purpose**: Most frequently used questions
 
 **Endpoint**:
+
 - `GET /api/question-library/quick-add` - Get top N questions by usage
   - Query param: `limit` (default: 10)
   - Returns only active questions
@@ -69,9 +76,11 @@ Successfully implemented a comprehensive question library system with:
 **Use Case**: Quick question selection for common surveys
 
 #### 4. **src/app/api/question-library/search/route.ts** (105 lines)
+
 **Purpose**: Advanced search with multiple filters
 
 **Endpoint**:
+
 - `GET /api/question-library/search` - Enhanced search
   - Query params: `q`, `category`, `type`, `language`, `page`, `limit`
   - Supports comma-separated types for OR filtering
@@ -79,15 +88,18 @@ Successfully implemented a comprehensive question library system with:
   - Results formatted for preferred language
 
 **Features**:
+
 - Multi-type filtering (e.g., `?type=likert,multiple_choice`)
 - Language-aware results (shows question_text in preferred language)
 - Category name enrichment
 - Returns total count for pagination UI
 
 #### 5. **src/app/api/question-library/bulk-add/route.ts** (159 lines)
+
 **Purpose**: Add all questions from category
 
 **Endpoint**:
+
 - `POST /api/question-library/bulk-add` - Bulk add by category
   - Body: `{ categoryId, filters?: { type, isRequired } }`
   - Returns all questions from category (filtered)
@@ -101,18 +113,29 @@ Successfully implemented a comprehensive question library system with:
 ### Frontend Hooks (1 file, 242 lines)
 
 #### **src/hooks/useQuestionLibrary.ts** (242 lines)
+
 **Purpose**: React Query integration for question library
 
 **Exports**:
 
 1. **useQuestionLibrary(filters, options)** - Main hook
+
    ```typescript
-   const { 
-     questions, total, page, limit, totalPages,
-     isLoading, error,
-     createQuestion, updateQuestion, deleteQuestion,
-     isCreating, isUpdating, isDeleting,
-     refetch
+   const {
+     questions,
+     total,
+     page,
+     limit,
+     totalPages,
+     isLoading,
+     error,
+     createQuestion,
+     updateQuestion,
+     deleteQuestion,
+     isCreating,
+     isUpdating,
+     isDeleting,
+     refetch,
    } = useQuestionLibrary({
      category: 'cat-id',
      type: 'likert',
@@ -121,24 +144,30 @@ Successfully implemented a comprehensive question library system with:
      isActive: true,
    });
    ```
+
    - Auto-caches with React Query
    - Mutations auto-invalidate cache
    - Pagination-ready
    - Filter support built-in
 
 2. **useQuickAddQuestions(limit)** - Quick-add questions
+
    ```typescript
    const { data, isLoading } = useQuickAddQuestions(10);
    const questions = data?.questions || [];
    ```
+
    - 5-minute cache TTL
    - Most used questions
    - Perfect for sidebar
 
 3. **useQuestionCategories()** - Category management
+
    ```typescript
-   const { categories, isLoading, createCategory, isCreating } = useQuestionCategories();
+   const { categories, isLoading, createCategory, isCreating } =
+     useQuestionCategories();
    ```
+
    - Fetches all active categories
    - Create new categories
    - Auto-invalidates on mutations
@@ -148,6 +177,7 @@ Successfully implemented a comprehensive question library system with:
    const { tree, isLoading } = useCategoryTree();
    // Returns categories with children property
    ```
+
    - Builds parent-child relationships
    - Memoized for performance
    - Ready for tree rendering
@@ -157,9 +187,11 @@ Successfully implemented a comprehensive question library system with:
 ### Frontend Components (4 files, 1,918 lines)
 
 #### 1. **src/components/microclimate/QuestionLibraryBrowser.tsx** (349 lines)
+
 **Purpose**: Main question selection interface
 
 **Features**:
+
 - **Hierarchical Category Tree**:
   - Expandable/collapsible categories
   - Folder icons with item counts
@@ -188,6 +220,7 @@ Successfully implemented a comprehensive question library system with:
   - Disabled state for exceeded limit
 
 **Props**:
+
 ```typescript
 <QuestionLibraryBrowser
   selectedQuestions={['id1', 'id2']}
@@ -198,15 +231,18 @@ Successfully implemented a comprehensive question library system with:
 ```
 
 **UI Layout**:
+
 - Desktop: 3-column grid (categories | questions)
 - Mobile: Stacked layout
 - Max height: 600px with scroll
 - Responsive design
 
 #### 2. **src/components/microclimate/QuickAddPanel.tsx** (151 lines)
+
 **Purpose**: One-click question addition
 
 **Features**:
+
 - **Ranked Display**:
   - Circular rank badges (1-10)
   - Gradient yellow→orange background
@@ -230,6 +266,7 @@ Successfully implemented a comprehensive question library system with:
   - Scale on hover (coming soon)
 
 **Props**:
+
 ```typescript
 <QuickAddPanel
   onAddQuestion={(question) => addToSurvey(question)}
@@ -240,14 +277,17 @@ Successfully implemented a comprehensive question library system with:
 ```
 
 **Header**:
+
 - Sparkles icon in gradient box
 - Bilingual title + subtitle
 - Eye-catching design
 
 #### 3. **src/components/microclimate/MultilingualQuestionEditor.tsx** (411 lines)
+
 **Purpose**: Create custom bilingual questions
 
 **Features**:
+
 - **Split View Editor**:
   - Spanish column (left, blue border)
   - English column (right, green border)
@@ -279,6 +319,7 @@ Successfully implemented a comprehensive question library system with:
   - Trim whitespace before save
 
 **Props**:
+
 ```typescript
 <MultilingualQuestionEditor
   onSave={(question) => console.log(question)}
@@ -289,6 +330,7 @@ Successfully implemented a comprehensive question library system with:
 ```
 
 **Output Format**:
+
 ```typescript
 {
   question_text_es: "¿Cuál es tu nivel de satisfacción?",
@@ -301,28 +343,34 @@ Successfully implemented a comprehensive question library system with:
 ```
 
 #### 4. **src/components/microclimate/MicroclimateWizard.tsx** (UPDATED - 1,007 lines)
+
 **Purpose**: Integrated Step 2 with Question Library
 
 **Changes Made**:
+
 - **Imports**: Added QuestionLibraryBrowser, QuickAddPanel, MultilingualQuestionEditor
 - **State**: Changed `step2Data` structure
+
   ```typescript
   // Before:
   { questions: [] }
-  
+
   // After:
   { questionIds: string[], customQuestions: any[] }
   ```
-  
+
 - **Validation**: Updated to count both library + custom questions
+
   ```typescript
   validate: async () => {
-    const totalQuestions = step2Data.questionIds.length + step2Data.customQuestions.length;
+    const totalQuestions =
+      step2Data.questionIds.length + step2Data.customQuestions.length;
     return totalQuestions > 0;
-  }
+  };
   ```
 
 - **Step 2 Render**: Complete 3-tab interface
+
   ```tsx
   <Tabs defaultValue="library">
     <TabsList>
@@ -436,6 +484,7 @@ useQuickAddQuestions ─> QuickAddPanel ──────────┤
 ## User Experience Flow
 
 ### Scenario 1: Browse & Select from Library
+
 1. User clicks "Biblioteca de Preguntas" tab
 2. Sees category tree on left (collapsed by default)
 3. Clicks "Satisfacción Laboral" category
@@ -446,6 +495,7 @@ useQuickAddQuestions ─> QuickAddPanel ──────────┤
 6. Wizard auto-saves every 5s
 
 ### Scenario 2: Quick-Add Popular Questions
+
 1. User clicks "Agregar Rápido" tab
 2. Sees top 10 most-used questions in 2-column grid
 3. Each card shows:
@@ -459,6 +509,7 @@ useQuickAddQuestions ─> QuickAddPanel ──────────┤
 6. Questions appear in summary card
 
 ### Scenario 3: Create Custom Question
+
 1. User clicks "Pregunta Personalizada" tab
 2. Clicks "Crear Pregunta Personalizada" button
 3. Editor appears with split ES/EN view
@@ -568,6 +619,7 @@ useQuickAddQuestions ─> QuickAddPanel ──────────┤
 ## API Response Examples
 
 ### GET /api/question-library
+
 ```json
 {
   "questions": [
@@ -595,6 +647,7 @@ useQuickAddQuestions ─> QuickAddPanel ──────────┤
 ```
 
 ### POST /api/question-library
+
 ```json
 // Request
 {
@@ -626,6 +679,7 @@ useQuickAddQuestions ─> QuickAddPanel ──────────┤
 ```
 
 ### GET /api/question-library/quick-add?limit=5
+
 ```json
 {
   "questions": [
@@ -898,6 +952,7 @@ useQuickAddQuestions ─> QuickAddPanel ──────────┤
 ### Advanced Targeting System
 
 **Goals**:
+
 - CSV import with PapaParse
 - Column mapping UI
 - Email validation
@@ -906,6 +961,7 @@ useQuickAddQuestions ─> QuickAddPanel ──────────┤
 - Audience preview with live counts
 
 **Components to Build**:
+
 1. CSVImporter (drag-drop, validation)
 2. ColumnMapper (auto-detect, manual override)
 3. ValidationPanel (errors, warnings)
@@ -913,6 +969,7 @@ useQuickAddQuestions ─> QuickAddPanel ──────────┤
 5. AudiencePreviewCard (live stats)
 
 **API Endpoints**:
+
 - POST /api/companies/[id]/master-data
 - POST /api/companies/[id]/audience-preview
 - POST /api/microclimates/[id]/target-employees

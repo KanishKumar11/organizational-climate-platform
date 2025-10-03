@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 /**
  * Autosave API Endpoint
- * 
+ *
  * Features:
  * - Optimistic concurrency control with version checking
  * - Partial updates (only modified step data)
@@ -17,7 +17,9 @@ import { z } from 'zod';
 
 // Validation schemas for step data
 const step1Schema = z.object({
-  survey_type: z.enum(['climate', 'microclimate', 'culture', 'pulse']).optional(),
+  survey_type: z
+    .enum(['climate', 'microclimate', 'culture', 'pulse'])
+    .optional(),
   title: z.string().max(150).optional(),
   description: z.string().max(500).optional(),
   company_id: z.string().optional(),
@@ -61,10 +63,7 @@ export async function POST(
     // Authenticate user
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Parse and validate request body
@@ -73,22 +72,22 @@ export async function POST(
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Validation failed',
-          details: validationResult.error.issues
+          details: validationResult.error.issues,
         },
         { status: 400 }
       );
     }
 
-    const { 
-      current_step, 
-      version, 
-      step1_data, 
-      step2_data, 
-      step3_data, 
+    const {
+      current_step,
+      version,
+      step1_data,
+      step2_data,
+      step3_data,
       step4_data,
-      last_edited_field 
+      last_edited_field,
     } = validationResult.data;
 
     // Connect to database
@@ -98,10 +97,7 @@ export async function POST(
     const draft = await (SurveyDraft as any).findById(params.id);
 
     if (!draft) {
-      return NextResponse.json(
-        { error: 'Draft not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
     // Verify ownership
@@ -115,10 +111,10 @@ export async function POST(
     // Optimistic concurrency check
     if (draft.version !== version) {
       return NextResponse.json(
-        { 
+        {
           error: 'Version conflict: Draft was modified by another session',
           server_version: draft.version,
-          client_version: version
+          client_version: version,
         },
         { status: 409 }
       );
@@ -158,9 +154,10 @@ export async function POST(
 
     // Get request metadata
     const userAgent = req.headers.get('user-agent') || 'unknown';
-    const ipAddress = req.headers.get('x-forwarded-for') || 
-                      req.headers.get('x-real-ip') || 
-                      'unknown';
+    const ipAddress =
+      req.headers.get('x-forwarded-for') ||
+      req.headers.get('x-real-ip') ||
+      'unknown';
 
     // Log autosave event (if method exists)
     if (typeof (SurveyAuditLog as any).logChange === 'function') {
@@ -201,14 +198,13 @@ export async function POST(
       auto_save_count: draft.auto_save_count,
       message: 'Draft autosaved successfully',
     });
-
   } catch (error) {
     console.error('Autosave error:', error);
-    
+
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -225,10 +221,7 @@ export async function GET(
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
@@ -236,17 +229,11 @@ export async function GET(
     const draft = await (SurveyDraft as any).findById(params.id);
 
     if (!draft) {
-      return NextResponse.json(
-        { error: 'Draft not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
     if (draft.user_id.toString() !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     return NextResponse.json({
@@ -265,10 +252,9 @@ export async function GET(
         updated_at: draft.updated_at,
       },
     });
-
   } catch (error) {
     console.error('Get draft error:', error);
-    
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

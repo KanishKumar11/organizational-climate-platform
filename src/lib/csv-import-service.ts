@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 
 /**
  * CLIMA-003: CSV Import Service
- * 
+ *
  * Handles CSV/XLSX file parsing, validation, and deduplication
  * with comprehensive error handling and type safety
  */
@@ -46,44 +46,46 @@ export interface ColumnMapping {
  * Default column mappings (case-insensitive)
  */
 const DEFAULT_MAPPINGS: Record<string, string> = {
-  'email': 'email',
+  email: 'email',
   'e-mail': 'email',
-  'correo': 'email',
+  correo: 'email',
   'correo electrónico': 'email',
-  'mail': 'email',
-  
-  'name': 'name',
-  'nombre': 'name',
+  mail: 'email',
+
+  name: 'name',
+  nombre: 'name',
   'full name': 'name',
   'nombre completo': 'name',
-  
-  'department': 'department',
-  'departamento': 'department',
-  'dept': 'department',
-  
+
+  department: 'department',
+  departamento: 'department',
+  dept: 'department',
+
   'employee id': 'employee_id',
-  'employee_id': 'employee_id',
-  'id': 'employee_id',
+  employee_id: 'employee_id',
+  id: 'employee_id',
   'employee number': 'employee_id',
   'número de empleado': 'employee_id',
-  
-  'phone': 'phone',
-  'teléfono': 'phone',
-  'telefono': 'phone',
-  'mobile': 'phone',
-  
-  'position': 'position',
-  'cargo': 'position',
-  'puesto': 'position',
+
+  phone: 'phone',
+  teléfono: 'phone',
+  telefono: 'phone',
+  mobile: 'phone',
+
+  position: 'position',
+  cargo: 'position',
+  puesto: 'position',
   'job title': 'position',
-  'título': 'position',
+  título: 'position',
 };
 
 export class CSVImportService {
   /**
    * Parse CSV file
    */
-  static async parseCSV(file: File): Promise<{ headers: string[]; data: any[] }> {
+  static async parseCSV(
+    file: File
+  ): Promise<{ headers: string[]; data: any[] }> {
     return new Promise((resolve, reject) => {
       Papa.parse(file, {
         header: true,
@@ -103,52 +105,55 @@ export class CSVImportService {
   /**
    * Parse XLSX file
    */
-  static async parseXLSX(file: File): Promise<{ headers: string[]; data: any[] }> {
+  static async parseXLSX(
+    file: File
+  ): Promise<{ headers: string[]; data: any[] }> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+
       reader.onload = (e) => {
         try {
           const data = new Uint8Array(e.target?.result as ArrayBuffer);
           const workbook = XLSX.read(data, { type: 'array' });
-          
+
           // Get first sheet
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
-          
+
           // Convert to JSON with header row
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, {
             header: 1,
             defval: '',
           }) as any[][];
-          
+
           if (jsonData.length === 0) {
             reject(new Error('Excel file is empty'));
             return;
           }
-          
+
           // First row as headers
           const headers = jsonData[0].map((h: any) => String(h).trim());
-          
+
           // Rest as data
           const rows = jsonData.slice(1).map((row) => {
             const obj: any = {};
             headers.forEach((header, index) => {
-              obj[header] = row[index] !== undefined ? String(row[index]).trim() : '';
+              obj[header] =
+                row[index] !== undefined ? String(row[index]).trim() : '';
             });
             return obj;
           });
-          
+
           resolve({ headers, data: rows });
         } catch (error) {
           reject(new Error(`Excel parsing error: ${(error as Error).message}`));
         }
       };
-      
+
       reader.onerror = () => {
         reject(new Error('Failed to read file'));
       };
-      
+
       reader.readAsArrayBuffer(file);
     });
   }
@@ -158,10 +163,10 @@ export class CSVImportService {
    */
   static autoDetectMapping(headers: string[]): ColumnMapping {
     const mapping: ColumnMapping = {};
-    
+
     headers.forEach((header) => {
       const normalizedHeader = header.toLowerCase().trim();
-      
+
       // Check against default mappings
       const targetField = DEFAULT_MAPPINGS[normalizedHeader];
       if (targetField) {
@@ -171,7 +176,7 @@ export class CSVImportService {
         mapping[header] = normalizedHeader.replace(/\s+/g, '_');
       }
     });
-    
+
     return mapping;
   }
 
@@ -196,15 +201,21 @@ export class CSVImportService {
     } = {}
   ): ValidationError[] {
     const errors: ValidationError[] = [];
-    const { requireEmail = true, requireName = false, customValidators = {} } = options;
-    
+    const {
+      requireEmail = true,
+      requireName = false,
+      customValidators = {},
+    } = options;
+
     data.forEach((row, index) => {
       // Find email field
-      const emailField = Object.entries(mapping).find(([_, target]) => target === 'email')?.[0];
-      
+      const emailField = Object.entries(mapping).find(
+        ([_, target]) => target === 'email'
+      )?.[0];
+
       if (emailField) {
         const email = row[emailField];
-        
+
         // Check if email is required
         if (requireEmail && (!email || email.trim() === '')) {
           errors.push({
@@ -229,10 +240,12 @@ export class CSVImportService {
           message: 'Email column not found',
         });
       }
-      
+
       // Check name if required
       if (requireName) {
-        const nameField = Object.entries(mapping).find(([_, target]) => target === 'name')?.[0];
+        const nameField = Object.entries(mapping).find(
+          ([_, target]) => target === 'name'
+        )?.[0];
         if (nameField) {
           const name = row[nameField];
           if (!name || name.trim() === '') {
@@ -245,10 +258,12 @@ export class CSVImportService {
           }
         }
       }
-      
+
       // Custom validators
       Object.entries(customValidators).forEach(([field, validator]) => {
-        const sourceField = Object.entries(mapping).find(([_, target]) => target === field)?.[0];
+        const sourceField = Object.entries(mapping).find(
+          ([_, target]) => target === field
+        )?.[0];
         if (sourceField) {
           const value = row[sourceField];
           if (!validator(value)) {
@@ -262,7 +277,7 @@ export class CSVImportService {
         }
       });
     });
-    
+
     return errors;
   }
 
@@ -276,10 +291,10 @@ export class CSVImportService {
     const seen = new Set<string>();
     const unique: ImportedUser[] = [];
     const duplicates: ImportedUser[] = [];
-    
+
     users.forEach((user) => {
       let key: string;
-      
+
       switch (dedupeBy) {
         case 'email':
           key = user.email?.toLowerCase().trim() || '';
@@ -291,7 +306,7 @@ export class CSVImportService {
           key = `${user.email?.toLowerCase().trim()}_${user.employee_id?.toLowerCase().trim()}`;
           break;
       }
-      
+
       if (!key || seen.has(key)) {
         duplicates.push(user);
       } else {
@@ -299,7 +314,7 @@ export class CSVImportService {
         unique.push(user);
       }
     });
-    
+
     return { unique, duplicates };
   }
 
@@ -309,10 +324,10 @@ export class CSVImportService {
   static transformData(data: any[], mapping: ColumnMapping): ImportedUser[] {
     return data.map((row) => {
       const user: ImportedUser = { email: '' };
-      
+
       Object.entries(mapping).forEach(([sourceColumn, targetField]) => {
         const value = row[sourceColumn];
-        
+
         // Trim strings and handle empty values
         if (value !== undefined && value !== null) {
           const trimmedValue = String(value).trim();
@@ -321,7 +336,7 @@ export class CSVImportService {
           }
         }
       });
-      
+
       return user;
     });
   }
@@ -343,7 +358,7 @@ export class CSVImportService {
       // Determine file type and parse
       const fileType = file.name.split('.').pop()?.toLowerCase();
       let parseResult: { headers: string[]; data: any[] };
-      
+
       if (fileType === 'csv') {
         parseResult = await this.parseCSV(file);
       } else if (fileType === 'xlsx' || fileType === 'xls') {
@@ -351,24 +366,24 @@ export class CSVImportService {
       } else {
         throw new Error('Unsupported file type. Please use CSV or XLSX files.');
       }
-      
+
       const { headers, data } = parseResult;
-      
+
       // Auto-detect mapping if not provided
       const finalMapping = mapping || this.autoDetectMapping(headers);
-      
+
       // Validate data
       const validationErrors = this.validateData(data, finalMapping, options);
-      
+
       // Transform data
       const transformedData = this.transformData(data, finalMapping);
-      
+
       // Deduplicate
       const { unique, duplicates } = this.deduplicateUsers(
         transformedData,
         options.deduplicateBy || 'email'
       );
-      
+
       return {
         success: validationErrors.length === 0,
         data: unique,
@@ -386,12 +401,14 @@ export class CSVImportService {
         success: false,
         data: [],
         duplicates: [],
-        errors: [{
-          row: 0,
-          column: 'file',
-          value: file.name,
-          message: (error as Error).message,
-        }],
+        errors: [
+          {
+            row: 0,
+            column: 'file',
+            value: file.name,
+            message: (error as Error).message,
+          },
+        ],
         stats: {
           total: 0,
           valid: 0,
@@ -406,41 +423,74 @@ export class CSVImportService {
    * Generate sample CSV template
    */
   static generateTemplate(includeExamples: boolean = true): string {
-    const headers = ['email', 'name', 'department', 'employee_id', 'phone', 'position'];
-    
+    const headers = [
+      'email',
+      'name',
+      'department',
+      'employee_id',
+      'phone',
+      'position',
+    ];
+
     if (!includeExamples) {
       return headers.join(',');
     }
-    
+
     const examples = [
-      ['john.doe@example.com', 'John Doe', 'Engineering', 'EMP001', '+1234567890', 'Software Engineer'],
-      ['jane.smith@example.com', 'Jane Smith', 'Marketing', 'EMP002', '+1234567891', 'Marketing Manager'],
-      ['bob.johnson@example.com', 'Bob Johnson', 'HR', 'EMP003', '+1234567892', 'HR Specialist'],
+      [
+        'john.doe@example.com',
+        'John Doe',
+        'Engineering',
+        'EMP001',
+        '+1234567890',
+        'Software Engineer',
+      ],
+      [
+        'jane.smith@example.com',
+        'Jane Smith',
+        'Marketing',
+        'EMP002',
+        '+1234567891',
+        'Marketing Manager',
+      ],
+      [
+        'bob.johnson@example.com',
+        'Bob Johnson',
+        'HR',
+        'EMP003',
+        '+1234567892',
+        'HR Specialist',
+      ],
     ];
-    
+
     const rows = [headers, ...examples];
-    return rows.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n');
+    return rows
+      .map((row) => row.map((cell) => `"${cell}"`).join(','))
+      .join('\n');
   }
 
   /**
    * Export users to CSV
    */
-  static exportToCSV(users: ImportedUser[], filename: string = 'users.csv'): void {
+  static exportToCSV(
+    users: ImportedUser[],
+    filename: string = 'users.csv'
+  ): void {
     if (users.length === 0) {
       return;
     }
-    
+
     // Get all unique keys from users
     const allKeys = Array.from(
       new Set(users.flatMap((user) => Object.keys(user)))
     );
-    
+
     // Create CSV content
     const csv = Papa.unparse({
       fields: allKeys,
       data: users,
     });
-    
+
     // Download file
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -463,39 +513,41 @@ export class CSVImportService {
     duplicates: ImportedUser[];
   } {
     const existingMap = new Map<string, ImportedUser>();
-    
+
     // Build map of existing users
     existingUsers.forEach((user) => {
-      const key = mergeBy === 'email' 
-        ? user.email?.toLowerCase().trim() 
-        : user.employee_id?.toLowerCase().trim();
-      
+      const key =
+        mergeBy === 'email'
+          ? user.email?.toLowerCase().trim()
+          : user.employee_id?.toLowerCase().trim();
+
       if (key) {
         existingMap.set(key, user);
       }
     });
-    
+
     const toAdd: ImportedUser[] = [];
     const toUpdate: ImportedUser[] = [];
     const duplicates: ImportedUser[] = [];
-    
+
     importedUsers.forEach((user) => {
-      const key = mergeBy === 'email'
-        ? user.email?.toLowerCase().trim()
-        : user.employee_id?.toLowerCase().trim();
-      
+      const key =
+        mergeBy === 'email'
+          ? user.email?.toLowerCase().trim()
+          : user.employee_id?.toLowerCase().trim();
+
       if (!key) {
         duplicates.push(user);
         return;
       }
-      
+
       if (existingMap.has(key)) {
         toUpdate.push(user);
       } else {
         toAdd.push(user);
       }
     });
-    
+
     return { toAdd, toUpdate, duplicates };
   }
 }

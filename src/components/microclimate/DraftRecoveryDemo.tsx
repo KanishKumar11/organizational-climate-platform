@@ -7,7 +7,13 @@ import {
   DraftRecoveryAlert,
   DraftRecoveryContainer,
 } from './DraftRecoveryBanner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,7 +34,7 @@ import {
 
 /**
  * Draft Recovery Demo Component
- * 
+ *
  * Interactive demonstration of the draft recovery system.
  * Shows how to integrate useDraftRecovery hook with a survey wizard.
  */
@@ -63,9 +69,9 @@ export default function DraftRecoveryDemo() {
       console.log('Draft recovered:', draft);
       // Load draft data into form
       if (draft.step1_data) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          ...draft.step1_data as any,
+          ...(draft.step1_data as any),
         }));
       }
     },
@@ -148,7 +154,9 @@ export default function DraftRecoveryDemo() {
                       <XCircle className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-700">No Draft</div>
+                      <div className="font-semibold text-gray-700">
+                        No Draft
+                      </div>
                       <div className="text-xs text-gray-500">Clean state</div>
                     </div>
                   </>
@@ -216,24 +224,33 @@ export default function DraftRecoveryDemo() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-3">
-                <div className={`
+                <div
+                  className={`
                   w-10 h-10 rounded-full flex items-center justify-center
-                  ${isExpiringSoon 
-                    ? 'bg-gradient-to-br from-red-500 to-orange-500' 
-                    : 'bg-gradient-to-br from-yellow-500 to-amber-500'
+                  ${
+                    isExpiringSoon
+                      ? 'bg-gradient-to-br from-red-500 to-orange-500'
+                      : 'bg-gradient-to-br from-yellow-500 to-amber-500'
                   }
-                `}>
+                `}
+                >
                   <Clock className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className={`
+                  <div
+                    className={`
                     font-semibold
                     ${isExpiringSoon ? 'text-red-700' : 'text-yellow-700'}
-                  `}>
+                  `}
+                  >
                     {timeRemaining || 'N/A'}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {isExpired ? 'Expired' : isExpiringSoon ? 'Expiring soon!' : 'Time left'}
+                    {isExpired
+                      ? 'Expired'
+                      : isExpiringSoon
+                        ? 'Expiring soon!'
+                        : 'Time left'}
                   </div>
                 </div>
               </div>
@@ -274,7 +291,9 @@ export default function DraftRecoveryDemo() {
                   id="title"
                   placeholder="e.g., Employee Satisfaction Survey"
                   value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, title: e.target.value }))
+                  }
                 />
               </div>
 
@@ -285,7 +304,12 @@ export default function DraftRecoveryDemo() {
                   placeholder="Brief description of your survey..."
                   rows={4}
                   value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
                 />
               </div>
 
@@ -295,18 +319,19 @@ export default function DraftRecoveryDemo() {
                   id="department"
                   placeholder="e.g., Engineering"
                   value={formData.department}
-                  onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      department: e.target.value,
+                    }))
+                  }
                 />
               </div>
 
               {/* Form actions */}
               <div className="flex items-center gap-2 pt-4">
-                <Button className="flex-1">
-                  Continue to Questions
-                </Button>
-                <Button variant="outline">
-                  Save Draft
-                </Button>
+                <Button className="flex-1">Continue to Questions</Button>
+                <Button variant="outline">Save Draft</Button>
               </div>
             </CardContent>
           </Card>
@@ -320,9 +345,7 @@ export default function DraftRecoveryDemo() {
                   <RefreshCw className="w-5 h-5" />
                   Demo Controls
                 </CardTitle>
-                <CardDescription>
-                  Test different scenarios
-                </CardDescription>
+                <CardDescription>Test different scenarios</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
@@ -344,9 +367,11 @@ export default function DraftRecoveryDemo() {
                   </Button>
 
                   <Button
-                    onClick={() => setBannerPosition(
-                      bannerPosition === 'top' ? 'bottom' : 'top'
-                    )}
+                    onClick={() =>
+                      setBannerPosition(
+                        bannerPosition === 'top' ? 'bottom' : 'top'
+                      )
+                    }
                     className="flex-1"
                     variant="outline"
                   >
@@ -394,9 +419,15 @@ export default function DraftRecoveryDemo() {
               <CardContent>
                 <Tabs defaultValue="features">
                   <TabsList className="w-full">
-                    <TabsTrigger value="features" className="flex-1">Features</TabsTrigger>
-                    <TabsTrigger value="integration" className="flex-1">Integration</TabsTrigger>
-                    <TabsTrigger value="data" className="flex-1">Data</TabsTrigger>
+                    <TabsTrigger value="features" className="flex-1">
+                      Features
+                    </TabsTrigger>
+                    <TabsTrigger value="integration" className="flex-1">
+                      Integration
+                    </TabsTrigger>
+                    <TabsTrigger value="data" className="flex-1">
+                      Data
+                    </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="features" className="space-y-2 pt-4">
@@ -435,7 +466,7 @@ export default function DraftRecoveryDemo() {
                   <TabsContent value="integration" className="pt-4">
                     <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
                       <pre className="text-xs text-gray-100">
-{`const {
+                        {`const {
   hasDraft,
   draft,
   draftAge,
@@ -472,11 +503,15 @@ export default function DraftRecoveryDemo() {
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium">Step:</span>
-                          <span className="text-gray-600">{draft.current_step}/4</span>
+                          <span className="text-gray-600">
+                            {draft.current_step}/4
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium">Saves:</span>
-                          <span className="text-gray-600">{draft.auto_save_count}</span>
+                          <span className="text-gray-600">
+                            {draft.auto_save_count}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium">Created:</span>

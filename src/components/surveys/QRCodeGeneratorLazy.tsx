@@ -1,6 +1,6 @@
 /**
  * CLIMA-007: Lazy-loaded QR Code Generator
- * 
+ *
  * Uses qrcode library which is ~50KB - good candidate for code splitting
  */
 
@@ -11,9 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { QrCode } from 'lucide-react';
 
-const QRCodeGenerator = React.lazy(
-  () => import('./QRCodeGenerator')
-);
+const QRCodeGenerator = React.lazy(() => import('./QRCodeGenerator'));
 
 function QRCodeSkeleton() {
   return (
@@ -27,7 +25,7 @@ function QRCodeSkeleton() {
       <CardContent className="flex flex-col items-center space-y-4">
         {/* QR Code placeholder */}
         <Skeleton className="h-64 w-64" />
-        
+
         {/* Actions skeleton */}
         <div className="flex gap-2">
           <Skeleton className="h-10 w-32" />

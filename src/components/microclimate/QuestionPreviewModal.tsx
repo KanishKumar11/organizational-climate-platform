@@ -13,11 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { QuestionRenderer } from '@/components/survey/QuestionRenderer';
-import { 
-  Eye, 
-  Plus, 
-  Tag, 
-  Globe, 
+import {
+  Eye,
+  Plus,
+  Tag,
+  Globe,
   CheckCircle2,
   XCircle,
   MessageCircle,
@@ -26,18 +26,18 @@ import {
 
 /**
  * QuestionPreviewModal Component
- * 
+ *
  * Displays a modal preview of a question before adding it to the survey.
  * Shows the question in both languages, category, type, and a sample
  * rendering of how it will appear to respondents.
- * 
+ *
  * Features:
  * - Bilingual preview (ES/EN)
  * - Question metadata (category, type)
  * - Sample rendering with QuestionRenderer
  * - Add to survey action
  * - Close modal action
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -55,8 +55,26 @@ export interface PreviewQuestion {
   _id: string;
   question_text_es: string;
   question_text_en: string;
-  question_type: 'yes_no' | 'yes_no_comment' | 'scale_1_5' | 'scale_1_10' | 'multiple_choice' | 'open_text' | 'rating' | 'nps';
-  category: 'leadership' | 'communication' | 'teamwork' | 'worklife' | 'development' | 'recognition' | 'resources' | 'culture' | 'satisfaction' | 'engagement';
+  question_type:
+    | 'yes_no'
+    | 'yes_no_comment'
+    | 'scale_1_5'
+    | 'scale_1_10'
+    | 'multiple_choice'
+    | 'open_text'
+    | 'rating'
+    | 'nps';
+  category:
+    | 'leadership'
+    | 'communication'
+    | 'teamwork'
+    | 'worklife'
+    | 'development'
+    | 'recognition'
+    | 'resources'
+    | 'culture'
+    | 'satisfaction'
+    | 'engagement';
   subcategory?: string;
   options_es?: string[];
   options_en?: string[];
@@ -190,13 +208,27 @@ export function QuestionPreviewModal({
     survey_id: 'preview',
     question_id: question._id,
     respondent_email: 'preview@example.com',
-    response_value: question.question_type === 'yes_no' || question.question_type === 'yes_no_comment' ? 'yes' : 
-                    question.question_type === 'scale_1_5' ? '4' :
-                    question.question_type === 'scale_1_10' ? '8' :
-                    question.question_type === 'nps' ? '9' :
-                    question.question_type === 'multiple_choice' && question.options_es ? question.options_es[0] :
-                    language === 'es' ? 'Respuesta de ejemplo' : 'Sample response',
-    response_text: question.allow_comments ? (language === 'es' ? 'Este es un comentario de ejemplo' : 'This is a sample comment') : undefined,
+    response_value:
+      question.question_type === 'yes_no' ||
+      question.question_type === 'yes_no_comment'
+        ? 'yes'
+        : question.question_type === 'scale_1_5'
+          ? '4'
+          : question.question_type === 'scale_1_10'
+            ? '8'
+            : question.question_type === 'nps'
+              ? '9'
+              : question.question_type === 'multiple_choice' &&
+                  question.options_es
+                ? question.options_es[0]
+                : language === 'es'
+                  ? 'Respuesta de ejemplo'
+                  : 'Sample response',
+    response_text: question.allow_comments
+      ? language === 'es'
+        ? 'Este es un comentario de ejemplo'
+        : 'This is a sample comment'
+      : undefined,
     responded_at: new Date(),
   };
 
@@ -239,9 +271,7 @@ export function QuestionPreviewModal({
               </Badge>
             )}
             {question.reverse_scale && (
-              <Badge variant="secondary">
-                {t.reverseScale}
-              </Badge>
+              <Badge variant="secondary">{t.reverseScale}</Badge>
             )}
           </div>
 
@@ -261,7 +291,10 @@ export function QuestionPreviewModal({
                 {question.options_es && question.options_es.length > 0 && (
                   <div className="space-y-2">
                     {question.options_es.map((option, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+                      >
                         <div className="w-4 h-4 border-2 border-gray-300 dark:border-gray-600 rounded-full" />
                         {option}
                       </div>
@@ -288,7 +321,10 @@ export function QuestionPreviewModal({
                 {question.options_en && question.options_en.length > 0 && (
                   <div className="space-y-2">
                     {question.options_en.map((option, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+                      >
                         <div className="w-4 h-4 border-2 border-gray-300 dark:border-gray-600 rounded-full" />
                         {option}
                       </div>
@@ -310,10 +346,12 @@ export function QuestionPreviewModal({
               </div>
               <div className="p-6 bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
                 <QuestionRenderer
-                  question={{
-                    ...question,
-                    id: question._id,
-                  } as any}
+                  question={
+                    {
+                      ...question,
+                      id: question._id,
+                    } as any
+                  }
                   response={sampleResponse}
                   onResponse={() => {}}
                   questionNumber={1}
@@ -331,8 +369,8 @@ export function QuestionPreviewModal({
             {t.close}
           </Button>
           {onAdd && (
-            <Button 
-              onClick={handleAdd} 
+            <Button
+              onClick={handleAdd}
               disabled={isAlreadyAdded}
               className={isAlreadyAdded ? 'opacity-50 cursor-not-allowed' : ''}
             >

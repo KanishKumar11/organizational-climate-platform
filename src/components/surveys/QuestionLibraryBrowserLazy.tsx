@@ -1,6 +1,6 @@
 /**
  * CLIMA-007: Lazy-loaded Question Library Browser
- * 
+ *
  * Heavy component with search, filtering, and pagination
  */
 
@@ -20,14 +20,14 @@ function LibrarySkeleton() {
       <CardContent className="p-6 space-y-4">
         {/* Search bar */}
         <Skeleton className="h-10 w-full" />
-        
+
         {/* Filters */}
         <div className="flex gap-2">
           <Skeleton className="h-10 w-32" />
           <Skeleton className="h-10 w-32" />
           <Skeleton className="h-10 w-32" />
         </div>
-        
+
         {/* Question cards */}
         {[1, 2, 3, 4, 5].map((i) => (
           <Card key={i}>

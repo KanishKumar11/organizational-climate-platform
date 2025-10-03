@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       user_id: session.user.id,
       session_id,
     };
-    
+
     let draft = await (SurveyDraft as any).findOne(findQuery).exec();
 
     if (draft) {
@@ -133,10 +133,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get most recent draft
-    const draft = await ((SurveyDraft as any).findOne(query)
+    const draft = await (SurveyDraft as any)
+      .findOne(query)
       .sort({ updated_at: -1 })
       .lean()
-      .exec());
+      .exec();
 
     if (!draft) {
       return NextResponse.json({ draft: null });

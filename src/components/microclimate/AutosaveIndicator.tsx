@@ -2,20 +2,20 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Cloud, 
-  CloudOff, 
-  Check, 
-  AlertCircle, 
+import {
+  Cloud,
+  CloudOff,
+  Check,
+  AlertCircle,
   RefreshCw,
-  Clock
+  Clock,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 /**
  * Modern Autosave Indicator Component
- * 
+ *
  * Features:
  * - Animated status transitions
  * - Relative time display
@@ -35,14 +35,17 @@ interface AutosaveIndicatorProps {
   language?: 'es' | 'en';
 }
 
-const statusConfig: Record<AutosaveStatus, {
-  icon: React.ComponentType<{ className?: string }>;
-  label: { es: string; en: string };
-  color: string;
-  bgGradient: string;
-  iconColor: string;
-  animate?: boolean;
-}> = {
+const statusConfig: Record<
+  AutosaveStatus,
+  {
+    icon: React.ComponentType<{ className?: string }>;
+    label: { es: string; en: string };
+    color: string;
+    bgGradient: string;
+    iconColor: string;
+    animate?: boolean;
+  }
+> = {
   idle: {
     icon: Cloud,
     label: { es: 'Guardado automático activado', en: 'Autosave enabled' },
@@ -165,7 +168,7 @@ export function AutosaveIndicator({
               <span className={`text-sm font-medium ${config.color}`}>
                 {config.label[language]}
               </span>
-              
+
               {/* Last saved time */}
               {status === 'saved' && lastSavedAt && (
                 <motion.span
@@ -198,7 +201,9 @@ export function AutosaveIndicator({
                   hover:bg-gray-50 transition-colors
                   text-gray-700
                 "
-                aria-label={language === 'es' ? 'Reintentar guardar' : 'Retry save'}
+                aria-label={
+                  language === 'es' ? 'Reintentar guardar' : 'Retry save'
+                }
               >
                 {language === 'es' ? 'Reintentar' : 'Retry'}
               </motion.button>
@@ -249,7 +254,7 @@ export function AutosaveBadge({
       >
         <Icon className={`w-4 h-4 ${config.iconColor}`} />
       </motion.div>
-      
+
       <span className={`text-sm font-medium ${config.color}`}>
         {config.label[language]}
       </span>

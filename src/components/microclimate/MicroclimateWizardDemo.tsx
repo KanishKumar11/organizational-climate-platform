@@ -1,20 +1,28 @@
 'use client';
 
 import React from 'react';
-import MicroclimateWizard from './MicroclimateWizard';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { MicroclimateWizard } from './MicroclimateWizard';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info, Rocket, CheckCircle2 } from 'lucide-react';
 
 /**
  * Microclimate Wizard Demo
- * 
+ *
  * Interactive demonstration of the complete survey wizard.
  */
 
 export default function MicroclimateWizardDemo() {
-  const [completedSurveyId, setCompletedSurveyId] = React.useState<string | null>(null);
+  const [completedSurveyId, setCompletedSurveyId] = React.useState<
+    string | null
+  >(null);
   const [showWizard, setShowWizard] = React.useState(true);
 
   const handleComplete = (surveyId: string) => {
@@ -44,16 +52,18 @@ export default function MicroclimateWizardDemo() {
           <p className="text-gray-600 text-lg">
             Tu encuesta de microclima ha sido publicada exitosamente
           </p>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-green-700">
                   <CheckCircle2 className="w-5 h-5" />
                   <span className="font-medium">Survey ID:</span>
-                  <code className="bg-gray-100 px-2 py-1 rounded">{completedSurveyId}</code>
+                  <code className="bg-gray-100 px-2 py-1 rounded">
+                    {completedSurveyId}
+                  </code>
                 </div>
-                
+
                 <button
                   onClick={handleReset}
                   className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:scale-105 transition-transform"
@@ -73,13 +83,11 @@ export default function MicroclimateWizardDemo() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-16 px-4">
         <div className="max-w-2xl mx-auto text-center space-y-6">
           <div className="text-6xl mb-4">👋</div>
-          <h1 className="text-4xl font-bold text-gray-900">
-            Wizard Cancelado
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900">Wizard Cancelado</h1>
           <p className="text-gray-600 text-lg">
             Puedes reiniciar cuando quieras
           </p>
-          
+
           <button
             onClick={handleReset}
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:scale-105 transition-transform"
@@ -103,8 +111,9 @@ export default function MicroclimateWizardDemo() {
                 Microclimate Survey Wizard Demo
               </h2>
               <p className="text-blue-100">
-                Complete 4-step wizard with autosave, draft recovery, validation, and beautiful UI.
-                Try creating a survey, navigating between steps, and testing the autosave feature!
+                Complete 4-step wizard with autosave, draft recovery,
+                validation, and beautiful UI. Try creating a survey, navigating
+                between steps, and testing the autosave feature!
               </p>
             </div>
           </div>
@@ -124,7 +133,7 @@ export default function MicroclimateWizardDemo() {
         <h3 className="text-2xl font-bold text-center mb-8">
           Características del Wizard
         </h3>
-        
+
         <Tabs defaultValue="features" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="features">Features</TabsTrigger>
@@ -213,7 +222,7 @@ export default function MicroclimateWizardDemo() {
               <CardContent>
                 <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
                   <pre className="text-xs text-gray-100">
-{`import MicroclimateWizard from '@/components/microclimate/MicroclimateWizard';
+                    {`import MicroclimateWizard from '@/components/microclimate/MicroclimateWizard';
 
 export default function CreateSurveyPage() {
   const handleComplete = (surveyId: string) => {

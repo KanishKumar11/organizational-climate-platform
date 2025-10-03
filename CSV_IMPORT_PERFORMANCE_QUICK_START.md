@@ -1,6 +1,7 @@
 # CSV Import & Performance Features - Quick Start Guide
 
 ## Table of Contents
+
 1. [CSV Import Feature](#csv-import-feature)
 2. [Performance Optimizations](#performance-optimizations)
 3. [Developer Guide](#developer-guide)
@@ -15,14 +16,17 @@
 #### Preparing Your CSV File
 
 **Supported Formats**:
+
 - `.csv` (Comma-separated values)
 - `.xlsx` (Excel 2007+)
 - `.xls` (Excel 97-2003)
 
-**Required Column**: 
+**Required Column**:
+
 - `email` (must be valid email format)
 
 **Optional Columns**:
+
 - `name`, `first_name`, `last_name`
 - `employee_id`
 - `department`
@@ -33,6 +37,7 @@
 - `manager_email`
 
 **Example CSV**:
+
 ```csv
 email,name,employee_id,department,position
 john.doe@company.com,John Doe,EMP001,Engineering,Senior Developer
@@ -41,6 +46,7 @@ bob.johnson@company.com,Bob Johnson,EMP003,Sales,Account Executive
 ```
 
 **Spanish Column Names** (also supported):
+
 ```csv
 correo,nombre,empleado_id,departamento,cargo
 juan.perez@empresa.com,Juan Pérez,EMP001,Ingeniería,Desarrollador Senior
@@ -86,6 +92,7 @@ maria.garcia@empresa.com,María García,EMP002,RRHH,Gerente de RRHH
 #### Download Template
 
 Click "Download Template" button to get a pre-formatted CSV with example data:
+
 - Correct column headers
 - Sample data for reference
 - Ready to fill with your employees
@@ -121,6 +128,7 @@ Click "Download Template" button to get a pre-formatted CSV with example data:
 #### Cache Behavior
 
 **How long data stays fresh**:
+
 - **Categories**: 30 minutes (rarely change)
 - **Departments**: 10 minutes (change infrequently)
 - **Users & Surveys**: 5 minutes (moderate changes)
@@ -128,6 +136,7 @@ Click "Download Template" button to get a pre-formatted CSV with example data:
 - **Drafts**: Always fresh (critical data)
 
 **When cache clears**:
+
 - After creating/updating/deleting items
 - Manual page refresh
 - After 10 minutes of inactivity
@@ -146,13 +155,13 @@ import { useCompanies, useCompany } from '@/hooks/useQueries';
 function MyComponent() {
   // List all companies
   const { data, isLoading, error } = useCompanies({ status: 'active' });
-  
+
   // Single company
   const { data: company } = useCompany('company-id');
-  
+
   if (isLoading) return <Skeleton />;
   if (error) return <ErrorMessage error={error} />;
-  
+
   return <div>{data.map(...)}</div>;
 }
 ```
@@ -165,7 +174,7 @@ import { useCreateSurvey, useSaveDraft } from '@/hooks/useQueries';
 function CreateSurvey() {
   const createSurvey = useCreateSurvey();
   const saveDraft = useSaveDraft();
-  
+
   const handleSubmit = async (data) => {
     try {
       const result = await createSurvey.mutateAsync(data);
@@ -174,11 +183,11 @@ function CreateSurvey() {
       console.error('Failed:', error);
     }
   };
-  
+
   const handleAutosave = (data) => {
     saveDraft.mutate(data); // Fire and forget
   };
-  
+
   return (
     <form onSubmit={handleSubmit}>
       {/* ... */}
@@ -205,7 +214,7 @@ const handleCompanySelect = async (companyId: string) => {
       queryFn: () => fetchUsers(companyId),
     }),
   ]);
-  
+
   // Navigate to next step - data already loaded!
   router.push('/next-step');
 };
@@ -252,10 +261,7 @@ const result = await CSVImportService.parseXLSX(file);
 const mapping = CSVImportService.autoDetectMapping(headers);
 
 // Validate data
-const validation = CSVImportService.validateData(
-  data,
-  { requireEmail: true }
-);
+const validation = CSVImportService.validateData(data, { requireEmail: true });
 
 // Full import pipeline
 const importResult = await CSVImportService.importUsers({
@@ -301,17 +307,17 @@ if (result.success) {
   console.log('Imported:', result.data.length, 'users');
   console.log('Duplicates:', result.duplicates.length);
   console.log('Errors:', result.errors.length);
-  
+
   // Process valid users
   result.data.forEach((user) => {
     console.log(user.email, user.name);
   });
-  
+
   // Handle duplicates
   if (result.duplicates.length > 0) {
     console.warn('Duplicates found:', result.duplicates);
   }
-  
+
   // Display errors
   result.errors.forEach((error) => {
     console.error(`Row ${error.row}: ${error.message}`);
@@ -371,13 +377,15 @@ invalidateQueries(['companies', companyId]);
 ### CSV Import Issues
 
 #### "File too large" Error
+
 - **Cause**: File exceeds 10MB limit
-- **Solution**: 
+- **Solution**:
   - Split file into smaller chunks
   - Remove unnecessary columns
   - Use XLSX instead of CSV (better compression)
 
 #### "Invalid email format" Errors
+
 - **Cause**: Email column contains invalid emails
 - **Solution**:
   - Check for typos: missing @, .com, etc.
@@ -385,6 +393,7 @@ invalidateQueries(['companies', companyId]);
   - Valid format: `user@domain.com`
 
 #### "No email column detected"
+
 - **Cause**: Email column not recognized
 - **Solution**:
   - Name column exactly: `email`, `Email`, or `E-mail`
@@ -392,6 +401,7 @@ invalidateQueries(['companies', companyId]);
   - Manually map in Step 2
 
 #### Duplicates Not Detected
+
 - **Cause**: Deduplication strategy doesn't match data
 - **Solution**:
   - If using emails: Ensure emails are consistent
@@ -399,6 +409,7 @@ invalidateQueries(['companies', companyId]);
   - Use "both" strategy for strictest matching
 
 #### Column Mapping Incorrect
+
 - **Cause**: Auto-detection failed
 - **Solution**:
   - Manually adjust mappings in Step 2
@@ -408,6 +419,7 @@ invalidateQueries(['companies', companyId]);
 ### Performance Issues
 
 #### Data Not Updating
+
 - **Cause**: Stale cache
 - **Solution**:
   - Hard refresh: `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac)
@@ -415,6 +427,7 @@ invalidateQueries(['companies', companyId]);
   - Cache auto-refreshes after 5-30 minutes
 
 #### Slow Initial Load
+
 - **Cause**: Large bundle on first visit
 - **Solution**:
   - Normal on first load (downloading code)
@@ -422,6 +435,7 @@ invalidateQueries(['companies', companyId]);
   - Use lazy loading (already implemented)
 
 #### Memory Issues
+
 - **Cause**: Too many cached queries
 - **Solution**:
   - Cache auto-clears after 10 minutes
@@ -431,6 +445,7 @@ invalidateQueries(['companies', companyId]);
 ### Developer Issues
 
 #### TypeScript Errors with Hooks
+
 ```typescript
 // ❌ Wrong
 const data = useCompanies();
@@ -440,6 +455,7 @@ const { data, isLoading, error } = useCompanies();
 ```
 
 #### Mutation Not Invalidating Cache
+
 ```typescript
 // ❌ Wrong
 const createSurvey = useCreateSurvey();
@@ -451,6 +467,7 @@ await createSurvey.mutateAsync(data);
 ```
 
 #### Lazy Component Not Loading
+
 ```typescript
 // ❌ Wrong
 import CSVImport from './CSVImportLazy';
@@ -556,6 +573,7 @@ A: Currently only CSV and Excel (.xlsx, .xls) are supported.
 ### Reporting Bugs
 
 Include:
+
 - Browser and version
 - File format (CSV/XLSX/XLS)
 - File size
@@ -568,6 +586,7 @@ Include:
 ## Changelog
 
 ### Version 1.0.0 (Current)
+
 - ✅ CSV/Excel import with auto-mapping
 - ✅ Deduplication by email/employee_id
 - ✅ React Query caching and optimization
@@ -578,6 +597,7 @@ Include:
 - ✅ Error handling and user feedback
 
 ### Planned Features
+
 - ⏳ Import history and rollback
 - ⏳ Bulk edit after import
 - ⏳ Google Sheets integration

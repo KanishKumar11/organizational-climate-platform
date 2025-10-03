@@ -993,7 +993,8 @@ class NotificationService {
     };
 
     if (user_id) query.user_id = user_id;
-    if (notification_type) query.type = { $in: [notification_type as NotificationType] };
+    if (notification_type)
+      query.type = { $in: [notification_type as NotificationType] };
 
     const notifications = await (Notification as any).find(query);
 
@@ -1024,7 +1025,11 @@ class NotificationService {
         dailyPerformance[day] = { sent: 0, opened: 0, engagement_rate: 0 };
       }
       if (!channelPerformance[channel]) {
-        channelPerformance[channel] = { sent: 0, opened: 0, engagement_rate: 0 };
+        channelPerformance[channel] = {
+          sent: 0,
+          opened: 0,
+          engagement_rate: 0,
+        };
       }
 
       // Count sent notifications
@@ -1138,11 +1143,15 @@ class NotificationService {
         // Apply time constraints if provided
         if (time_constraints) {
           const constraints = time_constraints;
-          
+
           // Parse business hours
-          const startHour = parseInt(constraints.business_hours_start.split(':')[0]);
-          const endHour = parseInt(constraints.business_hours_end.split(':')[0]);
-          
+          const startHour = parseInt(
+            constraints.business_hours_start.split(':')[0]
+          );
+          const endHour = parseInt(
+            constraints.business_hours_end.split(':')[0]
+          );
+
           if (constraints.business_hours_only) {
             if (optimalTime.getHours() < startHour) {
               optimalTime.setHours(startHour);
@@ -1153,7 +1162,8 @@ class NotificationService {
           }
 
           // Check if day is weekend and should be excluded
-          const isWeekend = optimalTime.getDay() === 0 || optimalTime.getDay() === 6;
+          const isWeekend =
+            optimalTime.getDay() === 0 || optimalTime.getDay() === 6;
           if (constraints.exclude_weekends && isWeekend) {
             // Move to next Monday
             const daysToAdd = optimalTime.getDay() === 0 ? 1 : 2;
@@ -1223,7 +1233,8 @@ class NotificationService {
       created_at: { $gte: startDate },
     };
 
-    if (notification_type) query.type = { $in: [notification_type as NotificationType] };
+    if (notification_type)
+      query.type = { $in: [notification_type as NotificationType] };
     if (user_id) query.user_id = user_id;
     if (campaign_id) query['data.campaign_id'] = campaign_id;
 

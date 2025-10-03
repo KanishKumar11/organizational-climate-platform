@@ -5,10 +5,10 @@ import SurveyDraft from '@/models/SurveyDraft';
 
 /**
  * GET Latest Draft Endpoint
- * 
+ *
  * Retrieves the most recent draft for a user/company combination
  * that hasn't expired and hasn't been recovered yet.
- * 
+ *
  * Query Parameters:
  * - user_id: User ID
  * - company_id: Company ID
@@ -18,10 +18,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -63,10 +60,7 @@ export async function GET(req: NextRequest) {
       .lean();
 
     if (!draft) {
-      return NextResponse.json(
-        { message: 'No draft found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: 'No draft found' }, { status: 404 });
     }
 
     // Return draft data
@@ -86,10 +80,9 @@ export async function GET(req: NextRequest) {
         updated_at: draft.updated_at,
       },
     });
-
   } catch (error) {
     console.error('Get latest draft error:', error);
-    
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

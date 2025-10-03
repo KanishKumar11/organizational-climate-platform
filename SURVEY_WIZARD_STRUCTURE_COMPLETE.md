@@ -33,6 +33,7 @@ The Survey Wizard Structure provides a beautiful, enterprise-grade 4-step wizard
 **Purpose**: Custom React hook for managing wizard state and navigation
 
 **Hook Signature**:
+
 ```typescript
 const wizard = useWizardNavigation({
   steps: WizardStep[],
@@ -45,17 +46,19 @@ const wizard = useWizardNavigation({
 ```
 
 **Step Configuration**:
+
 ```typescript
 interface WizardStep {
   id: string;
   title: string;
   description?: string;
-  validate?: () => boolean | Promise<boolean>;  // Optional validation
-  optional?: boolean;  // Can skip this step
+  validate?: () => boolean | Promise<boolean>; // Optional validation
+  optional?: boolean; // Can skip this step
 }
 ```
 
 **Returned State**:
+
 ```typescript
 {
   // Current state
@@ -66,7 +69,7 @@ interface WizardStep {
   visitedSteps: number[],                // Array of visited indices
   validationErrors: Record<number, string>,  // Step errors
   progress: number,                      // Percentage (0-100)
-  
+
   // Status checks
   canGoNext: boolean,                    // Can navigate forward
   canGoPrevious: boolean,                // Can navigate backward
@@ -74,7 +77,7 @@ interface WizardStep {
   isLastStep: boolean,
   isCurrentStepCompleted: boolean,
   isCurrentStepValid: boolean,
-  
+
   // Navigation methods
   goNext: () => Promise<boolean>,        // Move to next (validates)
   goPrevious: () => Promise<boolean>,    // Move to previous (no validation)
@@ -82,7 +85,7 @@ interface WizardStep {
   goToFirst: () => Promise<boolean>,
   complete: () => Promise<boolean>,      // Validate and finish
   reset: () => void,                     // Reset to initial state
-  
+
   // Utilities
   validateCurrentStep: () => Promise<boolean>,
   markStepCompleted: (index?) => void,
@@ -121,6 +124,7 @@ interface WizardStep {
    ```
 
 **Example Usage**:
+
 ```typescript
 const wizard = useWizardNavigation({
   steps: [
@@ -141,7 +145,7 @@ const wizard = useWizardNavigation({
     {
       id: 'targeting',
       title: 'Targeting',
-      optional: true,  // No validation required
+      optional: true, // No validation required
     },
     {
       id: 'schedule',
@@ -162,10 +166,10 @@ const wizard = useWizardNavigation({
 });
 
 // Navigation
-await wizard.goNext();        // Validates and moves forward
-await wizard.goPrevious();    // Moves back without validation
-await wizard.goToStep(2);     // Jump to step 3 (validates current first)
-await wizard.complete();      // Final validation and completion
+await wizard.goNext(); // Validates and moves forward
+await wizard.goPrevious(); // Moves back without validation
+await wizard.goToStep(2); // Jump to step 3 (validates current first)
+await wizard.complete(); // Final validation and completion
 ```
 
 ---
@@ -181,17 +185,18 @@ await wizard.complete();      // Final validation and completion
 Horizontal or vertical step indicator with progress bar.
 
 **Props**:
+
 ```typescript
 interface WizardStepperProps {
   steps: Step[];
   currentStep: number;
   completedSteps?: number[];
   errorSteps?: number[];
-  allowNavigation?: boolean;      // Enable click to navigate
+  allowNavigation?: boolean; // Enable click to navigate
   onStepClick?: (stepIndex: number) => void;
   orientation?: 'horizontal' | 'vertical';
   size?: 'sm' | 'md' | 'lg';
-  showProgress?: boolean;         // Show progress bar
+  showProgress?: boolean; // Show progress bar
   language?: 'es' | 'en';
 }
 ```
@@ -199,6 +204,7 @@ interface WizardStepperProps {
 **Visual Design**:
 
 Horizontal Layout:
+
 ```
 ┌─────────────────────────────────────────┐
 │ ████████████████░░░░░░░░░░░░ 66%       │  Progress Bar
@@ -212,9 +218,10 @@ Complete  Complete Current  Upcoming
 ```
 
 Vertical Layout:
+
 ```
  ✓  Step 1: Basic Info
- │  Completed 
+ │  Completed
  │
  ✓  Step 2: Questions
  │  Completed
@@ -227,18 +234,21 @@ Vertical Layout:
 ```
 
 **Step Status Colors**:
+
 - **Completed**: Green gradient (emerald-500 → green-500)
 - **Current**: Blue gradient (blue-500 → indigo-500) with pulsing ring
 - **Error**: Red gradient (red-500 → rose-500)
 - **Upcoming**: Gray (gray-300)
 
 **Animations**:
+
 - Circle: Rotate-in on mount (spring physics)
 - Hover: Scale 1.1x (when clickable)
 - Tap: Scale 0.95x
 - Progress bar: Smooth width transition (300ms)
 
 **Accessibility**:
+
 - `role="navigation"` on container
 - `aria-label="Wizard steps"`
 - `tabIndex={0}` on clickable steps
@@ -249,22 +259,28 @@ Vertical Layout:
 Minimal horizontal progress bar for small screens.
 
 **Visual**:
+
 ```
 [████████████████░░░░░░░] 3/4
 Paso 3: Targeting
 ```
 
 **Responsive Usage**:
+
 ```tsx
-{/* Desktop */}
+{
+  /* Desktop */
+}
 <div className="hidden md:block">
   <WizardStepper {...props} />
-</div>
+</div>;
 
-{/* Mobile */}
+{
+  /* Mobile */
+}
 <div className="md:hidden">
   <CompactWizardStepper {...props} />
-</div>
+</div>;
 ```
 
 ---
@@ -274,10 +290,11 @@ Paso 3: Targeting
 **Purpose**: Complete wizard implementation with all integrations
 
 **Props**:
+
 ```typescript
 interface MicroclimateWizardProps {
   companyId: string;
-  draftId?: string;           // If editing existing draft
+  draftId?: string; // If editing existing draft
   onComplete?: (surveyId: string) => void;
   onCancel?: () => void;
   language?: 'es' | 'en';
@@ -305,6 +322,7 @@ interface MicroclimateWizardProps {
    - Calculates progress
 
 **Step Data Structure**:
+
 ```typescript
 const [step1Data, setStep1Data] = useState({
   title: '',
@@ -332,12 +350,15 @@ const [step4Data, setStep4Data] = useState({
 ```
 
 **Auto-Save Logic**:
+
 ```typescript
 useEffect(() => {
   if (!session?.user?.id) return;
 
-  const currentStepData = [step1Data, step2Data, step3Data, step4Data][wizard.currentStep];
-  
+  const currentStepData = [step1Data, step2Data, step3Data, step4Data][
+    wizard.currentStep
+  ];
+
   autosave.save({
     current_step: wizard.currentStep + 1,
     [`step${wizard.currentStep + 1}_data`]: currentStepData,
@@ -346,12 +367,15 @@ useEffect(() => {
 ```
 
 **Navigation Handlers**:
+
 ```typescript
 const handleNext = async () => {
   const success = await wizard.goNext();
   if (success && draftId) {
     // Force save when moving to next step
-    const currentStepData = [step1Data, step2Data, step3Data, step4Data][wizard.currentStep];
+    const currentStepData = [step1Data, step2Data, step3Data, step4Data][
+      wizard.currentStep
+    ];
     autosave.forceSave({
       current_step: wizard.currentStep + 1,
       [`step${wizard.currentStep + 1}_data`]: currentStepData,
@@ -365,13 +389,15 @@ const handlePrevious = async () => {
 
 const handleSaveDraft = async () => {
   if (!draftId) return;
-  
-  const currentStepData = [step1Data, step2Data, step3Data, step4Data][wizard.currentStep];
+
+  const currentStepData = [step1Data, step2Data, step3Data, step4Data][
+    wizard.currentStep
+  ];
   autosave.forceSave({
     current_step: wizard.currentStep + 1,
     [`step${wizard.currentStep + 1}_data`]: currentStepData,
   });
-  
+
   toast.success('Draft saved');
 };
 
@@ -397,6 +423,7 @@ const handleFinish = async () => {
 ```
 
 **UI Structure**:
+
 ```
 ┌─────────────────────────────────────────┐
 │ Draft Recovery Banner (if draft found)  │
@@ -427,6 +454,7 @@ const handleFinish = async () => {
 ```
 
 **Step Transitions**:
+
 ```tsx
 <AnimatePresence mode="wait">
   <motion.div
@@ -442,16 +470,21 @@ const handleFinish = async () => {
 ```
 
 **Responsive Stepper**:
+
 ```tsx
-{/* Desktop - Full stepper with progress bar */}
+{
+  /* Desktop - Full stepper with progress bar */
+}
 <Card className="hidden md:block">
   <WizardStepper {...stepperProps} />
-</Card>
+</Card>;
 
-{/* Mobile - Compact progress bar */}
+{
+  /* Mobile - Compact progress bar */
+}
 <Card className="md:hidden">
   <CompactWizardStepper {...stepperProps} />
-</Card>
+</Card>;
 ```
 
 ---
@@ -670,7 +703,7 @@ import { Step4Scheduling } from './steps/Step4Scheduling';
 
 ```typescript
 const autosave = useAutosave(draftId, {
-  debounceMs: 5000,  // Only save after 5s of inactivity
+  debounceMs: 5000, // Only save after 5s of inactivity
 });
 ```
 
@@ -707,7 +740,7 @@ const canGoNext = useMemo(() => {
 **Impact**: Feels instant to users
 
 ```typescript
-wizard.goNext();  // Updates UI immediately
+wizard.goNext(); // Updates UI immediately
 // Server validation happens in background
 ```
 
@@ -880,6 +913,7 @@ analytics.track('wizard_cancelled', {
 With the wizard structure complete, we're ready for **Phase 6: Question Library System**.
 
 This will include:
+
 1. **QuestionLibrary CRUD APIs** (8 endpoints)
 2. **Question Browser Component** with hierarchical categories
 3. **Quick-Add Panel** showing most-used questions
@@ -909,20 +943,20 @@ const wizard = useWizardNavigation({
         if (formData.title.length < 5) {
           throw new Error('Title must be at least 5 characters');
         }
-        
+
         // Async API validation
         const isUnique = await checkTitleUniqueness(formData.title);
         if (!isUnique) {
           throw new Error('Title already exists');
         }
-        
+
         return true;
       },
     },
   ],
   onValidationFailed: (step, error) => {
     // Show error in UI
-    setStepErrors(prev => ({ ...prev, [step]: error }));
+    setStepErrors((prev) => ({ ...prev, [step]: error }));
   },
 });
 ```
@@ -947,7 +981,7 @@ const step2Status = wizard.getStepStatus(1);  // 'completed' | 'current' | 'upco
 
 ```typescript
 // Jump to specific step
-await wizard.goToStep(2, true);  // Go to Step 3, skip validation
+await wizard.goToStep(2, true); // Go to Step 3, skip validation
 
 // Go back to first step
 await wizard.goToFirst();
@@ -981,6 +1015,7 @@ wizard.reset();
 **Lines of Code So Far**: 4,548 lines (1,103 + 1,226 + 1,087 + 1,132)
 
 **Cumulative Features**:
+
 - Database schemas (5 models)
 - Autosave system (5s debounce, conflict detection)
 - Draft recovery (automatic detection, one-click restore)

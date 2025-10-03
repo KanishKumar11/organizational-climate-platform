@@ -5,9 +5,9 @@ import QuestionLibrary from '@/models/QuestionLibrary';
 
 /**
  * GET Quick-Add Questions
- * 
+ *
  * Returns most frequently used questions for quick selection
- * 
+ *
  * Query Parameters:
  * - limit: Number of questions to return (default: 10)
  */
@@ -15,10 +15,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -42,7 +39,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       questions: formattedQuestions,
     });
-
   } catch (error) {
     console.error('Get quick-add questions error:', error);
     return NextResponse.json(

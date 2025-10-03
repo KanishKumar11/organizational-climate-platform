@@ -14,10 +14,7 @@ export async function GET(
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
@@ -38,7 +35,6 @@ export async function GET(
         category_id: question.category_id.toString(),
       },
     });
-
   } catch (error) {
     console.error('Get question error:', error);
     return NextResponse.json(
@@ -58,10 +54,7 @@ export async function PUT(
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
@@ -78,8 +71,10 @@ export async function PUT(
     }
 
     // Update fields
-    if (body.question_text_es) question.question_text_es = body.question_text_es;
-    if (body.question_text_en) question.question_text_en = body.question_text_en;
+    if (body.question_text_es)
+      question.question_text_es = body.question_text_es;
+    if (body.question_text_en)
+      question.question_text_en = body.question_text_en;
     if (body.question_type) question.question_type = body.question_type;
     if (body.options_es) question.options_es = body.options_es;
     if (body.options_en) question.options_en = body.options_en;
@@ -87,9 +82,14 @@ export async function PUT(
     if (body.is_active !== undefined) question.is_active = body.is_active;
 
     // Handle category change
-    if (body.category_id && body.category_id !== question.category_id.toString()) {
+    if (
+      body.category_id &&
+      body.category_id !== question.category_id.toString()
+    ) {
       // Verify new category exists
-      const newCategory = await (QuestionCategory as any).findById(body.category_id);
+      const newCategory = await (QuestionCategory as any).findById(
+        body.category_id
+      );
       if (!newCategory) {
         return NextResponse.json(
           { error: 'Category not found' },
@@ -98,14 +98,12 @@ export async function PUT(
       }
 
       // Update counts
-      await (QuestionCategory as any).findByIdAndUpdate(
-        question.category_id,
-        { $inc: { question_count: -1 } }
-      );
-      await (QuestionCategory as any).findByIdAndUpdate(
-        body.category_id,
-        { $inc: { question_count: 1 } }
-      );
+      await (QuestionCategory as any).findByIdAndUpdate(question.category_id, {
+        $inc: { question_count: -1 },
+      });
+      await (QuestionCategory as any).findByIdAndUpdate(body.category_id, {
+        $inc: { question_count: 1 },
+      });
 
       question.category_id = body.category_id;
     }
@@ -119,7 +117,6 @@ export async function PUT(
         ...question.toObject(),
       },
     });
-
   } catch (error) {
     console.error('Update question error:', error);
     return NextResponse.json(
@@ -139,10 +136,7 @@ export async function DELETE(
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
@@ -157,10 +151,9 @@ export async function DELETE(
     }
 
     // Decrement category count
-    await (QuestionCategory as any).findByIdAndUpdate(
-      question.category_id,
-      { $inc: { question_count: -1 } }
-    );
+    await (QuestionCategory as any).findByIdAndUpdate(question.category_id, {
+      $inc: { question_count: -1 },
+    });
 
     // Delete question
     await (QuestionLibrary as any).findByIdAndDelete(params.id);
@@ -169,7 +162,6 @@ export async function DELETE(
       success: true,
       message: 'Question deleted successfully',
     });
-
   } catch (error) {
     console.error('Delete question error:', error);
     return NextResponse.json(

@@ -3,7 +3,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -18,16 +24,16 @@ import { cn } from '@/lib/utils';
 
 /**
  * Column Mapper Component
- * 
+ *
  * Maps CSV columns to required employee fields with auto-detection.
- * 
+ *
  * Features:
  * - Auto-detection of email, name, department columns
  * - Manual override with dropdowns
  * - Required field validation
  * - Preview mapping result
  * - Confidence scores for auto-detection
- * 
+ *
  * @param headers - CSV column headers
  * @param rows - Sample CSV rows for preview
  * @param onMappingChange - Callback when mapping changes
@@ -67,51 +73,54 @@ export function ColumnMapper({
 
   const [autoDetected, setAutoDetected] = useState<Set<string>>(new Set());
 
-  const t = language === 'es' ? {
-    title: 'Mapeo de Columnas',
-    description: 'Asocia las columnas del CSV con los campos de empleado',
-    required: 'Requerido',
-    optional: 'Opcional',
-    autoDetected: 'Detectado automáticamente',
-    selectColumn: 'Seleccionar columna',
-    none: 'Ninguna',
-    preview: 'Vista previa del mapeo',
-    fields: {
-      email: 'Email',
-      name: 'Nombre',
-      department: 'Departamento',
-      location: 'Ubicación',
-      position: 'Puesto',
-      employeeId: 'ID Empleado',
-    },
-    validation: {
-      emailRequired: 'El campo email es requerido',
-      nameRequired: 'El campo nombre es requerido',
-      allSet: 'Todos los campos requeridos están configurados',
-    },
-  } : {
-    title: 'Column Mapping',
-    description: 'Map CSV columns to employee fields',
-    required: 'Required',
-    optional: 'Optional',
-    autoDetected: 'Auto-detected',
-    selectColumn: 'Select column',
-    none: 'None',
-    preview: 'Mapping preview',
-    fields: {
-      email: 'Email',
-      name: 'Name',
-      department: 'Department',
-      location: 'Location',
-      position: 'Position',
-      employeeId: 'Employee ID',
-    },
-    validation: {
-      emailRequired: 'Email field is required',
-      nameRequired: 'Name field is required',
-      allSet: 'All required fields are set',
-    },
-  };
+  const t =
+    language === 'es'
+      ? {
+          title: 'Mapeo de Columnas',
+          description: 'Asocia las columnas del CSV con los campos de empleado',
+          required: 'Requerido',
+          optional: 'Opcional',
+          autoDetected: 'Detectado automáticamente',
+          selectColumn: 'Seleccionar columna',
+          none: 'Ninguna',
+          preview: 'Vista previa del mapeo',
+          fields: {
+            email: 'Email',
+            name: 'Nombre',
+            department: 'Departamento',
+            location: 'Ubicación',
+            position: 'Puesto',
+            employeeId: 'ID Empleado',
+          },
+          validation: {
+            emailRequired: 'El campo email es requerido',
+            nameRequired: 'El campo nombre es requerido',
+            allSet: 'Todos los campos requeridos están configurados',
+          },
+        }
+      : {
+          title: 'Column Mapping',
+          description: 'Map CSV columns to employee fields',
+          required: 'Required',
+          optional: 'Optional',
+          autoDetected: 'Auto-detected',
+          selectColumn: 'Select column',
+          none: 'None',
+          preview: 'Mapping preview',
+          fields: {
+            email: 'Email',
+            name: 'Name',
+            department: 'Department',
+            location: 'Location',
+            position: 'Position',
+            employeeId: 'Employee ID',
+          },
+          validation: {
+            emailRequired: 'Email field is required',
+            nameRequired: 'Name field is required',
+            allSet: 'All required fields are set',
+          },
+        };
 
   // Auto-detect columns on mount
   useEffect(() => {
@@ -121,8 +130,10 @@ export function ColumnMapper({
     onMappingChange(detected.mapping);
   }, [headers]);
 
-  const autoDetectColumns = (headers: string[]): { mapping: ColumnMapping; autoDetected: Set<string> } => {
-    const lowercaseHeaders = headers.map(h => h.toLowerCase());
+  const autoDetectColumns = (
+    headers: string[]
+  ): { mapping: ColumnMapping; autoDetected: Set<string> } => {
+    const lowercaseHeaders = headers.map((h) => h.toLowerCase());
     const detected = new Set<string>();
     const mapping: ColumnMapping = {
       email: null,
@@ -135,8 +146,8 @@ export function ColumnMapper({
 
     // Email detection
     const emailPatterns = ['email', 'correo', 'e-mail', 'mail'];
-    const emailIdx = lowercaseHeaders.findIndex(h =>
-      emailPatterns.some(pattern => h.includes(pattern))
+    const emailIdx = lowercaseHeaders.findIndex((h) =>
+      emailPatterns.some((pattern) => h.includes(pattern))
     );
     if (emailIdx !== -1) {
       mapping.email = headers[emailIdx];
@@ -144,9 +155,15 @@ export function ColumnMapper({
     }
 
     // Name detection
-    const namePatterns = ['name', 'nombre', 'full name', 'fullname', 'employee name'];
-    const nameIdx = lowercaseHeaders.findIndex(h =>
-      namePatterns.some(pattern => h.includes(pattern))
+    const namePatterns = [
+      'name',
+      'nombre',
+      'full name',
+      'fullname',
+      'employee name',
+    ];
+    const nameIdx = lowercaseHeaders.findIndex((h) =>
+      namePatterns.some((pattern) => h.includes(pattern))
     );
     if (nameIdx !== -1) {
       mapping.name = headers[nameIdx];
@@ -155,8 +172,8 @@ export function ColumnMapper({
 
     // Department detection
     const deptPatterns = ['department', 'departamento', 'dept', 'area'];
-    const deptIdx = lowercaseHeaders.findIndex(h =>
-      deptPatterns.some(pattern => h.includes(pattern))
+    const deptIdx = lowercaseHeaders.findIndex((h) =>
+      deptPatterns.some((pattern) => h.includes(pattern))
     );
     if (deptIdx !== -1) {
       mapping.department = headers[deptIdx];
@@ -164,9 +181,17 @@ export function ColumnMapper({
     }
 
     // Location detection
-    const locationPatterns = ['location', 'ubicación', 'ubicacion', 'office', 'oficina', 'city', 'ciudad'];
-    const locationIdx = lowercaseHeaders.findIndex(h =>
-      locationPatterns.some(pattern => h.includes(pattern))
+    const locationPatterns = [
+      'location',
+      'ubicación',
+      'ubicacion',
+      'office',
+      'oficina',
+      'city',
+      'ciudad',
+    ];
+    const locationIdx = lowercaseHeaders.findIndex((h) =>
+      locationPatterns.some((pattern) => h.includes(pattern))
     );
     if (locationIdx !== -1) {
       mapping.location = headers[locationIdx];
@@ -174,9 +199,17 @@ export function ColumnMapper({
     }
 
     // Position detection
-    const positionPatterns = ['position', 'puesto', 'cargo', 'role', 'rol', 'job title', 'title'];
-    const positionIdx = lowercaseHeaders.findIndex(h =>
-      positionPatterns.some(pattern => h.includes(pattern))
+    const positionPatterns = [
+      'position',
+      'puesto',
+      'cargo',
+      'role',
+      'rol',
+      'job title',
+      'title',
+    ];
+    const positionIdx = lowercaseHeaders.findIndex((h) =>
+      positionPatterns.some((pattern) => h.includes(pattern))
     );
     if (positionIdx !== -1) {
       mapping.position = headers[positionIdx];
@@ -184,9 +217,17 @@ export function ColumnMapper({
     }
 
     // Employee ID detection
-    const idPatterns = ['id', 'employee id', 'employeeid', 'emp id', 'staff id', 'número', 'numero'];
-    const idIdx = lowercaseHeaders.findIndex(h =>
-      idPatterns.some(pattern => h.includes(pattern))
+    const idPatterns = [
+      'id',
+      'employee id',
+      'employeeid',
+      'emp id',
+      'staff id',
+      'número',
+      'numero',
+    ];
+    const idIdx = lowercaseHeaders.findIndex((h) =>
+      idPatterns.some((pattern) => h.includes(pattern))
     );
     if (idIdx !== -1) {
       mapping.employeeId = headers[idIdx];
@@ -196,7 +237,10 @@ export function ColumnMapper({
     return { mapping, autoDetected: detected };
   };
 
-  const handleMappingChange = (field: keyof ColumnMapping, value: string | null) => {
+  const handleMappingChange = (
+    field: keyof ColumnMapping,
+    value: string | null
+  ) => {
     const newMapping = { ...mapping, [field]: value };
     setMapping(newMapping);
     onMappingChange(newMapping);
@@ -217,10 +261,17 @@ export function ColumnMapper({
         <div className="flex items-center justify-between">
           <Label htmlFor={field} className="flex items-center gap-2">
             {label}
-            {required && <Badge variant="destructive" className="text-xs">*</Badge>}
+            {required && (
+              <Badge variant="destructive" className="text-xs">
+                *
+              </Badge>
+            )}
           </Label>
           {isAutoDetected && (
-            <Badge variant="outline" className="text-xs bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300">
+            <Badge
+              variant="outline"
+              className="text-xs bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
+            >
               <Sparkles className="w-3 h-3 mr-1" />
               {t.autoDetected}
             </Badge>
@@ -229,12 +280,15 @@ export function ColumnMapper({
 
         <Select
           value={currentValue || 'none'}
-          onValueChange={(value) => handleMappingChange(field, value === 'none' ? null : value)}
+          onValueChange={(value) =>
+            handleMappingChange(field, value === 'none' ? null : value)
+          }
         >
           <SelectTrigger
             id={field}
             className={cn(
-              isAutoDetected && 'border-green-500 bg-green-50/50 dark:bg-green-900/10'
+              isAutoDetected &&
+                'border-green-500 bg-green-50/50 dark:bg-green-900/10'
             )}
           >
             <SelectValue placeholder={t.selectColumn} />
@@ -323,7 +377,10 @@ export function ColumnMapper({
                   if (!column) return null;
                   const value = rows[0][column];
                   return (
-                    <div key={field} className="flex items-center justify-between">
+                    <div
+                      key={field}
+                      className="flex items-center justify-between"
+                    >
                       <span className="text-gray-600 dark:text-gray-400">
                         {t.fields[field as keyof typeof t.fields]}:
                       </span>

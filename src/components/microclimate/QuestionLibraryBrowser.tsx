@@ -2,8 +2,21 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, Plus, Search, Folder, FileQuestion, Loader2 } from 'lucide-react';
-import { useQuestionLibrary, useQuestionCategories, useCategoryTree, Question } from '@/hooks/useQuestionLibrary';
+import {
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Search,
+  Folder,
+  FileQuestion,
+  Loader2,
+} from 'lucide-react';
+import {
+  useQuestionLibrary,
+  useQuestionCategories,
+  useCategoryTree,
+  Question,
+} from '@/hooks/useQuestionLibrary';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,16 +25,16 @@ import { cn } from '@/lib/utils';
 
 /**
  * Question Library Browser Component
- * 
+ *
  * Hierarchical tree view for browsing and selecting questions from the library.
- * 
+ *
  * Features:
  * - Category tree navigation with expand/collapse
  * - Question selection with checkboxes
  * - Real-time search
  * - Usage statistics
  * - Drag-to-add support (future)
- * 
+ *
  * @param selectedQuestions - Array of currently selected question IDs
  * @param onSelectionChange - Callback when selection changes
  * @param language - Display language ('es' | 'en')
@@ -41,36 +54,42 @@ export function QuestionLibraryBrowser({
   language = 'es',
   maxSelections,
 }: QuestionLibraryBrowserProps) {
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set()
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const { tree: categoryTree, isLoading: categoriesLoading } = useCategoryTree();
+  const { tree: categoryTree, isLoading: categoriesLoading } =
+    useCategoryTree();
   const { questions, isLoading: questionsLoading } = useQuestionLibrary({
     category: selectedCategory || undefined,
     search: searchQuery || undefined,
     language,
   });
 
-  const t = language === 'es' ? {
-    title: 'Biblioteca de Preguntas',
-    search: 'Buscar preguntas...',
-    noQuestions: 'No se encontraron preguntas',
-    selected: 'Seleccionadas',
-    maxReached: 'Máximo alcanzado',
-    usage: 'veces usada',
-    expand: 'Expandir',
-    collapse: 'Colapsar',
-  } : {
-    title: 'Question Library',
-    search: 'Search questions...',
-    noQuestions: 'No questions found',
-    selected: 'Selected',
-    maxReached: 'Max reached',
-    usage: 'times used',
-    expand: 'Expand',
-    collapse: 'Collapse',
-  };
+  const t =
+    language === 'es'
+      ? {
+          title: 'Biblioteca de Preguntas',
+          search: 'Buscar preguntas...',
+          noQuestions: 'No se encontraron preguntas',
+          selected: 'Seleccionadas',
+          maxReached: 'Máximo alcanzado',
+          usage: 'veces usada',
+          expand: 'Expandir',
+          collapse: 'Colapsar',
+        }
+      : {
+          title: 'Question Library',
+          search: 'Search questions...',
+          noQuestions: 'No questions found',
+          selected: 'Selected',
+          maxReached: 'Max reached',
+          usage: 'times used',
+          expand: 'Expand',
+          collapse: 'Collapse',
+        };
 
   const toggleCategory = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -84,9 +103,9 @@ export function QuestionLibraryBrowser({
 
   const toggleQuestion = (questionId: string) => {
     const newSelection = selectedQuestions.includes(questionId)
-      ? selectedQuestions.filter(id => id !== questionId)
+      ? selectedQuestions.filter((id) => id !== questionId)
       : [...selectedQuestions, questionId];
-    
+
     // Check max selections
     if (maxSelections && newSelection.length > maxSelections) {
       return;
@@ -95,7 +114,9 @@ export function QuestionLibraryBrowser({
     onSelectionChange(newSelection);
   };
 
-  const isMaxReached = maxSelections ? selectedQuestions.length >= maxSelections : false;
+  const isMaxReached = maxSelections
+    ? selectedQuestions.length >= maxSelections
+    : false;
 
   const renderCategory = (category: any, level: number = 0) => {
     const isExpanded = expandedCategories.has(category._id);
@@ -128,16 +149,22 @@ export function QuestionLibraryBrowser({
             </motion.div>
           )}
           {!hasChildren && <div className="w-4" />}
-          
-          <Folder className={cn(
-            'w-5 h-5',
-            isSelected ? 'text-blue-600' : 'text-gray-400'
-          )} />
-          
-          <span className={cn(
-            'flex-1 text-sm font-medium',
-            isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
-          )}>
+
+          <Folder
+            className={cn(
+              'w-5 h-5',
+              isSelected ? 'text-blue-600' : 'text-gray-400'
+            )}
+          />
+
+          <span
+            className={cn(
+              'flex-1 text-sm font-medium',
+              isSelected
+                ? 'text-blue-700 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300'
+            )}
+          >
             {language === 'en' ? category.name_en : category.name_es}
           </span>
 
@@ -156,7 +183,9 @@ export function QuestionLibraryBrowser({
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              {category.children.map((child: any) => renderCategory(child, level + 1))}
+              {category.children.map((child: any) =>
+                renderCategory(child, level + 1)
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -188,11 +217,13 @@ export function QuestionLibraryBrowser({
             disabled={isDisabled}
             className="mt-1"
           />
-          
+
           <div className="flex-1 space-y-2">
             <div className="flex items-start justify-between gap-2">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {language === 'en' ? question.question_text_en : question.question_text_es}
+                {language === 'en'
+                  ? question.question_text_en
+                  : question.question_text_es}
               </p>
               <FileQuestion className="w-4 h-4 text-gray-400 flex-shrink-0" />
             </div>
@@ -201,7 +232,7 @@ export function QuestionLibraryBrowser({
               <Badge variant="outline" className="text-xs">
                 {question.question_type}
               </Badge>
-              
+
               {question.category_name && (
                 <Badge variant="secondary" className="text-xs">
                   {question.category_name}
@@ -222,16 +253,28 @@ export function QuestionLibraryBrowser({
             </div>
 
             {/* Show options preview for multiple choice */}
-            {(question.question_type === 'multiple_choice' || question.question_type === 'likert') && (
+            {(question.question_type === 'multiple_choice' ||
+              question.question_type === 'likert') && (
               <div className="flex gap-1 flex-wrap">
-                {(language === 'en' ? question.options_en : question.options_es)?.slice(0, 3).map((option, idx) => (
-                  <span key={idx} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">
-                    {option}
-                  </span>
-                ))}
-                {(language === 'en' ? question.options_en : question.options_es)?.length > 3 && (
+                {(language === 'en' ? question.options_en : question.options_es)
+                  ?.slice(0, 3)
+                  .map((option, idx) => (
+                    <span
+                      key={idx}
+                      className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded"
+                    >
+                      {option}
+                    </span>
+                  ))}
+                {(language === 'en' ? question.options_en : question.options_es)
+                  ?.length > 3 && (
                   <span className="text-xs text-gray-500">
-                    +{(language === 'en' ? question.options_en : question.options_es).length - 3} more
+                    +
+                    {(language === 'en'
+                      ? question.options_en
+                      : question.options_es
+                    ).length - 3}{' '}
+                    more
                   </span>
                 )}
               </div>
@@ -263,9 +306,7 @@ export function QuestionLibraryBrowser({
             {maxSelections && ` / ${maxSelections}`}
           </p>
         </div>
-        {isMaxReached && (
-          <Badge variant="destructive">{t.maxReached}</Badge>
-        )}
+        {isMaxReached && <Badge variant="destructive">{t.maxReached}</Badge>}
       </div>
 
       {/* Search */}
@@ -286,7 +327,7 @@ export function QuestionLibraryBrowser({
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             Categories
           </h4>
-          {categoryTree.map(category => renderCategory(category))}
+          {categoryTree.map((category) => renderCategory(category))}
         </div>
 
         {/* Questions List */}

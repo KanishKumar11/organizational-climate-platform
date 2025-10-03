@@ -13,7 +13,13 @@ import {
   FileUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,13 +38,13 @@ import CSVImport from './CSVImport';
 
 /**
  * Survey Creation Wizard
- * 
+ *
  * Multi-step wizard integrating all P0 features:
  * - Step 1: Basic Info + Company Selection (CLIMA-001)
  * - Step 2: Questions + Library Browser (CLIMA-002)
  * - Step 3: Targeting (preloaded data)
  * - Step 4: Scheduling + Distribution (CLIMA-004, CLIMA-005)
- * 
+ *
  * Features autosave (CLIMA-006) and draft recovery
  */
 
@@ -48,16 +54,16 @@ interface SurveyFormData {
   description: string;
   company_id: string;
   company_name?: string;
-  
+
   // Step 2: Questions
   questions: any[];
-  
+
   // Step 3: Targeting
   target_type: 'all' | 'departments' | 'users' | 'csv_import';
   department_ids: string[];
   target_user_ids: string[];
   target_emails?: string[]; // For CSV import email-based targeting
-  
+
   // Step 4: Scheduling & Distribution
   start_date: string;
   end_date: string;
@@ -95,7 +101,7 @@ const STEPS = [
 export default function SurveyCreationWizard() {
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const [currentStep, setCurrentStep] = useState(1);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random()}`);
   const [formData, setFormData] = useState<SurveyFormData>({
@@ -111,7 +117,7 @@ export default function SurveyCreationWizard() {
     timezone: 'UTC',
     distribution_type: 'anonymous',
   });
-  
+
   const [preloadedDepartments, setPreloadedDepartments] = useState<any[]>([]);
   const [preloadedUsers, setPreloadedUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -164,22 +170,28 @@ export default function SurveyCreationWizard() {
           return { valid: false, message: 'Company selection is required' };
         }
         return { valid: true };
-        
+
       case 2:
         if (formData.questions.length === 0) {
           return { valid: false, message: 'At least one question is required' };
         }
         return { valid: true };
-        
+
       case 3:
-        if (formData.target_type === 'departments' && formData.department_ids.length === 0) {
+        if (
+          formData.target_type === 'departments' &&
+          formData.department_ids.length === 0
+        ) {
           return { valid: false, message: 'Select at least one department' };
         }
-        if (formData.target_type === 'users' && formData.target_user_ids.length === 0) {
+        if (
+          formData.target_type === 'users' &&
+          formData.target_user_ids.length === 0
+        ) {
           return { valid: false, message: 'Select at least one user' };
         }
         return { valid: true };
-        
+
       case 4:
         if (!formData.start_date) {
           return { valid: false, message: 'Start date is required' };
@@ -191,7 +203,7 @@ export default function SurveyCreationWizard() {
           return { valid: false, message: 'End date must be after start date' };
         }
         return { valid: true };
-        
+
       default:
         return { valid: true };
     }
@@ -207,7 +219,7 @@ export default function SurveyCreationWizard() {
       });
       return;
     }
-    
+
     setCurrentStep((prev) => Math.min(prev + 1, STEPS.length));
   };
 
@@ -217,21 +229,24 @@ export default function SurveyCreationWizard() {
   };
 
   // Handle company selection and preload data
-  const handleCompanySelect = async (companyId: string, companyName: string) => {
+  const handleCompanySelect = async (
+    companyId: string,
+    companyName: string
+  ) => {
     updateFormData({ company_id: companyId, company_name: companyName });
-    
+
     // Preload departments and users for Steps 3-4
     try {
       const [deptResponse, userResponse] = await Promise.all([
         fetch(`/api/companies/${companyId}/departments`),
         fetch(`/api/companies/${companyId}/users?limit=1000`),
       ]);
-      
+
       if (deptResponse.ok) {
         const deptData = await deptResponse.json();
         setPreloadedDepartments(deptData.departments || []);
       }
-      
+
       if (userResponse.ok) {
         const userData = await userResponse.json();
         setPreloadedUsers(userData.users || []);
@@ -252,11 +267,11 @@ export default function SurveyCreationWizard() {
       config: question.config || {},
       required: true,
     };
-    
+
     updateFormData({
       questions: [...formData.questions, newQuestion],
     });
-    
+
     toast({
       title: 'Question Added',
       description: 'Question has been added to your survey.',
@@ -362,7 +377,7 @@ export default function SurveyCreationWizard() {
           const Icon = step.icon;
           const isCompleted = currentStep > step.number;
           const isActive = currentStep === step.number;
-          
+
           return (
             <button
               key={step.number}
@@ -376,8 +391,8 @@ export default function SurveyCreationWizard() {
                 isActive
                   ? 'border-primary bg-primary/5'
                   : isCompleted
-                  ? 'border-green-500 bg-green-50 dark:bg-green-950/20 cursor-pointer hover:bg-green-100'
-                  : 'border-muted bg-muted/20 cursor-not-allowed opacity-50'
+                    ? 'border-green-500 bg-green-50 dark:bg-green-950/20 cursor-pointer hover:bg-green-100'
+                    : 'border-muted bg-muted/20 cursor-not-allowed opacity-50'
               }`}
             >
               <div className="flex items-start gap-2">
@@ -386,8 +401,8 @@ export default function SurveyCreationWizard() {
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : isCompleted
-                      ? 'bg-green-500 text-white'
-                      : 'bg-muted text-muted-foreground'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {isCompleted ? (
@@ -397,7 +412,9 @@ export default function SurveyCreationWizard() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{step.title}</div>
+                  <div className="text-sm font-medium truncate">
+                    {step.title}
+                  </div>
                   <div className="text-xs text-muted-foreground truncate">
                     {step.description}
                   </div>
@@ -417,7 +434,9 @@ export default function SurveyCreationWizard() {
             })}
             {STEPS[currentStep - 1].title}
           </CardTitle>
-          <CardDescription>{STEPS[currentStep - 1].description}</CardDescription>
+          <CardDescription>
+            {STEPS[currentStep - 1].description}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {/* Step 1: Basic Info */}
@@ -441,7 +460,9 @@ export default function SurveyCreationWizard() {
                   id="description"
                   placeholder="Describe the purpose of this survey..."
                   value={formData.description}
-                  onChange={(e) => updateFormData({ description: e.target.value })}
+                  onChange={(e) =>
+                    updateFormData({ description: e.target.value })
+                  }
                   rows={4}
                 />
               </div>
@@ -452,7 +473,9 @@ export default function SurveyCreationWizard() {
                 <Label className="required">Company</Label>
                 <CompanySelector
                   value={formData.company_id}
-                  onChange={(companyId, company) => handleCompanySelect(companyId, company.name)}
+                  onChange={(companyId, company) =>
+                    handleCompanySelect(companyId, company.name)
+                  }
                 />
                 {formData.company_name && (
                   <Badge variant="secondary" className="mt-2">
@@ -471,10 +494,15 @@ export default function SurveyCreationWizard() {
                 <div>
                   <h3 className="font-medium">Selected Questions</h3>
                   <p className="text-sm text-muted-foreground">
-                    {formData.questions.length} question{formData.questions.length !== 1 ? 's' : ''} added
+                    {formData.questions.length} question
+                    {formData.questions.length !== 1 ? 's' : ''} added
                   </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => updateFormData({ questions: [] })}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateFormData({ questions: [] })}
+                >
                   Clear All
                 </Button>
               </div>
@@ -496,7 +524,9 @@ export default function SurveyCreationWizard() {
                           size="sm"
                           onClick={() => {
                             updateFormData({
-                              questions: formData.questions.filter((_, i) => i !== index),
+                              questions: formData.questions.filter(
+                                (_, i) => i !== index
+                              ),
                             });
                           }}
                         >
@@ -512,7 +542,9 @@ export default function SurveyCreationWizard() {
 
               <QuestionLibraryBrowser
                 onAddQuestion={handleAddQuestion}
-                selectedQuestionIds={formData.questions.map((q) => q.library_question_id)}
+                selectedQuestionIds={formData.questions.map(
+                  (q) => q.library_question_id
+                )}
               />
             </div>
           )}
@@ -521,39 +553,75 @@ export default function SurveyCreationWizard() {
           {currentStep === 3 && (
             <div className="space-y-6">
               <div>
-                <h3 className="font-medium mb-4">Who should receive this survey?</h3>
+                <h3 className="font-medium mb-4">
+                  Who should receive this survey?
+                </h3>
                 <div className="space-y-2">
                   <Button
-                    variant={formData.target_type === 'all' ? 'default' : 'outline'}
+                    variant={
+                      formData.target_type === 'all' ? 'default' : 'outline'
+                    }
                     className="w-full justify-start"
-                    onClick={() => updateFormData({ target_type: 'all', department_ids: [], target_user_ids: [] })}
+                    onClick={() =>
+                      updateFormData({
+                        target_type: 'all',
+                        department_ids: [],
+                        target_user_ids: [],
+                      })
+                    }
                   >
                     <Users className="h-4 w-4 mr-2" />
                     All Employees ({preloadedUsers.length})
                   </Button>
-                  
+
                   <Button
-                    variant={formData.target_type === 'departments' ? 'default' : 'outline'}
+                    variant={
+                      formData.target_type === 'departments'
+                        ? 'default'
+                        : 'outline'
+                    }
                     className="w-full justify-start"
-                    onClick={() => updateFormData({ target_type: 'departments', target_user_ids: [] })}
+                    onClick={() =>
+                      updateFormData({
+                        target_type: 'departments',
+                        target_user_ids: [],
+                      })
+                    }
                   >
                     <Building className="h-4 w-4 mr-2" />
-                    Specific Departments ({preloadedDepartments.length} available)
+                    Specific Departments ({preloadedDepartments.length}{' '}
+                    available)
                   </Button>
-                  
+
                   <Button
-                    variant={formData.target_type === 'users' ? 'default' : 'outline'}
+                    variant={
+                      formData.target_type === 'users' ? 'default' : 'outline'
+                    }
                     className="w-full justify-start"
-                    onClick={() => updateFormData({ target_type: 'users', department_ids: [] })}
+                    onClick={() =>
+                      updateFormData({
+                        target_type: 'users',
+                        department_ids: [],
+                      })
+                    }
                   >
                     <Users className="h-4 w-4 mr-2" />
                     Specific Users
                   </Button>
-                  
+
                   <Button
-                    variant={formData.target_type === 'csv_import' ? 'default' : 'outline'}
+                    variant={
+                      formData.target_type === 'csv_import'
+                        ? 'default'
+                        : 'outline'
+                    }
                     className="w-full justify-start"
-                    onClick={() => updateFormData({ target_type: 'csv_import', department_ids: [] })}
+                    onClick={() =>
+                      updateFormData({
+                        target_type: 'csv_import',
+                        department_ids: [],
+                      })
+                    }
                   >
                     <FileUp className="h-4 w-4 mr-2" />
                     Import from CSV/Excel
@@ -566,7 +634,9 @@ export default function SurveyCreationWizard() {
                   <Label>Select Departments</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {preloadedDepartments.map((dept) => {
-                      const isSelected = formData.department_ids.includes(dept._id);
+                      const isSelected = formData.department_ids.includes(
+                        dept._id
+                      );
                       return (
                         <Card
                           key={dept._id}
@@ -576,7 +646,9 @@ export default function SurveyCreationWizard() {
                           onClick={() => {
                             updateFormData({
                               department_ids: isSelected
-                                ? formData.department_ids.filter((id) => id !== dept._id)
+                                ? formData.department_ids.filter(
+                                    (id) => id !== dept._id
+                                  )
                                 : [...formData.department_ids, dept._id],
                             });
                           }}
@@ -584,12 +656,16 @@ export default function SurveyCreationWizard() {
                           <CardContent className="p-3">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="font-medium text-sm">{dept.name}</p>
+                                <p className="font-medium text-sm">
+                                  {dept.name}
+                                </p>
                                 <p className="text-xs text-muted-foreground">
                                   {dept.employee_count || 0} employees
                                 </p>
                               </div>
-                              {isSelected && <Check className="h-4 w-4 text-primary" />}
+                              {isSelected && (
+                                <Check className="h-4 w-4 text-primary" />
+                              )}
                             </div>
                           </CardContent>
                         </Card>
@@ -602,23 +678,26 @@ export default function SurveyCreationWizard() {
               {formData.target_type === 'users' && (
                 <div className="space-y-2">
                   <Label>Select Users</Label>
-                  <Input
-                    placeholder="Search users..."
-                    className="mb-2"
-                  />
+                  <Input placeholder="Search users..." className="mb-2" />
                   <div className="max-h-64 overflow-y-auto space-y-1">
                     {preloadedUsers.slice(0, 50).map((user) => {
-                      const isSelected = formData.target_user_ids.includes(user._id);
+                      const isSelected = formData.target_user_ids.includes(
+                        user._id
+                      );
                       return (
                         <div
                           key={user._id}
                           className={`p-2 rounded border cursor-pointer ${
-                            isSelected ? 'border-primary bg-primary/5' : 'border-muted'
+                            isSelected
+                              ? 'border-primary bg-primary/5'
+                              : 'border-muted'
                           }`}
                           onClick={() => {
                             updateFormData({
                               target_user_ids: isSelected
-                                ? formData.target_user_ids.filter((id) => id !== user._id)
+                                ? formData.target_user_ids.filter(
+                                    (id) => id !== user._id
+                                  )
                                 : [...formData.target_user_ids, user._id],
                             });
                           }}
@@ -626,9 +705,13 @@ export default function SurveyCreationWizard() {
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="text-sm font-medium">{user.name}</p>
-                              <p className="text-xs text-muted-foreground">{user.email}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {user.email}
+                              </p>
                             </div>
-                            {isSelected && <Check className="h-4 w-4 text-primary" />}
+                            {isSelected && (
+                              <Check className="h-4 w-4 text-primary" />
+                            )}
                           </div>
                         </div>
                       );
@@ -646,13 +729,16 @@ export default function SurveyCreationWizard() {
                       target_user_ids: [], // Clear manual selections
                       target_emails: emails, // Use email-based targeting
                     });
-                    
+
                     toast({
                       title: 'Import Complete',
                       description: `Successfully imported ${users.length} users`,
                     });
                   }}
-                  existingUsers={preloadedUsers.map((u) => ({ email: u.email, employee_id: u.employee_id }))}
+                  existingUsers={preloadedUsers.map((u) => ({
+                    email: u.email,
+                    employee_id: u.employee_id,
+                  }))}
                   requireEmail={true}
                 />
               )}
@@ -663,14 +749,22 @@ export default function SurveyCreationWizard() {
           {currentStep === 4 && (
             <div className="space-y-6">
               <SurveyScheduler
-                startDate={formData.start_date ? new Date(formData.start_date) : undefined}
-                endDate={formData.end_date ? new Date(formData.end_date) : undefined}
+                startDate={
+                  formData.start_date
+                    ? new Date(formData.start_date)
+                    : undefined
+                }
+                endDate={
+                  formData.end_date ? new Date(formData.end_date) : undefined
+                }
                 timezone={formData.timezone}
-                onChange={(data) => updateFormData({
-                  start_date: data.startDate.toISOString(),
-                  end_date: data.endDate.toISOString(),
-                  timezone: data.timezone,
-                })}
+                onChange={(data) =>
+                  updateFormData({
+                    start_date: data.startDate.toISOString(),
+                    end_date: data.endDate.toISOString(),
+                    timezone: data.timezone,
+                  })
+                }
               />
 
               <Separator />
@@ -699,7 +793,11 @@ export default function SurveyCreationWizard() {
         </Button>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={saveNow} disabled={status.isSaving}>
+          <Button
+            variant="outline"
+            onClick={saveNow}
+            disabled={status.isSaving}
+          >
             <Save className="h-4 w-4 mr-2" />
             Save Draft
           </Button>

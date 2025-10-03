@@ -19,16 +19,16 @@ import { cn } from '@/lib/utils';
 
 /**
  * Multilingual Question Editor Component
- * 
+ *
  * Side-by-side Spanish/English editor for creating questions.
- * 
+ *
  * Features:
  * - Split view (ES left, EN right)
  * - Synchronized fields
  * - Live preview
  * - Validation (both languages required)
  * - Support for all question types
- * 
+ *
  * @param onSave - Callback when question is saved
  * @param initialData - Initial question data (for editing)
  * @param language - Primary language for UI
@@ -57,59 +57,64 @@ export function MultilingualQuestionEditor({
     is_required: initialData?.is_required || false,
   });
 
-  const t = language === 'es' ? {
-    title: 'Editor de Preguntas Multilingüe',
-    spanish: 'Español',
-    english: 'English',
-    questionText: 'Texto de la pregunta',
-    questionType: 'Tipo de pregunta',
-    options: 'Opciones',
-    addOption: 'Agregar opción',
-    removeOption: 'Eliminar',
-    required: 'Requerida',
-    preview: 'Vista previa',
-    hidePreview: 'Ocultar vista previa',
-    save: 'Guardar Pregunta',
-    cancel: 'Cancelar',
-    validation: {
-      bothLanguages: 'Ambos idiomas son requeridos',
-      minOptions: 'Se requieren al menos 2 opciones',
-    },
-    types: {
-      likert: 'Escala Likert',
-      multiple_choice: 'Opción múltiple',
-      open_ended: 'Respuesta abierta',
-      yes_no: 'Sí/No',
-      rating: 'Calificación',
-    },
-  } : {
-    title: 'Multilingual Question Editor',
-    spanish: 'Español',
-    english: 'English',
-    questionText: 'Question text',
-    questionType: 'Question type',
-    options: 'Options',
-    addOption: 'Add option',
-    removeOption: 'Remove',
-    required: 'Required',
-    preview: 'Preview',
-    hidePreview: 'Hide preview',
-    save: 'Save Question',
-    cancel: 'Cancel',
-    validation: {
-      bothLanguages: 'Both languages are required',
-      minOptions: 'At least 2 options required',
-    },
-    types: {
-      likert: 'Likert Scale',
-      multiple_choice: 'Multiple Choice',
-      open_ended: 'Open Ended',
-      yes_no: 'Yes/No',
-      rating: 'Rating',
-    },
-  };
+  const t =
+    language === 'es'
+      ? {
+          title: 'Editor de Preguntas Multilingüe',
+          spanish: 'Español',
+          english: 'English',
+          questionText: 'Texto de la pregunta',
+          questionType: 'Tipo de pregunta',
+          options: 'Opciones',
+          addOption: 'Agregar opción',
+          removeOption: 'Eliminar',
+          required: 'Requerida',
+          preview: 'Vista previa',
+          hidePreview: 'Ocultar vista previa',
+          save: 'Guardar Pregunta',
+          cancel: 'Cancelar',
+          validation: {
+            bothLanguages: 'Ambos idiomas son requeridos',
+            minOptions: 'Se requieren al menos 2 opciones',
+          },
+          types: {
+            likert: 'Escala Likert',
+            multiple_choice: 'Opción múltiple',
+            open_ended: 'Respuesta abierta',
+            yes_no: 'Sí/No',
+            rating: 'Calificación',
+          },
+        }
+      : {
+          title: 'Multilingual Question Editor',
+          spanish: 'Español',
+          english: 'English',
+          questionText: 'Question text',
+          questionType: 'Question type',
+          options: 'Options',
+          addOption: 'Add option',
+          removeOption: 'Remove',
+          required: 'Required',
+          preview: 'Preview',
+          hidePreview: 'Hide preview',
+          save: 'Save Question',
+          cancel: 'Cancel',
+          validation: {
+            bothLanguages: 'Both languages are required',
+            minOptions: 'At least 2 options required',
+          },
+          types: {
+            likert: 'Likert Scale',
+            multiple_choice: 'Multiple Choice',
+            open_ended: 'Open Ended',
+            yes_no: 'Yes/No',
+            rating: 'Rating',
+          },
+        };
 
-  const requiresOptions = ['likert', 'multiple_choice', 'rating'].includes(formData.question_type);
+  const requiresOptions = ['likert', 'multiple_choice', 'rating'].includes(
+    formData.question_type
+  );
 
   const addOption = () => {
     setFormData({
@@ -139,20 +144,30 @@ export function MultilingualQuestionEditor({
 
   const handleSave = () => {
     // Validation
-    if (!formData.question_text_es.trim() || !formData.question_text_en.trim()) {
+    if (
+      !formData.question_text_es.trim() ||
+      !formData.question_text_en.trim()
+    ) {
       alert(t.validation.bothLanguages);
       return;
     }
 
-    if (requiresOptions && formData.options_es.filter(o => o.trim()).length < 2) {
+    if (
+      requiresOptions &&
+      formData.options_es.filter((o) => o.trim()).length < 2
+    ) {
       alert(t.validation.minOptions);
       return;
     }
 
     onSave({
       ...formData,
-      options_es: requiresOptions ? formData.options_es.filter(o => o.trim()) : [],
-      options_en: requiresOptions ? formData.options_en.filter(o => o.trim()) : [],
+      options_es: requiresOptions
+        ? formData.options_es.filter((o) => o.trim())
+        : [],
+      options_en: requiresOptions
+        ? formData.options_en.filter((o) => o.trim())
+        : [],
     });
   };
 
@@ -193,14 +208,18 @@ export function MultilingualQuestionEditor({
         <Label>{t.questionType}</Label>
         <Select
           value={formData.question_type}
-          onValueChange={(value) => setFormData({ ...formData, question_type: value })}
+          onValueChange={(value) =>
+            setFormData({ ...formData, question_type: value })
+          }
         >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="likert">{t.types.likert}</SelectItem>
-            <SelectItem value="multiple_choice">{t.types.multiple_choice}</SelectItem>
+            <SelectItem value="multiple_choice">
+              {t.types.multiple_choice}
+            </SelectItem>
             <SelectItem value="open_ended">{t.types.open_ended}</SelectItem>
             <SelectItem value="yes_no">{t.types.yes_no}</SelectItem>
             <SelectItem value="rating">{t.types.rating}</SelectItem>
@@ -223,7 +242,9 @@ export function MultilingualQuestionEditor({
             <Label>{t.questionText}</Label>
             <Textarea
               value={formData.question_text_es}
-              onChange={(e) => setFormData({ ...formData, question_text_es: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, question_text_es: e.target.value })
+              }
               placeholder="¿Cuál es tu nivel de satisfacción?"
               rows={3}
               className="resize-none"
@@ -267,7 +288,10 @@ export function MultilingualQuestionEditor({
         {/* English Column */}
         <div className="space-y-4 p-4 border-2 border-green-200 dark:border-green-800 rounded-lg">
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20">
+            <Badge
+              variant="outline"
+              className="bg-green-50 dark:bg-green-900/20"
+            >
               {t.english}
             </Badge>
           </div>
@@ -277,7 +301,9 @@ export function MultilingualQuestionEditor({
             <Label>{t.questionText}</Label>
             <Textarea
               value={formData.question_text_en}
-              onChange={(e) => setFormData({ ...formData, question_text_en: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, question_text_en: e.target.value })
+              }
               placeholder="What is your satisfaction level?"
               rows={3}
               className="resize-none"
@@ -323,20 +349,36 @@ export function MultilingualQuestionEditor({
           </h4>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium mb-2">{formData.question_text_es || '...'}</p>
-              {requiresOptions && formData.options_es.filter(o => o.trim()).map((opt, i) => (
-                <div key={i} className="text-xs text-gray-600 dark:text-gray-400">
-                  • {opt}
-                </div>
-              ))}
+              <p className="text-sm font-medium mb-2">
+                {formData.question_text_es || '...'}
+              </p>
+              {requiresOptions &&
+                formData.options_es
+                  .filter((o) => o.trim())
+                  .map((opt, i) => (
+                    <div
+                      key={i}
+                      className="text-xs text-gray-600 dark:text-gray-400"
+                    >
+                      • {opt}
+                    </div>
+                  ))}
             </div>
             <div>
-              <p className="text-sm font-medium mb-2">{formData.question_text_en || '...'}</p>
-              {requiresOptions && formData.options_en.filter(o => o.trim()).map((opt, i) => (
-                <div key={i} className="text-xs text-gray-600 dark:text-gray-400">
-                  • {opt}
-                </div>
-              ))}
+              <p className="text-sm font-medium mb-2">
+                {formData.question_text_en || '...'}
+              </p>
+              {requiresOptions &&
+                formData.options_en
+                  .filter((o) => o.trim())
+                  .map((opt, i) => (
+                    <div
+                      key={i}
+                      className="text-xs text-gray-600 dark:text-gray-400"
+                    >
+                      • {opt}
+                    </div>
+                  ))}
             </div>
           </div>
         </motion.div>
@@ -349,9 +391,7 @@ export function MultilingualQuestionEditor({
             {t.cancel}
           </Button>
         )}
-        <Button onClick={handleSave}>
-          {t.save}
-        </Button>
+        <Button onClick={handleSave}>{t.save}</Button>
       </div>
     </div>
   );

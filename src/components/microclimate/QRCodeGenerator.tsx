@@ -4,12 +4,31 @@ import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
 import { jsPDF } from 'jspdf';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Download, Copy, Check, QrCode as QrCodeIcon, FileImage, FileText } from 'lucide-react';
+import {
+  Download,
+  Copy,
+  Check,
+  QrCode as QrCodeIcon,
+  FileImage,
+  FileText,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 interface QRCodeGeneratorProps {
@@ -25,7 +44,7 @@ type QRFormat = 'png' | 'svg';
 
 /**
  * QR Code Generator Component
- * 
+ *
  * Features:
  * - Generate QR codes for survey URLs
  * - Multiple export formats (PNG, SVG, PDF)
@@ -48,45 +67,51 @@ export function QRCodeGenerator({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Translations
-  const t = language === 'es' ? {
-    title: 'Código QR',
-    description: 'Genera un código QR para acceder fácilmente a la encuesta',
-    surveyUrl: 'URL de la Encuesta',
-    copyUrl: 'Copiar URL',
-    urlCopied: 'URL Copiada',
-    size: 'Tamaño',
-    errorCorrection: 'Corrección de Errores',
-    format: 'Formato',
-    downloadPNG: 'Descargar PNG',
-    downloadSVG: 'Descargar SVG',
-    downloadPDF: 'Descargar PDF',
-    preview: 'Vista Previa',
-    errorLow: 'Baja (7%)',
-    errorMedium: 'Media (15%)',
-    errorQuartile: 'Alta (25%)',
-    errorHigh: 'Muy Alta (30%)',
-    generating: 'Generando...',
-    scanInstructions: 'Los empleados pueden escanear este código QR con su teléfono para acceder a la encuesta.',
-  } : {
-    title: 'QR Code',
-    description: 'Generate a QR code for easy survey access',
-    surveyUrl: 'Survey URL',
-    copyUrl: 'Copy URL',
-    urlCopied: 'URL Copied',
-    size: 'Size',
-    errorCorrection: 'Error Correction',
-    format: 'Format',
-    downloadPNG: 'Download PNG',
-    downloadSVG: 'Download SVG',
-    downloadPDF: 'Download PDF',
-    preview: 'Preview',
-    errorLow: 'Low (7%)',
-    errorMedium: 'Medium (15%)',
-    errorQuartile: 'High (25%)',
-    errorHigh: 'Very High (30%)',
-    generating: 'Generating...',
-    scanInstructions: 'Employees can scan this QR code with their phone to access the survey.',
-  };
+  const t =
+    language === 'es'
+      ? {
+          title: 'Código QR',
+          description:
+            'Genera un código QR para acceder fácilmente a la encuesta',
+          surveyUrl: 'URL de la Encuesta',
+          copyUrl: 'Copiar URL',
+          urlCopied: 'URL Copiada',
+          size: 'Tamaño',
+          errorCorrection: 'Corrección de Errores',
+          format: 'Formato',
+          downloadPNG: 'Descargar PNG',
+          downloadSVG: 'Descargar SVG',
+          downloadPDF: 'Descargar PDF',
+          preview: 'Vista Previa',
+          errorLow: 'Baja (7%)',
+          errorMedium: 'Media (15%)',
+          errorQuartile: 'Alta (25%)',
+          errorHigh: 'Muy Alta (30%)',
+          generating: 'Generando...',
+          scanInstructions:
+            'Los empleados pueden escanear este código QR con su teléfono para acceder a la encuesta.',
+        }
+      : {
+          title: 'QR Code',
+          description: 'Generate a QR code for easy survey access',
+          surveyUrl: 'Survey URL',
+          copyUrl: 'Copy URL',
+          urlCopied: 'URL Copied',
+          size: 'Size',
+          errorCorrection: 'Error Correction',
+          format: 'Format',
+          downloadPNG: 'Download PNG',
+          downloadSVG: 'Download SVG',
+          downloadPDF: 'Download PDF',
+          preview: 'Preview',
+          errorLow: 'Low (7%)',
+          errorMedium: 'Medium (15%)',
+          errorQuartile: 'High (25%)',
+          errorHigh: 'Very High (30%)',
+          generating: 'Generating...',
+          scanInstructions:
+            'Employees can scan this QR code with their phone to access the survey.',
+        };
 
   // Generate QR code
   useEffect(() => {
@@ -109,7 +134,11 @@ export function QRCodeGenerator({
         onGenerated?.(dataUrl);
       } catch (error) {
         console.error('Error generating QR code:', error);
-        toast.error(language === 'es' ? 'Error al generar código QR' : 'Error generating QR code');
+        toast.error(
+          language === 'es'
+            ? 'Error al generar código QR'
+            : 'Error generating QR code'
+        );
       } finally {
         setGenerating(false);
       }
@@ -127,7 +156,9 @@ export function QRCodeGenerator({
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Error copying URL:', error);
-      toast.error(language === 'es' ? 'Error al copiar URL' : 'Error copying URL');
+      toast.error(
+        language === 'es' ? 'Error al copiar URL' : 'Error copying URL'
+      );
     }
   };
 
@@ -168,7 +199,9 @@ export function QRCodeGenerator({
       toast.success(language === 'es' ? 'SVG descargado' : 'SVG downloaded');
     } catch (error) {
       console.error('Error generating SVG:', error);
-      toast.error(language === 'es' ? 'Error al generar SVG' : 'Error generating SVG');
+      toast.error(
+        language === 'es' ? 'Error al generar SVG' : 'Error generating SVG'
+      );
     }
   };
 
@@ -189,9 +222,10 @@ export function QRCodeGenerator({
 
       // Add instructions
       pdf.setFontSize(12);
-      const instructions = language === 'es'
-        ? 'Escanea este código QR para acceder a la encuesta'
-        : 'Scan this QR code to access the survey';
+      const instructions =
+        language === 'es'
+          ? 'Escanea este código QR para acceder a la encuesta'
+          : 'Scan this QR code to access the survey';
       pdf.text(instructions, 105, 35, { align: 'center' });
 
       // Add QR code
@@ -204,14 +238,18 @@ export function QRCodeGenerator({
       pdf.setFontSize(10);
       pdf.text(t.surveyUrl + ':', 105, qrY + qrSize + 15, { align: 'center' });
       pdf.setFontSize(8);
-      pdf.text(surveyUrl, 105, qrY + qrSize + 22, { align: 'center', maxWidth: 180 });
+      pdf.text(surveyUrl, 105, qrY + qrSize + 22, {
+        align: 'center',
+        maxWidth: 180,
+      });
 
       // Add footer
       pdf.setFontSize(8);
       pdf.setTextColor(128);
-      const footer = language === 'es'
-        ? 'Generado por Plataforma de Clima Organizacional'
-        : 'Generated by Organizational Climate Platform';
+      const footer =
+        language === 'es'
+          ? 'Generado por Plataforma de Clima Organizacional'
+          : 'Generated by Organizational Climate Platform';
       pdf.text(footer, 105, 280, { align: 'center' });
 
       // Save PDF
@@ -220,7 +258,9 @@ export function QRCodeGenerator({
       toast.success(language === 'es' ? 'PDF descargado' : 'PDF downloaded');
     } catch (error) {
       console.error('Error generating PDF:', error);
-      toast.error(language === 'es' ? 'Error al generar PDF' : 'Error generating PDF');
+      toast.error(
+        language === 'es' ? 'Error al generar PDF' : 'Error generating PDF'
+      );
     }
   };
 
@@ -270,7 +310,10 @@ export function QRCodeGenerator({
           {/* Size */}
           <div className="space-y-2">
             <Label>{t.size}</Label>
-            <Select value={size} onValueChange={(value) => setSize(value as QRSize)}>
+            <Select
+              value={size}
+              onValueChange={(value) => setSize(value as QRSize)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -286,7 +329,10 @@ export function QRCodeGenerator({
           {/* Error Correction */}
           <div className="space-y-2">
             <Label>{t.errorCorrection}</Label>
-            <Select value={errorLevel} onValueChange={(value) => setErrorLevel(value as QRErrorLevel)}>
+            <Select
+              value={errorLevel}
+              onValueChange={(value) => setErrorLevel(value as QRErrorLevel)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -302,7 +348,10 @@ export function QRCodeGenerator({
           {/* Format */}
           <div className="space-y-2">
             <Label>{t.format}</Label>
-            <Select value={format} onValueChange={(value) => setFormat(value as QRFormat)}>
+            <Select
+              value={format}
+              onValueChange={(value) => setFormat(value as QRFormat)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -319,7 +368,10 @@ export function QRCodeGenerator({
           <Label>{t.preview}</Label>
           <div className="flex justify-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border-2 border-dashed border-blue-200 dark:border-blue-800">
             {generating ? (
-              <div className="flex flex-col items-center justify-center space-y-2" style={{ width: parseInt(size), height: parseInt(size) }}>
+              <div
+                className="flex flex-col items-center justify-center space-y-2"
+                style={{ width: parseInt(size), height: parseInt(size) }}
+              >
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -336,7 +388,10 @@ export function QRCodeGenerator({
                 src={qrCodeDataUrl}
                 alt="QR Code"
                 className="rounded-lg shadow-lg"
-                style={{ width: parseInt(size) / 2, height: parseInt(size) / 2 }}
+                style={{
+                  width: parseInt(size) / 2,
+                  height: parseInt(size) / 2,
+                }}
               />
             ) : null}
           </div>

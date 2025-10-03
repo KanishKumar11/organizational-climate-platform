@@ -1,13 +1,32 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { format, addDays, addWeeks, addMonths, isAfter, isBefore } from 'date-fns';
+import {
+  format,
+  addDays,
+  addWeeks,
+  addMonths,
+  isAfter,
+  isBefore,
+} from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +53,7 @@ type QuickOption = '1week' | '2weeks' | '1month' | 'custom';
 
 /**
  * Schedule Configuration Component
- * 
+ *
  * Features:
  * - Date range selection (start/end)
  * - Time selection (optional)
@@ -50,77 +69,87 @@ export function ScheduleConfig({
   const today = new Date();
   const defaultEndDate = addWeeks(today, 2);
 
-  const [startDate, setStartDate] = useState<string>(format(today, 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState<string>(format(defaultEndDate, 'yyyy-MM-dd'));
+  const [startDate, setStartDate] = useState<string>(
+    format(today, 'yyyy-MM-dd')
+  );
+  const [endDate, setEndDate] = useState<string>(
+    format(defaultEndDate, 'yyyy-MM-dd')
+  );
   const [startTime, setStartTime] = useState<string>('09:00');
   const [endTime, setEndTime] = useState<string>('23:59');
   const [timezone, setTimezone] = useState<string>('America/Mexico_City');
   const [enableReminders, setEnableReminders] = useState<boolean>(false);
-  const [reminderFrequency, setReminderFrequency] = useState<'daily' | 'weekly' | 'biweekly'>('weekly');
+  const [reminderFrequency, setReminderFrequency] = useState<
+    'daily' | 'weekly' | 'biweekly'
+  >('weekly');
   const [reminderDaysBefore, setReminderDaysBefore] = useState<number>(3);
   const [autoClose, setAutoClose] = useState<boolean>(true);
   const [quickOption, setQuickOption] = useState<QuickOption>('2weeks');
 
   // Translations
-  const t = language === 'es' ? {
-    title: 'Programación',
-    description: 'Configura las fechas y horarios de la encuesta',
-    startDate: 'Fecha de Inicio',
-    endDate: 'Fecha de Finalización',
-    startTime: 'Hora de Inicio',
-    endTime: 'Hora de Finalización',
-    timezone: 'Zona Horaria',
-    quickOptions: 'Opciones Rápidas',
-    oneWeek: '1 Semana',
-    twoWeeks: '2 Semanas',
-    oneMonth: '1 Mes',
-    custom: 'Personalizado',
-    reminders: 'Recordatorios',
-    enableReminders: 'Habilitar Recordatorios',
-    reminderFrequency: 'Frecuencia de Recordatorios',
-    daily: 'Diario',
-    weekly: 'Semanal',
-    biweekly: 'Quincenal',
-    reminderDaysBefore: 'Días Antes de Cierre',
-    autoClose: 'Cierre Automático',
-    autoCloseDesc: 'Cerrar automáticamente la encuesta cuando finalice',
-    duration: 'Duración',
-    days: 'días',
-    validationError: 'Error de Validación',
-    endBeforeStart: 'La fecha de finalización debe ser posterior a la de inicio',
-    surveySchedule: 'Horario de la Encuesta',
-    active: 'Activa',
-    scheduled: 'Programada',
-  } : {
-    title: 'Schedule',
-    description: 'Configure survey dates and times',
-    startDate: 'Start Date',
-    endDate: 'End Date',
-    startTime: 'Start Time',
-    endTime: 'End Time',
-    timezone: 'Timezone',
-    quickOptions: 'Quick Options',
-    oneWeek: '1 Week',
-    twoWeeks: '2 Weeks',
-    oneMonth: '1 Month',
-    custom: 'Custom',
-    reminders: 'Reminders',
-    enableReminders: 'Enable Reminders',
-    reminderFrequency: 'Reminder Frequency',
-    daily: 'Daily',
-    weekly: 'Weekly',
-    biweekly: 'Biweekly',
-    reminderDaysBefore: 'Days Before Close',
-    autoClose: 'Auto Close',
-    autoCloseDesc: 'Automatically close survey when it ends',
-    duration: 'Duration',
-    days: 'days',
-    validationError: 'Validation Error',
-    endBeforeStart: 'End date must be after start date',
-    surveySchedule: 'Survey Schedule',
-    active: 'Active',
-    scheduled: 'Scheduled',
-  };
+  const t =
+    language === 'es'
+      ? {
+          title: 'Programación',
+          description: 'Configura las fechas y horarios de la encuesta',
+          startDate: 'Fecha de Inicio',
+          endDate: 'Fecha de Finalización',
+          startTime: 'Hora de Inicio',
+          endTime: 'Hora de Finalización',
+          timezone: 'Zona Horaria',
+          quickOptions: 'Opciones Rápidas',
+          oneWeek: '1 Semana',
+          twoWeeks: '2 Semanas',
+          oneMonth: '1 Mes',
+          custom: 'Personalizado',
+          reminders: 'Recordatorios',
+          enableReminders: 'Habilitar Recordatorios',
+          reminderFrequency: 'Frecuencia de Recordatorios',
+          daily: 'Diario',
+          weekly: 'Semanal',
+          biweekly: 'Quincenal',
+          reminderDaysBefore: 'Días Antes de Cierre',
+          autoClose: 'Cierre Automático',
+          autoCloseDesc: 'Cerrar automáticamente la encuesta cuando finalice',
+          duration: 'Duración',
+          days: 'días',
+          validationError: 'Error de Validación',
+          endBeforeStart:
+            'La fecha de finalización debe ser posterior a la de inicio',
+          surveySchedule: 'Horario de la Encuesta',
+          active: 'Activa',
+          scheduled: 'Programada',
+        }
+      : {
+          title: 'Schedule',
+          description: 'Configure survey dates and times',
+          startDate: 'Start Date',
+          endDate: 'End Date',
+          startTime: 'Start Time',
+          endTime: 'End Time',
+          timezone: 'Timezone',
+          quickOptions: 'Quick Options',
+          oneWeek: '1 Week',
+          twoWeeks: '2 Weeks',
+          oneMonth: '1 Month',
+          custom: 'Custom',
+          reminders: 'Reminders',
+          enableReminders: 'Enable Reminders',
+          reminderFrequency: 'Reminder Frequency',
+          daily: 'Daily',
+          weekly: 'Weekly',
+          biweekly: 'Biweekly',
+          reminderDaysBefore: 'Days Before Close',
+          autoClose: 'Auto Close',
+          autoCloseDesc: 'Automatically close survey when it ends',
+          duration: 'Duration',
+          days: 'days',
+          validationError: 'Validation Error',
+          endBeforeStart: 'End date must be after start date',
+          surveySchedule: 'Survey Schedule',
+          active: 'Active',
+          scheduled: 'Scheduled',
+        };
 
   // Timezones (common ones)
   const timezones = [
@@ -150,7 +179,7 @@ export function ScheduleConfig({
   // Handle quick option change
   const handleQuickOptionChange = (option: QuickOption) => {
     setQuickOption(option);
-    
+
     if (option !== 'custom') {
       const start = new Date();
       let end = new Date();
@@ -198,7 +227,19 @@ export function ScheduleConfig({
     };
 
     onScheduleChange?.(scheduleData);
-  }, [startDate, endDate, startTime, endTime, timezone, enableReminders, reminderFrequency, reminderDaysBefore, autoClose, isValid, onScheduleChange]);
+  }, [
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    timezone,
+    enableReminders,
+    reminderFrequency,
+    reminderDaysBefore,
+    autoClose,
+    isValid,
+    onScheduleChange,
+  ]);
 
   // Check if survey is currently active
   const isCurrentlyActive = () => {
@@ -354,7 +395,10 @@ export function ScheduleConfig({
               <Badge variant="outline" className="text-sm">
                 {t.duration}: {calculateDuration()} {t.days}
               </Badge>
-              <Badge variant={isCurrentlyActive() ? 'default' : 'secondary'} className="text-sm">
+              <Badge
+                variant={isCurrentlyActive() ? 'default' : 'secondary'}
+                className="text-sm"
+              >
                 {isCurrentlyActive() ? t.active : t.scheduled}
               </Badge>
             </motion.div>
@@ -408,7 +452,14 @@ export function ScheduleConfig({
                 {/* Frequency */}
                 <div className="space-y-2">
                   <Label>{t.reminderFrequency}</Label>
-                  <Select value={reminderFrequency} onValueChange={(value) => setReminderFrequency(value as 'daily' | 'weekly' | 'biweekly')}>
+                  <Select
+                    value={reminderFrequency}
+                    onValueChange={(value) =>
+                      setReminderFrequency(
+                        value as 'daily' | 'weekly' | 'biweekly'
+                      )
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -422,14 +473,18 @@ export function ScheduleConfig({
 
                 {/* Days Before Close */}
                 <div className="space-y-2">
-                  <Label htmlFor="reminderDaysBefore">{t.reminderDaysBefore}</Label>
+                  <Label htmlFor="reminderDaysBefore">
+                    {t.reminderDaysBefore}
+                  </Label>
                   <Input
                     id="reminderDaysBefore"
                     type="number"
                     min="1"
                     max="30"
                     value={reminderDaysBefore}
-                    onChange={(e) => setReminderDaysBefore(parseInt(e.target.value))}
+                    onChange={(e) =>
+                      setReminderDaysBefore(parseInt(e.target.value))
+                    }
                     className="w-full"
                   />
                 </div>

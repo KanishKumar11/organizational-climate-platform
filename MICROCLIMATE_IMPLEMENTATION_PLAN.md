@@ -3,6 +3,7 @@
 ## 📋 Executive Summary
 
 This document outlines the comprehensive implementation of an enterprise-grade Microclimate/Climate/Culture survey system with:
+
 - ✅ **4-Step Wizard** with autosave
 - ✅ **Question Library** with hierarchical categories
 - ✅ **Advanced Targeting** with company master data
@@ -14,6 +15,7 @@ This document outlines the comprehensive implementation of an enterprise-grade M
 ## 🎯 Architecture Overview
 
 ### Technology Stack
+
 - **Frontend**: Next.js 15 + React 19 + TypeScript
 - **State Management**: React Query + Zustand (for autosave)
 - **Forms**: React Hook Form + Zod validation
@@ -25,6 +27,7 @@ This document outlines the comprehensive implementation of an enterprise-grade M
 - **i18n**: next-intl
 
 ### Data Flow
+
 ```
 User Input → Local State → Debounced Autosave → MongoDB Draft
           ↓
@@ -127,6 +130,7 @@ src/
 ### STEP 1: Basic Info with Autosave
 
 #### Component: `Step1BasicInfo.tsx`
+
 ```typescript
 interface Step1Data {
   survey_type: 'microclimate' | 'climate' | 'culture';
@@ -146,6 +150,7 @@ Features:
 ```
 
 #### Autosave Implementation
+
 ```typescript
 // hooks/useAutosave.ts
 import { useEffect, useRef } from 'react';
@@ -158,7 +163,9 @@ export function useAutosave<T>(
   options = { debounceMs: 5000, enabled: true }
 ) {
   const lastSaved = useRef<string>('');
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveStatus, setSaveStatus] = useState<
+    'idle' | 'saving' | 'saved' | 'error'
+  >('idle');
 
   const mutation = useMutation({
     mutationFn: saveFn,
@@ -187,24 +194,32 @@ export function useAutosave<T>(
 ```
 
 #### API Endpoint: `/api/surveys/drafts/[id]/autosave`
+
 ```typescript
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!session?.user)
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { step, data, version } = await req.json();
-  
+
   await connectDB();
-  
+
   // Optimistic concurrency control
   const draft = await SurveyDraft.findOne({
     _id: params.id,
     created_by: session.user.id,
-    version
+    version,
   });
 
   if (!draft) {
-    return NextResponse.json({ error: 'Draft outdated or not found' }, { status: 409 });
+    return NextResponse.json(
+      { error: 'Draft outdated or not found' },
+      { status: 409 }
+    );
   }
 
   draft[`step${step}_data`] = data;
@@ -214,10 +229,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   await draft.save();
 
-  return NextResponse.json({ 
-    success: true, 
+  return NextResponse.json({
+    success: true,
     version: draft.version,
-    timestamp: draft.last_autosave 
+    timestamp: draft.last_autosave,
   });
 }
 ```
@@ -225,6 +240,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 ### STEP 2: Questions with Library Integration
 
 #### Component: `Step2Questions.tsx`
+
 ```typescript
 interface Step2Features {
   quickAdd: Question[];           // Frequently used
@@ -249,6 +265,7 @@ interface Step2Features {
 ```
 
 #### Question Library Service
+
 ```typescript
 // lib/question-library-service.ts
 export class QuestionLibraryService {
@@ -261,36 +278,36 @@ export class QuestionLibraryService {
           from: 'survey_questions',
           localField: '_id',
           foreignField: 'library_question_id',
-          as: 'usage'
-        }
+          as: 'usage',
+        },
       },
       { $addFields: { usage_count: { $size: '$usage' } } },
       { $sort: { usage_count: -1, created_at: -1 } },
-      { $limit: 10 }
+      { $limit: 10 },
     ]);
   }
 
   async searchQuestions(params: SearchParams): Promise<Question[]> {
     const { query, category, dimension, scale, tags, language } = params;
-    
+
     const filter: any = { is_active: true };
-    
+
     if (query) {
       filter.$text = { $search: query };
     }
-    
+
     if (category) {
       filter.category_id = category;
     }
-    
+
     if (dimension) {
       filter.dimension = dimension;
     }
-    
+
     if (tags?.length) {
       filter.tags = { $in: tags };
     }
-    
+
     if (language) {
       filter[`text_${language}`] = { $exists: true, $ne: '' };
     }
@@ -302,9 +319,9 @@ export class QuestionLibraryService {
   }
 
   async bulkAddByCategory(categoryId: string): Promise<Question[]> {
-    return await QuestionLibrary.find({ 
-      category_id: categoryId, 
-      is_active: true 
+    return await QuestionLibrary.find({
+      category_id: categoryId,
+      is_active: true,
     }).sort({ order: 1 });
   }
 
@@ -313,7 +330,7 @@ export class QuestionLibraryService {
     const existing = await QuestionLibrary.findOne({
       company_id: data.company_id,
       text_en: data.text_en,
-      is_active: true
+      is_active: true,
     });
 
     if (existing) {
@@ -324,7 +341,7 @@ export class QuestionLibraryService {
       ...data,
       version: 1,
       created_by: data.created_by,
-      created_at: new Date()
+      created_at: new Date(),
     });
 
     await question.save();
@@ -334,13 +351,17 @@ export class QuestionLibraryService {
       question_id: question._id,
       action: 'created',
       author: data.created_by,
-      changes: { new: question.toObject() }
+      changes: { new: question.toObject() },
     });
 
     return question;
   }
 
-  async updateQuestion(id: string, data: Partial<Question>, userId: string): Promise<Question> {
+  async updateQuestion(
+    id: string,
+    data: Partial<Question>,
+    userId: string
+  ): Promise<Question> {
     const original = await QuestionLibrary.findById(id);
     if (!original) throw new Error('Question not found');
 
@@ -351,7 +372,7 @@ export class QuestionLibraryService {
         ...data,
         version: original.version + 1,
         last_modified_by: userId,
-        last_modified: new Date()
+        last_modified: new Date(),
       },
       { new: true }
     );
@@ -363,8 +384,8 @@ export class QuestionLibraryService {
       author: userId,
       changes: {
         before: original.toObject(),
-        after: updated.toObject()
-      }
+        after: updated.toObject(),
+      },
     });
 
     return updated;
@@ -373,13 +394,14 @@ export class QuestionLibraryService {
 ```
 
 #### Multilingual Editor Component
+
 ```typescript
 // components/survey/QuestionLibrary/MultilingualEditor.tsx
-export function MultilingualEditor({ 
-  question, 
-  onChange 
-}: { 
-  question: Question; 
+export function MultilingualEditor({
+  question,
+  onChange
+}: {
+  question: Question;
   onChange: (updated: Question) => void;
 }) {
   const [editMode, setEditMode] = useState<'es' | 'en' | 'both'>('both');
@@ -387,19 +409,19 @@ export function MultilingualEditor({
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <Button 
+        <Button
           variant={editMode === 'both' ? 'default' : 'outline'}
           onClick={() => setEditMode('both')}
         >
           Side-by-Side
         </Button>
-        <Button 
+        <Button
           variant={editMode === 'es' ? 'default' : 'outline'}
           onClick={() => setEditMode('es')}
         >
           Español
         </Button>
-        <Button 
+        <Button
           variant={editMode === 'en' ? 'default' : 'outline'}
           onClick={() => setEditMode('en')}
         >
@@ -431,9 +453,9 @@ export function MultilingualEditor({
           <Label>{editMode === 'es' ? 'Español' : 'English'}</Label>
           <Textarea
             value={editMode === 'es' ? question.text_es : question.text_en}
-            onChange={(e) => onChange({ 
-              ...question, 
-              [editMode === 'es' ? 'text_es' : 'text_en']: e.target.value 
+            onChange={(e) => onChange({
+              ...question,
+              [editMode === 'es' ? 'text_es' : 'text_en']: e.target.value
             })}
           />
         </div>
@@ -446,6 +468,7 @@ export function MultilingualEditor({
 ### STEP 3: Advanced Targeting
 
 #### Component: `Step3Targeting.tsx`
+
 ```typescript
 interface TargetingData {
   preloaded: {
@@ -468,11 +491,16 @@ interface TargetingData {
 ```
 
 #### Company Master Data Preload
+
 ```typescript
 // API: /api/companies/[id]/master-data
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!session?.user)
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   await connectDB();
 
@@ -480,15 +508,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     Department.find({ company_id: params.id, is_active: true })
       .select('name code employee_count parent_id')
       .lean(),
-      
+
     User.find({ companyId: params.id, is_active: true })
-      .select('name email employee_id department_id location role seniority tenure_months')
+      .select(
+        'name email employee_id department_id location role seniority tenure_months'
+      )
       .lean(),
-      
+
     Company.findById(params.id)
       .select('locations')
       .lean()
-      .then(c => c?.locations || [])
+      .then((c) => c?.locations || []),
   ]);
 
   // Build demographics summary
@@ -499,23 +529,28 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     by_role: _.countBy(employees, 'role'),
     by_seniority: _.countBy(employees, 'seniority'),
     tenure_distribution: {
-      '0-6mo': employees.filter(e => e.tenure_months <= 6).length,
-      '6mo-1yr': employees.filter(e => e.tenure_months > 6 && e.tenure_months <= 12).length,
-      '1-3yr': employees.filter(e => e.tenure_months > 12 && e.tenure_months <= 36).length,
-      '3yr+': employees.filter(e => e.tenure_months > 36).length,
-    }
+      '0-6mo': employees.filter((e) => e.tenure_months <= 6).length,
+      '6mo-1yr': employees.filter(
+        (e) => e.tenure_months > 6 && e.tenure_months <= 12
+      ).length,
+      '1-3yr': employees.filter(
+        (e) => e.tenure_months > 12 && e.tenure_months <= 36
+      ).length,
+      '3yr+': employees.filter((e) => e.tenure_months > 36).length,
+    },
   };
 
   return NextResponse.json({
     departments: buildDepartmentTree(departments),
     employees,
     locations,
-    demographics
+    demographics,
   });
 }
 ```
 
 #### CSV Import Component
+
 ```typescript
 // components/survey/Targeting/CSVImporter.tsx
 import Papa from 'papaparse';
@@ -609,8 +644,8 @@ export function CSVImporter({ onImport }: { onImport: (data: Employee[]) => void
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Input 
-            type="file" 
+          <Input
+            type="file"
             accept=".csv,.xlsx,.xls"
             onChange={handleFileSelect}
           />
@@ -691,6 +726,7 @@ export function CSVImporter({ onImport }: { onImport: (data: Employee[]) => void
 ```
 
 #### Audience Preview Component
+
 ```typescript
 // components/survey/Targeting/AudiencePreview.tsx
 export function AudiencePreview({ filters }: { filters: TargetingFilters }) {
@@ -714,23 +750,23 @@ export function AudiencePreview({ filters }: { filters: TargetingFilters }) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard 
-            label="Total Recipients" 
+          <StatCard
+            label="Total Recipients"
             value={stats.total_recipients}
             icon={<Users />}
           />
-          <StatCard 
-            label="Departments" 
+          <StatCard
+            label="Departments"
             value={stats.department_count}
             icon={<Building />}
           />
-          <StatCard 
-            label="Locations" 
+          <StatCard
+            label="Locations"
             value={stats.location_count}
             icon={<MapPin />}
           />
-          <StatCard 
-            label="Avg Tenure" 
+          <StatCard
+            label="Avg Tenure"
             value={`${stats.avg_tenure_months}mo`}
             icon={<Clock />}
           />
@@ -756,6 +792,7 @@ export function AudiencePreview({ filters }: { filters: TargetingFilters }) {
 ### STEP 4: Scheduling & Distribution
 
 #### Component: `Step4Scheduling.tsx`
+
 ```typescript
 interface SchedulingData {
   start_date: string;
@@ -781,33 +818,37 @@ interface SchedulingData {
 ```
 
 #### QR Code Generator Service
+
 ```typescript
 // lib/qr-code-service.ts
 import QRCode from 'qrcode';
 
 export class QRCodeService {
-  async generateQRCode(surveyId: string, options: QROptions = {}): Promise<QRCodeData> {
+  async generateQRCode(
+    surveyId: string,
+    options: QROptions = {}
+  ): Promise<QRCodeData> {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
     const url = `${baseUrl}/surveys/${surveyId}/respond`;
 
     // Generate different formats
     const [svgString, pngDataUrl, pdfBuffer] = await Promise.all([
-      QRCode.toString(url, { 
+      QRCode.toString(url, {
         type: 'svg',
         errorCorrectionLevel: 'H',
         width: options.size || 300,
         color: {
           dark: options.color || '#000000',
-          light: options.backgroundColor || '#FFFFFF'
-        }
-      }),
-      
-      QRCode.toDataURL(url, {
-        errorCorrectionLevel: 'H',
-        width: options.size || 300
+          light: options.backgroundColor || '#FFFFFF',
+        },
       }),
 
-      this.generatePDF(url, options)
+      QRCode.toDataURL(url, {
+        errorCorrectionLevel: 'H',
+        width: options.size || 300,
+      }),
+
+      this.generatePDF(url, options),
     ]);
 
     // Save to database
@@ -817,7 +858,7 @@ export class QRCodeService {
         qr_code_svg: svgString,
         qr_code_png: pngDataUrl,
         qr_code_url: url,
-        generated_at: new Date()
+        generated_at: new Date(),
       },
       { upsert: true }
     );
@@ -826,7 +867,7 @@ export class QRCodeService {
       svg: svgString,
       png: pngDataUrl,
       pdf: pdfBuffer,
-      url
+      url,
     };
   }
 
@@ -839,6 +880,7 @@ export class QRCodeService {
 ```
 
 #### URL Management Component
+
 ```typescript
 // components/survey/Distribution/URLManager.tsx
 export function URLManager({ surveyId }: { surveyId: string }) {
@@ -900,11 +942,11 @@ export function URLManager({ surveyId }: { surveyId: string }) {
           <div>
             <Label>Public URL</Label>
             <div className="flex gap-2">
-              <Input 
-                value={distribution?.public_url || 'Not generated'} 
-                readOnly 
+              <Input
+                value={distribution?.public_url || 'Not generated'}
+                readOnly
               />
-              <Button 
+              <Button
                 onClick={() => navigator.clipboard.writeText(distribution?.public_url)}
                 variant="outline"
               >
@@ -976,6 +1018,7 @@ export function URLManager({ surveyId }: { surveyId: string }) {
 ### Draft Recovery & Audit Trail
 
 #### Draft Recovery Hook
+
 ```typescript
 // hooks/useDraftRecovery.ts
 export function useDraftRecovery(surveyId?: string) {
@@ -987,7 +1030,7 @@ export function useDraftRecovery(surveyId?: string) {
     const checkDraft = async () => {
       const response = await fetch('/api/surveys/drafts/latest');
       const data = await response.json();
-      
+
       if (data.draft && isRecent(data.draft.last_modified)) {
         setHasDraft(true);
         setDraftData(data.draft);
@@ -1004,7 +1047,7 @@ export function useDraftRecovery(surveyId?: string) {
 
   const discardDraft = async () => {
     await fetch(`/api/surveys/drafts/${draftData._id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     });
     setHasDraft(false);
     setDraftData(null);
@@ -1020,6 +1063,7 @@ function isRecent(timestamp: string): boolean {
 ```
 
 #### Draft Recovery Banner
+
 ```typescript
 // components/survey/SurveyWizard/DraftRecoveryBanner.tsx
 export function DraftRecoveryBanner() {
@@ -1035,15 +1079,15 @@ export function DraftRecoveryBanner() {
         You have an unsaved survey draft from{' '}
         {formatDistanceToNow(new Date(draftData.last_modified), { addSuffix: true })}.
         <div className="flex gap-2 mt-2">
-          <Button 
-            onClick={recoverDraft} 
+          <Button
+            onClick={recoverDraft}
             size="sm"
             variant="default"
           >
             Recover Draft
           </Button>
-          <Button 
-            onClick={discardDraft} 
+          <Button
+            onClick={discardDraft}
             size="sm"
             variant="outline"
           >
@@ -1057,6 +1101,7 @@ export function DraftRecoveryBanner() {
 ```
 
 #### Audit Trail Service
+
 ```typescript
 // lib/audit-trail-service.ts
 export class AuditTrailService {
@@ -1088,10 +1133,13 @@ export class AuditTrailService {
       .lean();
   }
 
-  async getChangesByEntity(surveyId: string, entityType: string): Promise<AuditEntry[]> {
-    return await SurveyAuditLog.find({ 
+  async getChangesByEntity(
+    surveyId: string,
+    entityType: string
+  ): Promise<AuditEntry[]> {
+    return await SurveyAuditLog.find({
       survey_id: surveyId,
-      entity_type: entityType 
+      entity_type: entityType,
     })
       .sort({ timestamp: -1 })
       .lean();
@@ -1102,293 +1150,368 @@ export class AuditTrailService {
 ## 📊 Database Schemas
 
 ### SurveyDraft Model
+
 ```typescript
 // models/SurveyDraft.ts
-const SurveyDraftSchema = new Schema({
-  company_id: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
-  created_by: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  version: { type: Number, default: 1 },
-  
-  // Step 1: Basic Info
-  step1_data: {
-    survey_type: { type: String, enum: ['microclimate', 'climate', 'culture'] },
-    title: String,
-    description: String,
-    company_type: String,
-    language: { type: String, enum: ['es', 'en', 'both'], default: 'both' },
-  },
-  
-  // Step 2: Questions
-  step2_data: {
-    questions: [{
-      library_id: { type: Schema.Types.ObjectId, ref: 'QuestionLibrary' },
-      text_es: String,
-      text_en: String,
-      type: String,
-      options: [String],
-      category: String,
-      dimension: String,
-      required: Boolean,
-      order: Number,
-    }],
-    from_template: Boolean,
-    template_id: { type: Schema.Types.ObjectId, ref: 'SurveyTemplate' },
-  },
-  
-  // Step 3: Targeting
-  step3_data: {
-    filters: {
-      department_ids: [{ type: Schema.Types.ObjectId, ref: 'Department' }],
-      location_ids: [String],
-      role_filters: [String],
-      seniority_levels: [String],
-      tenure_range: { min: Number, max: Number },
+const SurveyDraftSchema = new Schema(
+  {
+    company_id: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+    created_by: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    version: { type: Number, default: 1 },
+
+    // Step 1: Basic Info
+    step1_data: {
+      survey_type: {
+        type: String,
+        enum: ['microclimate', 'climate', 'culture'],
+      },
+      title: String,
+      description: String,
+      company_type: String,
+      language: { type: String, enum: ['es', 'en', 'both'], default: 'both' },
     },
-    imported_employees: [{
-      name: String,
-      email: String,
-      employee_id: String,
-      department: String,
-      location: String,
-      role: String,
-    }],
-    manual_additions: [{
-      name: String,
-      email: String,
-      employee_id: String,
-    }],
-    excluded_ids: [String],
-    total_recipients: Number,
-  },
-  
-  // Step 4: Scheduling
-  step4_data: {
-    start_date: Date,
-    end_date: Date,
-    timezone: String,
-    reminders: [{
-      type: String,
-      offset_hours: Number,
-      channels: [String],
-    }],
-    distribution: {
-      access_type: { type: String, enum: ['tokenized', 'open', 'hybrid'] },
-      require_login: Boolean,
-      allow_anonymous: Boolean,
-      single_response: Boolean,
+
+    // Step 2: Questions
+    step2_data: {
+      questions: [
+        {
+          library_id: { type: Schema.Types.ObjectId, ref: 'QuestionLibrary' },
+          text_es: String,
+          text_en: String,
+          type: String,
+          options: [String],
+          category: String,
+          dimension: String,
+          required: Boolean,
+          order: Number,
+        },
+      ],
+      from_template: Boolean,
+      template_id: { type: Schema.Types.ObjectId, ref: 'SurveyTemplate' },
     },
+
+    // Step 3: Targeting
+    step3_data: {
+      filters: {
+        department_ids: [{ type: Schema.Types.ObjectId, ref: 'Department' }],
+        location_ids: [String],
+        role_filters: [String],
+        seniority_levels: [String],
+        tenure_range: { min: Number, max: Number },
+      },
+      imported_employees: [
+        {
+          name: String,
+          email: String,
+          employee_id: String,
+          department: String,
+          location: String,
+          role: String,
+        },
+      ],
+      manual_additions: [
+        {
+          name: String,
+          email: String,
+          employee_id: String,
+        },
+      ],
+      excluded_ids: [String],
+      total_recipients: Number,
+    },
+
+    // Step 4: Scheduling
+    step4_data: {
+      start_date: Date,
+      end_date: Date,
+      timezone: String,
+      reminders: [
+        {
+          type: String,
+          offset_hours: Number,
+          channels: [String],
+        },
+      ],
+      distribution: {
+        access_type: { type: String, enum: ['tokenized', 'open', 'hybrid'] },
+        require_login: Boolean,
+        allow_anonymous: Boolean,
+        single_response: Boolean,
+      },
+    },
+
+    created_at: { type: Date, default: Date.now },
+    last_modified: { type: Date, default: Date.now },
+    last_autosave: Date,
+    expires_at: {
+      type: Date,
+      default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    }, // 7 days
   },
-  
-  created_at: { type: Date, default: Date.now },
-  last_modified: { type: Date, default: Date.now },
-  last_autosave: Date,
-  expires_at: { type: Date, default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }, // 7 days
-}, {
-  timestamps: true,
-});
+  {
+    timestamps: true,
+  }
+);
 
 // Index for efficient draft retrieval
 SurveyDraftSchema.index({ created_by: 1, last_modified: -1 });
 SurveyDraftSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 }); // TTL index
 
-export default mongoose.models.SurveyDraft || mongoose.model('SurveyDraft', SurveyDraftSchema);
+export default mongoose.models.SurveyDraft ||
+  mongoose.model('SurveyDraft', SurveyDraftSchema);
 ```
 
 ### QuestionLibrary Model
+
 ```typescript
 // models/QuestionLibrary.ts
-const QuestionLibrarySchema = new Schema({
-  company_id: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
-  category_id: { type: Schema.Types.ObjectId, ref: 'QuestionCategory', required: true },
-  
-  text_es: { type: String, required: true },
-  text_en: { type: String, required: true },
-  
-  type: { 
-    type: String, 
-    enum: ['likert', 'multiple_choice', 'open_ended', 'scale', 'binary', 'matrix'],
-    required: true 
+const QuestionLibrarySchema = new Schema(
+  {
+    company_id: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+    category_id: {
+      type: Schema.Types.ObjectId,
+      ref: 'QuestionCategory',
+      required: true,
+    },
+
+    text_es: { type: String, required: true },
+    text_en: { type: String, required: true },
+
+    type: {
+      type: String,
+      enum: [
+        'likert',
+        'multiple_choice',
+        'open_ended',
+        'scale',
+        'binary',
+        'matrix',
+      ],
+      required: true,
+    },
+
+    options_es: [String],
+    options_en: [String],
+
+    scale: {
+      min: Number,
+      max: Number,
+      labels_es: Map,
+      labels_en: Map,
+    },
+
+    dimension: { type: String }, // e.g., 'engagement', 'satisfaction', 'leadership'
+    tags: [String],
+
+    reverse_coded: { type: Boolean, default: false }, // For sentiment analysis
+
+    // Version control
+    version: { type: Number, default: 1 },
+    previous_version_id: {
+      type: Schema.Types.ObjectId,
+      ref: 'QuestionLibrary',
+    },
+
+    // Usage tracking
+    usage_count: { type: Number, default: 0 },
+    last_used: Date,
+
+    // Metadata
+    created_by: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    last_modified_by: { type: Schema.Types.ObjectId, ref: 'User' },
+    is_active: { type: Boolean, default: true },
+    is_global: { type: Boolean, default: false }, // Available to all companies
+
+    created_at: { type: Date, default: Date.now },
+    last_modified: Date,
   },
-  
-  options_es: [String],
-  options_en: [String],
-  
-  scale: {
-    min: Number,
-    max: Number,
-    labels_es: Map,
-    labels_en: Map,
-  },
-  
-  dimension: { type: String }, // e.g., 'engagement', 'satisfaction', 'leadership'
-  tags: [String],
-  
-  reverse_coded: { type: Boolean, default: false }, // For sentiment analysis
-  
-  // Version control
-  version: { type: Number, default: 1 },
-  previous_version_id: { type: Schema.Types.ObjectId, ref: 'QuestionLibrary' },
-  
-  // Usage tracking
-  usage_count: { type: Number, default: 0 },
-  last_used: Date,
-  
-  // Metadata
-  created_by: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  last_modified_by: { type: Schema.Types.ObjectId, ref: 'User' },
-  is_active: { type: Boolean, default: true },
-  is_global: { type: Boolean, default: false }, // Available to all companies
-  
-  created_at: { type: Date, default: Date.now },
-  last_modified: Date,
-}, {
-  timestamps: true,
-});
+  {
+    timestamps: true,
+  }
+);
 
 // Text search index
-QuestionLibrarySchema.index({ 
-  text_es: 'text', 
-  text_en: 'text', 
-  tags: 'text' 
+QuestionLibrarySchema.index({
+  text_es: 'text',
+  text_en: 'text',
+  tags: 'text',
 });
 
 // Compound indexes for efficient queries
 QuestionLibrarySchema.index({ company_id: 1, category_id: 1, is_active: 1 });
 QuestionLibrarySchema.index({ company_id: 1, usage_count: -1 });
 
-export default mongoose.models.QuestionLibrary || mongoose.model('QuestionLibrary', QuestionLibrarySchema);
+export default mongoose.models.QuestionLibrary ||
+  mongoose.model('QuestionLibrary', QuestionLibrarySchema);
 ```
 
 ### QuestionCategory Model
+
 ```typescript
 // models/QuestionCategory.ts
-const QuestionCategorySchema = new Schema({
-  name_es: { type: String, required: true },
-  name_en: { type: String, required: true },
-  description_es: String,
-  description_en: String,
-  
-  parent_id: { type: Schema.Types.ObjectId, ref: 'QuestionCategory' }, // For hierarchy
-  level: { type: Number, default: 0 }, // 0 = root, 1 = subcategory, etc.
-  
-  icon: String,
-  color: String,
-  
-  order: Number,
-  
-  company_id: { type: Schema.Types.ObjectId, ref: 'Company' },
-  is_global: { type: Boolean, default: false },
-  is_active: { type: Boolean, default: true },
-  
-  question_count: { type: Number, default: 0 }, // Denormalized for performance
-  
-  created_at: { type: Date, default: Date.now },
-}, {
-  timestamps: true,
-});
+const QuestionCategorySchema = new Schema(
+  {
+    name_es: { type: String, required: true },
+    name_en: { type: String, required: true },
+    description_es: String,
+    description_en: String,
+
+    parent_id: { type: Schema.Types.ObjectId, ref: 'QuestionCategory' }, // For hierarchy
+    level: { type: Number, default: 0 }, // 0 = root, 1 = subcategory, etc.
+
+    icon: String,
+    color: String,
+
+    order: Number,
+
+    company_id: { type: Schema.Types.ObjectId, ref: 'Company' },
+    is_global: { type: Boolean, default: false },
+    is_active: { type: Boolean, default: true },
+
+    question_count: { type: Number, default: 0 }, // Denormalized for performance
+
+    created_at: { type: Date, default: Date.now },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 QuestionCategorySchema.index({ company_id: 1, parent_id: 1, is_active: 1 });
 QuestionCategorySchema.index({ is_global: 1, level: 1 });
 
-export default mongoose.models.QuestionCategory || mongoose.model('QuestionCategory', QuestionCategorySchema);
+export default mongoose.models.QuestionCategory ||
+  mongoose.model('QuestionCategory', QuestionCategorySchema);
 ```
 
 ### SurveyAuditLog Model
+
 ```typescript
 // models/SurveyAuditLog.ts
-const SurveyAuditLogSchema = new Schema({
-  survey_id: { type: Schema.Types.ObjectId, ref: 'Survey', required: true },
-  
-  action: { 
-    type: String, 
-    enum: [
-      'created', 'updated', 'deleted',
-      'published', 'cancelled', 'completed',
-      'question_added', 'question_removed', 'question_modified',
-      'audience_updated', 'schedule_changed', 'settings_modified'
-    ],
-    required: true 
+const SurveyAuditLogSchema = new Schema(
+  {
+    survey_id: { type: Schema.Types.ObjectId, ref: 'Survey', required: true },
+
+    action: {
+      type: String,
+      enum: [
+        'created',
+        'updated',
+        'deleted',
+        'published',
+        'cancelled',
+        'completed',
+        'question_added',
+        'question_removed',
+        'question_modified',
+        'audience_updated',
+        'schedule_changed',
+        'settings_modified',
+      ],
+      required: true,
+    },
+
+    entity_type: {
+      type: String,
+      enum: [
+        'survey',
+        'title',
+        'description',
+        'questions',
+        'audience',
+        'schedule',
+        'distribution',
+        'settings',
+      ],
+      required: true,
+    },
+    entity_id: String, // For specific entities like question ID
+
+    changes: {
+      before: Schema.Types.Mixed,
+      after: Schema.Types.Mixed,
+    },
+
+    user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    user_name: String,
+    user_role: String,
+
+    timestamp: { type: Date, default: Date.now },
+    ip_address: String,
+    user_agent: String,
   },
-  
-  entity_type: { 
-    type: String, 
-    enum: ['survey', 'title', 'description', 'questions', 'audience', 'schedule', 'distribution', 'settings'],
-    required: true 
-  },
-  entity_id: String, // For specific entities like question ID
-  
-  changes: {
-    before: Schema.Types.Mixed,
-    after: Schema.Types.Mixed,
-  },
-  
-  user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  user_name: String,
-  user_role: String,
-  
-  timestamp: { type: Date, default: Date.now },
-  ip_address: String,
-  user_agent: String,
-  
-}, {
-  timestamps: false,
-});
+  {
+    timestamps: false,
+  }
+);
 
 SurveyAuditLogSchema.index({ survey_id: 1, timestamp: -1 });
 SurveyAuditLogSchema.index({ user_id: 1, timestamp: -1 });
 SurveyAuditLogSchema.index({ action: 1, timestamp: -1 });
 
-export default mongoose.models.SurveyAuditLog || mongoose.model('SurveyAuditLog', SurveyAuditLogSchema);
+export default mongoose.models.SurveyAuditLog ||
+  mongoose.model('SurveyAuditLog', SurveyAuditLogSchema);
 ```
 
 ### SurveyDistribution Model
+
 ```typescript
 // models/SurveyDistribution.ts
-const SurveyDistributionSchema = new Schema({
-  survey_id: { type: Schema.Types.ObjectId, ref: 'Survey', required: true, unique: true },
-  
-  access_type: { 
-    type: String, 
-    enum: ['tokenized', 'open', 'hybrid'],
-    default: 'tokenized' 
-  },
-  
-  public_url: String,
-  tokenized_links_generated: { type: Number, default: 0 },
-  
-  qr_code_svg: String,
-  qr_code_png: String,
-  qr_code_pdf_url: String,
-  qr_code_url: String,
-  
-  access_rules: {
-    require_login: { type: Boolean, default: true },
-    allow_anonymous: { type: Boolean, default: false },
-    single_response: { type: Boolean, default: true },
-    active_outside_schedule: { type: Boolean, default: false },
-    allowed_domains: [String],
-    blocked_ips: [String],
-  },
-  
-  generated_at: Date,
-  regenerated_count: { type: Number, default: 0 },
-  
-}, {
-  timestamps: true,
-});
+const SurveyDistributionSchema = new Schema(
+  {
+    survey_id: {
+      type: Schema.Types.ObjectId,
+      ref: 'Survey',
+      required: true,
+      unique: true,
+    },
 
-export default mongoose.models.SurveyDistribution || mongoose.model('SurveyDistribution', SurveyDistributionSchema);
+    access_type: {
+      type: String,
+      enum: ['tokenized', 'open', 'hybrid'],
+      default: 'tokenized',
+    },
+
+    public_url: String,
+    tokenized_links_generated: { type: Number, default: 0 },
+
+    qr_code_svg: String,
+    qr_code_png: String,
+    qr_code_pdf_url: String,
+    qr_code_url: String,
+
+    access_rules: {
+      require_login: { type: Boolean, default: true },
+      allow_anonymous: { type: Boolean, default: false },
+      single_response: { type: Boolean, default: true },
+      active_outside_schedule: { type: Boolean, default: false },
+      allowed_domains: [String],
+      blocked_ips: [String],
+    },
+
+    generated_at: Date,
+    regenerated_count: { type: Number, default: 0 },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+export default mongoose.models.SurveyDistribution ||
+  mongoose.model('SurveyDistribution', SurveyDistributionSchema);
 ```
 
 ## 🚀 Implementation Timeline
 
 ### Phase 1: Foundation (Week 1)
+
 - [ ] Database schemas (SurveyDraft, QuestionLibrary, QuestionCategory, SurveyAuditLog)
 - [ ] Autosave hook and service
 - [ ] Draft recovery system
 - [ ] Basic wizard structure
 
 ### Phase 2: Question Library (Week 2)
+
 - [ ] Question library CRUD APIs
 - [ ] Category hierarchy system
 - [ ] Quick Add functionality
@@ -1397,6 +1520,7 @@ export default mongoose.models.SurveyDistribution || mongoose.model('SurveyDistr
 - [ ] Bulk add by category
 
 ### Phase 3: Targeting System (Week 3)
+
 - [ ] Company master data preload API
 - [ ] CSV import component
 - [ ] Column mapping UI
@@ -1405,6 +1529,7 @@ export default mongoose.models.SurveyDistribution || mongoose.model('SurveyDistr
 - [ ] Audience preview
 
 ### Phase 4: Distribution (Week 4)
+
 - [ ] QR code generation service
 - [ ] URL management system
 - [ ] Access rules configuration
@@ -1412,6 +1537,7 @@ export default mongoose.models.SurveyDistribution || mongoose.model('SurveyDistr
 - [ ] Download formats (PNG, SVG, PDF)
 
 ### Phase 5: Polish & Testing (Week 5)
+
 - [ ] Audit trail implementation
 - [ ] Error handling and retry logic
 - [ ] Performance optimization
@@ -1421,45 +1547,49 @@ export default mongoose.models.SurveyDistribution || mongoose.model('SurveyDistr
 ## 📝 Testing Strategy
 
 ### Unit Tests
+
 ```typescript
 // __tests__/hooks/useAutosave.test.ts
 describe('useAutosave', () => {
   it('should debounce saves', async () => {
     const saveFn = jest.fn();
     const { result } = renderHook(() => useAutosave(data, saveFn));
-    
+
     // Should not call immediately
     expect(saveFn).not.toHaveBeenCalled();
-    
+
     // Should call after debounce period
-    await waitFor(() => expect(saveFn).toHaveBeenCalledTimes(1), { timeout: 6000 });
+    await waitFor(() => expect(saveFn).toHaveBeenCalledTimes(1), {
+      timeout: 6000,
+    });
   });
 
   it('should handle save errors gracefully', async () => {
     const saveFn = jest.fn().mockRejectedValue(new Error('Network error'));
     const { result } = renderHook(() => useAutosave(data, saveFn));
-    
+
     await waitFor(() => expect(result.current.saveStatus).toBe('error'));
   });
 });
 ```
 
 ### Integration Tests
+
 ```typescript
 // __tests__/api/surveys/drafts.test.ts
 describe('POST /api/surveys/drafts/[id]/autosave', () => {
   it('should save draft with optimistic concurrency control', async () => {
     const draft = await createTestDraft();
-    
+
     const response = await fetch(`/api/surveys/drafts/${draft._id}/autosave`, {
       method: 'POST',
       body: JSON.stringify({
         step: 1,
         data: { title: 'Updated Title' },
-        version: draft.version
-      })
+        version: draft.version,
+      }),
     });
-    
+
     expect(response.status).toBe(200);
     const updated = await SurveyDraft.findById(draft._id);
     expect(updated.version).toBe(draft.version + 1);
@@ -1467,22 +1597,23 @@ describe('POST /api/surveys/drafts/[id]/autosave', () => {
 
   it('should reject outdated versions', async () => {
     const draft = await createTestDraft();
-    
+
     const response = await fetch(`/api/surveys/drafts/${draft._id}/autosave`, {
       method: 'POST',
       body: JSON.stringify({
         step: 1,
         data: { title: 'Updated Title' },
-        version: draft.version - 1 // Old version
-      })
+        version: draft.version - 1, // Old version
+      }),
     });
-    
+
     expect(response.status).toBe(409); // Conflict
   });
 });
 ```
 
 ### E2E Tests
+
 ```typescript
 // __tests__/e2e/survey-wizard.test.ts
 describe('Survey Wizard Flow', () => {
@@ -1492,33 +1623,37 @@ describe('Survey Wizard Flow', () => {
     await page.fill('[name="title"]', 'Employee Engagement Survey');
     await page.selectOption('[name="survey_type"]', 'climate');
     await page.selectOption('[name="company_id"]', testCompany._id);
-    
+
     // Wait for autosave
-    await page.waitForSelector('[data-testid="save-indicator"][data-status="saved"]');
-    
+    await page.waitForSelector(
+      '[data-testid="save-indicator"][data-status="saved"]'
+    );
+
     // Step 2: Questions
     await page.click('button:has-text("Next")');
     await page.click('button:has-text("Quick Add")');
     await page.click('[data-question-id="frequently-used-1"]');
-    
+
     // Step 3: Targeting
     await page.click('button:has-text("Next")');
     await page.check('[data-department="engineering"]');
-    
+
     // Verify audience preview updates
-    await page.waitForSelector('[data-testid="total-recipients"]:has-text("42")');
-    
+    await page.waitForSelector(
+      '[data-testid="total-recipients"]:has-text("42")'
+    );
+
     // Step 4: Schedule & Distribution
     await page.click('button:has-text("Next")');
     await page.fill('[name="start_date"]', '2025-10-10');
-    
+
     // Generate QR code
     await page.click('button:has-text("Generate QR Code")');
     await page.waitForSelector('[data-testid="qr-code-preview"]');
-    
+
     // Publish
     await page.click('button:has-text("Publish Survey")');
-    
+
     // Verify redirect to survey page
     await page.waitForURL(/\/surveys\/[a-f0-9]{24}$/);
   });
@@ -1527,24 +1662,28 @@ describe('Survey Wizard Flow', () => {
     // Start creating survey
     await page.goto('/surveys/create-wizard');
     await page.fill('[name="title"]', 'Test Draft Recovery');
-    
+
     // Wait for autosave
-    await page.waitForSelector('[data-testid="save-indicator"][data-status="saved"]');
-    
+    await page.waitForSelector(
+      '[data-testid="save-indicator"][data-status="saved"]'
+    );
+
     // Simulate session expiry
     await page.context().clearCookies();
-    
+
     // Reload page
     await page.reload();
-    
+
     // Should show recovery banner
     await page.waitForSelector('[data-testid="draft-recovery-banner"]');
-    
+
     // Recover draft
     await page.click('button:has-text("Recover Draft")');
-    
+
     // Verify data restored
-    await expect(page.locator('[name="title"]')).toHaveValue('Test Draft Recovery');
+    await expect(page.locator('[name="title"]')).toHaveValue(
+      'Test Draft Recovery'
+    );
   });
 });
 ```
@@ -1552,24 +1691,28 @@ describe('Survey Wizard Flow', () => {
 ## 🔒 Security Considerations
 
 ### 1. Input Validation
+
 - All user inputs validated with Zod schemas
 - SQL injection prevention (using Mongoose)
 - XSS prevention (sanitize user-generated content)
 - File upload validation (CSV size, format, content)
 
 ### 2. Authorization
+
 - Role-based access control (RBAC)
 - Company scoping (users can only access their company data)
 - Permission checks on every API endpoint
 - Audit trail for compliance
 
 ### 3. Data Privacy
+
 - PII handling for employee data
 - GDPR compliance (right to deletion, data export)
 - Encryption at rest and in transit
 - Anonymous response tracking
 
 ### 4. Rate Limiting
+
 - Autosave endpoint: 60 requests/minute
 - CSV import: 10 requests/hour
 - QR generation: 100 requests/day
@@ -1577,24 +1720,28 @@ describe('Survey Wizard Flow', () => {
 ## 📊 Performance Optimization
 
 ### 1. Database Optimization
+
 - Indexes on frequently queried fields
 - Denormalized counters (question_count, usage_count)
 - TTL indexes for draft cleanup
 - Aggregation pipelines for audience preview
 
 ### 2. Caching Strategy
+
 - React Query cache for question library (5 min TTL)
 - Server-side caching for company master data (10 min TTL)
 - CDN caching for QR code images
 - Memoization for complex calculations
 
 ### 3. Load Time Optimization
+
 - Code splitting by wizard step
 - Lazy loading for question library browser
 - Optimistic updates for autosave
 - Prefetching next step data
 
 ### 4. Scalability
+
 - Background jobs for CSV processing (>1000 rows)
 - Queue system for tokenized link generation
 - Horizontal scaling for API routes
@@ -1603,6 +1750,7 @@ describe('Survey Wizard Flow', () => {
 ## 🌐 Internationalization (i18n)
 
 ### Setup
+
 ```typescript
 // lib/i18n-config.ts
 import { notFound } from 'next/navigation';
@@ -1617,12 +1765,13 @@ export default getRequestConfig(async ({ locale }) => {
   return {
     messages: (await import(`../messages/${locale}.json`)).default,
     timeZone: 'America/Mexico_City',
-    now: new Date()
+    now: new Date(),
   };
 });
 ```
 
 ### Translation Files
+
 ```json
 // messages/en.json
 {
@@ -1668,6 +1817,7 @@ export default getRequestConfig(async ({ locale }) => {
 ```
 
 ### Usage in Components
+
 ```typescript
 import { useTranslations } from 'next-intl';
 

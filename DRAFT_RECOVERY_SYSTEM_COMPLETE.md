@@ -34,30 +34,32 @@ The Draft Recovery System automatically detects and recovers unsaved survey draf
 **Purpose**: React hook for draft recovery logic
 
 **Exports**:
+
 - `useDraftRecovery(userId, companyId, options)` - Main hook
 - `useTimeUntilExpiry(expiresAt)` - Time calculation utility
 
 **Features**:
+
 ```typescript
 const {
   // State
-  hasDraft,          // boolean - Draft found and recoverable
-  draft,             // DraftData | null - Draft object
-  draftAge,          // string - Human-readable age (e.g., "hace 2 horas")
-  isLoading,         // boolean - Loading state
-  showBanner,        // boolean - Should show UI
-  
+  hasDraft, // boolean - Draft found and recoverable
+  draft, // DraftData | null - Draft object
+  draftAge, // string - Human-readable age (e.g., "hace 2 horas")
+  isLoading, // boolean - Loading state
+  showBanner, // boolean - Should show UI
+
   // Actions
-  recoverDraft,      // () => void - Recover draft
-  discardDraft,      // () => void - Delete draft
-  hideBanner,        // () => void - Hide UI manually
-  checkForDrafts,    // () => void - Manual check
-  
+  recoverDraft, // () => void - Recover draft
+  discardDraft, // () => void - Delete draft
+  hideBanner, // () => void - Hide UI manually
+  checkForDrafts, // () => void - Manual check
+
   // Mutation states
-  isRecovering,      // boolean - Recovery in progress
-  isDiscarding,      // boolean - Discard in progress
-  recoverError,      // Error | null - Recovery error
-  discardError,      // Error | null - Discard error
+  isRecovering, // boolean - Recovery in progress
+  isDiscarding, // boolean - Discard in progress
+  recoverError, // Error | null - Recovery error
+  discardError, // Error | null - Discard error
 } = useDraftRecovery(userId, companyId, {
   maxAgeHours: 24,
   autoCheck: true,
@@ -68,6 +70,7 @@ const {
 ```
 
 **Options**:
+
 - `maxAgeHours` (number, default: 24) - Maximum draft age to consider
 - `autoCheck` (boolean, default: true) - Auto-check on mount
 - `onDraftFound` (callback) - Called when draft detected
@@ -75,11 +78,12 @@ const {
 - `onDiscard` (callback) - Called after successful discard
 
 **Draft Data Structure**:
+
 ```typescript
 interface DraftData {
   id: string;
-  current_step: number;          // 1-4
-  version: number;               // For optimistic concurrency
+  current_step: number; // 1-4
+  version: number; // For optimistic concurrency
   step1_data?: Record<string, unknown>;
   step2_data?: Record<string, unknown>;
   step3_data?: Record<string, unknown>;
@@ -93,12 +97,14 @@ interface DraftData {
 ```
 
 **Age Calculation**:
+
 - `< 1 minute` → "hace un momento"
 - `< 60 minutes` → "hace X minutos"
 - `< 24 hours` → "hace X horas"
 - `≥ 24 hours` → "hace X días"
 
 **Recoverability Check**:
+
 1. Draft must exist
 2. Not expired (`expires_at > now`)
 3. Within max age (`updated_at < maxAgeHours ago`)
@@ -117,25 +123,27 @@ interface DraftData {
 Modern floating banner with gradient background and animations.
 
 **Props**:
+
 ```typescript
 interface DraftRecoveryBannerProps {
-  draftAge: string;              // "hace 2 horas"
-  currentStep?: number;          // 1-4
-  saveCount?: number;            // Auto-save count
-  timeUntilExpiry?: string;      // "23 horas"
-  isExpiringSoon?: boolean;      // Triggers warning styling
+  draftAge: string; // "hace 2 horas"
+  currentStep?: number; // 1-4
+  saveCount?: number; // Auto-save count
+  timeUntilExpiry?: string; // "23 horas"
+  isExpiringSoon?: boolean; // Triggers warning styling
   onRecover: () => void;
   onDiscard: () => void;
   onDismiss?: () => void;
   isRecovering?: boolean;
   isDiscarding?: boolean;
   language?: 'es' | 'en';
-  position?: 'top' | 'bottom';   // Banner position
-  showClose?: boolean;           // Show close button
+  position?: 'top' | 'bottom'; // Banner position
+  showClose?: boolean; // Show close button
 }
 ```
 
 **Visual Design**:
+
 - **Background**: Gradient from orange-50 → amber-50 → yellow-50
 - **Icon**: Orange-to-amber gradient circle with FileWarning icon
 - **Animations**:
@@ -148,17 +156,20 @@ interface DraftRecoveryBannerProps {
 - **Border**: Orange-200 subtle outline
 
 **Metadata Display**:
+
 - Last edited time (clock icon)
 - Current step badge
 - Save count badge (with checkmark)
 - Expiry warning badge (conditional)
 
 **Actions**:
+
 - **Recover**: Orange-to-amber gradient button
 - **Discard**: White outline button
 - **Close**: Ghost button (top-right corner)
 
 **Accessibility**:
+
 - `role="alert"` - Announces to screen readers
 - `aria-live="assertive"` - High priority announcement
 - `aria-atomic="true"` - Read entire message
@@ -171,6 +182,7 @@ Inline alert for use within forms.
 **Props**: Same as banner (minus position/showClose/onDismiss)
 
 **Visual Design**:
+
 - Orange-50 background with orange-200 border
 - Single-line layout (horizontal)
 - Small buttons (size="sm")
@@ -183,6 +195,7 @@ Inline alert for use within forms.
 AnimatePresence wrapper for smooth mount/unmount.
 
 **Props**:
+
 ```typescript
 {
   show: boolean;
@@ -201,6 +214,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 **Endpoint**: `GET /api/surveys/drafts/latest`
 
 **Query Parameters**:
+
 - `user_id` (required) - User ID
 - `company_id` (required) - Company ID
 - `max_age_hours` (optional, default: 24) - Maximum age filter
@@ -210,6 +224,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 **Authorization**: Users can only access their own drafts
 
 **Query Logic**:
+
 ```javascript
 {
   user_id: userId,
@@ -223,6 +238,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 ```
 
 **Response (200)**:
+
 ```json
 {
   "draft": {
@@ -241,6 +257,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 ```
 
 **Response (404)**: No draft found
+
 ```json
 {
   "message": "No draft found"
@@ -248,6 +265,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 ```
 
 **Error Responses**:
+
 - `401` - Unauthorized (no session)
 - `400` - Missing required parameters
 - `403` - Forbidden (wrong user)
@@ -262,6 +280,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 **Endpoint**: `POST /api/surveys/drafts/[id]/recover`
 
 **Path Parameters**:
+
 - `id` - Draft ID
 
 **Authentication**: Session-based
@@ -269,6 +288,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 **Authorization**: User must own the draft
 
 **Action**:
+
 1. Find draft by ID
 2. Verify ownership
 3. Set `is_recovered = true`
@@ -276,6 +296,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 5. Log recovery event (audit trail)
 
 **Audit Log Entry**:
+
 ```javascript
 {
   surveyId: draft._id,
@@ -296,6 +317,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 ```
 
 **Response (200)**:
+
 ```json
 {
   "success": true,
@@ -312,6 +334,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 ```
 
 **Error Responses**:
+
 - `401` - Unauthorized
 - `403` - Forbidden (not your draft)
 - `404` - Draft not found
@@ -330,6 +353,7 @@ AnimatePresence wrapper for smooth mount/unmount.
 Retrieve complete draft data.
 
 **Response (200)**:
+
 ```json
 {
   "draft": {
@@ -355,12 +379,14 @@ Retrieve complete draft data.
 Permanently delete a draft.
 
 **Action**:
+
 1. Find draft
 2. Verify ownership
 3. Log deletion event (audit trail)
 4. Delete from database
 
 **Response (200)**:
+
 ```json
 {
   "success": true,
@@ -377,6 +403,7 @@ Permanently delete a draft.
 **Purpose**: Interactive demonstration component
 
 **Features**:
+
 - Status overview cards (4 cards)
 - Sample survey form
 - Demo controls (check, toggle variant, toggle position)
@@ -385,12 +412,14 @@ Permanently delete a draft.
 - Error handling demonstrations
 
 **Status Cards**:
+
 1. **Draft Status**: Found/Not Found with icon
 2. **Current Step**: 1-4 with step name
 3. **Auto-saves**: Total count
 4. **Expires In**: Time remaining with warning
 
 **Demo Controls**:
+
 - Check for Drafts button
 - Toggle Banner/Alert variant
 - Toggle Top/Bottom position
@@ -398,6 +427,7 @@ Permanently delete a draft.
 - Error displays
 
 **Information Tabs**:
+
 - **Features**: Checklist of capabilities
 - **Integration**: Code example
 - **Data**: JSON display of draft object
@@ -484,7 +514,7 @@ import {
 export function SurveyWizard() {
   const session = useSession();
   const [formData, setFormData] = useState({});
-  
+
   const {
     showBanner,
     draftAge,
@@ -506,10 +536,10 @@ export function SurveyWizard() {
           ...draft.step3_data,
           ...draft.step4_data,
         });
-        
+
         // Navigate to correct step
         setCurrentStep(draft.current_step);
-        
+
         // Show success toast
         toast.success('Draft recovered successfully!');
       },
@@ -517,12 +547,12 @@ export function SurveyWizard() {
         // Reset form
         setFormData({});
         setCurrentStep(1);
-        
+
         toast.info('Draft discarded');
       },
     }
   );
-  
+
   return (
     <>
       {/* Draft Recovery Banner */}
@@ -539,7 +569,7 @@ export function SurveyWizard() {
           language="es"
         />
       </DraftRecoveryContainer>
-      
+
       {/* Your wizard form */}
       <WizardForm data={formData} onChange={setFormData} />
     </>
@@ -556,7 +586,7 @@ import { useDraftRecovery } from '@/hooks/useDraftRecovery';
 export function SurveyWizard() {
   const [draftId, setDraftId] = useState<string | null>(null);
   const [formData, setFormData] = useState({});
-  
+
   // Draft recovery
   const { showBanner, draft, recoverDraft, ... } = useDraftRecovery(
     userId,
@@ -568,7 +598,7 @@ export function SurveyWizard() {
       },
     }
   );
-  
+
   // Autosave (only after draft ID is set)
   const { save, status } = useAutosave(draftId, {
     onSuccess: (data) => {
@@ -577,7 +607,7 @@ export function SurveyWizard() {
       }
     },
   });
-  
+
   // Save on form change
   useEffect(() => {
     if (draftId) {
@@ -587,7 +617,7 @@ export function SurveyWizard() {
       });
     }
   }, [formData, draftId]);
-  
+
   return (/* ... */);
 }
 ```
@@ -626,6 +656,7 @@ enabled: autoCheck && !!userId && !!companyId,
 ### 4. Indexed Fields
 
 MongoDB indexes (from SurveyDraft model):
+
 - `{ user_id: 1, company_id: 1, updated_at: -1 }` - Composite index
 - `{ expires_at: 1 }` - Expiry cleanup
 - `{ is_recovered: 1 }` - Recovery status
@@ -647,6 +678,7 @@ MongoDB indexes (from SurveyDraft model):
 ```
 
 **Behavior**:
+
 - `role="alert"` - Identifies as important message
 - `aria-live="assertive"` - Interrupts current speech
 - `aria-atomic="true"` - Reads entire message, not just changes
@@ -701,7 +733,6 @@ Respects user's motion preferences.
   - [ ] recoverDraft marks as recovered
   - [ ] discardDraft deletes draft
   - [ ] Callbacks fire at correct times
-  
 - [ ] useTimeUntilExpiry hook
   - [ ] Returns correct time strings
   - [ ] isExpiringSoon=true when < 24 hours
@@ -790,6 +821,7 @@ analytics.track('draft_loaded_into_form', {
 With Draft Recovery complete, we're ready for **Phase 4: Survey Wizard Structure**.
 
 This will include:
+
 1. **4-Step Wizard Component** with stepper navigation
 2. **Step 1: Basic Information** (title, description, language, department targeting)
 3. **Step 2: Questions** (integration with Question Library)
@@ -797,6 +829,7 @@ This will include:
 5. **Step 4: Scheduling & Distribution** (QR codes, URLs, notifications)
 
 Each step will integrate with:
+
 - Autosave system (automatic saves)
 - Draft recovery (resume from interruption)
 - Validation (step-by-step progression)

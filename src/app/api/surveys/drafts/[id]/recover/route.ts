@@ -6,7 +6,7 @@ import SurveyAuditLog from '@/models/SurveyAuditLog';
 
 /**
  * POST Recover Draft Endpoint
- * 
+ *
  * Marks a draft as recovered (is_recovered = true)
  */
 export async function POST(
@@ -16,10 +16,7 @@ export async function POST(
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
@@ -27,10 +24,7 @@ export async function POST(
     const draft = await (SurveyDraft as any).findById(params.id);
 
     if (!draft) {
-      return NextResponse.json(
-        { error: 'Draft not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
     // Verify ownership
@@ -63,9 +57,10 @@ export async function POST(
           userRole: (session.user as any).role || 'user',
         },
         request: {
-          ipAddress: req.headers.get('x-forwarded-for') || 
-                     req.headers.get('x-real-ip') || 
-                     'unknown',
+          ipAddress:
+            req.headers.get('x-forwarded-for') ||
+            req.headers.get('x-real-ip') ||
+            'unknown',
           userAgent: req.headers.get('user-agent') || 'unknown',
           sessionId: draft.session_id,
         },
@@ -84,10 +79,9 @@ export async function POST(
         step4_data: draft.step4_data,
       },
     });
-
   } catch (error) {
     console.error('Recover draft error:', error);
-    
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

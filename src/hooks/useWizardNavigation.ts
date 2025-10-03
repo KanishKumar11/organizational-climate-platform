@@ -2,9 +2,9 @@ import { useState, useCallback, useMemo } from 'react';
 
 /**
  * Wizard Navigation Hook
- * 
+ *
  * Manages multi-step wizard state, navigation, and validation.
- * 
+ *
  * Features:
  * - Step tracking (current, completed, visited)
  * - Navigation with validation
@@ -90,10 +90,10 @@ export function useWizardNavigation({
   // Validate current step
   const validateCurrentStep = useCallback(async (): Promise<boolean> => {
     const step = steps[currentStep];
-    
+
     if (!step.validate) {
       // No validation required
-      setValidationErrors(prev => {
+      setValidationErrors((prev) => {
         const next = new Map(prev);
         next.delete(currentStep);
         return next;
@@ -103,9 +103,9 @@ export function useWizardNavigation({
 
     try {
       const isValid = await step.validate();
-      
+
       if (isValid) {
-        setValidationErrors(prev => {
+        setValidationErrors((prev) => {
           const next = new Map(prev);
           next.delete(currentStep);
           return next;
@@ -113,7 +113,7 @@ export function useWizardNavigation({
         return true;
       } else {
         const error = 'Validation failed';
-        setValidationErrors(prev => {
+        setValidationErrors((prev) => {
           const next = new Map(prev);
           next.set(currentStep, error);
           return next;
@@ -122,8 +122,9 @@ export function useWizardNavigation({
         return false;
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      setValidationErrors(prev => {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      setValidationErrors((prev) => {
         const next = new Map(prev);
         next.set(currentStep, errorMessage);
         return next;
@@ -134,64 +135,83 @@ export function useWizardNavigation({
   }, [currentStep, steps, onValidationFailed]);
 
   // Mark current step as completed
-  const markStepCompleted = useCallback((stepIndex: number = currentStep) => {
-    setCompletedSteps(prev => new Set(prev).add(stepIndex));
-  }, [currentStep]);
+  const markStepCompleted = useCallback(
+    (stepIndex: number = currentStep) => {
+      setCompletedSteps((prev) => new Set(prev).add(stepIndex));
+    },
+    [currentStep]
+  );
 
   // Mark current step as incomplete
-  const markStepIncomplete = useCallback((stepIndex: number = currentStep) => {
-    setCompletedSteps(prev => {
-      const next = new Set(prev);
-      next.delete(stepIndex);
-      return next;
-    });
-  }, [currentStep]);
+  const markStepIncomplete = useCallback(
+    (stepIndex: number = currentStep) => {
+      setCompletedSteps((prev) => {
+        const next = new Set(prev);
+        next.delete(stepIndex);
+        return next;
+      });
+    },
+    [currentStep]
+  );
 
   // Navigate to specific step
-  const goToStep = useCallback(async (stepIndex: number, skipValidation = false): Promise<boolean> => {
-    // Bounds check
-    if (stepIndex < 0 || stepIndex >= steps.length) {
-      return false;
-    }
+  const goToStep = useCallback(
+    async (stepIndex: number, skipValidation = false): Promise<boolean> => {
+      // Bounds check
+      if (stepIndex < 0 || stepIndex >= steps.length) {
+        return false;
+      }
 
-    // Already on this step
-    if (stepIndex === currentStep) {
+      // Already on this step
+      if (stepIndex === currentStep) {
+        return true;
+      }
+
+      // Check if jumping ahead is allowed
+      if (!allowJumpToAny && stepIndex > currentStep) {
+        // Can only jump to next step
+        if (stepIndex !== currentStep + 1) {
+          return false;
+        }
+      }
+
+      // Validate current step before moving forward
+      if (!skipValidation && stepIndex > currentStep) {
+        const isValid = await validateCurrentStep();
+        if (!isValid) {
+          return false;
+        }
+        markStepCompleted(currentStep);
+      }
+
+      // Update state
+      const oldStep = currentStep;
+      setCurrentStep(stepIndex);
+      setVisitedSteps((prev) => new Set(prev).add(stepIndex));
+      onStepChange?.(stepIndex, oldStep);
+
       return true;
-    }
-
-    // Check if jumping ahead is allowed
-    if (!allowJumpToAny && stepIndex > currentStep) {
-      // Can only jump to next step
-      if (stepIndex !== currentStep + 1) {
-        return false;
-      }
-    }
-
-    // Validate current step before moving forward
-    if (!skipValidation && stepIndex > currentStep) {
-      const isValid = await validateCurrentStep();
-      if (!isValid) {
-        return false;
-      }
-      markStepCompleted(currentStep);
-    }
-
-    // Update state
-    const oldStep = currentStep;
-    setCurrentStep(stepIndex);
-    setVisitedSteps(prev => new Set(prev).add(stepIndex));
-    onStepChange?.(stepIndex, oldStep);
-
-    return true;
-  }, [currentStep, steps.length, allowJumpToAny, validateCurrentStep, markStepCompleted, onStepChange]);
+    },
+    [
+      currentStep,
+      steps.length,
+      allowJumpToAny,
+      validateCurrentStep,
+      markStepCompleted,
+      onStepChange,
+    ]
+  );
 
   // Go to next step
-  const goNext = useCallback(async (skipValidation = false): Promise<boolean> => {
-    if (!canGoNext) {
-      return false;
-    }
-    return await goToStep(currentStep + 1, skipValidation);
-  }, [canGoNext, currentStep, goToStep]);
+  const goNext = useCallback(
+    async (skipValidation = false): Promise<boolean> => {
+      if (!canGoNext) {
+        return false;
+      }
+      return await goToStep(currentStep + 1, skipValidation);
+    },
+    [canGoNext, currentStep, goToStep]
+  );
 
   // Go to previous step
   const goPrevious = useCallback(async (): Promise<boolean> => {
@@ -228,18 +248,21 @@ export function useWizardNavigation({
   }, [initialStep]);
 
   // Get step status
-  const getStepStatus = useCallback((stepIndex: number): 'completed' | 'current' | 'upcoming' | 'error' => {
-    if (validationErrors.has(stepIndex)) {
-      return 'error';
-    }
-    if (completedSteps.has(stepIndex)) {
-      return 'completed';
-    }
-    if (stepIndex === currentStep) {
-      return 'current';
-    }
-    return 'upcoming';
-  }, [completedSteps, currentStep, validationErrors]);
+  const getStepStatus = useCallback(
+    (stepIndex: number): 'completed' | 'current' | 'upcoming' | 'error' => {
+      if (validationErrors.has(stepIndex)) {
+        return 'error';
+      }
+      if (completedSteps.has(stepIndex)) {
+        return 'completed';
+      }
+      if (stepIndex === currentStep) {
+        return 'current';
+      }
+      return 'upcoming';
+    },
+    [completedSteps, currentStep, validationErrors]
+  );
 
   return {
     // State
@@ -250,7 +273,7 @@ export function useWizardNavigation({
     visitedSteps: Array.from(visitedSteps),
     validationErrors: Object.fromEntries(validationErrors),
     progress,
-    
+
     // Status checks
     canGoNext,
     canGoPrevious,
@@ -258,7 +281,7 @@ export function useWizardNavigation({
     isLastStep,
     isCurrentStepCompleted,
     isCurrentStepValid,
-    
+
     // Navigation
     goNext,
     goPrevious,
@@ -266,7 +289,7 @@ export function useWizardNavigation({
     goToFirst,
     complete,
     reset,
-    
+
     // Utilities
     validateCurrentStep,
     markStepCompleted,
@@ -278,7 +301,9 @@ export function useWizardNavigation({
 /**
  * Get step icon based on status
  */
-export function getStepIcon(status: 'completed' | 'current' | 'upcoming' | 'error'): string {
+export function getStepIcon(
+  status: 'completed' | 'current' | 'upcoming' | 'error'
+): string {
   switch (status) {
     case 'completed':
       return '✓';

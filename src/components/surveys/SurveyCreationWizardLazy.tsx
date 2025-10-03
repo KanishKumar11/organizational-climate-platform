@@ -1,6 +1,6 @@
 /**
  * CLIMA-007: Lazy-loaded Survey Creation Wizard
- * 
+ *
  * Uses React.lazy() and Suspense for code splitting to improve initial load time
  */
 
@@ -27,7 +27,7 @@ function WizardSkeleton() {
         <CardContent className="space-y-6">
           {/* Progress bar skeleton */}
           <Skeleton className="h-2 w-full" />
-          
+
           {/* Step indicators skeleton */}
           <div className="flex justify-between">
             {[1, 2, 3, 4].map((i) => (
@@ -37,14 +37,14 @@ function WizardSkeleton() {
               </div>
             ))}
           </div>
-          
+
           {/* Content skeleton */}
           <div className="space-y-4 mt-8">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
-          
+
           {/* Action buttons skeleton */}
           <div className="flex justify-between mt-8">
             <Skeleton className="h-10 w-24" />

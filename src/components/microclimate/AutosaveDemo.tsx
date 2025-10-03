@@ -2,26 +2,35 @@
 
 import React, { useState } from 'react';
 import { useAutosave, generateSessionId } from '@/hooks/useAutosave';
-import { AutosaveIndicator, AutosaveBadge } from '@/components/microclimate/AutosaveIndicator';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AutosaveIndicator,
+  AutosaveBadge,
+} from '@/components/microclimate/AutosaveIndicator';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Save, 
-  RotateCcw, 
-  FileText, 
+import {
+  Save,
+  RotateCcw,
+  FileText,
   CheckCircle2,
   XCircle,
-  AlertTriangle 
+  AlertTriangle,
 } from 'lucide-react';
 
 /**
  * Autosave Demo Component
- * 
+ *
  * Interactive demo showcasing the autosave system features:
  * - Real-time autosave with debouncing
  * - Status indicators (animated)
@@ -34,7 +43,7 @@ import {
 export function AutosaveDemo() {
   const [draftId] = useState('demo-draft-001');
   const [currentStep, setCurrentStep] = useState(1);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     title: '',
@@ -77,8 +86,8 @@ export function AutosaveDemo() {
 
   // Handle field changes
   const handleChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // Trigger autosave
     save({
       current_step: currentStep,
@@ -105,7 +114,7 @@ export function AutosaveDemo() {
 
   // Simulate conflict
   const triggerConflict = () => {
-    setMockServerVersion(prev => prev + 1);
+    setMockServerVersion((prev) => prev + 1);
     setSimulateConflict(true);
     setTimeout(() => setSimulateConflict(false), 3000);
   };
@@ -123,7 +132,7 @@ export function AutosaveDemo() {
               Demo interactiva con indicadores visuales y control de versiones
             </p>
           </div>
-          
+
           {/* Compact status badge */}
           <AutosaveBadge
             status={status}
@@ -147,10 +156,18 @@ export function AutosaveDemo() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                {status === 'saving' && <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />}
-                {status === 'saved' && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
-                {status === 'error' && <XCircle className="w-4 h-4 text-red-500" />}
-                {status === 'conflict' && <AlertTriangle className="w-4 h-4 text-orange-500" />}
+                {status === 'saving' && (
+                  <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+                )}
+                {status === 'saved' && (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                )}
+                {status === 'error' && (
+                  <XCircle className="w-4 h-4 text-red-500" />
+                )}
+                {status === 'conflict' && (
+                  <AlertTriangle className="w-4 h-4 text-orange-500" />
+                )}
                 <span className="text-sm text-gray-600">
                   Versión: {version}
                 </span>
@@ -178,18 +195,17 @@ export function AutosaveDemo() {
             <CardHeader className="pb-3">
               <CardDescription>Último Guardado</CardDescription>
               <CardTitle className="text-lg">
-                {lastSavedAt ? (
-                  new Date(lastSavedAt).toLocaleTimeString('es-ES')
-                ) : (
-                  'Nunca'
-                )}
+                {lastSavedAt
+                  ? new Date(lastSavedAt).toLocaleTimeString('es-ES')
+                  : 'Nunca'}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600">
                 {lastSavedAt && (
                   <span>
-                    {Math.floor((Date.now() - lastSavedAt.getTime()) / 1000)}s atrás
+                    {Math.floor((Date.now() - lastSavedAt.getTime()) / 1000)}s
+                    atrás
                   </span>
                 )}
               </p>
@@ -205,7 +221,7 @@ export function AutosaveDemo() {
             </CardHeader>
             <CardContent>
               <div className="flex gap-1">
-                {[1, 2, 3, 4].map(step => (
+                {[1, 2, 3, 4].map((step) => (
                   <div
                     key={step}
                     className={`h-2 flex-1 rounded ${
@@ -257,7 +273,9 @@ export function AutosaveDemo() {
                     id="description"
                     placeholder="Describe el propósito de la encuesta..."
                     value={formData.description}
-                    onChange={(e) => handleChange('description', e.target.value)}
+                    onChange={(e) =>
+                      handleChange('description', e.target.value)
+                    }
                     rows={5}
                     className="resize-none"
                   />
@@ -338,14 +356,16 @@ export function AutosaveDemo() {
                 <div>
                   <h4 className="font-medium mb-2">🔄 Autoguardado</h4>
                   <p className="text-gray-600">
-                    Los cambios se guardan automáticamente 3 segundos después de dejar de escribir.
+                    Los cambios se guardan automáticamente 3 segundos después de
+                    dejar de escribir.
                   </p>
                 </div>
 
                 <div>
                   <h4 className="font-medium mb-2">🔢 Control de Versiones</h4>
                   <p className="text-gray-600">
-                    Cada guardado incrementa la versión para prevenir conflictos.
+                    Cada guardado incrementa la versión para prevenir
+                    conflictos.
                   </p>
                 </div>
 
@@ -385,37 +405,55 @@ export function AutosaveDemo() {
 
               <TabsContent value="state" className="space-y-2">
                 <div className="font-mono text-xs bg-gray-50 p-4 rounded-lg overflow-auto">
-                  <pre>{JSON.stringify({
-                    status,
-                    version,
-                    saveCount,
-                    isSaving,
-                    hasError,
-                    hasConflict,
-                    lastSavedAt: lastSavedAt?.toISOString(),
-                  }, null, 2)}</pre>
+                  <pre>
+                    {JSON.stringify(
+                      {
+                        status,
+                        version,
+                        saveCount,
+                        isSaving,
+                        hasError,
+                        hasConflict,
+                        lastSavedAt: lastSavedAt?.toISOString(),
+                      },
+                      null,
+                      2
+                    )}
+                  </pre>
                 </div>
               </TabsContent>
 
               <TabsContent value="data" className="space-y-2">
                 <div className="font-mono text-xs bg-gray-50 p-4 rounded-lg overflow-auto">
-                  <pre>{JSON.stringify({
-                    current_step: currentStep,
-                    step1_data: formData,
-                  }, null, 2)}</pre>
+                  <pre>
+                    {JSON.stringify(
+                      {
+                        current_step: currentStep,
+                        step1_data: formData,
+                      },
+                      null,
+                      2
+                    )}
+                  </pre>
                 </div>
               </TabsContent>
 
               <TabsContent value="config" className="space-y-2">
                 <div className="font-mono text-xs bg-gray-50 p-4 rounded-lg overflow-auto">
-                  <pre>{JSON.stringify({
-                    draftId,
-                    debounceMs: 3000,
-                    enabled: true,
-                    mockServerVersion,
-                    simulateError,
-                    simulateConflict,
-                  }, null, 2)}</pre>
+                  <pre>
+                    {JSON.stringify(
+                      {
+                        draftId,
+                        debounceMs: 3000,
+                        enabled: true,
+                        mockServerVersion,
+                        simulateError,
+                        simulateConflict,
+                      },
+                      null,
+                      2
+                    )}
+                  </pre>
                 </div>
               </TabsContent>
             </Tabs>

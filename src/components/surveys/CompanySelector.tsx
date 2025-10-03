@@ -18,8 +18,17 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { useCompanies, useCompany, useCompanyDepartments, useCompanyUsers } from '@/hooks/useQueries';
-import { prefetchQuery, queryKeys, getQueryData } from '@/lib/react-query-config';
+import {
+  useCompanies,
+  useCompany,
+  useCompanyDepartments,
+  useCompanyUsers,
+} from '@/hooks/useQueries';
+import {
+  prefetchQuery,
+  queryKeys,
+  getQueryData,
+} from '@/lib/react-query-config';
 import { Skeleton } from '@/components/ui/skeleton';
 
 /**
@@ -60,9 +69,12 @@ export default function CompanySelector({
   const [preloading, setPreloading] = useState(false);
 
   // Use React Query hooks for data fetching
-  const { data: companiesData, isLoading } = useCompanies({ limit: 100, active: true });
+  const { data: companiesData, isLoading } = useCompanies({
+    limit: 100,
+    active: true,
+  });
   const { data: selectedCompanyData } = useCompany(value || '');
-  
+
   const companies = companiesData?.companies || [];
   const selectedCompany = selectedCompanyData?.company || null;
 
@@ -79,28 +91,28 @@ export default function CompanySelector({
     try {
       // Prefetch departments and users - they'll be cached and instantly available
       await Promise.all([
-        prefetchQuery(
-          queryKeys.companies.departments(companyId),
-          async () => {
-            const response = await fetch(`/api/companies/${companyId}/departments`);
-            if (!response.ok) throw new Error('Failed to fetch departments');
-            const data = await response.json();
-            return data;
-          }
-        ),
-        prefetchQuery(
-          queryKeys.companies.users(companyId),
-          async () => {
-            const response = await fetch(`/api/companies/${companyId}/users?limit=1000`);
-            if (!response.ok) throw new Error('Failed to fetch users');
-            const data = await response.json();
-            return data;
-          }
-        ),
+        prefetchQuery(queryKeys.companies.departments(companyId), async () => {
+          const response = await fetch(
+            `/api/companies/${companyId}/departments`
+          );
+          if (!response.ok) throw new Error('Failed to fetch departments');
+          const data = await response.json();
+          return data;
+        }),
+        prefetchQuery(queryKeys.companies.users(companyId), async () => {
+          const response = await fetch(
+            `/api/companies/${companyId}/users?limit=1000`
+          );
+          if (!response.ok) throw new Error('Failed to fetch users');
+          const data = await response.json();
+          return data;
+        }),
       ]);
 
       // Read the prefetched data from cache
-      const departmentsData = getQueryData<any>(queryKeys.companies.departments(companyId));
+      const departmentsData = getQueryData<any>(
+        queryKeys.companies.departments(companyId)
+      );
       const usersData = getQueryData<any>(queryKeys.companies.users(companyId));
 
       onPreloadComplete?.({

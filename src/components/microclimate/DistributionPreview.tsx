@@ -4,15 +4,21 @@ import React from 'react';
 import { format } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  CheckCircle2, 
-  Users, 
-  Calendar, 
-  Clock, 
-  Globe, 
+import {
+  CheckCircle2,
+  Users,
+  Calendar,
+  Clock,
+  Globe,
   Bell,
   Target,
   BarChart3,
@@ -32,7 +38,7 @@ interface DistributionPreviewProps {
 
 /**
  * Distribution Preview Component
- * 
+ *
  * Displays a comprehensive summary of the survey before creation:
  * - Survey details
  * - Schedule information
@@ -49,77 +55,80 @@ export function DistributionPreview({
   language = 'es',
 }: DistributionPreviewProps) {
   // Translations
-  const t = language === 'es' ? {
-    title: 'Vista Previa de Distribución',
-    description: 'Revisa todos los detalles antes de crear la encuesta',
-    surveyDetails: 'Detalles de la Encuesta',
-    surveyTitle: 'Título',
-    surveyUrl: 'URL',
-    questions: 'Preguntas',
-    schedule: 'Programación',
-    startDate: 'Fecha de Inicio',
-    endDate: 'Fecha de Finalización',
-    startTime: 'Hora de Inicio',
-    endTime: 'Hora de Finalización',
-    timezone: 'Zona Horaria',
-    duration: 'Duración',
-    days: 'días',
-    targetAudience: 'Audiencia Objetivo',
-    totalRecipients: 'Total de Destinatarios',
-    distributionMethod: 'Método de Distribución',
-    allEmployees: 'Todos los Empleados',
-    csvImport: 'Importación CSV',
-    manualEntry: 'Entrada Manual',
-    reminders: 'Recordatorios',
-    enabled: 'Habilitados',
-    disabled: 'Deshabilitados',
-    frequency: 'Frecuencia',
-    daily: 'Diario',
-    weekly: 'Semanal',
-    biweekly: 'Quincenal',
-    daysBefore: 'días antes del cierre',
-    autoClose: 'Cierre Automático',
-    yes: 'Sí',
-    no: 'No',
-    readyToLaunch: 'Todo listo para lanzar la encuesta',
-    estimatedCompletion: 'Tiempo estimado de completado',
-    minutes: 'minutos',
-  } : {
-    title: 'Distribution Preview',
-    description: 'Review all details before creating the survey',
-    surveyDetails: 'Survey Details',
-    surveyTitle: 'Title',
-    surveyUrl: 'URL',
-    questions: 'Questions',
-    schedule: 'Schedule',
-    startDate: 'Start Date',
-    endDate: 'End Date',
-    startTime: 'Start Time',
-    endTime: 'End Time',
-    timezone: 'Timezone',
-    duration: 'Duration',
-    days: 'days',
-    targetAudience: 'Target Audience',
-    totalRecipients: 'Total Recipients',
-    distributionMethod: 'Distribution Method',
-    allEmployees: 'All Employees',
-    csvImport: 'CSV Import',
-    manualEntry: 'Manual Entry',
-    reminders: 'Reminders',
-    enabled: 'Enabled',
-    disabled: 'Disabled',
-    frequency: 'Frequency',
-    daily: 'Daily',
-    weekly: 'Weekly',
-    biweekly: 'Biweekly',
-    daysBefore: 'days before close',
-    autoClose: 'Auto Close',
-    yes: 'Yes',
-    no: 'No',
-    readyToLaunch: 'Ready to launch the survey',
-    estimatedCompletion: 'Estimated completion time',
-    minutes: 'minutes',
-  };
+  const t =
+    language === 'es'
+      ? {
+          title: 'Vista Previa de Distribución',
+          description: 'Revisa todos los detalles antes de crear la encuesta',
+          surveyDetails: 'Detalles de la Encuesta',
+          surveyTitle: 'Título',
+          surveyUrl: 'URL',
+          questions: 'Preguntas',
+          schedule: 'Programación',
+          startDate: 'Fecha de Inicio',
+          endDate: 'Fecha de Finalización',
+          startTime: 'Hora de Inicio',
+          endTime: 'Hora de Finalización',
+          timezone: 'Zona Horaria',
+          duration: 'Duración',
+          days: 'días',
+          targetAudience: 'Audiencia Objetivo',
+          totalRecipients: 'Total de Destinatarios',
+          distributionMethod: 'Método de Distribución',
+          allEmployees: 'Todos los Empleados',
+          csvImport: 'Importación CSV',
+          manualEntry: 'Entrada Manual',
+          reminders: 'Recordatorios',
+          enabled: 'Habilitados',
+          disabled: 'Deshabilitados',
+          frequency: 'Frecuencia',
+          daily: 'Diario',
+          weekly: 'Semanal',
+          biweekly: 'Quincenal',
+          daysBefore: 'días antes del cierre',
+          autoClose: 'Cierre Automático',
+          yes: 'Sí',
+          no: 'No',
+          readyToLaunch: 'Todo listo para lanzar la encuesta',
+          estimatedCompletion: 'Tiempo estimado de completado',
+          minutes: 'minutos',
+        }
+      : {
+          title: 'Distribution Preview',
+          description: 'Review all details before creating the survey',
+          surveyDetails: 'Survey Details',
+          surveyTitle: 'Title',
+          surveyUrl: 'URL',
+          questions: 'Questions',
+          schedule: 'Schedule',
+          startDate: 'Start Date',
+          endDate: 'End Date',
+          startTime: 'Start Time',
+          endTime: 'End Time',
+          timezone: 'Timezone',
+          duration: 'Duration',
+          days: 'days',
+          targetAudience: 'Target Audience',
+          totalRecipients: 'Total Recipients',
+          distributionMethod: 'Distribution Method',
+          allEmployees: 'All Employees',
+          csvImport: 'CSV Import',
+          manualEntry: 'Manual Entry',
+          reminders: 'Reminders',
+          enabled: 'Enabled',
+          disabled: 'Disabled',
+          frequency: 'Frequency',
+          daily: 'Daily',
+          weekly: 'Weekly',
+          biweekly: 'Biweekly',
+          daysBefore: 'days before close',
+          autoClose: 'Auto Close',
+          yes: 'Yes',
+          no: 'No',
+          readyToLaunch: 'Ready to launch the survey',
+          estimatedCompletion: 'Estimated completion time',
+          minutes: 'minutes',
+        };
 
   // Calculate duration
   const calculateDuration = () => {
@@ -189,13 +198,17 @@ export function DistributionPreview({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Title */}
             <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.surveyTitle}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t.surveyTitle}
+              </p>
               <p className="text-lg font-semibold">{surveyTitle}</p>
             </div>
 
             {/* Questions */}
             <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.questions}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t.questions}
+              </p>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-base">
                   {questionCount} {t.questions.toLowerCase()}
@@ -209,7 +222,9 @@ export function DistributionPreview({
 
           {/* URL */}
           <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.surveyUrl}</p>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              {t.surveyUrl}
+            </p>
             <div className="p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
               <p className="text-sm font-mono text-blue-600 dark:text-blue-400 break-all">
                 {surveyUrl}
@@ -235,7 +250,9 @@ export function DistributionPreview({
                 <Calendar className="w-4 h-4" />
                 {t.startDate}
               </p>
-              <p className="text-base font-semibold">{formatDate(schedule.startDate)}</p>
+              <p className="text-base font-semibold">
+                {formatDate(schedule.startDate)}
+              </p>
               {schedule.startTime && (
                 <p className="text-sm text-gray-500 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
@@ -250,7 +267,9 @@ export function DistributionPreview({
                 <Calendar className="w-4 h-4" />
                 {t.endDate}
               </p>
-              <p className="text-base font-semibold">{formatDate(schedule.endDate)}</p>
+              <p className="text-base font-semibold">
+                {formatDate(schedule.endDate)}
+              </p>
               {schedule.endTime && (
                 <p className="text-sm text-gray-500 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
@@ -263,7 +282,9 @@ export function DistributionPreview({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
             {/* Duration */}
             <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.duration}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t.duration}
+              </p>
               <Badge variant="secondary" className="text-base">
                 {calculateDuration()} {t.days}
               </Badge>
@@ -310,7 +331,9 @@ export function DistributionPreview({
 
             {/* Distribution Method */}
             <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.distributionMethod}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t.distributionMethod}
+              </p>
               <Badge variant="outline" className="text-base">
                 {getDistributionMethodLabel()}
               </Badge>
@@ -331,8 +354,12 @@ export function DistributionPreview({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Reminders Enabled */}
             <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.reminders}</p>
-              <Badge variant={schedule.enableReminders ? 'default' : 'secondary'}>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t.reminders}
+              </p>
+              <Badge
+                variant={schedule.enableReminders ? 'default' : 'secondary'}
+              >
                 {schedule.enableReminders ? t.enabled : t.disabled}
               </Badge>
             </div>
@@ -341,12 +368,16 @@ export function DistributionPreview({
             {schedule.enableReminders && (
               <>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.frequency}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {t.frequency}
+                  </p>
                   <p className="text-sm">{getReminderFrequencyLabel()}</p>
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.daysBefore}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {t.daysBefore}
+                  </p>
                   <p className="text-sm">
                     {schedule.reminderDaysBefore} {t.daysBefore}
                   </p>
@@ -358,7 +389,9 @@ export function DistributionPreview({
           <div className="pt-4 border-t">
             {/* Auto Close */}
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.autoClose}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t.autoClose}
+              </p>
               <Badge variant={schedule.autoClose ? 'default' : 'secondary'}>
                 {schedule.autoClose ? t.yes : t.no}
               </Badge>

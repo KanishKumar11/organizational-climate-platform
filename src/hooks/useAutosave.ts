@@ -44,7 +44,6 @@ export interface AutosaveData {
   last_edited_field?: string;
 }
 
-
 export function useAutosave(
   draftId: string | null,
   options: AutosaveOptions = {}
@@ -61,7 +60,7 @@ export function useAutosave(
   const [version, setVersion] = useState(1);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [saveCount, setSaveCount] = useState(0);
-  
+
   const pendingDataRef = useRef<AutosaveData | null>(null);
   const isOnlineRef = useRef(true);
 
@@ -106,12 +105,12 @@ export function useAutosave(
 
       if (!response.ok) {
         const error = await response.json();
-        
+
         // Handle version conflict (409)
         if (response.status === 409) {
           throw new Error('CONFLICT');
         }
-        
+
         throw new Error(error.message || 'Autosave failed');
       }
 
@@ -123,12 +122,12 @@ export function useAutosave(
     onSuccess: (data) => {
       setVersion(data.version);
       setLastSavedAt(new Date(data.saved_at));
-      setSaveCount(prev => prev + 1);
+      setSaveCount((prev) => prev + 1);
       setStatus('saved');
       pendingDataRef.current = null;
-      
+
       onSuccess?.(data);
-      
+
       // Reset to idle after 3 seconds
       setTimeout(() => {
         setStatus('idle');
@@ -148,17 +147,14 @@ export function useAutosave(
   });
 
   // Debounced save function
-  const debouncedSave = useDebounce(
-    (data: AutosaveData) => {
-      if (!isOnlineRef.current) {
-        pendingDataRef.current = data;
-        setStatus('error');
-        return;
-      }
-      saveMutation.mutate(data);
-    },
-    debounceMs
-  );
+  const debouncedSave = useDebounce((data: AutosaveData) => {
+    if (!isOnlineRef.current) {
+      pendingDataRef.current = data;
+      setStatus('error');
+      return;
+    }
+    saveMutation.mutate(data);
+  }, debounceMs);
 
   // Main save function (debounced)
   const save = useCallback(
@@ -214,4 +210,3 @@ export function useAutosave(
 export function generateSessionId(): string {
   return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
-

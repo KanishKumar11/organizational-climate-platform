@@ -2,8 +2,21 @@
 
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, CheckCircle, XCircle, Mail, User, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Mail,
+  User,
+  AlertCircle,
+} from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,9 +24,9 @@ import { cn } from '@/lib/utils';
 
 /**
  * Validation Panel Component
- * 
+ *
  * Displays data validation errors and warnings with actionable feedback.
- * 
+ *
  * Features:
  * - Email format validation (RFC 5322)
  * - Duplicate detection (by email/ID)
@@ -21,7 +34,7 @@ import { cn } from '@/lib/utils';
  * - Invalid data patterns
  * - Severity levels (error, warning, info)
  * - Grouped by type
- * 
+ *
  * @param data - Mapped employee data
  * @param onValidationComplete - Callback with validation results
  * @param language - Display language
@@ -53,7 +66,12 @@ export interface ValidationResult {
 }
 
 export interface ValidationError {
-  type: 'missing_email' | 'missing_name' | 'invalid_email' | 'duplicate_email' | 'duplicate_id';
+  type:
+    | 'missing_email'
+    | 'missing_name'
+    | 'invalid_email'
+    | 'duplicate_email'
+    | 'duplicate_id';
   rowIndex: number;
   field: string;
   value: string;
@@ -73,63 +91,66 @@ export function ValidationPanel({
   onValidationComplete,
   language = 'es',
 }: ValidationPanelProps) {
-  const t = language === 'es' ? {
-    title: 'Validación de Datos',
-    description: 'Revisa los errores y advertencias antes de continuar',
-    tabs: {
-      errors: 'Errores',
-      warnings: 'Advertencias',
-      valid: 'Válidos',
-    },
-    summary: {
-      valid: 'Registros válidos',
-      invalid: 'Errores',
-      duplicates: 'Duplicados',
-      warnings: 'Advertencias',
-    },
-    errorTypes: {
-      missing_email: 'Email faltante',
-      missing_name: 'Nombre faltante',
-      invalid_email: 'Email inválido',
-      duplicate_email: 'Email duplicado',
-      duplicate_id: 'ID duplicado',
-    },
-    warningTypes: {
-      missing_optional: 'Campo opcional vacío',
-      suspicious_data: 'Datos sospechosos',
-    },
-    noErrors: 'No se encontraron errores',
-    noWarnings: 'No se encontraron advertencias',
-    row: 'Fila',
-  } : {
-    title: 'Data Validation',
-    description: 'Review errors and warnings before proceeding',
-    tabs: {
-      errors: 'Errors',
-      warnings: 'Warnings',
-      valid: 'Valid',
-    },
-    summary: {
-      valid: 'Valid records',
-      invalid: 'Errors',
-      duplicates: 'Duplicates',
-      warnings: 'Warnings',
-    },
-    errorTypes: {
-      missing_email: 'Missing email',
-      missing_name: 'Missing name',
-      invalid_email: 'Invalid email',
-      duplicate_email: 'Duplicate email',
-      duplicate_id: 'Duplicate ID',
-    },
-    warningTypes: {
-      missing_optional: 'Empty optional field',
-      suspicious_data: 'Suspicious data',
-    },
-    noErrors: 'No errors found',
-    noWarnings: 'No warnings found',
-    row: 'Row',
-  };
+  const t =
+    language === 'es'
+      ? {
+          title: 'Validación de Datos',
+          description: 'Revisa los errores y advertencias antes de continuar',
+          tabs: {
+            errors: 'Errores',
+            warnings: 'Advertencias',
+            valid: 'Válidos',
+          },
+          summary: {
+            valid: 'Registros válidos',
+            invalid: 'Errores',
+            duplicates: 'Duplicados',
+            warnings: 'Advertencias',
+          },
+          errorTypes: {
+            missing_email: 'Email faltante',
+            missing_name: 'Nombre faltante',
+            invalid_email: 'Email inválido',
+            duplicate_email: 'Email duplicado',
+            duplicate_id: 'ID duplicado',
+          },
+          warningTypes: {
+            missing_optional: 'Campo opcional vacío',
+            suspicious_data: 'Datos sospechosos',
+          },
+          noErrors: 'No se encontraron errores',
+          noWarnings: 'No se encontraron advertencias',
+          row: 'Fila',
+        }
+      : {
+          title: 'Data Validation',
+          description: 'Review errors and warnings before proceeding',
+          tabs: {
+            errors: 'Errors',
+            warnings: 'Warnings',
+            valid: 'Valid',
+          },
+          summary: {
+            valid: 'Valid records',
+            invalid: 'Errors',
+            duplicates: 'Duplicates',
+            warnings: 'Warnings',
+          },
+          errorTypes: {
+            missing_email: 'Missing email',
+            missing_name: 'Missing name',
+            invalid_email: 'Invalid email',
+            duplicate_email: 'Duplicate email',
+            duplicate_id: 'Duplicate ID',
+          },
+          warningTypes: {
+            missing_optional: 'Empty optional field',
+            suspicious_data: 'Suspicious data',
+          },
+          noErrors: 'No errors found',
+          noWarnings: 'No warnings found',
+          row: 'Row',
+        };
 
   const validationResult = useMemo(() => {
     const errors: ValidationError[] = [];
@@ -216,8 +237,11 @@ export function ValidationPanel({
       }
     });
 
-    const validCount = data.length - new Set(errors.map(e => e.rowIndex)).size;
-    const duplicateCount = errors.filter(e => e.type.includes('duplicate')).length;
+    const validCount =
+      data.length - new Set(errors.map((e) => e.rowIndex)).size;
+    const duplicateCount = errors.filter((e) =>
+      e.type.includes('duplicate')
+    ).length;
 
     const result: ValidationResult = {
       isValid: errors.length === 0,
@@ -273,7 +297,10 @@ export function ValidationPanel({
         <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs bg-yellow-100 dark:bg-yellow-900/30">
+            <Badge
+              variant="outline"
+              className="text-xs bg-yellow-100 dark:bg-yellow-900/30"
+            >
               {t.row} {warning.rowIndex + 1}
             </Badge>
             <span className="text-sm text-yellow-900 dark:text-yellow-100">
@@ -287,7 +314,9 @@ export function ValidationPanel({
 
   const renderValidItem = (employee: MappedEmployee, index: number) => {
     // Only show if no errors for this row
-    const hasError = validationResult.errors.some(e => e.rowIndex === employee.rowIndex);
+    const hasError = validationResult.errors.some(
+      (e) => e.rowIndex === employee.rowIndex
+    );
     if (hasError) return null;
 
     return (
@@ -380,7 +409,8 @@ export function ValidationPanel({
           <Alert variant="destructive">
             <XCircle className="h-4 w-4" />
             <AlertDescription>
-              Found {validationResult.invalidCount} errors in {data.length} records
+              Found {validationResult.invalidCount} errors in {data.length}{' '}
+              records
             </AlertDescription>
           </Alert>
         )}
@@ -412,7 +442,10 @@ export function ValidationPanel({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="errors" className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+          <TabsContent
+            value="errors"
+            className="mt-4 space-y-2 max-h-96 overflow-y-auto"
+          >
             {validationResult.errors.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <CheckCircle className="w-12 h-12 mx-auto mb-2 text-green-500" />
@@ -423,7 +456,10 @@ export function ValidationPanel({
             )}
           </TabsContent>
 
-          <TabsContent value="warnings" className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+          <TabsContent
+            value="warnings"
+            className="mt-4 space-y-2 max-h-96 overflow-y-auto"
+          >
             {validationResult.warnings.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <CheckCircle className="w-12 h-12 mx-auto mb-2 text-green-500" />
@@ -434,7 +470,10 @@ export function ValidationPanel({
             )}
           </TabsContent>
 
-          <TabsContent value="valid" className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+          <TabsContent
+            value="valid"
+            className="mt-4 space-y-2 max-h-96 overflow-y-auto"
+          >
             {data.map(renderValidItem)}
           </TabsContent>
         </Tabs>

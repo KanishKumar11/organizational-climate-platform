@@ -6,7 +6,7 @@ import QuestionCategory from '@/models/QuestionCategory';
 
 /**
  * GET Question Library
- * 
+ *
  * Query Parameters:
  * - page: Page number (default: 1)
  * - limit: Items per page (default: 20)
@@ -20,10 +20,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -87,7 +84,11 @@ export async function GET(req: NextRequest) {
         ...q,
         _id: q._id.toString(),
         category_id: q.category_id.toString(),
-        category_name: category ? (language === 'en' ? category.name_en : category.name_es) : undefined,
+        category_name: category
+          ? language === 'en'
+            ? category.name_en
+            : category.name_es
+          : undefined,
       };
     });
 
@@ -98,7 +99,6 @@ export async function GET(req: NextRequest) {
       limit,
       totalPages: Math.ceil(total / limit),
     });
-
   } catch (error) {
     console.error('Get questions error:', error);
     return NextResponse.json(
@@ -115,10 +115,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
@@ -170,10 +167,9 @@ export async function POST(req: NextRequest) {
     });
 
     // Increment category question count
-    await (QuestionCategory as any).findByIdAndUpdate(
-      body.category_id,
-      { $inc: { question_count: 1 } }
-    );
+    await (QuestionCategory as any).findByIdAndUpdate(body.category_id, {
+      $inc: { question_count: 1 },
+    });
 
     return NextResponse.json({
       success: true,
@@ -182,7 +178,6 @@ export async function POST(req: NextRequest) {
         ...question.toObject(),
       },
     });
-
   } catch (error) {
     console.error('Create question error:', error);
     return NextResponse.json(

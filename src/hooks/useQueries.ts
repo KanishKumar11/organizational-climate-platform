@@ -1,6 +1,6 @@
 /**
  * CLIMA-007: React Query Hooks
- * 
+ *
  * Custom hooks for data fetching with caching and automatic refetching
  */
 
@@ -57,7 +57,10 @@ export function useCompanyDepartments(companyId: string) {
 /**
  * Fetch company users (with prefetching on company selection)
  */
-export function useCompanyUsers(companyId: string, options?: { limit?: number; search?: string; departmentId?: string }) {
+export function useCompanyUsers(
+  companyId: string,
+  options?: { limit?: number; search?: string; departmentId?: string }
+) {
   return useQuery({
     queryKey: queryKeys.companies.users(companyId),
     queryFn: async () => {
@@ -66,7 +69,9 @@ export function useCompanyUsers(companyId: string, options?: { limit?: number; s
         ...(options?.search && { search: options.search }),
         ...(options?.departmentId && { departmentId: options.departmentId }),
       });
-      const response = await fetch(`/api/companies/${companyId}/users?${params}`);
+      const response = await fetch(
+        `/api/companies/${companyId}/users?${params}`
+      );
       if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
       return data.users || [];
@@ -88,7 +93,9 @@ export function useQuestionLibrary(filters?: {
   limit?: number;
 }) {
   return useQuery({
-    queryKey: queryKeys.questionLibrary.questions(JSON.stringify(filters || {})),
+    queryKey: queryKeys.questionLibrary.questions(
+      JSON.stringify(filters || {})
+    ),
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters?.category_id) params.append('category', filters.category_id);
@@ -99,7 +106,7 @@ export function useQuestionLibrary(filters?: {
       }
       params.append('page', String(filters?.page || 1));
       params.append('limit', String(filters?.limit || 20));
-      
+
       const response = await fetch(`/api/question-library/search?${params}`);
       if (!response.ok) throw new Error('Failed to search questions');
       return response.json();
@@ -132,7 +139,9 @@ export function useSurveyDraft(sessionId: string) {
   return useQuery({
     queryKey: queryKeys.surveys.draft(sessionId),
     queryFn: async () => {
-      const response = await fetch(`/api/surveys/drafts?session_id=${sessionId}`);
+      const response = await fetch(
+        `/api/surveys/drafts?session_id=${sessionId}`
+      );
       if (!response.ok) throw new Error('Failed to fetch draft');
       const data = await response.json();
       return data.draft;

@@ -1,7 +1,20 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, Download, AlertCircle, CheckCircle2, X, FileSpreadsheet } from 'lucide-react';
+import {
+  Upload,
+  Download,
+  AlertCircle,
+  CheckCircle2,
+  X,
+  FileSpreadsheet,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,11 +27,16 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { CSVImportService, ImportedUser, ColumnMapping, ImportResult } from '@/lib/csv-import-service';
+import {
+  CSVImportService,
+  ImportedUser,
+  ColumnMapping,
+  ImportResult,
+} from '@/lib/csv-import-service';
 
 /**
  * CLIMA-003: CSV Import Component
- * 
+ *
  * Drag-drop CSV/XLSX upload with:
  * - Auto-detection of column mappings
  * - Manual column mapping
@@ -88,11 +106,13 @@ export default function CSVImport({
       }
 
       setHeaders(parseResult.headers);
-      
+
       // Auto-detect mapping
-      const autoMapping = CSVImportService.autoDetectMapping(parseResult.headers);
+      const autoMapping = CSVImportService.autoDetectMapping(
+        parseResult.headers
+      );
       setMapping(autoMapping);
-      
+
       setStep('mapping');
     } catch (error) {
       alert(`Error parsing file: ${(error as Error).message}`);
@@ -249,7 +269,11 @@ export default function CSVImport({
                   Download our sample CSV file with example data
                 </p>
               </div>
-              <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadTemplate}
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Download Template
               </Button>
@@ -271,13 +295,17 @@ export default function CSVImport({
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                File: <strong>{file?.name}</strong> ({headers.length} columns detected)
+                File: <strong>{file?.name}</strong> ({headers.length} columns
+                detected)
               </AlertDescription>
             </Alert>
 
             <div className="space-y-3">
               {headers.map((header) => (
-                <div key={header} className="grid grid-cols-2 gap-4 items-center">
+                <div
+                  key={header}
+                  className="grid grid-cols-2 gap-4 items-center"
+                >
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">{header}</Badge>
                   </div>
@@ -321,7 +349,9 @@ export default function CSVImport({
           <div className="grid grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4">
-                <div className="text-2xl font-bold">{importResult.stats.total}</div>
+                <div className="text-2xl font-bold">
+                  {importResult.stats.total}
+                </div>
                 <div className="text-xs text-muted-foreground">Total Rows</div>
               </CardContent>
             </Card>
@@ -363,7 +393,8 @@ export default function CSVImport({
                   <ul className="text-sm space-y-1">
                     {importResult.errors.slice(0, 10).map((error, index) => (
                       <li key={index}>
-                        Row {error.row}, Column "{error.column}": {error.message}
+                        Row {error.row}, Column "{error.column}":{' '}
+                        {error.message}
                       </li>
                     ))}
                     {importResult.errors.length > 10 && (
@@ -382,7 +413,8 @@ export default function CSVImport({
             <Alert>
               <CheckCircle2 className="h-4 w-4 text-green-600" />
               <AlertDescription>
-                All data validated successfully! {importResult.stats.valid} users ready to import.
+                All data validated successfully! {importResult.stats.valid}{' '}
+                users ready to import.
               </AlertDescription>
             </Alert>
           )}
@@ -390,10 +422,10 @@ export default function CSVImport({
           {/* Preview Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Preview Valid Users ({importResult.data.length})</CardTitle>
-              <CardDescription>
-                These users will be imported
-              </CardDescription>
+              <CardTitle>
+                Preview Valid Users ({importResult.data.length})
+              </CardTitle>
+              <CardDescription>These users will be imported</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-64">
@@ -434,7 +466,8 @@ export default function CSVImport({
                   Duplicate Users ({importResult.duplicates.length})
                 </CardTitle>
                 <CardDescription>
-                  These users were already found in the import and will be skipped
+                  These users were already found in the import and will be
+                  skipped
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -467,7 +500,8 @@ export default function CSVImport({
               disabled={importResult.data.length === 0}
             >
               <CheckCircle2 className="h-4 w-4 mr-2" />
-              Import {importResult.data.length} User{importResult.data.length !== 1 ? 's' : ''}
+              Import {importResult.data.length} User
+              {importResult.data.length !== 1 ? 's' : ''}
             </Button>
           </div>
         </div>

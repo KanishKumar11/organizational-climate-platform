@@ -3,9 +3,9 @@ import { useCallback } from 'react';
 
 /**
  * Question Library Hook
- * 
+ *
  * Manages question library data with React Query.
- * 
+ *
  * Features:
  * - List questions with pagination
  * - Search and filter
@@ -19,7 +19,12 @@ export interface Question {
   _id: string;
   question_text_es: string;
   question_text_en: string;
-  question_type: 'likert' | 'multiple_choice' | 'open_ended' | 'yes_no' | 'rating';
+  question_type:
+    | 'likert'
+    | 'multiple_choice'
+    | 'open_ended'
+    | 'yes_no'
+    | 'rating';
   category_id: string;
   category_name?: string;
   options_es?: string[];
@@ -60,7 +65,10 @@ export interface QuestionListResponse {
   totalPages: number;
 }
 
-export function useQuestionLibrary(filters: QuestionFilters = {}, options = {}) {
+export function useQuestionLibrary(
+  filters: QuestionFilters = {},
+  options = {}
+) {
   const queryClient = useQueryClient();
 
   // Build query params
@@ -69,15 +77,11 @@ export function useQuestionLibrary(filters: QuestionFilters = {}, options = {}) 
   if (filters.type) queryParams.append('type', filters.type);
   if (filters.search) queryParams.append('search', filters.search);
   if (filters.language) queryParams.append('language', filters.language);
-  if (filters.isActive !== undefined) queryParams.append('isActive', String(filters.isActive));
+  if (filters.isActive !== undefined)
+    queryParams.append('isActive', String(filters.isActive));
 
   // Fetch questions
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['questions', filters],
     queryFn: async () => {
       const response = await fetch(`/api/question-library?${queryParams}`);
@@ -109,7 +113,13 @@ export function useQuestionLibrary(filters: QuestionFilters = {}, options = {}) 
 
   // Update question
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Question> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<Question>;
+    }) => {
       const response = await fetch(`/api/question-library/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -148,17 +158,17 @@ export function useQuestionLibrary(filters: QuestionFilters = {}, options = {}) 
     page: data?.page || 1,
     limit: data?.limit || 20,
     totalPages: data?.totalPages || 0,
-    
+
     // State
     isLoading,
     error,
-    
+
     // Actions
     refetch,
     createQuestion: createMutation.mutate,
     updateQuestion: updateMutation.mutate,
     deleteQuestion: deleteMutation.mutate,
-    
+
     // Mutation states
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
@@ -174,7 +184,9 @@ export function useQuickAddQuestions(limit = 10) {
   return useQuery({
     queryKey: ['questions', 'quick-add', limit],
     queryFn: async () => {
-      const response = await fetch(`/api/question-library/quick-add?limit=${limit}`);
+      const response = await fetch(
+        `/api/question-library/quick-add?limit=${limit}`
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch quick-add questions');
       }
@@ -236,16 +248,19 @@ export function useCategoryTree() {
   const tree = useCallback(() => {
     if (!categories.length) return [];
 
-    const map = new Map<string, QuestionCategory & { children: QuestionCategory[] }>();
+    const map = new Map<
+      string,
+      QuestionCategory & { children: QuestionCategory[] }
+    >();
     const roots: (QuestionCategory & { children: QuestionCategory[] })[] = [];
 
     // Create map
-    categories.forEach(cat => {
+    categories.forEach((cat) => {
       map.set(cat._id, { ...cat, children: [] });
     });
 
     // Build tree
-    categories.forEach(cat => {
+    categories.forEach((cat) => {
       const node = map.get(cat._id)!;
       if (cat.parent_category_id) {
         const parent = map.get(cat.parent_category_id);

@@ -83,7 +83,7 @@ export interface ISurveyDraft extends Document {
   current_step: number; // Current step in creation wizard (1-4)
   last_edited_field?: string;
   auto_save_count: number;
-  
+
   // Optimistic concurrency control
   version: number;
   last_autosave_at?: Date;
@@ -94,7 +94,7 @@ export interface ISurveyDraft extends Document {
 
   created_at: Date;
   updated_at: Date;
-  
+
   // Methods
   isRecent(): boolean;
   toSurvey(): any;
@@ -122,43 +122,45 @@ const SurveyDraftSchema = new Schema<ISurveyDraft>(
 
     // Structured step data
     step1_data: {
-      survey_type: { 
-        type: String, 
-        enum: ['climate', 'microclimate', 'culture', 'pulse'] 
+      survey_type: {
+        type: String,
+        enum: ['climate', 'microclimate', 'culture', 'pulse'],
       },
       title: { type: String, trim: true, maxlength: 150 },
       description: { type: String, trim: true, maxlength: 500 },
       company_id: { type: Schema.Types.ObjectId, ref: 'Company' },
-      language: { 
-        type: String, 
+      language: {
+        type: String,
         enum: ['es', 'en'],
-        default: 'es'
+        default: 'es',
       },
     },
 
     step2_data: {
-      questions: [{
-        id: String,
-        type: String,
-        text: {
-          en: String,
-          es: String,
+      questions: [
+        {
+          id: String,
+          type: String,
+          text: {
+            en: String,
+            es: String,
+          },
+          options: {
+            en: [String],
+            es: [String],
+          },
+          required: { type: Boolean, default: false },
+          order: Number,
+          library_id: { type: Schema.Types.ObjectId, ref: 'QuestionLibrary' },
         },
-        options: {
-          en: [String],
-          es: [String],
-        },
-        required: { type: Boolean, default: false },
-        order: Number,
-        library_id: { type: Schema.Types.ObjectId, ref: 'QuestionLibrary' },
-      }],
+      ],
       question_ids: [{ type: Schema.Types.ObjectId, ref: 'QuestionLibrary' }],
     },
 
     step3_data: {
-      targeting_type: { 
-        type: String, 
-        enum: ['master_data', 'csv_upload', 'manual'] 
+      targeting_type: {
+        type: String,
+        enum: ['master_data', 'csv_upload', 'manual'],
       },
       department_ids: [{ type: Schema.Types.ObjectId, ref: 'Department' }],
       target_user_ids: [{ type: Schema.Types.ObjectId, ref: 'User' }],
@@ -191,21 +193,21 @@ const SurveyDraftSchema = new Schema<ISurveyDraft>(
         reminder_schedule: [String],
       },
       distribution: {
-        method: { 
-          type: String, 
+        method: {
+          type: String,
           enum: ['qr', 'url', 'both'],
-          default: 'both'
+          default: 'both',
         },
-        access_type: { 
-          type: String, 
+        access_type: {
+          type: String,
           enum: ['tokenized', 'open', 'hybrid'],
-          default: 'tokenized'
+          default: 'tokenized',
         },
         generate_qr: { type: Boolean, default: true },
-        qr_format: { 
-          type: String, 
+        qr_format: {
+          type: String,
           enum: ['png', 'svg', 'pdf'],
-          default: 'png'
+          default: 'png',
         },
       },
     },
@@ -222,12 +224,12 @@ const SurveyDraftSchema = new Schema<ISurveyDraft>(
       type: Number,
       default: 0,
     },
-    
+
     version: {
       type: Number,
       default: 1,
     },
-    
+
     last_autosave_at: { type: Date },
 
     // Session tracking
@@ -254,7 +256,7 @@ SurveyDraftSchema.index({ user_id: 1, company_id: 1, updated_at: -1 });
 SurveyDraftSchema.index({ user_id: 1, is_recovered: 1, expires_at: 1 }); // For draft recovery queries
 
 // Pre-save hook to increment version
-SurveyDraftSchema.pre('save', function(next) {
+SurveyDraftSchema.pre('save', function (next) {
   if (!this.isNew && this.isModified()) {
     this.version += 1;
     this.last_autosave_at = new Date();
@@ -271,7 +273,7 @@ SurveyDraftSchema.methods.isRecent = function (): boolean {
 // Convert draft to survey object for final creation
 SurveyDraftSchema.methods.toSurvey = function (): any {
   const { step1_data, step2_data, step3_data, step4_data } = this;
-  
+
   return {
     // From step 1
     type: step1_data?.survey_type,
@@ -279,10 +281,10 @@ SurveyDraftSchema.methods.toSurvey = function (): any {
     description: step1_data?.description,
     company_id: step1_data?.company_id || this.company_id,
     language: step1_data?.language,
-    
+
     // From step 2
     questions: step2_data?.questions || [],
-    
+
     // From step 3
     targeting: {
       type: step3_data?.targeting_type,
@@ -290,11 +292,11 @@ SurveyDraftSchema.methods.toSurvey = function (): any {
       target_user_ids: step3_data?.target_user_ids,
       demographic_filters: step3_data?.demographic_filters,
     },
-    
+
     // From step 4
     schedule: step4_data?.schedule,
     distribution: step4_data?.distribution,
-    
+
     // Metadata
     created_by: this.user_id,
     status: 'draft',

@@ -3,9 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 /**
  * Draft Recovery Hook
- * 
+ *
  * Automatically detects and recovers unsaved drafts when user returns to the application.
- * 
+ *
  * Features:
  * - Automatic draft detection on mount
  * - Age calculation (human-readable)
@@ -91,26 +91,29 @@ export function useDraftRecovery(
   });
 
   // Check if draft is valid for recovery
-  const isDraftRecoverable = useCallback((draft: DraftData | null): boolean => {
-    if (!draft) return false;
+  const isDraftRecoverable = useCallback(
+    (draft: DraftData | null): boolean => {
+      if (!draft) return false;
 
-    const now = new Date();
-    const updatedAt = new Date(draft.updated_at);
-    const expiresAt = new Date(draft.expires_at);
+      const now = new Date();
+      const updatedAt = new Date(draft.updated_at);
+      const expiresAt = new Date(draft.expires_at);
 
-    // Check if expired
-    if (now > expiresAt) {
-      return false;
-    }
+      // Check if expired
+      if (now > expiresAt) {
+        return false;
+      }
 
-    // Check if too old
-    const ageHours = (now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60);
-    if (ageHours > maxAgeHours) {
-      return false;
-    }
+      // Check if too old
+      const ageHours = (now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60);
+      if (ageHours > maxAgeHours) {
+        return false;
+      }
 
-    return true;
-  }, [maxAgeHours]);
+      return true;
+    },
+    [maxAgeHours]
+  );
 
   // Calculate draft age
   const getDraftAge = useCallback((draft: DraftData | null): string => {
@@ -124,8 +127,10 @@ export function useDraftRecovery(
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffMins < 1) return 'hace un momento';
-    if (diffMins < 60) return `hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`;
-    if (diffHours < 24) return `hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+    if (diffMins < 60)
+      return `hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`;
+    if (diffHours < 24)
+      return `hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
     return `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
   }, []);
 
@@ -209,13 +214,13 @@ export function useDraftRecovery(
     draftAge: getDraftAge(latestDraft),
     isLoading,
     showBanner,
-    
+
     // Actions
     recoverDraft,
     discardDraft,
     hideBanner,
     checkForDrafts,
-    
+
     // Mutation states
     isRecovering: recoverMutation.isPending,
     isDiscarding: discardMutation.isPending,
@@ -263,7 +268,7 @@ export function useTimeUntilExpiry(expiresAt: string | null): {
         const diffMins = Math.floor(diffMs / (1000 * 60));
         setTimeRemaining(`${diffMins} minuto${diffMins > 1 ? 's' : ''}`);
       }
-      
+
       setIsExpired(false);
     };
 

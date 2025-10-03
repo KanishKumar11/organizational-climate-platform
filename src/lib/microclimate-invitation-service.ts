@@ -56,7 +56,9 @@ export interface MicroclimateParticipationTracking {
 
 class MicroclimateInvitationService {
   // Create and send microclimate invitations
-  async createInvitations(data: MicroclimateInvitationData): Promise<IMicroclimateInvitation[]> {
+  async createInvitations(
+    data: MicroclimateInvitationData
+  ): Promise<IMicroclimateInvitation[]> {
     await connectDB();
 
     const microclimate = await (Microclimate as any)
@@ -72,12 +74,14 @@ class MicroclimateInvitationService {
     }
 
     const company = await (Company as any).findById(microclimate.company_id);
-    
+
     // Calculate expiry time based on microclimate duration
-    const expiresAt = data.expires_at || new Date(
-      microclimate.scheduling.start_time.getTime() + 
-      microclimate.scheduling.duration_minutes * 60 * 1000
-    );
+    const expiresAt =
+      data.expires_at ||
+      new Date(
+        microclimate.scheduling.start_time.getTime() +
+          microclimate.scheduling.duration_minutes * 60 * 1000
+      );
 
     const invitations: IMicroclimateInvitation[] = [];
 
@@ -89,7 +93,9 @@ class MicroclimateInvitationService {
       });
 
       if (existingInvitation) {
-        console.log(`Microclimate invitation already exists for user ${user._id}`);
+        console.log(
+          `Microclimate invitation already exists for user ${user._id}`
+        );
         continue;
       }
 
@@ -107,8 +113,11 @@ class MicroclimateInvitationService {
       await invitation.save();
 
       // Schedule notification
-      const sendTime = data.scheduled_send_time || 
-        (data.send_immediately !== false ? new Date() : await this.optimizeSendTime(user._id.toString()));
+      const sendTime =
+        data.scheduled_send_time ||
+        (data.send_immediately !== false
+          ? new Date()
+          : await this.optimizeSendTime(user._id.toString()));
 
       await notificationService.createNotification({
         user_id: user._id.toString(),
@@ -131,7 +140,9 @@ class MicroclimateInvitationService {
           recipientEmail: user.email,
           microclimateName: microclimate.name,
           companyName: company?.name || 'Your Organization',
-          invitationLink: this.generateInvitationLink(invitation.invitation_token),
+          invitationLink: this.generateInvitationLink(
+            invitation.invitation_token
+          ),
           expiryDate: expiresAt.toISOString(),
         },
       });
@@ -153,7 +164,9 @@ class MicroclimateInvitationService {
         variables: {
           recipient: user,
           microclimate: microclimate,
-          invitationLink: this.generateInvitationLink(invitation.invitation_token),
+          invitationLink: this.generateInvitationLink(
+            invitation.invitation_token
+          ),
         },
       });
 
@@ -184,11 +197,15 @@ class MicroclimateInvitationService {
     invitations: IMicroclimateInvitation[]
   ): Promise<void> {
     const microclimate = await (Microclimate as any).findById(microclimateId);
-    if (!microclimate || !microclimate.scheduling.reminder_settings.send_reminders) {
+    if (
+      !microclimate ||
+      !microclimate.scheduling.reminder_settings.send_reminders
+    ) {
       return;
     }
 
-    const reminderMinutes = microclimate.scheduling.reminder_settings.reminder_minutes_before || [60, 15];
+    const reminderMinutes = microclimate.scheduling.reminder_settings
+      .reminder_minutes_before || [60, 15];
 
     for (const invitation of invitations) {
       const user = await (User as any).findById(invitation.user_id);
@@ -197,12 +214,13 @@ class MicroclimateInvitationService {
       // Schedule reminders based on microclimate start time
       for (let i = 0; i < reminderMinutes.length && i < 2; i++) {
         const reminderTime = new Date(
-          microclimate.scheduling.start_time.getTime() - 
-          reminderMinutes[i] * 60 * 1000
+          microclimate.scheduling.start_time.getTime() -
+            reminderMinutes[i] * 60 * 1000
         );
 
         // Don't schedule if past expiry or already started
-        if (reminderTime >= invitation.expires_at || reminderTime <= new Date()) continue;
+        if (reminderTime >= invitation.expires_at || reminderTime <= new Date())
+          continue;
 
         await notificationService.createNotification({
           user_id: invitation.user_id,
@@ -222,7 +240,9 @@ class MicroclimateInvitationService {
           variables: {
             recipient: user,
             microclimate: microclimate,
-            invitationLink: this.generateInvitationLink(invitation.invitation_token),
+            invitationLink: this.generateInvitationLink(
+              invitation.invitation_token
+            ),
             reminderCount: i + 1,
           },
         });
@@ -231,7 +251,9 @@ class MicroclimateInvitationService {
   }
 
   // Get participation tracking data
-  async getParticipationTracking(microclimateId: string): Promise<MicroclimateParticipationTracking> {
+  async getParticipationTracking(
+    microclimateId: string
+  ): Promise<MicroclimateParticipationTracking> {
     await connectDB();
 
     const invitations = await (MicroclimateInvitation as any).find({
@@ -243,38 +265,47 @@ class MicroclimateInvitationService {
     });
 
     const totalInvitations = invitations.length;
-    const sentInvitations = invitations.filter((inv: any) => 
+    const sentInvitations = invitations.filter((inv: any) =>
       ['sent', 'opened', 'started', 'participated'].includes(inv.status)
     ).length;
-    const openedInvitations = invitations.filter((inv: any) => 
+    const openedInvitations = invitations.filter((inv: any) =>
       ['opened', 'started', 'participated'].includes(inv.status)
     ).length;
-    const startedResponses = invitations.filter((inv: any) => 
+    const startedResponses = invitations.filter((inv: any) =>
       ['started', 'participated'].includes(inv.status)
     ).length;
-    const participatedResponses = invitations.filter((inv: any) => 
-      inv.status === 'participated'
+    const participatedResponses = invitations.filter(
+      (inv: any) => inv.status === 'participated'
     ).length;
-    const bouncedInvitations = invitations.filter((inv: any) => 
-      inv.status === 'bounced'
+    const bouncedInvitations = invitations.filter(
+      (inv: any) => inv.status === 'bounced'
     ).length;
-    const expiredInvitations = invitations.filter((inv: any) => 
-      inv.status === 'expired'
+    const expiredInvitations = invitations.filter(
+      (inv: any) => inv.status === 'expired'
     ).length;
 
-    const participationRate = totalInvitations > 0 ? 
-      (participatedResponses / totalInvitations) * 100 : 0;
-    const responseRate = sentInvitations > 0 ? 
-      (participatedResponses / sentInvitations) * 100 : 0;
+    const participationRate =
+      totalInvitations > 0
+        ? (participatedResponses / totalInvitations) * 100
+        : 0;
+    const responseRate =
+      sentInvitations > 0 ? (participatedResponses / sentInvitations) * 100 : 0;
 
     // Calculate average time to participate
-    const participatedInvitations = invitations.filter((inv: any) => 
-      inv.status === 'participated' && inv.sent_at && inv.participated_at
+    const participatedInvitations = invitations.filter(
+      (inv: any) =>
+        inv.status === 'participated' && inv.sent_at && inv.participated_at
     );
-    const averageTimeToParticipate = participatedInvitations.length > 0 ?
-      participatedInvitations.reduce((sum: number, inv: any) => {
-        return sum + (inv.participated_at.getTime() - inv.sent_at.getTime());
-      }, 0) / participatedInvitations.length / (1000 * 60) : 0; // in minutes
+    const averageTimeToParticipate =
+      participatedInvitations.length > 0
+        ? participatedInvitations.reduce((sum: number, inv: any) => {
+            return (
+              sum + (inv.participated_at.getTime() - inv.sent_at.getTime())
+            );
+          }, 0) /
+          participatedInvitations.length /
+          (1000 * 60)
+        : 0; // in minutes
 
     // Department breakdown
     const departmentBreakdown: Record<
@@ -285,7 +316,11 @@ class MicroclimateInvitationService {
     for (const user of users) {
       const department = user.department_id || 'Unknown';
       if (!departmentBreakdown[department]) {
-        departmentBreakdown[department] = { invited: 0, participated: 0, rate: 0 };
+        departmentBreakdown[department] = {
+          invited: 0,
+          participated: 0,
+          rate: 0,
+        };
       }
 
       departmentBreakdown[department].invited++;
@@ -300,7 +335,8 @@ class MicroclimateInvitationService {
 
     // Calculate department rates
     Object.values(departmentBreakdown).forEach((dept) => {
-      dept.rate = dept.invited > 0 ? (dept.participated / dept.invited) * 100 : 0;
+      dept.rate =
+        dept.invited > 0 ? (dept.participated / dept.invited) * 100 : 0;
     });
 
     return {
@@ -314,7 +350,8 @@ class MicroclimateInvitationService {
       expired_invitations: expiredInvitations,
       participation_rate: Math.round(participationRate * 100) / 100,
       response_rate: Math.round(responseRate * 100) / 100,
-      average_time_to_participate: Math.round(averageTimeToParticipate * 100) / 100,
+      average_time_to_participate:
+        Math.round(averageTimeToParticipate * 100) / 100,
       department_breakdown: departmentBreakdown,
     };
   }
@@ -323,20 +360,26 @@ class MicroclimateInvitationService {
   async resendInvitation(invitationId: string): Promise<void> {
     await connectDB();
 
-    const invitation = await (MicroclimateInvitation as any).findById(invitationId);
+    const invitation = await (MicroclimateInvitation as any).findById(
+      invitationId
+    );
     if (!invitation) {
       throw new Error('Invitation not found');
     }
 
     if (invitation.status === 'participated') {
-      throw new Error('Cannot resend invitation - user has already participated');
+      throw new Error(
+        'Cannot resend invitation - user has already participated'
+      );
     }
 
     if (invitation.isExpired()) {
       throw new Error('Cannot resend invitation - invitation has expired');
     }
 
-    const microclimate = await (Microclimate as any).findById(invitation.microclimate_id);
+    const microclimate = await (Microclimate as any).findById(
+      invitation.microclimate_id
+    );
     const user = await (User as any).findById(invitation.user_id);
     const company = await (Company as any).findById(invitation.company_id);
 
@@ -365,7 +408,9 @@ class MicroclimateInvitationService {
         recipient: user,
         microclimate: microclimate,
         company: company,
-        invitationLink: this.generateInvitationLink(invitation.invitation_token),
+        invitationLink: this.generateInvitationLink(
+          invitation.invitation_token
+        ),
         companyName: company.name,
         expiryDate: invitation.expires_at,
       },
@@ -373,4 +418,5 @@ class MicroclimateInvitationService {
   }
 }
 
-export const microclimateInvitationService = new MicroclimateInvitationService();
+export const microclimateInvitationService =
+  new MicroclimateInvitationService();

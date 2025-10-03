@@ -17,9 +17,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
  * Draft Recovery Banner Component
- * 
+ *
  * Beautiful, modern banner that appears when an unsaved draft is detected.
- * 
+ *
  * Features:
  * - Animated slide-in from top
  * - Gradient background with soft shadows
@@ -75,7 +75,7 @@ const translations = {
   },
   en: {
     title: 'Unsaved draft found',
-    description: 'We found a survey draft you didn\'t finish.',
+    description: "We found a survey draft you didn't finish.",
     lastEdited: 'Last edited',
     step: 'Step',
     saves: 'saves',
@@ -107,22 +107,22 @@ export function DraftRecoveryBanner({
 
   return (
     <motion.div
-      initial={{ 
+      initial={{
         y: position === 'top' ? -100 : 100,
-        opacity: 0 
+        opacity: 0,
       }}
-      animate={{ 
+      animate={{
         y: 0,
-        opacity: 1 
+        opacity: 1,
       }}
-      exit={{ 
+      exit={{
         y: position === 'top' ? -100 : 100,
-        opacity: 0 
+        opacity: 0,
       }}
-      transition={{ 
+      transition={{
         type: 'spring',
         damping: 20,
-        stiffness: 300
+        stiffness: 300,
       }}
       className={`
         fixed ${position === 'top' ? 'top-0' : 'bottom-0'} left-0 right-0 z-50
@@ -132,11 +132,13 @@ export function DraftRecoveryBanner({
       aria-live="assertive"
       aria-atomic="true"
     >
-      <div className="
+      <div
+        className="
         relative overflow-hidden rounded-2xl shadow-2xl border border-orange-200
         bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50
         backdrop-blur-sm
-      ">
+      "
+      >
         {/* Animated background pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] bg-repeat" />
@@ -149,10 +151,10 @@ export function DraftRecoveryBanner({
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
-              transition={{ 
+              transition={{
                 type: 'spring',
                 delay: 0.1,
-                damping: 15
+                damping: 15,
               }}
               className="
                 flex-shrink-0 w-12 h-12 rounded-full
@@ -171,9 +173,7 @@ export function DraftRecoveryBanner({
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">
                     {t.title}
                   </h3>
-                  <p className="text-sm text-gray-700 mb-3">
-                    {t.description}
-                  </p>
+                  <p className="text-sm text-gray-700 mb-3">{t.description}</p>
 
                   {/* Metadata */}
                   <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -201,11 +201,13 @@ export function DraftRecoveryBanner({
 
                     {/* Expiry warning */}
                     {timeUntilExpiry && (
-                      <Badge 
+                      <Badge
                         variant={isExpiringSoon ? 'destructive' : 'outline'}
                         className={isExpiringSoon ? '' : 'bg-white/50'}
                       >
-                        {isExpiringSoon && <AlertCircle className="w-3 h-3 mr-1" />}
+                        {isExpiringSoon && (
+                          <AlertCircle className="w-3 h-3 mr-1" />
+                        )}
                         {t.expiresIn}: {timeUntilExpiry}
                       </Badge>
                     )}
@@ -244,10 +246,10 @@ export function DraftRecoveryBanner({
                     <>
                       <motion.div
                         animate={{ rotate: 360 }}
-                        transition={{ 
+                        transition={{
                           duration: 1,
                           repeat: Infinity,
-                          ease: 'linear'
+                          ease: 'linear',
                         }}
                       >
                         <RotateCcw className="w-4 h-4 mr-2" />
@@ -276,10 +278,10 @@ export function DraftRecoveryBanner({
                     <>
                       <motion.div
                         animate={{ rotate: 360 }}
-                        transition={{ 
+                        transition={{
                           duration: 1,
                           repeat: Infinity,
-                          ease: 'linear'
+                          ease: 'linear',
                         }}
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
@@ -337,9 +339,12 @@ export function DraftRecoveryAlert({
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <span className="font-medium text-gray-900">{t.title}</span>
-            <span className="text-gray-600"> · {t.lastEdited}: {draftAge}</span>
+            <span className="text-gray-600">
+              {' '}
+              · {t.lastEdited}: {draftAge}
+            </span>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button
               size="sm"
@@ -349,7 +354,7 @@ export function DraftRecoveryAlert({
             >
               {isRecovering ? t.recovering : t.recover}
             </Button>
-            
+
             <Button
               size="sm"
               onClick={onDiscard}
@@ -375,9 +380,5 @@ export function DraftRecoveryContainer({
   show: boolean;
   children: React.ReactNode;
 }) {
-  return (
-    <AnimatePresence mode="wait">
-      {show && children}
-    </AnimatePresence>
-  );
+  return <AnimatePresence mode="wait">{show && children}</AnimatePresence>;
 }

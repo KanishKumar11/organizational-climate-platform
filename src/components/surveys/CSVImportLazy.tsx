@@ -1,6 +1,6 @@
 /**
  * CLIMA-007: Lazy-loaded CSV Import
- * 
+ *
  * Uses papaparse and xlsx libraries - good candidate for code splitting
  */
 
@@ -11,9 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileUp } from 'lucide-react';
 
-const CSVImport = React.lazy(
-  () => import('./CSVImport')
-);
+const CSVImport = React.lazy(() => import('./CSVImport'));
 
 function CSVImportSkeleton() {
   return (
@@ -33,7 +31,7 @@ function CSVImportSkeleton() {
             <Skeleton className="h-4 w-32" />
           </div>
         </div>
-        
+
         {/* Step indicator */}
         <div className="flex justify-center gap-2">
           {[1, 2, 3].map((i) => (

@@ -91,18 +91,20 @@ export async function POST(request: NextRequest) {
     const companyId = validatedData.company_id || session.user.companyId;
 
     // Convert time constraints to proper format
-    const timeConstraints: TimeConstraints | undefined = validatedData.time_constraints
-      ? {
-          timezone: validatedData.time_constraints.timezone,
-          business_hours_only: true,
-          business_hours_start: `${String(validatedData.time_constraints.earliest_hour).padStart(2, '0')}:00`,
-          business_hours_end: `${String(validatedData.time_constraints.latest_hour).padStart(2, '0')}:00`,
-          exclude_weekends: validatedData.time_constraints.allowed_days
-            ? !validatedData.time_constraints.allowed_days.includes(0) && !validatedData.time_constraints.allowed_days.includes(6)
-            : false,
-          exclude_holidays: false,
-        }
-      : undefined;
+    const timeConstraints: TimeConstraints | undefined =
+      validatedData.time_constraints
+        ? {
+            timezone: validatedData.time_constraints.timezone,
+            business_hours_only: true,
+            business_hours_start: `${String(validatedData.time_constraints.earliest_hour).padStart(2, '0')}:00`,
+            business_hours_end: `${String(validatedData.time_constraints.latest_hour).padStart(2, '0')}:00`,
+            exclude_weekends: validatedData.time_constraints.allowed_days
+              ? !validatedData.time_constraints.allowed_days.includes(0) &&
+                !validatedData.time_constraints.allowed_days.includes(6)
+              : false,
+            exclude_holidays: false,
+          }
+        : undefined;
 
     // Generate optimized delivery schedule
     const optimizedSchedule =

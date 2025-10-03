@@ -10,15 +10,15 @@ import { cn } from '@/lib/utils';
 
 /**
  * Quick-Add Panel Component
- * 
+ *
  * Displays most frequently used questions for one-click adding.
- * 
+ *
  * Features:
  * - Top 10 most used questions
  * - One-click add
  * - Compact card layout
  * - Usage statistics
- * 
+ *
  * @param onAddQuestion - Callback when question is added
  * @param addedQuestions - Array of already added question IDs
  * @param language - Display language
@@ -40,19 +40,22 @@ export function QuickAddPanel({
 }: QuickAddPanelProps) {
   const { data, isLoading } = useQuickAddQuestions(limit);
 
-  const t = language === 'es' ? {
-    title: 'Preguntas Más Usadas',
-    subtitle: 'Agrega rápidamente las preguntas más populares',
-    add: 'Agregar',
-    added: 'Agregada',
-    usage: 'veces',
-  } : {
-    title: 'Most Used Questions',
-    subtitle: 'Quickly add the most popular questions',
-    add: 'Add',
-    added: 'Added',
-    usage: 'times',
-  };
+  const t =
+    language === 'es'
+      ? {
+          title: 'Preguntas Más Usadas',
+          subtitle: 'Agrega rápidamente las preguntas más populares',
+          add: 'Agregar',
+          added: 'Agregada',
+          usage: 'veces',
+        }
+      : {
+          title: 'Most Used Questions',
+          subtitle: 'Quickly add the most popular questions',
+          add: 'Add',
+          added: 'Added',
+          usage: 'times',
+        };
 
   if (isLoading) {
     return (
@@ -75,9 +78,7 @@ export function QuickAddPanel({
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {t.title}
           </h3>
-          <p className="text-sm text-gray-500">
-            {t.subtitle}
-          </p>
+          <p className="text-sm text-gray-500">{t.subtitle}</p>
         </div>
       </div>
 
@@ -107,7 +108,9 @@ export function QuickAddPanel({
               <div className="space-y-3">
                 {/* Question Text */}
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">
-                  {language === 'en' ? question.question_text_en : question.question_text_es}
+                  {language === 'en'
+                    ? question.question_text_en
+                    : question.question_text_es}
                 </p>
 
                 {/* Metadata */}
@@ -128,9 +131,7 @@ export function QuickAddPanel({
                     disabled={isAdded}
                     className={cn(
                       'transition-all',
-                      isAdded
-                        ? 'bg-green-600 hover:bg-green-700'
-                        : ''
+                      isAdded ? 'bg-green-600 hover:bg-green-700' : ''
                     )}
                   >
                     {isAdded ? (

@@ -30,10 +30,7 @@ const createNotificationSchema = z.object({
   template_id: z.string().optional(),
   scheduled_for: z.string().datetime().optional(),
   variables: z
-    .record(
-      z.string(),
-      z.union([z.string(), z.number(), z.boolean()])
-    )
+    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
     .optional(),
   company_id: z.string().optional(),
 });

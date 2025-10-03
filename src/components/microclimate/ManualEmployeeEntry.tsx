@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,11 +34,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * ManualEmployeeEntry Component
- * 
+ *
  * Provides a form-based interface for manually entering employee information
  * for survey targeting. Includes real-time validation, duplicate detection,
  * and inline editing capabilities.
- * 
+ *
  * Features:
  * - Add/edit/remove individual employees
  * - Real-time email validation (RFC 5322)
@@ -42,7 +48,7 @@ import { motion, AnimatePresence } from 'framer-motion';
  * - Bulk operations (clear all)
  * - Validation summary
  * - Department/location/position tracking
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -78,7 +84,8 @@ interface ValidationError {
 const translations = {
   es: {
     title: 'Entrada Manual de Empleados',
-    description: 'Agrega empleados individualmente para crear tu audiencia objetivo',
+    description:
+      'Agrega empleados individualmente para crear tu audiencia objetivo',
     addEmployee: 'Agregar Empleado',
     editEmployee: 'Editar',
     deleteEmployee: 'Eliminar',
@@ -88,7 +95,8 @@ const translations = {
     search: 'Buscar empleados...',
     employeeCount: 'empleados agregados',
     noEmployees: 'No hay empleados agregados',
-    noEmployeesDesc: 'Usa el formulario a continuación para agregar empleados manualmente',
+    noEmployeesDesc:
+      'Usa el formulario a continuación para agregar empleados manualmente',
     formTitle: 'Información del Empleado',
     email: 'Correo Electrónico',
     emailPlaceholder: 'juan.perez@empresa.com',
@@ -110,7 +118,8 @@ const translations = {
     optionalField: 'Opcional',
     validationErrors: 'errores de validación',
     duplicates: 'duplicados',
-    confirmClearAll: '¿Estás seguro de que deseas eliminar todos los empleados?',
+    confirmClearAll:
+      '¿Estás seguro de que deseas eliminar todos los empleados?',
     confirmDelete: '¿Eliminar este empleado?',
   },
   en: {
@@ -208,7 +217,9 @@ export function ManualEmployeeEntry({
         newErrors.email = t.emailRequired;
       } else if (!validateEmail(data.email)) {
         newErrors.email = t.emailInvalid;
-      } else if (isDuplicateEmail(data.email, isEditing ? editingIndex! : undefined)) {
+      } else if (
+        isDuplicateEmail(data.email, isEditing ? editingIndex! : undefined)
+      ) {
         newErrors.email = t.emailDuplicate;
       }
 
@@ -489,7 +500,9 @@ export function ManualEmployeeEntry({
               <Label htmlFor="department" className="flex items-center gap-1">
                 <Building className="w-4 h-4" />
                 {t.department}
-                <span className="text-xs text-gray-500">({t.optionalField})</span>
+                <span className="text-xs text-gray-500">
+                  ({t.optionalField})
+                </span>
               </Label>
               <Input
                 id="department"
@@ -505,7 +518,9 @@ export function ManualEmployeeEntry({
               <Label htmlFor="location" className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
                 {t.location}
-                <span className="text-xs text-gray-500">({t.optionalField})</span>
+                <span className="text-xs text-gray-500">
+                  ({t.optionalField})
+                </span>
               </Label>
               <Input
                 id="location"
@@ -521,7 +536,9 @@ export function ManualEmployeeEntry({
               <Label htmlFor="position" className="flex items-center gap-1">
                 <Briefcase className="w-4 h-4" />
                 {t.position}
-                <span className="text-xs text-gray-500">({t.optionalField})</span>
+                <span className="text-xs text-gray-500">
+                  ({t.optionalField})
+                </span>
               </Label>
               <Input
                 id="position"
@@ -537,7 +554,9 @@ export function ManualEmployeeEntry({
               <Label htmlFor="employeeId" className="flex items-center gap-1">
                 <Hash className="w-4 h-4" />
                 {t.employeeId}
-                <span className="text-xs text-gray-500">({t.optionalField})</span>
+                <span className="text-xs text-gray-500">
+                  ({t.optionalField})
+                </span>
               </Label>
               <Input
                 id="employeeId"
@@ -664,14 +683,18 @@ export function ManualEmployeeEntry({
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleEditEmployee(originalIndex)}
+                                  onClick={() =>
+                                    handleEditEmployee(originalIndex)
+                                  }
                                 >
                                   <Edit2 className="w-4 h-4" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleDeleteEmployee(originalIndex)}
+                                  onClick={() =>
+                                    handleDeleteEmployee(originalIndex)
+                                  }
                                   className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -688,7 +711,11 @@ export function ManualEmployeeEntry({
                 {filteredEmployees.length === 0 && searchQuery && (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>{language === 'es' ? 'No se encontraron empleados' : 'No employees found'}</p>
+                    <p>
+                      {language === 'es'
+                        ? 'No se encontraron empleados'
+                        : 'No employees found'}
+                    </p>
                   </div>
                 )}
               </div>

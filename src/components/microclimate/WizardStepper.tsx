@@ -7,9 +7,9 @@ import { cn } from '@/lib/utils';
 
 /**
  * Wizard Stepper Component
- * 
+ *
  * Beautiful step indicator with animations and status tracking.
- * 
+ *
  * Features:
  * - Animated step transitions
  * - Status indicators (completed, current, upcoming, error)
@@ -83,7 +83,9 @@ export function WizardStepper({
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   // Get step status
-  const getStatus = (index: number): 'completed' | 'current' | 'upcoming' | 'error' => {
+  const getStatus = (
+    index: number
+  ): 'completed' | 'current' | 'upcoming' | 'error' => {
     if (errorSteps.includes(index)) return 'error';
     if (completedSteps.includes(index)) return 'completed';
     if (index === currentStep) return 'current';
@@ -123,7 +125,11 @@ export function WizardStepper({
 
   if (orientation === 'vertical') {
     return (
-      <div className="flex flex-col" role="navigation" aria-label="Wizard steps">
+      <div
+        className="flex flex-col"
+        role="navigation"
+        aria-label="Wizard steps"
+      >
         {steps.map((step, index) => {
           const status = getStatus(index);
           const isClickable = allowNavigation && !!onStepClick;
@@ -140,37 +146,38 @@ export function WizardStepper({
                   onClick={() => handleStepClick(index)}
                   clickable={isClickable}
                 />
-                
+
                 {/* Connector line */}
                 {index < steps.length - 1 && (
-                  <div className={cn(
-                    'w-0.5 flex-1 my-2',
-                    status === 'completed' 
-                      ? 'bg-gradient-to-b from-green-500 to-emerald-500'
-                      : 'bg-gray-300'
-                  )} />
+                  <div
+                    className={cn(
+                      'w-0.5 flex-1 my-2',
+                      status === 'completed'
+                        ? 'bg-gradient-to-b from-green-500 to-emerald-500'
+                        : 'bg-gray-300'
+                    )}
+                  />
                 )}
               </div>
 
               {/* Step content */}
               <div
-                className={cn(
-                  'flex-1 pb-8',
-                  isClickable && 'cursor-pointer',
-                )}
+                className={cn('flex-1 pb-8', isClickable && 'cursor-pointer')}
                 onClick={() => handleStepClick(index)}
               >
-                <div className={cn(
-                  'font-medium',
-                  status === 'current' && 'text-blue-700',
-                  status === 'completed' && 'text-green-700',
-                  status === 'error' && 'text-red-700',
-                  status === 'upcoming' && 'text-gray-500',
-                  config.text,
-                )}>
+                <div
+                  className={cn(
+                    'font-medium',
+                    status === 'current' && 'text-blue-700',
+                    status === 'completed' && 'text-green-700',
+                    status === 'error' && 'text-red-700',
+                    status === 'upcoming' && 'text-gray-500',
+                    config.text
+                  )}
+                >
                   {step.title}
                 </div>
-                
+
                 {step.description && (
                   <div className="text-xs text-gray-600 mt-1">
                     {step.description}
@@ -199,7 +206,8 @@ export function WizardStepper({
             />
           </div>
           <div className="text-xs text-gray-600 mt-2 text-center">
-            {t.step} {currentStep + 1} {language === 'es' ? 'de' : 'of'} {steps.length}
+            {t.step} {currentStep + 1} {language === 'es' ? 'de' : 'of'}{' '}
+            {steps.length}
           </div>
         </div>
       )}
@@ -244,21 +252,23 @@ export function WizardStepper({
               <div
                 className={cn(
                   'text-center mt-3 px-2',
-                  isClickable && 'cursor-pointer',
+                  isClickable && 'cursor-pointer'
                 )}
                 onClick={() => handleStepClick(index)}
               >
-                <div className={cn(
-                  'font-medium',
-                  status === 'current' && 'text-blue-700',
-                  status === 'completed' && 'text-green-700',
-                  status === 'error' && 'text-red-700',
-                  status === 'upcoming' && 'text-gray-500',
-                  config.text,
-                )}>
+                <div
+                  className={cn(
+                    'font-medium',
+                    status === 'current' && 'text-blue-700',
+                    status === 'completed' && 'text-green-700',
+                    status === 'error' && 'text-red-700',
+                    status === 'upcoming' && 'text-gray-500',
+                    config.text
+                  )}
+                >
                   {step.title}
                 </div>
-                
+
                 {step.description && (
                   <div className="text-xs text-gray-600 mt-1 hidden md:block">
                     {step.description}
@@ -285,7 +295,14 @@ interface StepCircleProps {
   clickable?: boolean;
 }
 
-function StepCircle({ status, index, size, iconSize, onClick, clickable }: StepCircleProps) {
+function StepCircle({
+  status,
+  index,
+  size,
+  iconSize,
+  onClick,
+  clickable,
+}: StepCircleProps) {
   // Status configurations
   const statusConfig = {
     completed: {
@@ -325,7 +342,7 @@ function StepCircle({ status, index, size, iconSize, onClick, clickable }: StepC
         config.shadow,
         'rounded-full flex items-center justify-center text-white',
         'transition-all duration-200',
-        clickable && 'cursor-pointer hover:scale-110',
+        clickable && 'cursor-pointer hover:scale-110'
       )}
       onClick={onClick}
       whileHover={clickable ? { scale: 1.1 } : undefined}
@@ -376,7 +393,9 @@ export function CompactWizardStepper({
 
       {/* Current step */}
       <div className="text-sm">
-        <span className="text-gray-600">{t.step} {currentStep + 1}: </span>
+        <span className="text-gray-600">
+          {t.step} {currentStep + 1}:{' '}
+        </span>
         <span className="font-medium text-gray-900">
           {steps[currentStep].title}
         </span>

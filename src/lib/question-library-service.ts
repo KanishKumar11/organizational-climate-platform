@@ -99,13 +99,14 @@ export class QuestionLibraryService {
 
     // Fetch paginated results
     const skip = (page - 1) * limit;
-    const questions = await ((LibraryQuestion as any).find(query)
+    const questions = await (LibraryQuestion as any)
+      .find(query)
       .populate('category_id', 'name description')
       .sort({ usage_count: -1, updated_at: -1 }) // Most used first
       .skip(skip)
       .limit(limit)
       .lean()
-      .exec());
+      .exec();
 
     return {
       questions: questions as ILibraryQuestion[],
@@ -140,10 +141,11 @@ export class QuestionLibraryService {
       query.company_id = null;
     }
 
-    const categories = await ((QuestionCategory as any).find(query)
+    const categories = await (QuestionCategory as any)
+      .find(query)
       .sort({ order: 1, 'name.en': 1 })
       .lean()
-      .exec());
+      .exec();
 
     // Build hierarchical structure
     return this.buildCategoryTree(categories);
@@ -218,10 +220,12 @@ export class QuestionLibraryService {
   static async useQuestion(questionId: string): Promise<void> {
     await connectDB();
 
-    await (LibraryQuestion as any).findByIdAndUpdate(questionId, {
-      $inc: { usage_count: 1 },
-      last_used_at: new Date(),
-    }).exec();
+    await (LibraryQuestion as any)
+      .findByIdAndUpdate(questionId, {
+        $inc: { usage_count: 1 },
+        last_used_at: new Date(),
+      })
+      .exec();
   }
 
   /**
@@ -245,11 +249,12 @@ export class QuestionLibraryService {
       query.is_global = true;
     }
 
-    return (await ((LibraryQuestion as any).find(query)
+    return (await (LibraryQuestion as any)
+      .find(query)
       .sort({ usage_count: -1, last_used_at: -1 })
       .limit(limit)
       .lean()
-      .exec())) as ILibraryQuestion[];
+      .exec()) as ILibraryQuestion[];
   }
 
   /**
@@ -278,10 +283,11 @@ export class QuestionLibraryService {
       query.is_global = true;
     }
 
-    return (await ((LibraryQuestion as any).find(query)
+    return (await (LibraryQuestion as any)
+      .find(query)
       .sort({ order: 1, 'text.en': 1 })
       .lean()
-      .exec())) as ILibraryQuestion[];
+      .exec()) as ILibraryQuestion[];
   }
 
   /**

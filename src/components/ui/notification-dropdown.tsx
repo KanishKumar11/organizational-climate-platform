@@ -369,7 +369,10 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                                   variant="ghost"
                                   size="sm"
                                   onClick={(e) =>
-                                    handleMarkAsRead(notification._id?.toString() || '', e)
+                                    handleMarkAsRead(
+                                      notification._id?.toString() || '',
+                                      e
+                                    )
                                   }
                                   className="h-6 w-6 p-0 hover:bg-green-100"
                                   aria-label={`Mark notification "${sanitizeText(notification.title || 'Untitled Notification')}" as read`}

@@ -53,16 +53,16 @@ http://localhost:3000/demo/microclimate-wizard
 
 ### Features Included
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| 4-Step Wizard | ✅ Complete | Full workflow from basic info → submit |
-| Auto-save | ✅ Complete | Saves every 3s to localStorage |
-| Draft Recovery | ✅ Complete | Restores unsaved work after refresh |
-| CSV Import | ✅ Complete | Auto-detection + manual mapping |
-| QR Generation | ✅ Complete | PNG/SVG/PDF export (128-1024px) |
-| Multi-language | ✅ Complete | Spanish + English toggle |
-| Dark Mode | ✅ Complete | Responsive theme switching |
-| Accessibility | ✅ WCAG 2.1 AA | Keyboard navigation, ARIA labels |
+| Feature        | Status         | Description                            |
+| -------------- | -------------- | -------------------------------------- |
+| 4-Step Wizard  | ✅ Complete    | Full workflow from basic info → submit |
+| Auto-save      | ✅ Complete    | Saves every 3s to localStorage         |
+| Draft Recovery | ✅ Complete    | Restores unsaved work after refresh    |
+| CSV Import     | ✅ Complete    | Auto-detection + manual mapping        |
+| QR Generation  | ✅ Complete    | PNG/SVG/PDF export (128-1024px)        |
+| Multi-language | ✅ Complete    | Spanish + English toggle               |
+| Dark Mode      | ✅ Complete    | Responsive theme switching             |
+| Accessibility  | ✅ WCAG 2.1 AA | Keyboard navigation, ARIA labels       |
 
 ### Testing Environment
 
@@ -81,6 +81,7 @@ http://localhost:3000/demo/microclimate-wizard
 **Objective**: Create and submit a survey from start to finish
 
 1. **Step 1 - Basic Info**
+
    ```
    Title: Employee Engagement Survey Q1 2025
    Description: Quarterly survey to measure team satisfaction
@@ -88,6 +89,7 @@ http://localhost:3000/demo/microclimate-wizard
    ```
 
 2. **Step 2 - Questions**
+
    ```
    ➡️ Browse question library
    ➡️ Add 5-10 questions (mix of types)
@@ -95,6 +97,7 @@ http://localhost:3000/demo/microclimate-wizard
    ```
 
 3. **Step 3 - Targeting**
+
    ```
    ➡️ Click "CSV Import" tab
    ➡️ Upload test-employees.csv
@@ -179,6 +182,7 @@ Upload CSV with **1000+ rows**
 **Objective**: Verify auto-save and draft recovery functionality
 
 1. **Create Draft**
+
    ```
    ➡️ Step 1: Enter title "Test Draft Recovery"
    ➡️ Wait 3 seconds (auto-save triggers)
@@ -187,6 +191,7 @@ Upload CSV with **1000+ rows**
    ```
 
 2. **Recovery Banner**
+
    ```
    ✅ Yellow banner appears at top
    ✅ Message: "Tienes un borrador sin guardar..."
@@ -195,6 +200,7 @@ Upload CSV with **1000+ rows**
    ```
 
 3. **Recover Draft**
+
    ```
    ➡️ Click "Recuperar Borrador"
    ✅ Form restores with "Test Draft Recovery" title
@@ -223,12 +229,14 @@ Upload CSV with **1000+ rows**
 **Objective**: Test QR code generation and export functionality
 
 1. **Navigate to QR Tab**
+
    ```
    ➡️ Complete Steps 1-3
    ➡️ Step 4: Click "QR Code" tab
    ```
 
 2. **Configure QR Code**
+
    ```
    ➡️ Select size: 512px (default)
    ➡️ Select error correction: Medium (default)
@@ -238,6 +246,7 @@ Upload CSV with **1000+ rows**
 3. **Test Export Formats**
 
    **PNG Export:**
+
    ```
    ➡️ Select format: PNG
    ➡️ Click "Descargar QR Code"
@@ -247,6 +256,7 @@ Upload CSV with **1000+ rows**
    ```
 
    **SVG Export:**
+
    ```
    ➡️ Select format: SVG
    ➡️ Click "Descargar QR Code"
@@ -256,6 +266,7 @@ Upload CSV with **1000+ rows**
    ```
 
    **PDF Export:**
+
    ```
    ➡️ Select format: PDF
    ➡️ Click "Descargar QR Code"
@@ -317,6 +328,7 @@ test@domain,Missing TLD,Operations
 ```
 
 **Expected Errors:**
+
 - 3 invalid email formats
 - 1 duplicate email (2 instances)
 - 1 missing email
@@ -341,9 +353,31 @@ ana.martinez@empresa.com,Ana Martínez,RRHH,Sevilla,Directora de RRHH,E004
 // Generate CSV with 1000+ employees for performance testing
 const fs = require('fs');
 
-const departments = ['Sales', 'Engineering', 'Marketing', 'HR', 'Finance', 'Operations', 'IT'];
-const locations = ['New York', 'San Francisco', 'Los Angeles', 'Chicago', 'Boston', 'Seattle'];
-const positions = ['Manager', 'Specialist', 'Director', 'Analyst', 'Coordinator', 'Lead'];
+const departments = [
+  'Sales',
+  'Engineering',
+  'Marketing',
+  'HR',
+  'Finance',
+  'Operations',
+  'IT',
+];
+const locations = [
+  'New York',
+  'San Francisco',
+  'Los Angeles',
+  'Chicago',
+  'Boston',
+  'Seattle',
+];
+const positions = [
+  'Manager',
+  'Specialist',
+  'Director',
+  'Analyst',
+  'Coordinator',
+  'Lead',
+];
 
 let csv = 'email,name,department,location,position,employeeId\n';
 
@@ -354,7 +388,7 @@ for (let i = 1; i <= 1000; i++) {
   const loc = locations[i % locations.length];
   const pos = positions[i % positions.length];
   const id = `EMP${String(i).padStart(4, '0')}`;
-  
+
   csv += `${email},${name},${dept},${loc},${pos},${id}\n`;
 }
 
@@ -369,16 +403,19 @@ console.log('✅ Generated 1000 employees in test-employees-large.csv');
 ### Issue 1: Auto-save Not Working
 
 **Symptoms:**
+
 - No "Guardado automáticamente" indicator
 - Draft not saved after 3 seconds
 
 **Troubleshooting:**
+
 1. Check browser console for errors
 2. Verify localStorage is enabled (not in private mode)
 3. Look for `microclimate_draft_[companyId]` in localStorage
 4. Check network tab (no API errors expected in demo)
 
 **Solution:**
+
 - Refresh page and try again
 - Clear localStorage: `localStorage.clear()`
 - Check browser console for specific error messages
@@ -388,16 +425,19 @@ console.log('✅ Generated 1000 employees in test-employees-large.csv');
 ### Issue 2: CSV Upload Fails
 
 **Symptoms:**
+
 - File upload rejected
 - "Invalid file format" error
 
 **Troubleshooting:**
+
 1. **File Size**: Max 10MB (check file size)
 2. **File Format**: Must be `.csv` extension
 3. **Encoding**: UTF-8 (not UTF-16 or others)
 4. **Structure**: Must have header row
 
 **Solution:**
+
 ```bash
 # Check file encoding (macOS/Linux)
 file -I test-employees.csv
@@ -413,15 +453,18 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 ### Issue 3: QR Code Not Generating
 
 **Symptoms:**
+
 - QR code preview is blank
 - Download button disabled
 
 **Troubleshooting:**
+
 1. Check if survey has a unique ID
 2. Verify URL format in console
 3. Check browser support for Canvas API
 
 **Solution:**
+
 - Survey ID auto-generated from timestamp
 - Try different browser (Chrome/Firefox recommended)
 - Check console for error: `Error generating QR code`
@@ -431,18 +474,21 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 ### Issue 4: Draft Recovery Banner Not Showing
 
 **Symptoms:**
+
 - Refresh page but no banner appears
 - Draft data lost
 
 **Troubleshooting:**
+
 1. Check localStorage in DevTools:
    ```javascript
-   localStorage.getItem('microclimate_draft_demo-company-123')
+   localStorage.getItem('microclimate_draft_demo-company-123');
    ```
 2. Verify timestamp is recent (<7 days)
 3. Check if `discarded` flag is true
 
 **Solution:**
+
 - Draft expires after 7 days (auto-cleanup)
 - "Discard" button sets flag to prevent recovery
 - Clear old drafts: Delete localStorage key
@@ -454,6 +500,7 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 ### Component-Level Tests
 
 #### CSVImporter Component
+
 - [ ] Accepts .csv files only
 - [ ] Rejects files >10MB
 - [ ] Parses CSV with 1000+ rows in <2s
@@ -462,14 +509,16 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 - [ ] Drag-drop and click-upload both work
 
 #### ColumnMapper Component
+
 - [ ] Auto-detects email field (85%+ accuracy)
 - [ ] Auto-detects name field (80%+ accuracy)
 - [ ] Manual override works for all fields
 - [ ] Shows confidence indicators (High/Medium/Low)
-- [ ] Required fields show asterisk (*)
+- [ ] Required fields show asterisk (\*)
 - [ ] Dropdown lists all available columns
 
 #### ValidationPanel Component
+
 - [ ] Detects invalid email formats (RFC 5322)
 - [ ] Finds duplicate emails (case-insensitive)
 - [ ] Shows error count by category
@@ -478,6 +527,7 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 - [ ] Updates in real-time as user fixes
 
 #### QRCodeGenerator Component
+
 - [ ] Generates QR in <500ms
 - [ ] PNG export works (20-50KB)
 - [ ] SVG export works (5-10KB)
@@ -491,6 +541,7 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 ### Integration Tests
 
 #### Full Wizard Workflow
+
 - [ ] Complete all 4 steps without errors
 - [ ] Navigate forward/backward works
 - [ ] Validation prevents skipping steps
@@ -499,6 +550,7 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 - [ ] Success callback fires with data
 
 #### Auto-save System
+
 - [ ] Saves automatically every 3 seconds
 - [ ] Shows "Guardado automáticamente" indicator
 - [ ] Timestamp updates on each save
@@ -507,6 +559,7 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 - [ ] Draft includes version number
 
 #### Draft Recovery
+
 - [ ] Banner appears after refresh (if draft exists)
 - [ ] Shows last saved timestamp (human-readable)
 - [ ] "Recuperar" restores all form data
@@ -515,6 +568,7 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 - [ ] Draft expires after 7 days
 
 #### Multi-language Support
+
 - [ ] Spanish (ES) translations complete
 - [ ] English (EN) translations complete
 - [ ] Language toggle updates all UI
@@ -526,16 +580,16 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 
 ### Performance Benchmarks
 
-| Operation | Target | Actual | Status |
-|-----------|--------|--------|--------|
-| CSV Parse (100 rows) | <100ms | ~80ms | ✅ Pass |
-| CSV Parse (1000 rows) | <1s | ~750ms | ✅ Pass |
-| CSV Parse (5000 rows) | <3s | ~2.1s | ✅ Pass |
-| QR Generation | <500ms | ~200ms | ✅ Pass |
-| Auto-save Write | <50ms | ~30ms | ✅ Pass |
-| Draft Recovery | <200ms | ~120ms | ✅ Pass |
-| Step Navigation | <100ms | ~60ms | ✅ Pass |
-| Form Validation | <50ms | ~25ms | ✅ Pass |
+| Operation             | Target | Actual | Status  |
+| --------------------- | ------ | ------ | ------- |
+| CSV Parse (100 rows)  | <100ms | ~80ms  | ✅ Pass |
+| CSV Parse (1000 rows) | <1s    | ~750ms | ✅ Pass |
+| CSV Parse (5000 rows) | <3s    | ~2.1s  | ✅ Pass |
+| QR Generation         | <500ms | ~200ms | ✅ Pass |
+| Auto-save Write       | <50ms  | ~30ms  | ✅ Pass |
+| Draft Recovery        | <200ms | ~120ms | ✅ Pass |
+| Step Navigation       | <100ms | ~60ms  | ✅ Pass |
+| Form Validation       | <50ms  | ~25ms  | ✅ Pass |
 
 ---
 
@@ -554,16 +608,16 @@ iconv -f ISO-8859-1 -t UTF-8 input.csv > output.csv
 
 ### Browser Compatibility
 
-| Browser | Version | Status | Notes |
-|---------|---------|--------|-------|
-| Chrome | 120+ | ✅ Full | Recommended |
-| Firefox | 120+ | ✅ Full | Recommended |
-| Safari | 17+ | ✅ Full | Mac/iOS |
-| Edge | 120+ | ✅ Full | Windows |
-| Opera | 105+ | ✅ Full | - |
-| Mobile Safari | iOS 16+ | ✅ Full | Touch-optimized |
-| Mobile Chrome | Android 12+ | ✅ Full | Touch-optimized |
-| Samsung Internet | 23+ | ✅ Full | Android |
+| Browser          | Version     | Status  | Notes           |
+| ---------------- | ----------- | ------- | --------------- |
+| Chrome           | 120+        | ✅ Full | Recommended     |
+| Firefox          | 120+        | ✅ Full | Recommended     |
+| Safari           | 17+         | ✅ Full | Mac/iOS         |
+| Edge             | 120+        | ✅ Full | Windows         |
+| Opera            | 105+        | ✅ Full | -               |
+| Mobile Safari    | iOS 16+     | ✅ Full | Touch-optimized |
+| Mobile Chrome    | Android 12+ | ✅ Full | Touch-optimized |
+| Samsung Internet | 23+         | ✅ Full | Android         |
 
 ---
 

@@ -6,7 +6,7 @@ import SurveyAuditLog from '@/models/SurveyAuditLog';
 
 /**
  * DELETE Draft Endpoint
- * 
+ *
  * Permanently deletes a draft
  */
 export async function DELETE(
@@ -16,10 +16,7 @@ export async function DELETE(
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
@@ -27,10 +24,7 @@ export async function DELETE(
     const draft = await (SurveyDraft as any).findById(params.id);
 
     if (!draft) {
-      return NextResponse.json(
-        { error: 'Draft not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
     // Verify ownership
@@ -60,9 +54,10 @@ export async function DELETE(
           userRole: (session.user as any).role || 'user',
         },
         request: {
-          ipAddress: req.headers.get('x-forwarded-for') || 
-                     req.headers.get('x-real-ip') || 
-                     'unknown',
+          ipAddress:
+            req.headers.get('x-forwarded-for') ||
+            req.headers.get('x-real-ip') ||
+            'unknown',
           userAgent: req.headers.get('user-agent') || 'unknown',
           sessionId: draft.session_id,
         },
@@ -76,10 +71,9 @@ export async function DELETE(
       success: true,
       message: 'Draft deleted successfully',
     });
-
   } catch (error) {
     console.error('Delete draft error:', error);
-    
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -89,7 +83,7 @@ export async function DELETE(
 
 /**
  * GET Draft Endpoint
- * 
+ *
  * Retrieves a specific draft by ID
  */
 export async function GET(
@@ -99,10 +93,7 @@ export async function GET(
   try {
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
@@ -110,10 +101,7 @@ export async function GET(
     const draft = await (SurveyDraft as any).findById(params.id).lean();
 
     if (!draft) {
-      return NextResponse.json(
-        { error: 'Draft not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
     // Verify ownership
@@ -141,10 +129,9 @@ export async function GET(
         updated_at: draft.updated_at,
       },
     });
-
   } catch (error) {
     console.error('Get draft error:', error);
-    
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

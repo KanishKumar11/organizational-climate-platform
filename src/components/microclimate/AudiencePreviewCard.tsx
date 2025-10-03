@@ -3,23 +3,29 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Users, TrendingUp, Building2, MapPin, Briefcase } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/Progress';
 import { cn } from '@/lib/utils';
 
 /**
  * Audience Preview Card Component
- * 
+ *
  * Shows statistics and breakdown of target audience.
- * 
+ *
  * Features:
  * - Total employee count
  * - Breakdown by department
  * - Breakdown by location
  * - Preview sample recipients
  * - Visual charts and progress bars
- * 
+ *
  * @param employees - Array of target employees
  * @param language - Display language
  */
@@ -44,38 +50,41 @@ export function AudiencePreviewCard({
 }: AudiencePreviewCardProps) {
   const [showAll, setShowAll] = useState(false);
 
-  const t = language === 'es' ? {
-    title: 'Vista Previa de Audiencia',
-    description: 'Estadísticas de los destinatarios de la encuesta',
-    total: 'Total de Empleados',
-    byDepartment: 'Por Departamento',
-    byLocation: 'Por Ubicación',
-    byPosition: 'Por Puesto',
-    sampleRecipients: 'Destinatarios de Muestra',
-    showAll: 'Ver todos',
-    showLess: 'Ver menos',
-    noData: 'Sin datos',
-    unknown: 'No especificado',
-  } : {
-    title: 'Audience Preview',
-    description: 'Statistics of survey recipients',
-    total: 'Total Employees',
-    byDepartment: 'By Department',
-    byLocation: 'By Location',
-    byPosition: 'By Position',
-    sampleRecipients: 'Sample Recipients',
-    showAll: 'Show all',
-    showLess: 'Show less',
-    noData: 'No data',
-    unknown: 'Unspecified',
-  };
+  const t =
+    language === 'es'
+      ? {
+          title: 'Vista Previa de Audiencia',
+          description: 'Estadísticas de los destinatarios de la encuesta',
+          total: 'Total de Empleados',
+          byDepartment: 'Por Departamento',
+          byLocation: 'Por Ubicación',
+          byPosition: 'Por Puesto',
+          sampleRecipients: 'Destinatarios de Muestra',
+          showAll: 'Ver todos',
+          showLess: 'Ver menos',
+          noData: 'Sin datos',
+          unknown: 'No especificado',
+        }
+      : {
+          title: 'Audience Preview',
+          description: 'Statistics of survey recipients',
+          total: 'Total Employees',
+          byDepartment: 'By Department',
+          byLocation: 'By Location',
+          byPosition: 'By Position',
+          sampleRecipients: 'Sample Recipients',
+          showAll: 'Show all',
+          showLess: 'Show less',
+          noData: 'No data',
+          unknown: 'Unspecified',
+        };
 
   const stats = useMemo(() => {
     const departmentMap = new Map<string, number>();
     const locationMap = new Map<string, number>();
     const positionMap = new Map<string, number>();
 
-    employees.forEach(emp => {
+    employees.forEach((emp) => {
       const dept = emp.department || t.unknown;
       const loc = emp.location || t.unknown;
       const pos = emp.position || t.unknown;
@@ -123,7 +132,9 @@ export function AudiencePreviewCard({
           <Badge variant="outline">{count}</Badge>
         </div>
         <Progress value={percentage} className={cn('h-2', color)} />
-        <p className="text-xs text-gray-500 text-right">{percentage.toFixed(1)}%</p>
+        <p className="text-xs text-gray-500 text-right">
+          {percentage.toFixed(1)}%
+        </p>
       </motion.div>
     );
   };
@@ -196,15 +207,17 @@ export function AudiencePreviewCard({
               <Briefcase className="w-4 h-4" />
               {t.byPosition}
             </h4>
-            {stats.byPosition.slice(0, 3).map(([pos, count]) =>
-              renderBreakdownItem(
-                pos,
-                count,
-                stats.total,
-                <Briefcase className="w-4 h-4 text-purple-600" />,
-                'bg-purple-600'
-              )
-            )}
+            {stats.byPosition
+              .slice(0, 3)
+              .map(([pos, count]) =>
+                renderBreakdownItem(
+                  pos,
+                  count,
+                  stats.total,
+                  <Briefcase className="w-4 h-4 text-purple-600" />,
+                  'bg-purple-600'
+                )
+              )}
           </div>
         )}
 
@@ -248,7 +261,9 @@ export function AudiencePreviewCard({
               onClick={() => setShowAll(!showAll)}
               className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
             >
-              {showAll ? t.showLess : `${t.showAll} (${employees.length - 5} more)`}
+              {showAll
+                ? t.showLess
+                : `${t.showAll} (${employees.length - 5} more)`}
             </button>
           )}
         </div>

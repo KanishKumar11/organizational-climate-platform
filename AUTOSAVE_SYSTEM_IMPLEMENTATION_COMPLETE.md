@@ -1,6 +1,7 @@
 # Autosave System Implementation - Phase 2 Complete
 
 ## Overview
+
 Successfully completed **Phase 2: Autosave System** with modern, production-ready autosave functionality featuring optimistic concurrency control, beautiful UI indicators, and comprehensive error handling.
 
 **Completion Date:** October 3, 2025  
@@ -12,11 +13,13 @@ Successfully completed **Phase 2: Autosave System** with modern, production-read
 ## Components Created (4 Files)
 
 ### 1. ✅ useAutosave.ts Hook (182 lines)
+
 **Location:** `src/hooks/useAutosave.ts`
 
 **Purpose:** Enterprise-grade autosave hook with React Query integration
 
 **Key Features:**
+
 - **Debounced Saves**: Configurable interval (default 5 seconds)
 - **Optimistic Concurrency Control**: Version-based conflict detection
 - **Online/Offline Detection**: Automatic retry when connection restored
@@ -25,23 +28,25 @@ Successfully completed **Phase 2: Autosave System** with modern, production-read
 - **Retry Mechanism**: Resume failed saves automatically
 
 **API:**
+
 ```typescript
 const {
-  save,           // Debounced save function
-  forceSave,      // Immediate save (bypass debounce)
-  retry,          // Retry last failed save
-  resetVersion,   // Reset version after conflict resolution
-  status,         // Current save status
-  version,        // Current draft version
-  lastSavedAt,    // Timestamp of last successful save
-  saveCount,      // Total number of saves
-  isSaving,       // Boolean: currently saving
-  hasError,       // Boolean: error state
-  hasConflict,    // Boolean: version conflict
+  save, // Debounced save function
+  forceSave, // Immediate save (bypass debounce)
+  retry, // Retry last failed save
+  resetVersion, // Reset version after conflict resolution
+  status, // Current save status
+  version, // Current draft version
+  lastSavedAt, // Timestamp of last successful save
+  saveCount, // Total number of saves
+  isSaving, // Boolean: currently saving
+  hasError, // Boolean: error state
+  hasConflict, // Boolean: version conflict
 } = useAutosave(draftId, options);
 ```
 
 **Options:**
+
 ```typescript
 {
   debounceMs?: number;           // Default: 5000 (5 seconds)
@@ -53,6 +58,7 @@ const {
 ```
 
 **Usage Example:**
+
 ```typescript
 const { save, status, lastSavedAt } = useAutosave(draftId, {
   debounceMs: 10000, // 10 seconds
@@ -77,6 +83,7 @@ const handleFieldChange = (field: string, value: any) => {
 ---
 
 ### 2. ✅ useDebounce.ts Hook (62 lines)
+
 **Location:** `src/hooks/useDebounce.ts`
 
 **Purpose:** Utility hooks for debouncing values and callbacks
@@ -84,11 +91,13 @@ const handleFieldChange = (field: string, value: any) => {
 **Hooks Exported:**
 
 **1. useDebounceValue** - Debounce a value
+
 ```typescript
 const debouncedSearch = useDebounceValue(searchTerm, 500);
 ```
 
 **2. useDebounce** - Debounce a callback function
+
 ```typescript
 const debouncedSave = useDebounce((data) => {
   api.save(data);
@@ -96,6 +105,7 @@ const debouncedSave = useDebounce((data) => {
 ```
 
 **Features:**
+
 - **Automatic Cleanup**: Clears timeouts on unmount
 - **Ref Stability**: Uses refs to prevent stale closures
 - **TypeScript Generics**: Preserves function signatures
@@ -103,6 +113,7 @@ const debouncedSave = useDebounce((data) => {
 ---
 
 ### 3. ✅ AutosaveIndicator.tsx Component (261 lines)
+
 **Location:** `src/components/microclimate/AutosaveIndicator.tsx`
 
 **Purpose:** Modern, animated UI indicator for autosave status
@@ -110,9 +121,11 @@ const debouncedSave = useDebounce((data) => {
 **Components Exported:**
 
 #### AutosaveIndicator (Main Component)
+
 Floating indicator with full status display
 
 **Features:**
+
 - ✨ **Animated Transitions**: Smooth fade/slide animations with Framer Motion
 - 🎨 **Gradient Backgrounds**: Beautiful color-coded states
 - 🌐 **Multilingual**: Spanish/English support
@@ -123,15 +136,16 @@ Floating indicator with full status display
 
 **Status Styles:**
 
-| Status | Color | Icon | Gradient | Animation |
-|--------|-------|------|----------|-----------|
-| idle | Gray | Cloud | Gray | None |
-| saving | Blue | RefreshCw | Blue-Indigo | Spin |
-| saved | Green | Check | Emerald-Teal | None |
-| error | Red | CloudOff | Red-Rose | None |
-| conflict | Orange | AlertCircle | Orange-Amber | None |
+| Status   | Color  | Icon        | Gradient     | Animation |
+| -------- | ------ | ----------- | ------------ | --------- |
+| idle     | Gray   | Cloud       | Gray         | None      |
+| saving   | Blue   | RefreshCw   | Blue-Indigo  | Spin      |
+| saved    | Green  | Check       | Emerald-Teal | None      |
+| error    | Red    | CloudOff    | Red-Rose     | None      |
+| conflict | Orange | AlertCircle | Orange-Amber | None      |
 
 **Props:**
+
 ```typescript
 interface AutosaveIndicatorProps {
   status: AutosaveStatus;
@@ -144,6 +158,7 @@ interface AutosaveIndicatorProps {
 ```
 
 **Usage:**
+
 ```typescript
 <AutosaveIndicator
   status={status}
@@ -155,24 +170,28 @@ interface AutosaveIndicatorProps {
 ```
 
 **Visual Design:**
+
 - **Position**: Fixed bottom-right (z-50)
 - **Size**: Compact, non-intrusive
-- **Effects**: 
+- **Effects**:
   - Shimmer animation while saving
   - Progress bar during save
   - Smooth opacity transitions
   - Scale animations on show/hide
 
 #### AutosaveBadge (Compact Variant)
+
 Header/toolbar badge with minimal footprint
 
 **Features:**
+
 - 🎯 **Compact Design**: Fits in headers
 - 🔄 **Same Status Logic**: Reuses status configuration
 - 📊 **Relative Time**: Shows last saved time
 - 🎨 **Clean Styling**: White background, subtle shadow
 
 **Usage:**
+
 ```typescript
 <AutosaveBadge
   status={status}
@@ -184,6 +203,7 @@ Header/toolbar badge with minimal footprint
 ---
 
 ### 4. ✅ /api/surveys/drafts/[id]/autosave/route.ts (270 lines)
+
 **Location:** `src/app/api/surveys/drafts/[id]/autosave/route.ts`
 
 **Purpose:** API endpoint for autosaving drafts
@@ -191,9 +211,11 @@ Header/toolbar badge with minimal footprint
 **Endpoints:**
 
 #### POST `/api/surveys/drafts/[id]/autosave`
+
 Save draft with version control
 
 **Request Body:**
+
 ```typescript
 {
   current_step: number,        // 1-4
@@ -223,6 +245,7 @@ Save draft with version control
 ```
 
 **Response (Success):**
+
 ```json
 {
   "success": true,
@@ -234,6 +257,7 @@ Save draft with version control
 ```
 
 **Response (Conflict - 409):**
+
 ```json
 {
   "error": "Version conflict: Draft was modified by another session",
@@ -243,6 +267,7 @@ Save draft with version control
 ```
 
 **Features:**
+
 - ✅ **Authentication**: Session-based auth check
 - ✅ **Validation**: Zod schema validation
 - ✅ **Ownership Check**: Verify user owns draft
@@ -252,9 +277,11 @@ Save draft with version control
 - ✅ **Request Metadata**: IP, user agent, session ID
 
 #### GET `/api/surveys/drafts/[id]/autosave`
+
 Retrieve draft data
 
 **Response:**
+
 ```json
 {
   "draft": {
@@ -275,6 +302,7 @@ Retrieve draft data
 ```
 
 **Security:**
+
 - 🔒 Authentication required
 - 🔒 Ownership verification
 - 🔒 Input validation (Zod)
@@ -292,28 +320,32 @@ Retrieve draft data
 **Solution:** Version-based conflict detection
 
 **Flow:**
+
 ```
 Client A (v1) → Edit → POST {data, version: 1} → Server updates to v2 → Success
 Client B (v1) → Edit → POST {data, version: 1} → Server has v2 → 409 Conflict
 ```
 
 **Client Handling:**
+
 ```typescript
 onConflict: (serverVersion) => {
   // Show modal: "Draft was modified in another tab"
   // Options: Reload, Overwrite, Merge
-}
+};
 ```
 
 ### 2. **Debouncing Strategy**
 
 **Why 5-10 seconds?**
+
 - ⚖️ **Balance**: Frequent enough to prevent data loss, infrequent enough to avoid server spam
 - 📊 **UX Research**: Users pause typing ~3-5 seconds between thoughts
 - 🌐 **Network Efficiency**: Batch changes, reduce API calls
 - 💾 **Database Load**: Minimize write operations
 
 **Implementation:**
+
 ```typescript
 // User types: "Hello World"
 // Time 0s: Type "H" → Start timer (5s)
@@ -352,6 +384,7 @@ onConflict: (serverVersion) => {
 ### 4. **Offline Support**
 
 **Detection:**
+
 ```typescript
 window.addEventListener('online', () => {
   // Connection restored → retry pending save
@@ -363,6 +396,7 @@ window.addEventListener('offline', () => {
 ```
 
 **Queue Management:**
+
 ```typescript
 const pendingDataRef = useRef<AutosaveData | null>(null);
 
@@ -382,18 +416,21 @@ if (pendingDataRef.current) {
 ### Visual Feedback Timeline
 
 **Saving State (0-2s):**
+
 ```
 ┌─────────────────────────────────────┐
 │  🔄 Guardando...                     │
 │  [━━━━━━━━░░░░░░░░░░░░] 40%         │
 └─────────────────────────────────────┘
 ```
+
 - Spinning icon
 - Blue gradient background
 - Animated shimmer effect
 - Progress bar at bottom
 
 **Saved State (2-5s):**
+
 ```
 ┌─────────────────────────────────────┐
 │  ✓ Guardado                          │
@@ -401,38 +438,45 @@ if (pendingDataRef.current) {
 │  5 guardados                         │
 └─────────────────────────────────────┘
 ```
+
 - Check mark icon
 - Green gradient background
 - Relative time stamp
 - Save counter badge
 
 **Idle State (after 5s):**
+
 ```
 ┌─────────────────────────────────────┐
 │  ☁ Guardado automático activado     │
 └─────────────────────────────────────┘
 ```
+
 - Cloud icon
 - Minimal gray styling
 - Non-intrusive
 
 **Error State:**
+
 ```
 ┌─────────────────────────────────────┐
 │  ⚠ Error al guardar    [Reintentar] │
 └─────────────────────────────────────┘
 ```
+
 - Alert icon
 - Red gradient background
 - Retry button
 - Click to attempt save again
 
 **Conflict State:**
+
 ```
 ┌─────────────────────────────────────┐
 │  ⚠ Conflicto de versión  [Recargar] │
 └─────────────────────────────────────┘
 ```
+
 - Warning icon
 - Orange gradient background
 - Reload button
@@ -440,22 +484,21 @@ if (pendingDataRef.current) {
 ### Accessibility
 
 **ARIA Support:**
+
 ```html
-<div
-  role="status"
-  aria-live="polite"
-  aria-atomic="true"
->
+<div role="status" aria-live="polite" aria-atomic="true">
   ✓ Guardado hace 2 minutos
 </div>
 ```
 
 **Screen Reader Announcements:**
+
 - "Guardando borrador" (when save starts)
 - "Borrador guardado exitosamente" (on success)
 - "Error al guardar, presione reintentar" (on error)
 
 **Keyboard Navigation:**
+
 - Retry button: Focusable, Enter/Space to activate
 - No keyboard traps
 - Logical tab order
@@ -476,7 +519,7 @@ import { AutosaveIndicator } from '@/components/microclimate/AutosaveIndicator';
 export function SurveyWizard({ draftId }: { draftId: string }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [step1Data, setStep1Data] = useState({});
-  
+
   // Initialize autosave
   const {
     save,
@@ -494,11 +537,11 @@ export function SurveyWizard({ draftId }: { draftId: string }) {
       }
     },
   });
-  
+
   // Handle field changes
   const handleFieldChange = (field: string, value: any) => {
     setStep1Data(prev => ({ ...prev, [field]: value }));
-    
+
     // Trigger autosave
     save({
       current_step: currentStep,
@@ -506,7 +549,7 @@ export function SurveyWizard({ draftId }: { draftId: string }) {
       last_edited_field: field,
     });
   };
-  
+
   // Handle step navigation
   const handleNextStep = async () => {
     // Force save before navigation
@@ -514,10 +557,10 @@ export function SurveyWizard({ draftId }: { draftId: string }) {
       current_step: currentStep,
       step1_data,
     });
-    
+
     setCurrentStep(prev => prev + 1);
   };
-  
+
   return (
     <div>
       <form>
@@ -526,12 +569,12 @@ export function SurveyWizard({ draftId }: { draftId: string }) {
           onChange={(e) => handleFieldChange('title', e.target.value)}
           placeholder="Título de la encuesta"
         />
-        
+
         <button type="button" onClick={handleNextStep}>
           Siguiente
         </button>
       </form>
-      
+
       {/* Autosave indicator */}
       <AutosaveIndicator
         status={status}
@@ -552,11 +595,13 @@ export function SurveyWizard({ draftId }: { draftId: string }) {
 ### 1. **Debouncing Reduces API Calls**
 
 **Without Debouncing:**
+
 ```
 User types "Hello World" (11 characters) = 11 API calls
 ```
 
 **With 5s Debouncing:**
+
 ```
 User types "Hello World" (11 characters) = 1-2 API calls
 Savings: 82-91% reduction
@@ -565,6 +610,7 @@ Savings: 82-91% reduction
 ### 2. **Partial Updates Save Bandwidth**
 
 **Full Draft Update:**
+
 ```json
 {
   "step1_data": {...},  // 500 bytes
@@ -576,6 +622,7 @@ Savings: 82-91% reduction
 ```
 
 **Partial Step Update:**
+
 ```json
 {
   "current_step": 1,
@@ -588,6 +635,7 @@ Savings: 82-91% reduction
 ### 3. **Version Field Prevents Conflicts**
 
 **Without Version Control:**
+
 ```
 User A saves → Draft updated
 User B saves (stale data) → Overwrites A's changes 😞
@@ -595,6 +643,7 @@ Result: Data loss
 ```
 
 **With Version Control:**
+
 ```
 User A saves (v1 → v2) → Success
 User B saves (v1) → 409 Conflict → User notified 😊
@@ -618,6 +667,7 @@ const saveMutation = useMutation({
 ## Testing Checklist
 
 ### Unit Tests
+
 - [x] useAutosave hook initializes with correct defaults
 - [x] Debounce delays save by specified interval
 - [x] Force save bypasses debounce
@@ -627,6 +677,7 @@ const saveMutation = useMutation({
 - [x] Error state on 500 response
 
 ### Integration Tests
+
 - [ ] Full wizard flow with autosave
 - [ ] Multi-tab conflict detection
 - [ ] Network failure recovery
@@ -634,6 +685,7 @@ const saveMutation = useMutation({
 - [ ] Audit log creation
 
 ### E2E Tests
+
 - [ ] User types → autosave triggers
 - [ ] Navigate away → draft persists
 - [ ] Return → draft recovers
@@ -646,17 +698,14 @@ const saveMutation = useMutation({
 ### Components to Build:
 
 1. **useDraftRecovery Hook**
+
    ```typescript
-   const {
-     hasDraft,
-     draftData,
-     draftAge,
-     recoverDraft,
-     discardDraft,
-   } = useDraftRecovery(userId, companyId);
+   const { hasDraft, draftData, draftAge, recoverDraft, discardDraft } =
+     useDraftRecovery(userId, companyId);
    ```
 
 2. **DraftRecoveryBanner Component**
+
    ```tsx
    <DraftRecoveryBanner
      draftAge="2 hours ago"
@@ -676,6 +725,7 @@ const saveMutation = useMutation({
 ## Dependencies
 
 ### Production:
+
 - `@tanstack/react-query`: ^5.x - State management
 - `framer-motion`: ^11.x - Animations
 - `lucide-react`: ^0.x - Icons
@@ -683,6 +733,7 @@ const saveMutation = useMutation({
 - `zod`: ^3.x - Validation
 
 ### Dev:
+
 - TypeScript: ^5.x
 - ESLint: ^8.x
 - Prettier: ^3.x
@@ -692,6 +743,7 @@ const saveMutation = useMutation({
 ## Summary
 
 ### Files Created: 4
+
 1. ✅ `src/hooks/useAutosave.ts` - 182 lines
 2. ✅ `src/hooks/useDebounce.ts` - 62 lines
 3. ✅ `src/components/microclimate/AutosaveIndicator.tsx` - 261 lines
@@ -700,6 +752,7 @@ const saveMutation = useMutation({
 ### Total Lines of Code: 775
 
 ### Features Implemented:
+
 - ✅ Debounced autosave (5-10s configurable)
 - ✅ Optimistic concurrency control
 - ✅ Beautiful animated UI indicators
@@ -712,6 +765,7 @@ const saveMutation = useMutation({
 - ✅ TypeScript type safety
 
 ### Build Status:
+
 - ✅ TypeScript: 0 errors
 - ✅ ESLint: Warnings only (no errors)
 - ✅ All models compile successfully
@@ -723,6 +777,7 @@ const saveMutation = useMutation({
 **Next Phase:** Phase 3 - Draft Recovery System (Estimated: 4 hours)
 
 **Timeline Progress:**
+
 - Week 1: ✅ **Database Foundation** (Complete)
 - Week 2: ✅ **Autosave System** (Complete)
 - Week 2: 🔄 **Draft Recovery** (Starting)
