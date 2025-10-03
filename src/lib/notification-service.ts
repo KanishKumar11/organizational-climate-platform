@@ -918,6 +918,7 @@ class NotificationService {
 
     const statusFilter = status || ['delivered', 'opened'];
 
+    // Use lean() for better performance and add maxTimeMS to prevent hanging
     const notifications = await (Notification as any)
       .find({
         user_id: userId,
@@ -926,8 +927,9 @@ class NotificationService {
       .sort({ created_at: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('user_id', 'name email')
-      .populate('company_id', 'name');
+      .maxTimeMS(10000) // 10 second timeout
+      .lean()
+      .exec();
 
     return notifications;
   }
@@ -943,6 +945,7 @@ class NotificationService {
 
     const statusFilter = status || ['delivered', 'opened'];
 
+    // Use lean() for better performance and add maxTimeMS to prevent hanging
     const notifications = await (Notification as any)
       .find({
         company_id: companyId,
@@ -951,8 +954,9 @@ class NotificationService {
       .sort({ created_at: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('user_id', 'name email')
-      .populate('company_id', 'name');
+      .maxTimeMS(10000) // 10 second timeout
+      .lean()
+      .exec();
 
     return notifications;
   }

@@ -31,6 +31,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, AlertCircle, Bell, CheckCircle2 } from 'lucide-react';
+import { ReminderScheduler, ReminderConfig } from './ReminderScheduler';
 
 interface ScheduleConfigProps {
   onScheduleChange?: (schedule: ScheduleData) => void;
@@ -47,6 +48,7 @@ export interface ScheduleData {
   reminderFrequency?: 'daily' | 'weekly' | 'biweekly';
   reminderDaysBefore?: number;
   autoClose: boolean;
+  reminders?: ReminderConfig;
 }
 
 type QuickOption = '1week' | '2weeks' | '1month' | 'custom';
@@ -85,6 +87,31 @@ export function ScheduleConfig({
   const [reminderDaysBefore, setReminderDaysBefore] = useState<number>(3);
   const [autoClose, setAutoClose] = useState<boolean>(true);
   const [quickOption, setQuickOption] = useState<QuickOption>('2weeks');
+  const [reminders, setReminders] = useState<ReminderConfig>({
+    enabled: false,
+    intervals: [],
+    maxReminders: 3,
+    emailTemplate: {
+      subject_es: 'Recordatorio: Completa la encuesta {{encuesta}}',
+      subject_en: 'Reminder: Complete the {{survey}} survey',
+      body_es: `Hola {{nombre}},
+
+Te recordamos que la encuesta "{{encuesta}}" cierra el {{fecha_limite}}.
+
+Por favor, toma unos minutos para completarla. Tu opinión es muy importante para nosotros.
+
+Gracias,
+Equipo de Recursos Humanos`,
+      body_en: `Hello {{name}},
+
+This is a reminder that the "{{survey}}" survey closes on {{deadline}}.
+
+Please take a few minutes to complete it. Your feedback is very important to us.
+
+Thank you,
+Human Resources Team`,
+    },
+  });
 
   // Translations
   const t =
@@ -224,6 +251,7 @@ export function ScheduleConfig({
       reminderFrequency: enableReminders ? reminderFrequency : undefined,
       reminderDaysBefore: enableReminders ? reminderDaysBefore : undefined,
       autoClose,
+      reminders,
     };
 
     onScheduleChange?.(scheduleData);
@@ -237,6 +265,7 @@ export function ScheduleConfig({
     reminderFrequency,
     reminderDaysBefore,
     autoClose,
+    reminders,
     isValid,
     onScheduleChange,
   ]);
@@ -414,86 +443,25 @@ export function ScheduleConfig({
         </CardContent>
       </Card>
 
-      {/* Reminders Configuration Card */}
+      {/* Reminders - Now using ReminderScheduler Component */}
+      <ReminderScheduler
+        endDate={endDate}
+        config={reminders}
+        onChange={setReminders}
+        language={language}
+      />
+
+      {/* Other Settings */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="w-5 h-5" />
-            {t.reminders}
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <CheckCircle2 className="w-5 h-5" />
+            {language === 'es' ? 'Configuración Adicional' : 'Additional Settings'}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Enable Reminders */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="enableReminders">{t.enableReminders}</Label>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {language === 'es'
-                  ? 'Enviar recordatorios automáticos a los empleados'
-                  : 'Send automatic reminders to employees'}
-              </p>
-            </div>
-            <Switch
-              id="enableReminders"
-              checked={enableReminders}
-              onCheckedChange={setEnableReminders}
-            />
-          </div>
-
-          {/* Reminder Settings */}
-          {enableReminders && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-4 pt-4 border-t"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Frequency */}
-                <div className="space-y-2">
-                  <Label>{t.reminderFrequency}</Label>
-                  <Select
-                    value={reminderFrequency}
-                    onValueChange={(value) =>
-                      setReminderFrequency(
-                        value as 'daily' | 'weekly' | 'biweekly'
-                      )
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">{t.daily}</SelectItem>
-                      <SelectItem value="weekly">{t.weekly}</SelectItem>
-                      <SelectItem value="biweekly">{t.biweekly}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Days Before Close */}
-                <div className="space-y-2">
-                  <Label htmlFor="reminderDaysBefore">
-                    {t.reminderDaysBefore}
-                  </Label>
-                  <Input
-                    id="reminderDaysBefore"
-                    type="number"
-                    min="1"
-                    max="30"
-                    value={reminderDaysBefore}
-                    onChange={(e) =>
-                      setReminderDaysBefore(parseInt(e.target.value))
-                    }
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            </motion.div>
-          )}
-
           {/* Auto Close */}
-          <div className="flex items-center justify-between pt-4 border-t">
+          <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="autoClose">{t.autoClose}</Label>
               <p className="text-sm text-gray-500 dark:text-gray-400">

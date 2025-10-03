@@ -183,6 +183,9 @@ NotificationSchema.index({ company_id: 1, created_at: -1 });
 NotificationSchema.index({ status: 1, scheduled_for: 1 });
 NotificationSchema.index({ type: 1, status: 1 });
 NotificationSchema.index({ priority: 1, scheduled_for: 1 });
+// Compound indexes for common queries to improve performance
+NotificationSchema.index({ user_id: 1, status: 1, created_at: -1 });
+NotificationSchema.index({ company_id: 1, status: 1, created_at: -1 });
 
 // Static methods
 NotificationSchema.statics.findPendingNotifications = function (limit = 100) {

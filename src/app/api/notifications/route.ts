@@ -48,14 +48,20 @@ const querySchema = z.object({
 // GET /api/notifications - Get notifications
 export const GET = withRateLimit(
   notificationApiLimiter,
-  async (request: NextRequest) => {
+  async (request: NextRequest): Promise<NextResponse> => {
     try {
-      const session = await getServerSession(authOptions);
-      if (!session?.user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+      // Add timeout handling
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 25000); // 25 second timeout
+      });
 
-      await connectDB();
+      const mainPromise = async (): Promise<NextResponse> => {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        await connectDB();
 
       const { searchParams } = new URL(request.url);
       const query = querySchema.parse(Object.fromEntries(searchParams));
@@ -157,8 +163,21 @@ export const GET = withRateLimit(
           hasPrev: page > 1,
         },
       });
+      };
+
+      // Race between timeout and main execution
+      return await Promise.race([mainPromise(), timeoutPromise]);
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      
+      // Check if it's a timeout error
+      if (error instanceof Error && error.message === 'Request timeout') {
+        return NextResponse.json(
+          { error: 'Request timeout - please try again with more specific filters' },
+          { status: 504 }
+        );
+      }
+      
       return NextResponse.json(
         { error: 'Failed to fetch notifications' },
         { status: 500 }

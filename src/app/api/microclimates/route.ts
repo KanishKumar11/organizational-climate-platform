@@ -237,17 +237,28 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify departments exist and belong to user's company
+    // Allow both active and inactive departments, but warn about inactive ones
     const departments = await Department.find({
       _id: { $in: validatedData.targeting.department_ids },
       company_id: user.company_id,
-      is_active: true,
     });
 
     if (departments.length !== validatedData.targeting.department_ids.length) {
       return NextResponse.json(
-        { error: 'One or more departments not found or inactive' },
+        { error: 'One or more departments not found' },
         { status: 400 }
       );
+    }
+
+    // Check for inactive departments and include warning
+    const inactiveDepartments = departments.filter(dept => !dept.is_active);
+    const warnings = [];
+    if (inactiveDepartments.length > 0) {
+      warnings.push({
+        type: 'inactive_departments',
+        message: `${inactiveDepartments.length} selected department(s) are inactive`,
+        departments: inactiveDepartments.map(d => ({ id: d._id, name: d.name }))
+      });
     }
 
     // Calculate target participant count
@@ -336,6 +347,7 @@ export async function POST(request: NextRequest) {
       {
         microclimate,
         invite_count: inviteList.length,
+        warnings: warnings.length > 0 ? warnings : undefined,
       },
       { status: 201 }
     );
