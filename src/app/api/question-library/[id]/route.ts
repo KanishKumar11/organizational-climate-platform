@@ -9,7 +9,7 @@ import QuestionCategory from '@/models/QuestionCategory';
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -19,7 +19,8 @@ export async function GET(
 
     await connectDB();
 
-    const question = await (QuestionLibrary as any).findById(params.id).lean();
+    const { id } = await params;
+    const question = await (QuestionLibrary as any).findById(id).lean();
 
     if (!question) {
       return NextResponse.json(
@@ -49,7 +50,7 @@ export async function GET(
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -61,7 +62,8 @@ export async function PUT(
 
     await connectDB();
 
-    const question = await (QuestionLibrary as any).findById(params.id);
+    const { id } = await params;
+    const question = await (QuestionLibrary as any).findById(id);
 
     if (!question) {
       return NextResponse.json(
@@ -131,7 +133,7 @@ export async function PUT(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -141,7 +143,8 @@ export async function DELETE(
 
     await connectDB();
 
-    const question = await (QuestionLibrary as any).findById(params.id);
+    const { id } = await params;
+    const question = await (QuestionLibrary as any).findById(id);
 
     if (!question) {
       return NextResponse.json(
@@ -156,7 +159,7 @@ export async function DELETE(
     });
 
     // Delete question
-    await (QuestionLibrary as any).findByIdAndDelete(params.id);
+    await (QuestionLibrary as any).findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,

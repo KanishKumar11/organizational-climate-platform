@@ -11,7 +11,7 @@ import SurveyAuditLog from '@/models/SurveyAuditLog';
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -19,9 +19,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     await connectDB();
 
-    const draft = await (SurveyDraft as any).findById(params.id);
+    const draft = await (SurveyDraft as any).findById(id);
 
     if (!draft) {
       return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
@@ -65,7 +67,7 @@ export async function DELETE(
     }
 
     // Delete draft
-    await (SurveyDraft as any).findByIdAndDelete(params.id);
+    await (SurveyDraft as any).findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,
@@ -88,7 +90,7 @@ export async function DELETE(
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -96,9 +98,11 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     await connectDB();
 
-    const draft = await (SurveyDraft as any).findById(params.id).lean();
+    const draft = await (SurveyDraft as any).findById(id).lean();
 
     if (!draft) {
       return NextResponse.json({ error: 'Draft not found' }, { status: 404 });

@@ -11,7 +11,7 @@ import SurveyAuditLog from '@/models/SurveyAuditLog';
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -19,9 +19,11 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     await connectDB();
 
-    const draft = await (SurveyDraft as any).findById(params.id);
+    const draft = await (SurveyDraft as any).findById(id);
 
     if (!draft) {
       return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
