@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# MongoDB cache (large files)
+.mongodb-cache/
+*.lock
+mongod-*.exe
+mongodb-*.zip
