@@ -75,7 +75,8 @@ export default function SurveyResponseFlow({
   const [hasStarted, setHasStarted] = useState(false);
 
   const currentQuestion = surveyData.questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / surveyData.questions.length) * 100;
+  const progress =
+    ((currentQuestionIndex + 1) / surveyData.questions.length) * 100;
 
   const handleResponse = (questionId: string, value: any) => {
     setResponses((prev) => ({
@@ -157,7 +158,10 @@ export default function SurveyResponseFlow({
           <div className="space-y-4">
             <div className="flex justify-between items-center gap-2">
               {Array.from(
-                { length: (question.scale_max || 5) - (question.scale_min || 1) + 1 },
+                {
+                  length:
+                    (question.scale_max || 5) - (question.scale_min || 1) + 1,
+                },
                 (_, i) => {
                   const scaleValue = (question.scale_min || 1) + i;
                   return (
@@ -219,13 +223,19 @@ export default function SurveyResponseFlow({
             <div className="space-y-3">
               <div className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-gray-50">
                 <RadioGroupItem value="true" id={`${question.id}-yes`} />
-                <Label htmlFor={`${question.id}-yes`} className="flex-1 cursor-pointer">
+                <Label
+                  htmlFor={`${question.id}-yes`}
+                  className="flex-1 cursor-pointer"
+                >
                   Yes
                 </Label>
               </div>
               <div className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-gray-50">
                 <RadioGroupItem value="false" id={`${question.id}-no`} />
-                <Label htmlFor={`${question.id}-no`} className="flex-1 cursor-pointer">
+                <Label
+                  htmlFor={`${question.id}-no`}
+                  className="flex-1 cursor-pointer"
+                >
                   No
                 </Label>
               </div>
@@ -334,7 +344,12 @@ export default function SurveyResponseFlow({
                   </h3>
                   <ul className="space-y-2 text-sm text-blue-800">
                     <li>• This survey will take approximately 5-10 minutes</li>
-                    <li>• Your responses are {surveyData.settings.anonymous ? 'anonymous' : 'confidential'}</li>
+                    <li>
+                      • Your responses are{' '}
+                      {surveyData.settings.anonymous
+                        ? 'anonymous'
+                        : 'confidential'}
+                    </li>
                     <li>• You can navigate back and forth between questions</li>
                     {surveyData.settings.allow_partial_responses && (
                       <li>• You can save your progress and return later</li>
@@ -365,7 +380,8 @@ export default function SurveyResponseFlow({
           <div className="mb-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>
-                Question {currentQuestionIndex + 1} of {surveyData.questions.length}
+                Question {currentQuestionIndex + 1} of{' '}
+                {surveyData.questions.length}
               </span>
               <span>{Math.round(progress)}% Complete</span>
             </div>

@@ -7,9 +7,11 @@ Successfully implemented the missing `/surveys/:id/respond` route for the survey
 ## Files Created
 
 ### 1. **Survey Response Page**
+
 **Location:** `src/app/surveys/[id]/respond/page.tsx`
 
 Server-side rendered page that:
+
 - Validates user authentication and permissions
 - Checks if survey can accept responses (active status, within date range)
 - Fetches survey data from database
@@ -17,6 +19,7 @@ Server-side rendered page that:
 - Renders the SurveyResponseFlow component
 
 **Features:**
+
 - Access control based on company_id
 - Survey availability validation (status, start/end dates)
 - Support for invitation tokens
@@ -24,9 +27,11 @@ Server-side rendered page that:
 - SEO-friendly metadata generation
 
 ### 2. **Survey Response Flow Component**
+
 **Location:** `src/components/surveys/SurveyResponseFlow.tsx`
 
 Client-side component that:
+
 - Displays survey introduction screen
 - Implements question-by-question navigation
 - Handles various question types (likert, multiple_choice, yes/no, emoji_scale, open_ended, ranking)
@@ -35,6 +40,7 @@ Client-side component that:
 - Submits responses to API
 
 **Features:**
+
 - Smooth animations between questions
 - Progress tracking
 - Response validation
@@ -45,6 +51,7 @@ Client-side component that:
 ## API Integration
 
 Uses existing API endpoint:
+
 - **POST** `/api/surveys/:id/responses` - Already implemented and working
 - Handles response submission, validation, and storage
 - Updates survey response count
@@ -87,6 +94,7 @@ Uses existing API endpoint:
 ## Configuration Options
 
 Respects survey settings:
+
 - `anonymous`: Hides user identity in responses
 - `show_progress`: Displays progress bar and question count
 - `allow_partial_responses`: Enables save-and-continue functionality
@@ -94,11 +102,13 @@ Respects survey settings:
 ## Route Access
 
 The route is now available at:
+
 ```
 /surveys/:id/respond
 ```
 
 Optional query parameter:
+
 ```
 ?token=invitation_token
 ```
