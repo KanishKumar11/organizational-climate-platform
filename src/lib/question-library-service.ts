@@ -1,5 +1,4 @@
-import LibraryQuestion, { ILibraryQuestion } from '@/models/LibraryQuestion';
-import QuestionCategory from '@/models/QuestionCategory';
+import QuestionBank, { IQuestionBankItem } from '@/models/QuestionBank';
 import { connectDB } from '@/lib/mongodb';
 import type { FilterQuery } from 'mongoose';
 
@@ -23,7 +22,7 @@ export interface QuestionSearchFilters {
 }
 
 export interface QuestionSearchResult {
-  questions: ILibraryQuestion[];
+  questions: IQuestionBankItem[];
   total: number;
   page: number;
   limit: number;
@@ -41,14 +40,13 @@ export class QuestionLibraryService {
   ): Promise<QuestionSearchResult> {
     await connectDB();
 
-    const query: FilterQuery<ILibraryQuestion> = {
+    const query: FilterQuery<IQuestionBankItem> = {
       is_active: true,
-      is_latest: true,
     };
 
     // Category filter
     if (filters.category_id) {
-      query.category_id = filters.category_id;
+      query.category = filters.category_id;
     }
 
     // Tags filter
@@ -61,55 +59,43 @@ export class QuestionLibraryService {
       query.type = filters.type;
     }
 
-    // Difficulty level
-    if (filters.difficulty_level) {
-      query.difficulty_level = filters.difficulty_level;
-    }
-
-    // Company scope
+    // Company scope - QuestionBank uses company_id field
     if (filters.company_id) {
       if (filters.include_global) {
-        query.$or = [{ company_id: filters.company_id }, { is_global: true }];
+        query.$or = [{ company_id: filters.company_id }, { company_id: null }];
       } else {
         query.company_id = filters.company_id;
       }
     } else if (filters.include_global) {
-      query.is_global = true;
+      query.company_id = null; // Global questions
     }
 
-    // Approval filter
-    if (filters.is_approved_only) {
-      query.is_approved = true;
-    }
-
-    // Text search (bilingual)
+    // Text search
     if (filters.search_query && filters.search_query.trim()) {
       const searchRegex = new RegExp(filters.search_query.trim(), 'i');
       query.$or = [
-        { 'text.en': searchRegex },
-        { 'text.es': searchRegex },
-        { 'keywords.en': searchRegex },
-        { 'keywords.es': searchRegex },
+        { text: searchRegex },
+        { category: searchRegex },
+        { subcategory: searchRegex },
         { tags: searchRegex },
       ];
     }
 
     // Count total matching questions
-    const total = await LibraryQuestion.countDocuments(query).exec();
+    const total = await QuestionBank.countDocuments(query).exec();
 
     // Fetch paginated results
     const skip = (page - 1) * limit;
-    const questions = await (LibraryQuestion as any)
+    const questions = await (QuestionBank as any)
       .find(query)
-      .populate('category_id', 'name description')
-      .sort({ usage_count: -1, updated_at: -1 }) // Most used first
+      .sort({ 'metrics.usage_count': -1, updated_at: -1 }) // Most used first
       .skip(skip)
       .limit(limit)
       .lean()
       .exec();
 
     return {
-      questions: questions as ILibraryQuestion[],
+      questions: questions as IQuestionBankItem[],
       total,
       page,
       limit,
@@ -118,7 +104,7 @@ export class QuestionLibraryService {
   }
 
   /**
-   * Get all categories (hierarchical)
+   * Get all categories from QuestionBank
    */
   static async getCategories(
     companyId?: string,
@@ -126,7 +112,7 @@ export class QuestionLibraryService {
   ) {
     await connectDB();
 
-    const query: FilterQuery<any> = { is_active: true };
+    const query: any = { is_active: true };
 
     if (companyId) {
       if (includeGlobal) {
@@ -141,77 +127,15 @@ export class QuestionLibraryService {
       query.company_id = null;
     }
 
-    const categories = await (QuestionCategory as any)
-      .find(query)
-      .sort({ order: 1, 'name.en': 1 })
-      .lean()
-      .exec();
+    // Get distinct categories from QuestionBank
+    const categories = await QuestionBank.distinct('category', query);
 
-    // Build hierarchical structure
-    return this.buildCategoryTree(categories);
-  }
-
-  /**
-   * Build hierarchical category tree
-   */
-  private static buildCategoryTree(categories: any[]): any[] {
-    const categoryMap = new Map();
-    const roots: any[] = [];
-
-    // Create map of all categories
-    categories.forEach((cat) => {
-      categoryMap.set(cat._id.toString(), { ...cat, children: [] });
-    });
-
-    // Build tree structure
-    categories.forEach((cat) => {
-      const category = categoryMap.get(cat._id.toString());
-      if (cat.parent_id) {
-        const parent = categoryMap.get(cat.parent_id.toString());
-        if (parent) {
-          parent.children.push(category);
-        } else {
-          roots.push(category);
-        }
-      } else {
-        roots.push(category);
-      }
-    });
-
-    return roots;
-  }
-
-  /**
-   * Check for duplicate questions (same text in same category)
-   */
-  static async checkDuplicate(
-    text_en: string,
-    text_es: string,
-    category_id: string,
-    company_id?: string
-  ): Promise<{ is_duplicate: boolean; existing_question?: ILibraryQuestion }> {
-    await connectDB();
-
-    const query: FilterQuery<ILibraryQuestion> = {
-      category_id,
+    // Return categories in a simple format
+    return categories.map((cat: string) => ({
+      _id: cat,
+      name: cat,
       is_active: true,
-      is_latest: true,
-      $or: [
-        { 'text.en': { $regex: new RegExp(`^${text_en}$`, 'i') } },
-        { 'text.es': { $regex: new RegExp(`^${text_es}$`, 'i') } },
-      ],
-    } as FilterQuery<ILibraryQuestion>;
-
-    if (company_id) {
-      query.company_id = company_id;
-    }
-
-    const existing = await (LibraryQuestion as any).findOne(query).exec();
-
-    return {
-      is_duplicate: !!existing,
-      existing_question: existing as ILibraryQuestion | undefined,
-    };
+    }));
   }
 
   /**
@@ -220,12 +144,10 @@ export class QuestionLibraryService {
   static async useQuestion(questionId: string): Promise<void> {
     await connectDB();
 
-    await (LibraryQuestion as any)
-      .findByIdAndUpdate(questionId, {
-        $inc: { usage_count: 1 },
-        last_used_at: new Date(),
-      })
-      .exec();
+    await QuestionBank.findByIdAndUpdate(questionId, {
+      $inc: { 'metrics.usage_count': 1 },
+      'metrics.last_used': new Date(),
+    }).exec();
   }
 
   /**
@@ -234,95 +156,55 @@ export class QuestionLibraryService {
   static async getPopularQuestions(
     companyId?: string,
     limit: number = 10
-  ): Promise<ILibraryQuestion[]> {
+  ): Promise<IQuestionBankItem[]> {
     await connectDB();
 
-    const query: FilterQuery<ILibraryQuestion> = {
+    const query: any = {
       is_active: true,
-      is_latest: true,
-      is_approved: true,
     };
 
     if (companyId) {
-      query.$or = [{ company_id: companyId }, { is_global: true }];
+      query.$or = [{ company_id: companyId }, { company_id: null }];
     } else {
-      query.is_global = true;
+      query.company_id = null; // Global only
     }
 
-    return (await (LibraryQuestion as any)
-      .find(query)
-      .sort({ usage_count: -1, last_used_at: -1 })
+    return (await QuestionBank.find(query)
+      .sort({ 'metrics.usage_count': -1, 'metrics.last_used': -1 })
       .limit(limit)
       .lean()
-      .exec()) as ILibraryQuestion[];
+      .exec()) as IQuestionBankItem[];
   }
 
   /**
    * Get questions by category
    */
   static async getQuestionsByCategory(
-    categoryId: string,
+    category: string,
     companyId?: string,
     includeGlobal: boolean = true
-  ): Promise<ILibraryQuestion[]> {
+  ): Promise<IQuestionBankItem[]> {
     await connectDB();
 
-    const query: FilterQuery<ILibraryQuestion> = {
-      category_id: categoryId,
+    const query: any = {
+      category,
       is_active: true,
-      is_latest: true,
     };
 
     if (companyId) {
       if (includeGlobal) {
-        query.$or = [{ company_id: companyId }, { is_global: true }];
+        query.$or = [{ company_id: companyId }, { company_id: null }];
       } else {
         query.company_id = companyId;
       }
     } else if (includeGlobal) {
-      query.is_global = true;
+      query.company_id = null;
     }
 
-    return (await (LibraryQuestion as any)
-      .find(query)
-      .sort({ order: 1, 'text.en': 1 })
+    return (await QuestionBank.find(query)
+      .sort({ 'metrics.usage_count': -1, text: 1 })
       .lean()
-      .exec()) as ILibraryQuestion[];
-  }
-
-  /**
-   * Create new version of a question
-   */
-  static async createVersion(
-    questionId: string,
-    updates: Partial<ILibraryQuestion>,
-    userId: string
-  ): Promise<ILibraryQuestion> {
-    await connectDB();
-
-    const original = await (LibraryQuestion as any).findById(questionId).exec();
-    if (!original) {
-      throw new Error('Original question not found');
-    }
-
-    // Mark original as not latest
-    original.is_latest = false;
-    await original.save();
-
-    // Create new version
-    const newVersion = new LibraryQuestion({
-      ...original.toObject(),
-      _id: undefined,
-      ...updates,
-      version: original.version + 1,
-      previous_version_id: original._id.toString(),
-      is_latest: true,
-      created_by: userId,
-      is_approved: false, // Requires re-approval
-    });
-
-    await newVersion.save();
-    return newVersion;
+      .exec()) as IQuestionBankItem[];
   }
 }
 

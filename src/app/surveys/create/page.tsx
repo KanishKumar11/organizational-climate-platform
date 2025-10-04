@@ -64,8 +64,11 @@ export default function CreateSurveyPage() {
   const [targetResponses, setTargetResponses] = useState<number>(50);
   const [estimatedDuration, setEstimatedDuration] = useState<number>(10);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<SurveyTab>('builder');
+  const [activeTab, setActiveTab] = useState<SurveyTab>('questions');
   const [createdSurveyId, setCreatedSurveyId] = useState<string | null>(null);
+
+  // Question tab mode: 'build' for custom questions, 'library' for browsing templates
+  const [questionMode, setQuestionMode] = useState<'build' | 'library'>('build');
 
   // Invitation settings state
   const [customMessage, setCustomMessage] = useState('');
@@ -118,6 +121,13 @@ export default function CreateSurveyPage() {
 
     if (questions.length === 0) {
       toast.error('Please add at least one question');
+      return;
+    }
+
+    // Validate that all questions have required fields
+    const invalidQuestions = questions.filter(q => !q.text || !q.type);
+    if (invalidQuestions.length > 0) {
+      toast.error('Some questions are missing required information. Please check all questions have text and type.');
       return;
     }
 
@@ -194,8 +204,8 @@ export default function CreateSurveyPage() {
   const handleAddFromLibrary = (question: any) => {
     const newQuestion: IQuestion = {
       id: `q-${Date.now()}`,
-      text: question.question_text_en,
-      type: question.question_type,
+      text: question.text || question.question_text_en || 'Question text',
+      type: question.type || question.question_type || 'open_ended',
       required: true,
       order: questions.length,
       config: question.config || {},
@@ -262,38 +272,24 @@ export default function CreateSurveyPage() {
         <TooltipProvider>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 space-x-6">
-              {/* Builder Tab */}
+              {/* Questions Tab */}
               <TabsTrigger
-                value="builder"
-                disabled={!surveyProgress.tabs.builder.unlocked}
+                value="questions"
+                disabled={!surveyProgress.tabs.questions.unlocked}
                 className={cn(
                   'data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative',
-                  !surveyProgress.tabs.builder.unlocked &&
+                  !surveyProgress.tabs.questions.unlocked &&
                     'opacity-50 cursor-not-allowed'
                 )}
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Survey Builder
-                {surveyProgress.tabs.builder.required && (
+                {surveyProgress.tabs.questions.required && (
                   <span className="text-red-500 ml-1">*</span>
                 )}
-                {surveyProgress.tabs.builder.completed && (
+                {surveyProgress.tabs.questions.completed && (
                   <CheckCircle2 className="w-4 h-4 ml-2 text-green-500" />
                 )}
-              </TabsTrigger>
-
-              {/* Library Tab */}
-              <TabsTrigger
-                value="library"
-                disabled={!surveyProgress.tabs.library.unlocked}
-                className={cn(
-                  'data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative',
-                  !surveyProgress.tabs.library.unlocked &&
-                    'opacity-50 cursor-not-allowed'
-                )}
-              >
-                <BookOpen className="w-4 h-4 mr-2" />
-                Question Library
               </TabsTrigger>
 
               {/* Targeting Tab */}
@@ -447,125 +443,135 @@ export default function CreateSurveyPage() {
               )}
             </TabsList>
 
-            <TabsContent value="builder" className="mt-6 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Survey Configuration</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="survey-type">Survey Type</Label>
-                      <Select value={surveyType} onValueChange={setSurveyType}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select survey type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {surveyTypes.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+            <TabsContent value="questions" className="mt-6 space-y-6">
+              {/* Question Mode Toggle */}
+              <div className="flex items-center gap-4 mb-6">
+                <Button
+                  variant={questionMode === 'build' ? 'default' : 'outline'}
+                  onClick={() => setQuestionMode('build')}
+                  className="gap-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  Survey Builder
+                </Button>
+                <Button
+                  variant={questionMode === 'library' ? 'default' : 'outline'}
+                  onClick={() => setQuestionMode('library')}
+                  className="gap-2"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Question Library
+                </Button>
+              </div>
 
-                    <div>
-                      <Label htmlFor="target-responses">Target Responses</Label>
-                      <Input
-                        id="target-responses"
-                        type="number"
-                        value={targetResponses}
-                        onChange={(e) =>
-                          setTargetResponses(Number(e.target.value))
-                        }
-                        min="1"
-                        className="mt-1"
-                      />
-                    </div>
+              {questionMode === 'build' ? (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Survey Configuration</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="survey-type">Survey Type</Label>
+                          <Select value={surveyType} onValueChange={setSurveyType}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select survey type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {surveyTypes.map((type) => (
+                                <SelectItem key={type.value} value={type.value}>
+                                  {type.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                    <div>
-                      <Label htmlFor="estimated-duration">
-                        Estimated Duration (minutes)
-                      </Label>
-                      <Input
-                        id="estimated-duration"
-                        type="number"
-                        value={estimatedDuration}
-                        onChange={(e) =>
-                          setEstimatedDuration(Number(e.target.value))
-                        }
-                        min="1"
-                        className="mt-1"
-                      />
-                    </div>
+                        <div>
+                          <Label htmlFor="target-responses">Target Responses</Label>
+                          <Input
+                            id="target-responses"
+                            type="number"
+                            value={targetResponses}
+                            onChange={(e) =>
+                              setTargetResponses(Number(e.target.value))
+                            }
+                            min="1"
+                            className="mt-1"
+                          />
+                        </div>
 
-                    <div>
-                      <Label>Survey Status</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary">Draft</Badge>
-                        <span className="text-sm text-muted-foreground">
-                          Will be saved as draft until published
-                        </span>
+                        <div>
+                          <Label htmlFor="estimated-duration">
+                            Estimated Duration (minutes)
+                          </Label>
+                          <Input
+                            id="estimated-duration"
+                            type="number"
+                            value={estimatedDuration}
+                            onChange={(e) =>
+                              setEstimatedDuration(Number(e.target.value))
+                            }
+                            min="1"
+                            className="mt-1"
+                          />
+                        </div>
+
+                        <div>
+                          <Label>Survey Status</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="secondary">Draft</Badge>
+                            <span className="text-sm text-muted-foreground">
+                              Will be saved as draft until published
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
 
-              <Separator />
+                  <Separator />
 
-              {/* Survey Builder */}
-              <SurveyBuilder
-                title={title}
-                description={description}
-                questions={questions}
-                onTitleChange={setTitle}
-                onDescriptionChange={setDescription}
-                onQuestionsChange={setQuestions}
-              />
-
-              <TabNavigationFooter
-                currentTab="builder"
-                nextTab={surveyProgress.getNextTab('builder')}
-                previousTab={surveyProgress.getPreviousTab('builder')}
-                canPublish={surveyProgress.canPublish}
-                canSaveDraft={surveyProgress.canSaveDraft}
-                onTabChange={handleTabChange}
-                onSaveDraft={() => handleSave('draft')}
-                onPublish={() => handleSave('active')}
-                saving={saving}
-                nextDisabled={!surveyProgress.tabs.builder.completed}
-              />
-            </TabsContent>
-
-            <TabsContent value="library" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Question Library</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Browse and add pre-built questions from the library
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <QuestionLibraryBrowser
-                    onAddQuestion={handleAddFromLibrary}
-                    language="en"
-                    selectedQuestionIds={questions.map((q) => q.id)}
+                  {/* Survey Builder */}
+                  <SurveyBuilder
+                    title={title}
+                    description={description}
+                    questions={questions}
+                    onTitleChange={setTitle}
+                    onDescriptionChange={setDescription}
+                    onQuestionsChange={setQuestions}
                   />
-                </CardContent>
-              </Card>
+                </>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Question Library</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Browse and add pre-built questions from the library
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <QuestionLibraryBrowser
+                      onAddQuestion={handleAddFromLibrary}
+                      language="en"
+                      selectedQuestionIds={questions.map((q) => q.id)}
+                    />
+                  </CardContent>
+                </Card>
+              )}
 
               <TabNavigationFooter
-                currentTab="library"
-                nextTab={surveyProgress.getNextTab('library')}
-                previousTab={surveyProgress.getPreviousTab('library')}
+                currentTab="questions"
+                nextTab={surveyProgress.getNextTab('questions')}
+                previousTab={surveyProgress.getPreviousTab('questions')}
                 canPublish={surveyProgress.canPublish}
                 canSaveDraft={surveyProgress.canSaveDraft}
                 onTabChange={handleTabChange}
                 onSaveDraft={() => handleSave('draft')}
                 onPublish={() => handleSave('active')}
                 saving={saving}
+                nextDisabled={!surveyProgress.tabs.questions.completed}
               />
             </TabsContent>
 
@@ -721,7 +727,7 @@ export default function CreateSurveyPage() {
                                 {question.text || 'Question text...'}
                               </p>
                               <Badge variant="outline" className="mt-2 text-xs">
-                                {question.type.replace('_', ' ')}
+                                {question.type ? question.type.replace('_', ' ') : 'Unknown type'}
                               </Badge>
                             </div>
                           ))}

@@ -12,8 +12,9 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '../ui/scroll-area';
+import { cn } from '../ui';
 
 interface Department {
   _id: string;
@@ -142,78 +143,107 @@ export default function DepartmentSelector({
   }
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              Select Departments
-            </CardTitle>
-            <CardDescription className="mt-1">
-              Choose which departments will receive this survey
-            </CardDescription>
-          </div>
-          {showEmployeeCount && selectedDepartments.length > 0 && (
-            <Badge variant="secondary" className="text-sm">
-              <Users className="h-3 w-3 mr-1" />
-              {totalEmployees} employee{totalEmployees !== 1 ? 's' : ''}{' '}
-              selected
-            </Badge>
-          )}
+    <div className="space-y-6">
+      {/* Header with Stats */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-blue-600" />
+            Department Targeting
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Select departments to include in this survey
+          </p>
         </div>
-      </CardHeader>
+        {selectedDepartments.length > 0 && (
+          <div className="text-right">
+            <div className="text-2xl font-bold text-blue-600">
+              {selectedDepartments.length}
+            </div>
+            <div className="text-xs text-gray-500">
+              department{selectedDepartments.length !== 1 ? 's' : ''} selected
+            </div>
+          </div>
+        )}
+      </div>
 
-      <CardContent className="space-y-4">
-        {/* Search */}
+      {/* Search and Filters */}
+      <div className="bg-gray-50 rounded-lg p-4 space-y-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search departments..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
-        {/* Select All */}
-        {allowSelectAll && filteredDepartments.length > 0 && (
-          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Checkbox
-                id="select-all"
-                checked={allSelected}
-                onCheckedChange={toggleSelectAll}
-                className={cn(
-                  someSelected && 'data-[state=checked]:bg-blue-600'
-                )}
-              />
-              <label
-                htmlFor="select-all"
-                className="text-sm font-medium cursor-pointer"
+        {/* Quick Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {allowSelectAll && filteredDepartments.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleSelectAll}
+                className="text-xs"
               >
-                Select All Departments
-              </label>
-            </div>
-            <Badge variant="outline" className="text-xs">
-              {selectedDepartments.length} of {filteredDepartments.length}
-            </Badge>
+                {selectedDepartments.length === filteredDepartments.length
+                  ? 'Deselect All'
+                  : 'Select All'}
+              </Button>
+            )}
+            {selectedDepartments.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onChange([])}
+                className="text-xs text-gray-600 hover:text-gray-900"
+              >
+                Clear Selection
+              </Button>
+            )}
           </div>
-        )}
 
-        {/* Department List */}
-        <ScrollArea style={{ maxHeight }}>
+          {/* Selection Summary */}
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-gray-600">
+              {selectedDepartments.length} of {filteredDepartments.length}{' '}
+              selected
+            </span>
+            {showEmployeeCount && (
+              <Badge
+                variant="secondary"
+                className="bg-blue-50 text-blue-700 border-blue-200"
+              >
+                <Users className="h-3 w-3 mr-1" />
+                {totalEmployees} employees
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Department List */}
+      <div className="border rounded-lg overflow-hidden bg-white">
+        <ScrollArea style={{ height: maxHeight }}>
           {filteredDepartments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Building2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
-              <p className="text-sm text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <Building2 className="h-16 w-16 text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
                 {searchQuery
-                  ? 'No departments found matching your search'
+                  ? 'No departments found'
                   : 'No departments available'}
+              </h3>
+              <p className="text-gray-500 text-sm">
+                {searchQuery
+                  ? 'Try adjusting your search terms'
+                  : 'Departments will appear here once created'}
               </p>
             </div>
           ) : (
-            <div className="space-y-2 pr-4">
+            <div className="divide-y divide-gray-100">
               {filteredDepartments.map((department) => {
                 const isSelected = selectedDepartments.includes(department._id);
 
@@ -222,68 +252,91 @@ export default function DepartmentSelector({
                     key={department._id}
                     onClick={() => toggleDepartment(department._id)}
                     className={cn(
-                      'flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors',
-                      isSelected
-                        ? 'bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800'
-                        : 'hover:bg-accent border-border'
+                      'p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50',
+                      isSelected && 'bg-blue-50 border-l-4 border-l-blue-500'
                     )}
                   >
-                    <div className="flex items-center gap-3 flex-1">
-                      <Checkbox
-                        id={`dept-${department._id}`}
-                        checked={isSelected}
-                        onCheckedChange={() => toggleDepartment(department._id)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <div className="flex-1">
-                        <label
-                          htmlFor={`dept-${department._id}`}
-                          className="text-sm font-medium cursor-pointer"
-                        >
-                          {department.name}
-                        </label>
-                        {department.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {department.description}
-                          </p>
-                        )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        <Checkbox
+                          id={`dept-${department._id}`}
+                          checked={isSelected}
+                          onCheckedChange={() =>
+                            toggleDepartment(department._id)
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-0.5"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium text-gray-900">
+                              {department.name}
+                            </h4>
+                            {isSelected && (
+                              <Check className="h-4 w-4 text-blue-600" />
+                            )}
+                          </div>
+                          {department.description && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              {department.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
+
+                      {showEmployeeCount &&
+                        department.employee_count !== undefined && (
+                          <div className="text-right">
+                            <div className="flex items-center gap-1">
+                              <Users className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium text-gray-900">
+                                {department.employee_count}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              employee
+                              {department.employee_count !== 1 ? 's' : ''}
+                            </div>
+                          </div>
+                        )}
                     </div>
-                    {showEmployeeCount &&
-                      department.employee_count !== undefined && (
-                        <Badge
-                          variant={isSelected ? 'default' : 'secondary'}
-                          className="ml-2"
-                        >
-                          <Users className="h-3 w-3 mr-1" />
-                          {department.employee_count}
-                        </Badge>
-                      )}
                   </div>
                 );
               })}
             </div>
           )}
         </ScrollArea>
+      </div>
 
-        {/* Summary */}
-        {selectedDepartments.length > 0 && (
-          <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="flex items-center gap-2 text-sm">
-              <Check className="h-4 w-4 text-blue-600" />
-              <span className="font-medium text-blue-900 dark:text-blue-100">
-                {selectedDepartments.length} department
-                {selectedDepartments.length !== 1 ? 's' : ''} selected
-              </span>
+      {/* Selection Summary Footer */}
+      {selectedDepartments.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <Check className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="font-medium text-blue-900">
+                  {selectedDepartments.length} department
+                  {selectedDepartments.length !== 1 ? 's' : ''} selected
+                </h4>
+                <p className="text-sm text-blue-700">
+                  Survey will be sent to employees in these departments
+                </p>
+              </div>
             </div>
             {showEmployeeCount && (
-              <span className="text-sm text-blue-700 dark:text-blue-300">
-                {totalEmployees} total employee{totalEmployees !== 1 ? 's' : ''}
-              </span>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-900">
+                  {totalEmployees}
+                </div>
+                <div className="text-sm text-blue-700">total recipients</div>
+              </div>
             )}
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </div>
   );
 }

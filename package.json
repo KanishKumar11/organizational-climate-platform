@@ -20,6 +20,7 @@
     "seed:companies": "tsx --env-file=.env.local -e \"import { seedCompaniesAndDepartments } from './src/lib/seedCompaniesAndDepartments'; seedCompaniesAndDepartments().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\"",
     "seed:questions": "tsx --env-file=.env.local -e \"import { seedQuestionBank } from './src/lib/seedQuestionBank'; seedQuestionBank().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\"",
     "seed:user": "tsx --env-file=.env.local -e \"import { seedTestUser } from './src/lib/seedTestUser'; seedTestUser().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\"",
+    "seed:department-users": "tsx --env-file=.env.local -e \"import { seedDepartmentUsers } from './src/lib/seedDepartmentUsers'; seedDepartmentUsers().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\"",
     "seed:comprehensive": "tsx --env-file=.env.local src/lib/seedComprehensiveData.ts",
     "seed:comprehensive:force": "tsx --env-file=.env.local src/lib/seedComprehensiveData.ts --force --verbose",
     "debug:departments": "tsx --env-file=.env.local src/scripts/debug-departments.ts",

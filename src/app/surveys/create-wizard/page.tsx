@@ -8,7 +8,6 @@ import {
   SurveyCreationWizard,
   SurveyCreationData,
 } from '@/components/survey/SurveyCreationWizard';
-import { UserCredentialService } from '@/lib/user-credential-service';
 import { toast } from 'sonner';
 
 export default function CreateSurveyWizardPage() {
@@ -81,29 +80,8 @@ export default function CreateSurveyWizardPage() {
 
       const { data: users } = await usersResponse.json();
 
-      // Step 3: Generate credentials for users who need them (if include_credentials is true)
-      let userCredentials: Record<string, any> = {};
-
-      if (surveyData.include_credentials) {
-        for (const user of users) {
-          try {
-            const credentials =
-              await UserCredentialService.getUserCredentialsForInvitation(
-                user._id
-              );
-            if (credentials) {
-              userCredentials[user._id] = credentials;
-            }
-          } catch (error) {
-            console.error(
-              `Failed to generate credentials for user ${user._id}:`,
-              error
-            );
-          }
-        }
-      }
-
-      // Step 4: Send invitations
+      // Step 3: Send invitations with credentials (handled by API)
+      // The API will generate credentials server-side if needed
       if (surveyData.send_immediately && users.length > 0) {
         const invitationResponse = await fetch(
           `/api/surveys/${survey._id}/invitations`,
@@ -117,7 +95,7 @@ export default function CreateSurveyWizardPage() {
               send_immediately: true,
               custom_message: surveyData.custom_message,
               include_credentials: surveyData.include_credentials,
-              user_credentials: userCredentials,
+              // API will generate user_credentials server-side
             }),
           }
         );

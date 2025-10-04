@@ -8,8 +8,7 @@
 import { useMemo } from 'react';
 
 export type SurveyTab =
-  | 'builder'
-  | 'library'
+  | 'questions'
   | 'targeting'
   | 'invitations'
   | 'schedule'
@@ -32,6 +31,9 @@ export interface SurveyProgressState {
   description: string;
   questions: any[];
   targetDepartments: string[];
+  targetType?: 'all' | 'departments' | 'users' | 'csv_import';
+  targetUserIds?: string[];
+  targetEmails?: string[];
   startDate: Date | null;
   endDate: Date | null;
   customMessage?: string;
@@ -66,6 +68,9 @@ export function useSurveyProgress(
     title,
     questions,
     targetDepartments,
+    targetType = 'all',
+    targetUserIds = [],
+    targetEmails = [],
     startDate,
     endDate,
     customMessage,
@@ -75,15 +80,25 @@ export function useSurveyProgress(
 
   // Calculate tab states
   const tabs = useMemo<Record<SurveyTab, TabState>>(() => {
-    // Builder - Always unlocked, required
-    const builderCompleted = title.trim() !== '' && questions.length > 0;
-
-    // Library - Always unlocked, optional (helper tab)
-    const libraryCompleted = false; // Not a completion step
+    // Questions - Always unlocked, required (combines builder + library)
+    const questionsCompleted = title.trim() !== '' && questions.length > 0;
 
     // Targeting - Unlocks when questions exist, required
     const targetingUnlocked = questions.length > 0;
-    const targetingCompleted = targetDepartments.length > 0;
+    const targetingCompleted = (() => {
+      switch (targetType) {
+        case 'all':
+          return true; // Always valid for "all employees"
+        case 'departments':
+          return targetDepartments.length > 0;
+        case 'users':
+          return targetUserIds.length > 0;
+        case 'csv_import':
+          return targetEmails.length > 0;
+        default:
+          return false;
+      }
+    })();
 
     // Invitations - Unlocks when departments selected, optional
     const invitationsUnlocked = targetDepartments.length > 0;
@@ -107,26 +122,17 @@ export function useSurveyProgress(
     const qrCodeCompleted = false; // Not a completion step
 
     return {
-      builder: {
-        id: 'builder',
-        label: 'Survey Builder',
-        icon: 'Settings',
+      questions: {
+        id: 'questions',
+        label: 'Questions',
+        icon: 'HelpCircle',
         unlocked: true,
         required: true,
-        completed: builderCompleted,
-        warning: !builderCompleted
+        completed: questionsCompleted,
+        warning: !questionsCompleted
           ? 'Add a title and at least one question'
           : undefined,
         order: 0,
-      },
-      library: {
-        id: 'library',
-        label: 'Question Library',
-        icon: 'BookOpen',
-        unlocked: true,
-        required: false,
-        completed: libraryCompleted,
-        order: 1,
       },
       targeting: {
         id: 'targeting',
@@ -136,11 +142,11 @@ export function useSurveyProgress(
         required: true,
         completed: targetingCompleted,
         warning: !targetingUnlocked
-          ? 'Add questions first in Survey Builder'
+          ? 'Add questions first'
           : !targetingCompleted
             ? 'Select at least one department'
             : undefined,
-        order: 2,
+        order: 1,
       },
       invitations: {
         id: 'invitations',
@@ -152,7 +158,7 @@ export function useSurveyProgress(
         warning: !invitationsUnlocked
           ? 'Select departments first in Targeting'
           : undefined,
-        order: 3,
+        order: 2,
       },
       schedule: {
         id: 'schedule',
@@ -162,11 +168,11 @@ export function useSurveyProgress(
         required: true,
         completed: scheduleCompleted,
         warning: !scheduleUnlocked
-          ? 'Add questions first in Survey Builder'
+          ? 'Add questions first'
           : !scheduleCompleted
             ? 'Set start and end dates'
             : undefined,
-        order: 4,
+        order: 3,
       },
       preview: {
         id: 'preview',
@@ -176,9 +182,9 @@ export function useSurveyProgress(
         required: true,
         completed: previewCompleted,
         warning: !previewUnlocked
-          ? 'Complete Builder and Targeting tabs first'
+          ? 'Complete Questions and Targeting tabs first'
           : undefined,
-        order: 5,
+        order: 4,
       },
       'qr-code': {
         id: 'qr-code',
@@ -190,7 +196,7 @@ export function useSurveyProgress(
         warning: !qrCodeUnlocked
           ? 'Publish survey first to generate QR code'
           : undefined,
-        order: 6,
+        order: 5,
       },
     };
   }, [

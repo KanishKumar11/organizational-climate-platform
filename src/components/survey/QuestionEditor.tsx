@@ -368,7 +368,7 @@ export default function QuestionEditor({
       <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100">
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="px-3 py-1">
-            {question.type.replace('_', ' ').toUpperCase()}
+            {question.type ? question.type.replace('_', ' ').toUpperCase() : 'UNKNOWN TYPE'}
           </Badge>
         </div>
 
