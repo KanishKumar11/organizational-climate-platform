@@ -9,15 +9,15 @@
 
 There are **7 demo pages** in `/app/demo/` that showcase advanced features. Some are integrated into production, others need migration.
 
-| Demo Page | Production Route | Status | Components to Integrate |
-|-----------|------------------|--------|------------------------|
-| `/demo/action-plans` | `/action-plans` | 🟡 **Partial** | BulkActionPlanCreator, AlertsPanel, CommitmentTracker |
-| `/demo/ai-insights` | ❌ **Missing** | 🔴 **Not Integrated** | AIInsightsPanel, sentiment analysis UI |
-| `/demo/benchmarks` | `/benchmarks` | ✅ **Complete** | Already integrated |
-| `/demo/charts` | ❌ **Missing** | 🔴 **Not Integrated** | Chart library showcase page |
-| `/demo/microclimate-live` | `/microclimates/[id]/live` | 🟢 **Likely Complete** | RealTimeMicroclimateVisualization |
-| `/demo/microclimate-wizard` | `/microclimates/create-wizard` | ✅ **Complete** | Just integrated! |
-| `/demo/question-bank` | ❌ **Missing** | 🔴 **Not Integrated** | QuestionBankManager, QuestionRecommendations, QuestionAnalytics |
+| Demo Page                   | Production Route               | Status                 | Components to Integrate                                         |
+| --------------------------- | ------------------------------ | ---------------------- | --------------------------------------------------------------- |
+| `/demo/action-plans`        | `/action-plans`                | 🟡 **Partial**         | BulkActionPlanCreator, AlertsPanel, CommitmentTracker           |
+| `/demo/ai-insights`         | ❌ **Missing**                 | 🔴 **Not Integrated**  | AIInsightsPanel, sentiment analysis UI                          |
+| `/demo/benchmarks`          | `/benchmarks`                  | ✅ **Complete**        | Already integrated                                              |
+| `/demo/charts`              | ❌ **Missing**                 | 🔴 **Not Integrated**  | Chart library showcase page                                     |
+| `/demo/microclimate-live`   | `/microclimates/[id]/live`     | 🟢 **Likely Complete** | RealTimeMicroclimateVisualization                               |
+| `/demo/microclimate-wizard` | `/microclimates/create-wizard` | ✅ **Complete**        | Just integrated!                                                |
+| `/demo/question-bank`       | ❌ **Missing**                 | 🔴 **Not Integrated**  | QuestionBankManager, QuestionRecommendations, QuestionAnalytics |
 
 ---
 
@@ -28,6 +28,7 @@ There are **7 demo pages** in `/app/demo/` that showcase advanced features. Some
 **Status:** ✅ **COMPLETE** (Just integrated in previous session)
 
 **What Was Done:**
+
 - Created production route at `/microclimates/create-wizard`
 - All 9 Phase 1-3 features working
 - Authentication & authorization added
@@ -40,16 +41,19 @@ There are **7 demo pages** in `/app/demo/` that showcase advanced features. Some
 ### 2. 🟡 `/demo/action-plans` → `/action-plans`
 
 **Current State:**
+
 - Production route **EXISTS** at `/action-plans`
 - Uses `ActionPlanDashboard` component ✅
 - Has create route at `/action-plans/create` ✅
 
 **Missing from Production:**
+
 - ❌ **BulkActionPlanCreator** - Create multiple action plans at once from AI insights
 - ❌ **AlertsPanel** - Real-time alerts for overdue/at-risk action plans
 - ❌ **CommitmentTracker** - Track team member commitments and accountability
 
 **Demo Features (lines 1-349):**
+
 ```tsx
 // Demo has these views:
 - 'dashboard' ✅ (in production)
@@ -61,11 +65,13 @@ There are **7 demo pages** in `/app/demo/` that showcase advanced features. Some
 ```
 
 **Integration Priority:** 🔴 **HIGH**
+
 - Bulk creation saves time for admins
 - Alerts prevent missed deadlines
 - Commitment tracking improves accountability
 
 **Recommended Action:**
+
 1. Add tabs to `/action-plans` page for Alerts and Commitments
 2. Add "Bulk Create from Insights" button
 3. Create `/action-plans/bulk-create` route
@@ -75,12 +81,14 @@ There are **7 demo pages** in `/app/demo/` that showcase advanced features. Some
 ### 3. 🔴 `/demo/ai-insights` → ❌ **NO PRODUCTION ROUTE**
 
 **Current State:**
+
 - **No production equivalent exists**
 - AI functionality likely scattered across other pages
 
 **Demo Components (lines 1-231):**
+
 ```tsx
-<AIInsightsPanel 
+<AIInsightsPanel
   surveyId="..."
   responses={sampleResponses}
   context={sampleContext}
@@ -88,6 +96,7 @@ There are **7 demo pages** in `/app/demo/` that showcase advanced features. Some
 ```
 
 **Features:**
+
 - Sentiment analysis visualization
 - Theme detection
 - Action recommendations
@@ -95,11 +104,13 @@ There are **7 demo pages** in `/app/demo/` that showcase advanced features. Some
 - Real-time response analysis
 
 **Integration Priority:** 🟡 **MEDIUM**
+
 - AI insights are valuable but may be embedded elsewhere
 - Could be integrated into survey results pages
 - Or create dedicated `/ai-insights` or `/analytics/ai` page
 
 **Recommended Action:**
+
 1. Check if AIInsightsPanel is used in `/surveys/[id]/results`
 2. If not, create `/ai-insights` page
 3. Or add as tab in survey results
@@ -109,6 +120,7 @@ There are **7 demo pages** in `/app/demo/` that showcase advanced features. Some
 ### 4. ✅ `/demo/benchmarks` → `/benchmarks`
 
 **Current State:**
+
 - Production route **EXISTS** at `/benchmarks`
 - Components already integrated:
   - ✅ `BenchmarkManager`
@@ -124,30 +136,34 @@ There are **7 demo pages** in `/app/demo/` that showcase advanced features. Some
 ### 5. 🔴 `/demo/charts` → ❌ **NO PRODUCTION SHOWCASE**
 
 **Current State:**
+
 - **No dedicated charts showcase page**
 - Chart components exist and are used in various pages
 - Missing: Unified visualization gallery/demo
 
 **Demo Components (lines 1-386):**
+
 ```tsx
 import {
-  AnimatedBarChart,      // ✅ Component exists
-  AnimatedLineChart,     // ✅ Component exists
-  AnimatedPieChart,      // ✅ Component exists
-  HeatMap,              // ✅ Component exists
-  WordCloud,            // ✅ Component exists
+  AnimatedBarChart, // ✅ Component exists
+  AnimatedLineChart, // ✅ Component exists
+  AnimatedPieChart, // ✅ Component exists
+  HeatMap, // ✅ Component exists
+  WordCloud, // ✅ Component exists
   SentimentVisualization, // ✅ Component exists
-  KPIDisplay,           // ✅ Component exists
-  RecommendationCard,   // ✅ Component exists
+  KPIDisplay, // ✅ Component exists
+  RecommendationCard, // ✅ Component exists
 } from '@/components/charts';
 ```
 
 **Integration Priority:** 🟢 **LOW**
+
 - Charts are already used in production pages
 - Demo is mainly a showcase/documentation
 - Could be useful for testing/documentation
 
 **Recommended Action:**
+
 1. **Option A:** Keep as demo only (for testing/documentation)
 2. **Option B:** Create `/analytics/visualizations` showcase page
 3. **Option C:** Integrate into Storybook/component library
@@ -159,10 +175,12 @@ import {
 ### 6. 🟢 `/demo/microclimate-live` → `/microclimates/[id]/live`
 
 **Current State:**
+
 - Production route **EXISTS** at `/microclimates/[id]/live`
 - Uses `RealTimeMicroclimateVisualization` component
 
 **Demo Features (lines 1-363):**
+
 ```tsx
 <RealTimeMicroclimateVisualization
   microclimate={mockMicroclimateData}
@@ -172,6 +190,7 @@ import {
 ```
 
 **Integration Status:** 🟢 **LIKELY COMPLETE**
+
 - Component exists in production
 - Need to verify real-time updates work
 - Demo adds simulation mode for testing
@@ -179,6 +198,7 @@ import {
 **Integration Priority:** 🟢 **LOW** (verify only)
 
 **Recommended Action:**
+
 1. Verify `/microclimates/[id]/live` uses component correctly
 2. Check if simulation mode needed for testing
 3. Ensure WebSocket/polling works in production
@@ -188,10 +208,12 @@ import {
 ### 7. 🔴 `/demo/question-bank` → ❌ **NO PRODUCTION ROUTE**
 
 **Current State:**
+
 - **No production route exists**
 - This is a significant missing feature
 
 **Demo Components (lines 1-258):**
+
 ```tsx
 <QuestionBankManager />          // ✅ Component exists
 <QuestionRecommendations />      // ✅ Component exists
@@ -199,6 +221,7 @@ import {
 ```
 
 **Features:**
+
 - Centralized question repository
 - AI-powered question recommendations
 - Question effectiveness analytics
@@ -206,11 +229,13 @@ import {
 - Usage tracking
 
 **Integration Priority:** 🔴 **HIGH**
+
 - Core feature for survey management
 - Used in wizard (library browser)
 - Should be accessible standalone
 
 **Recommended Action:**
+
 1. Create `/question-bank` production page
 2. Add authentication & role-based access
 3. Integrate with existing QuestionLibraryBrowser
@@ -255,6 +280,7 @@ import {
 ### **Phase 1: Critical Missing Features** (Priority 1)
 
 **Week 1: Question Bank**
+
 - [ ] Create `/app/question-bank/page.tsx`
 - [ ] Add DashboardLayout wrapper
 - [ ] Integrate QuestionBankManager component
@@ -265,6 +291,7 @@ import {
 - [ ] Document usage
 
 **Week 2: Action Plans Enhancement**
+
 - [ ] Add tab navigation to `/action-plans`
 - [ ] Create "Bulk Create" tab with BulkActionPlanCreator
 - [ ] Create "Alerts" tab with AlertsPanel
@@ -276,6 +303,7 @@ import {
 ### **Phase 2: Medium Priority** (Priority 2)
 
 **Week 3: AI Insights Audit**
+
 - [ ] Search codebase for AIInsightsPanel usage
 - [ ] If missing, create `/ai-insights/page.tsx`
 - [ ] Or integrate into `/surveys/[id]/results`
@@ -286,6 +314,7 @@ import {
 ### **Phase 3: Verification** (Priority 3)
 
 **Week 4: Microclimate Live Verification**
+
 - [ ] Test `/microclimates/[id]/live` route
 - [ ] Verify RealTimeMicroclimateVisualization works
 - [ ] Check WebSocket/polling functionality
@@ -299,11 +328,13 @@ import {
 **Estimated Time:** 4-6 hours
 
 ### Step 1: Create Production Page
+
 ```bash
 Create: src/app/question-bank/page.tsx
 ```
 
 ### Step 2: Template
+
 ```typescript
 'use client';
 
@@ -342,19 +373,19 @@ export default function QuestionBankPage() {
 
         {/* Tab Navigation */}
         <div className="flex space-x-2 border-b">
-          <Button 
+          <Button
             variant={activeTab === 'manager' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('manager')}
           >
             Manager
           </Button>
-          <Button 
+          <Button
             variant={activeTab === 'recommendations' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('recommendations')}
           >
             AI Recommendations
           </Button>
-          <Button 
+          <Button
             variant={activeTab === 'analytics' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('analytics')}
           >
@@ -373,6 +404,7 @@ export default function QuestionBankPage() {
 ```
 
 ### Step 3: Add to Navigation
+
 ```typescript
 // In your navigation component, add:
 {
@@ -388,6 +420,7 @@ export default function QuestionBankPage() {
 ## 📊 Integration Checklist
 
 ### Question Bank
+
 - [ ] Create `/app/question-bank/page.tsx`
 - [ ] Add DashboardLayout wrapper
 - [ ] Implement tab navigation
@@ -400,6 +433,7 @@ export default function QuestionBankPage() {
 - [ ] Document usage
 
 ### Action Plans Enhancement
+
 - [ ] Review existing `/action-plans/page.tsx`
 - [ ] Add tab navigation component
 - [ ] Integrate BulkActionPlanCreator
@@ -410,6 +444,7 @@ export default function QuestionBankPage() {
 - [ ] Update documentation
 
 ### AI Insights
+
 - [ ] Audit AIInsightsPanel current usage
 - [ ] Decide: Standalone page vs integration
 - [ ] Implement chosen approach
@@ -424,6 +459,7 @@ export default function QuestionBankPage() {
 When integrating, maintain consistency with production:
 
 ### Standard Production Page Template:
+
 ```typescript
 'use client';
 
@@ -435,7 +471,7 @@ export default function FeaturePage() {
 
   // 1. Authentication check
   if (!user) return <Redirect to="/auth/signin" />;
-  
+
   // 2. Authorization check
   if (!canAccessFeature) return <AccessDenied />;
 
@@ -449,6 +485,7 @@ export default function FeaturePage() {
 ```
 
 ### Key Patterns:
+
 - ✅ Use `DashboardLayout` wrapper
 - ✅ Add `useAuth()` for permissions
 - ✅ Show loading states
@@ -463,6 +500,7 @@ export default function FeaturePage() {
 ## 🔧 Technical Debt Notes
 
 ### Components That Need Backend Support:
+
 1. **BulkActionPlanCreator** - Needs bulk create API endpoint
 2. **AlertsPanel** - Needs real-time alerts service
 3. **CommitmentTracker** - Needs commitment tracking database schema
@@ -470,6 +508,7 @@ export default function FeaturePage() {
 5. **QuestionAnalytics** - Needs analytics aggregation API
 
 ### Database Schema Updates Needed:
+
 ```sql
 -- For Commitment Tracker
 CREATE TABLE action_plan_commitments (
@@ -483,7 +522,7 @@ CREATE TABLE action_plan_commitments (
 );
 
 -- For Question Analytics
-ALTER TABLE question_bank 
+ALTER TABLE question_bank
 ADD COLUMN usage_count INTEGER DEFAULT 0,
 ADD COLUMN effectiveness_score DECIMAL(3,2),
 ADD COLUMN last_used_at TIMESTAMP;
@@ -494,6 +533,7 @@ ADD COLUMN last_used_at TIMESTAMP;
 ## 📈 Success Metrics
 
 After integration, track:
+
 - ✅ All demo features accessible in production
 - ✅ User adoption rates for new features
 - ✅ Reduction in manual question creation time

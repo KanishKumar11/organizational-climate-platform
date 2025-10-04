@@ -12,12 +12,12 @@ import { AlertCircle } from 'lucide-react';
 
 /**
  * Production Microclimate Survey Creation Page (Wizard Version)
- * 
+ *
  * This page provides the full-featured wizard for creating
  * microclimate surveys with all Phase 1-3 features implemented.
- * 
+ *
  * Route: /microclimates/create-wizard
- * 
+ *
  * Features:
  * ✅ Auto-save with draft recovery
  * ✅ Company searchable dropdown with 1000+ companies
@@ -36,7 +36,7 @@ export default function CreateMicroclimateWizardPage() {
 
   const handleComplete = async (surveyData: any) => {
     if (isSubmitting) return; // Prevent double submission
-    
+
     setIsSubmitting(true);
     console.log('📤 Submitting microclimate survey:', surveyData);
 
@@ -45,7 +45,7 @@ export default function CreateMicroclimateWizardPage() {
       const payload = {
         title: surveyData.step1Data.title,
         description: surveyData.step1Data.description,
-        
+
         // Questions from Step 2
         questions: [
           // Library questions
@@ -78,7 +78,8 @@ export default function CreateMicroclimateWizardPage() {
         scheduling: {
           start_time: surveyData.step4Data.schedule.startDate,
           duration_minutes: surveyData.step4Data.schedule.duration || 30,
-          timezone: surveyData.step4Data.schedule.timezone || 'America/Mexico_City',
+          timezone:
+            surveyData.step4Data.schedule.timezone || 'America/Mexico_City',
           auto_close: true,
         },
 
@@ -116,7 +117,7 @@ export default function CreateMicroclimateWizardPage() {
       if (response.ok) {
         const { data } = await response.json();
         console.log('✅ Survey created:', data);
-        
+
         toast.success('¡Encuesta de microclima creada exitosamente!', {
           description: `ID: ${data._id}`,
           duration: 5000,
@@ -127,17 +128,19 @@ export default function CreateMicroclimateWizardPage() {
       } else {
         const errorData = await response.json();
         console.error('❌ API Error:', errorData);
-        
+
         toast.error('Error al crear la encuesta', {
-          description: errorData.error || errorData.message || 'Error desconocido',
+          description:
+            errorData.error || errorData.message || 'Error desconocido',
           duration: 7000,
         });
       }
     } catch (error) {
       console.error('💥 Unexpected error creating microclimate:', error);
-      
+
       toast.error('Error inesperado', {
-        description: error instanceof Error ? error.message : 'Por favor intenta de nuevo',
+        description:
+          error instanceof Error ? error.message : 'Por favor intenta de nuevo',
         duration: 7000,
       });
     } finally {
@@ -146,7 +149,9 @@ export default function CreateMicroclimateWizardPage() {
   };
 
   const handleCancel = () => {
-    if (confirm('¿Estás seguro de cancelar? Se perderá el progreso no guardado.')) {
+    if (
+      confirm('¿Estás seguro de cancelar? Se perderá el progreso no guardado.')
+    ) {
       router.push('/microclimates');
     }
   };

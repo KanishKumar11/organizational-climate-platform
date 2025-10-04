@@ -10,12 +10,7 @@ import CustomTemplateCreator from '@/components/reports/CustomTemplateCreator';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  FileText,
-  Plus,
-  Settings,
-  LayoutTemplate,
-} from 'lucide-react';
+import { FileText, Plus, Settings, LayoutTemplate } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ReportsPage() {
@@ -68,10 +63,12 @@ export default function ReportsPage() {
               Generate, manage, and share comprehensive reports
             </p>
           </div>
-          <Button onClick={() => {
-            setShowBuilder(true);
-            setActiveTab('builder');
-          }}>
+          <Button
+            onClick={() => {
+              setShowBuilder(true);
+              setActiveTab('builder');
+            }}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create Report
           </Button>
@@ -80,21 +77,21 @@ export default function ReportsPage() {
         {/* Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 space-x-6">
-            <TabsTrigger 
+            <TabsTrigger
               value="dashboard"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <FileText className="w-4 h-4 mr-2" />
               My Reports
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="builder"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <Plus className="w-4 h-4 mr-2" />
               Report Builder
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="templates"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
@@ -123,8 +120,8 @@ export default function ReportsPage() {
                   Build Your Custom Report
                 </h3>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Use our advanced report builder to create customized reports with filters, 
-                  charts, and AI-powered insights.
+                  Use our advanced report builder to create customized reports
+                  with filters, charts, and AI-powered insights.
                 </p>
                 <Button onClick={() => setShowBuilder(true)}>
                   <Plus className="w-4 h-4 mr-2" />

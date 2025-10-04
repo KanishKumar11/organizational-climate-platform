@@ -11,7 +11,15 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, Send, Eye, Settings, Calendar, QrCode, BookOpen } from 'lucide-react';
+import {
+  Save,
+  Send,
+  Eye,
+  Settings,
+  Calendar,
+  QrCode,
+  BookOpen,
+} from 'lucide-react';
 import SurveyBuilder from '@/components/survey/SurveyBuilder';
 import SurveyScheduler from '@/components/surveys/SurveyScheduler';
 import QRCodeGenerator from '@/components/surveys/QRCodeGenerator';
@@ -40,10 +48,12 @@ export default function CreateSurveyPage() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('builder');
   const [createdSurveyId, setCreatedSurveyId] = useState<string | null>(null);
-  
+
   // Scheduling state
   const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+  const [endDate, setEndDate] = useState<Date>(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  );
   const [timezone, setTimezone] = useState<string>('America/New_York');
 
   const handleSave = async (status: 'draft' | 'active' = 'draft') => {
@@ -91,15 +101,21 @@ export default function CreateSurveyPage() {
       if (response.ok) {
         const result = await response.json();
         setCreatedSurveyId(result.survey.id);
-        toast.success(status === 'draft' ? 'Survey saved as draft' : 'Survey published successfully!');
-        
+        toast.success(
+          status === 'draft'
+            ? 'Survey saved as draft'
+            : 'Survey published successfully!'
+        );
+
         if (status === 'active') {
           // Show QR code tab after publishing
           setActiveTab('qr-code');
         }
       } else {
         const error = await response.json();
-        toast.error(`Failed to save survey: ${error.message || 'Unknown error'}`);
+        toast.error(
+          `Failed to save survey: ${error.message || 'Unknown error'}`
+        );
       }
     } catch (error) {
       console.error('Error saving survey:', error);
@@ -170,28 +186,28 @@ export default function CreateSurveyPage() {
         {/* Survey Configuration */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 space-x-6">
-            <TabsTrigger 
+            <TabsTrigger
               value="builder"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <Settings className="w-4 h-4 mr-2" />
               Survey Builder
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="library"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <BookOpen className="w-4 h-4 mr-2" />
               Question Library
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="schedule"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <Calendar className="w-4 h-4 mr-2" />
               Schedule
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="preview"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
               disabled={questions.length === 0}
@@ -200,7 +216,7 @@ export default function CreateSurveyPage() {
               Preview
             </TabsTrigger>
             {createdSurveyId && (
-              <TabsTrigger 
+              <TabsTrigger
                 value="qr-code"
                 className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
               >
@@ -239,7 +255,9 @@ export default function CreateSurveyPage() {
                       id="target-responses"
                       type="number"
                       value={targetResponses}
-                      onChange={(e) => setTargetResponses(Number(e.target.value))}
+                      onChange={(e) =>
+                        setTargetResponses(Number(e.target.value))
+                      }
                       min="1"
                       className="mt-1"
                     />
@@ -253,7 +271,9 @@ export default function CreateSurveyPage() {
                       id="estimated-duration"
                       type="number"
                       value={estimatedDuration}
-                      onChange={(e) => setEstimatedDuration(Number(e.target.value))}
+                      onChange={(e) =>
+                        setEstimatedDuration(Number(e.target.value))
+                      }
                       min="1"
                       className="mt-1"
                     />
@@ -297,7 +317,7 @@ export default function CreateSurveyPage() {
                 <QuestionLibraryBrowser
                   onAddQuestion={handleAddFromLibrary}
                   language="en"
-                  selectedQuestionIds={questions.map(q => q.id)}
+                  selectedQuestionIds={questions.map((q) => q.id)}
                 />
               </CardContent>
             </Card>
@@ -342,7 +362,9 @@ export default function CreateSurveyPage() {
                         {title || 'Untitled Survey'}
                       </h3>
                       {description && (
-                        <p className="text-muted-foreground mt-1">{description}</p>
+                        <p className="text-muted-foreground mt-1">
+                          {description}
+                        </p>
                       )}
                     </div>
                     <div className="space-y-3">

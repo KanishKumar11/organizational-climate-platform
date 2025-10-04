@@ -6,6 +6,7 @@
 A comprehensive automatic reminder system for microclimate surveys that allows administrators to configure multiple reminder intervals before survey closure with bilingual email templates.
 
 **Business Value:**
+
 - **93-97% increase** in survey completion rates with strategic reminders
 - **Fully customizable** reminder schedules (hours/days before end)
 - **Bilingual templates** (Spanish/English) with dynamic placeholders
@@ -17,6 +18,7 @@ A comprehensive automatic reminder system for microclimate surveys that allows a
 ## 📋 Component Architecture
 
 ### 1. **ReminderScheduler Component** (NEW)
+
 ```
 Location: src/components/microclimate/ReminderScheduler.tsx
 Lines: 600+
@@ -24,6 +26,7 @@ Purpose: Standalone reminder configuration UI with complete state management
 ```
 
 **Key Features:**
+
 - ✅ Enable/disable toggle with smooth animations
 - ✅ Multiple reminder intervals (hours or days before end date)
 - ✅ Maximum reminders limit (1-10)
@@ -33,6 +36,7 @@ Purpose: Standalone reminder configuration UI with complete state management
 - ✅ Placeholder documentation for email templates
 
 ### 2. **ScheduleConfig Integration** (ENHANCED)
+
 ```
 Location: src/components/microclimate/ScheduleConfig.tsx
 Modified: +50 lines
@@ -40,6 +44,7 @@ Purpose: Integrates ReminderScheduler into Step 4 schedule configuration
 ```
 
 **Changes:**
+
 - Updated `ScheduleData` interface to include `reminders?: ReminderConfig`
 - Added `reminders` state with default templates
 - Integrated `ReminderScheduler` component
@@ -52,30 +57,33 @@ Purpose: Integrates ReminderScheduler into Step 4 schedule configuration
 ### Data Structures
 
 #### **ReminderInterval Interface**
+
 ```typescript
 interface ReminderInterval {
-  id: string;                    // Unique identifier
-  value: number;                 // Numeric value (1-999)
-  unit: 'hours' | 'days';        // Time unit
+  id: string; // Unique identifier
+  value: number; // Numeric value (1-999)
+  unit: 'hours' | 'days'; // Time unit
 }
 ```
 
 #### **ReminderConfig Interface**
+
 ```typescript
 interface ReminderConfig {
-  enabled: boolean;              // Master toggle
+  enabled: boolean; // Master toggle
   intervals: ReminderInterval[]; // Array of reminder times
-  maxReminders: number;          // Max reminders per employee (1-10)
+  maxReminders: number; // Max reminders per employee (1-10)
   emailTemplate: {
-    subject_es: string;          // Spanish email subject
-    subject_en: string;          // English email subject
-    body_es: string;             // Spanish email body
-    body_en: string;             // English email body
+    subject_es: string; // Spanish email subject
+    subject_en: string; // English email subject
+    body_es: string; // Spanish email body
+    body_en: string; // English email body
   };
 }
 ```
 
 #### **Updated ScheduleData**
+
 ```typescript
 export interface ScheduleData {
   startDate: string;
@@ -87,13 +95,14 @@ export interface ScheduleData {
   reminderFrequency?: 'daily' | 'weekly' | 'biweekly';
   reminderDaysBefore?: number;
   autoClose: boolean;
-  reminders?: ReminderConfig;    // NEW: Full reminder configuration
+  reminders?: ReminderConfig; // NEW: Full reminder configuration
 }
 ```
 
 ### State Management
 
 **Default Reminder Configuration:**
+
 ```typescript
 const [reminders, setReminders] = useState<ReminderConfig>({
   enabled: false,
@@ -125,6 +134,7 @@ Human Resources Team`,
 ### Core Functions
 
 #### **1. Add Reminder Interval**
+
 ```typescript
 const addReminder = (value: number = 24, unit: 'hours' | 'days' = 'hours') => {
   const newInterval: ReminderInterval = {
@@ -151,7 +161,7 @@ const addReminder = (value: number = 24, unit: 'hours' | 'days' = 'hours') => {
     const endDateTime = new Date(endDate);
     const now = new Date();
     const surveyDurationHours = differenceInHours(endDateTime, now);
-    
+
     if (normalizedValue > surveyDurationHours) {
       toast.warning(t.validateError, { description: t.intervalTooLarge });
       // Continue anyway with warning
@@ -172,12 +182,14 @@ const addReminder = (value: number = 24, unit: 'hours' | 'days' = 'hours') => {
 ```
 
 **Why This Approach:**
+
 - **Duplicate Prevention:** Normalizes to hours before comparing (24 hours = 1 day)
 - **Smart Sorting:** Always keeps furthest reminder first (better UX)
 - **Graceful Validation:** Warns but doesn't block if interval > survey duration
 - **Toast Feedback:** Immediate visual confirmation of actions
 
 #### **2. Calculate Reminder Times (Preview)**
+
 ```typescript
 const calculateReminderTimes = () => {
   if (!endDate) return [];
@@ -195,7 +207,9 @@ const calculateReminderTimes = () => {
       sendTime,
       formatted: format(
         sendTime,
-        language === 'es' ? "d 'de' MMMM, yyyy 'a las' HH:mm" : "MMMM d, yyyy 'at' HH:mm",
+        language === 'es'
+          ? "d 'de' MMMM, yyyy 'a las' HH:mm"
+          : "MMMM d, yyyy 'at' HH:mm",
         { locale: language === 'es' ? es : enUS }
       ),
     };
@@ -204,11 +218,13 @@ const calculateReminderTimes = () => {
 ```
 
 **Why This Approach:**
+
 - **date-fns Integration:** Reliable date calculations with `subDays()` and `subHours()`
 - **Locale-Aware Formatting:** Different formats for ES/EN ("5 de enero" vs "January 5")
 - **Real-time Updates:** Recalculates whenever intervals or endDate changes
 
 #### **3. Email Template Updates**
+
 ```typescript
 const updateTemplate = (
   field: keyof ReminderConfig['emailTemplate'],
@@ -224,6 +240,7 @@ const updateTemplate = (
 ```
 
 **Why This Approach:**
+
 - **Type-Safe:** Uses `keyof` to ensure only valid fields can be updated
 - **Immutable Updates:** Spreads existing template, updates one field
 - **Immediate Propagation:** Calls `updateConfig()` which notifies parent
@@ -235,6 +252,7 @@ const updateTemplate = (
 ### Visual Design
 
 **1. Master Toggle Card:**
+
 ```
 ┌─────────────────────────────────────────────┐
 │ 🔔 Automatic Reminders            [Toggle]  │
@@ -243,6 +261,7 @@ const updateTemplate = (
 ```
 
 **2. Reminder Intervals (when enabled):**
+
 ```
 ┌─────────────────────────────────────────────┐
 │ Reminder Schedule         [+ Add Reminder]  │
@@ -254,6 +273,7 @@ const updateTemplate = (
 ```
 
 **3. Max Reminders Limit:**
+
 ```
 ┌─────────────────────────────────────────────┐
 │ Maximum Reminders                     [3]    │
@@ -262,6 +282,7 @@ const updateTemplate = (
 ```
 
 **4. Preview Schedule:**
+
 ```
 ┌─────────────────────────────────────────────┐
 │ 📅 Reminder Schedule                        │
@@ -276,6 +297,7 @@ const updateTemplate = (
 ```
 
 **5. Email Template Editor (Tabs):**
+
 ```
 ┌─────────────────────────────────────────────┐
 │ 📧 Email Template                           │
@@ -305,6 +327,7 @@ const updateTemplate = (
 ### Animations
 
 **Expand/Collapse:**
+
 ```typescript
 <AnimatePresence>
   {localConfig.enabled && (
@@ -321,6 +344,7 @@ const updateTemplate = (
 ```
 
 **Individual Reminder Add:**
+
 ```typescript
 <motion.div
   initial={{ opacity: 0, y: -10 }}
@@ -337,13 +361,13 @@ const updateTemplate = (
 ## ✅ Validation & Error Handling
 
 ### 1. **Duplicate Interval Prevention**
+
 ```typescript
 // Normalize to hours for comparison
 const normalizedValue = unit === 'days' ? value * 24 : value;
-const isDuplicate = intervals.some(interval => {
-  const existingNormalized = interval.unit === 'days' 
-    ? interval.value * 24 
-    : interval.value;
+const isDuplicate = intervals.some((interval) => {
+  const existingNormalized =
+    interval.unit === 'days' ? interval.value * 24 : interval.value;
   return existingNormalized === normalizedValue;
 });
 
@@ -356,10 +380,11 @@ if (isDuplicate) {
 **Why:** Prevents "24 hours" and "1 day" from both being added (they're equivalent).
 
 ### 2. **Survey Duration Check**
+
 ```typescript
 if (endDate) {
   const surveyDurationHours = differenceInHours(new Date(endDate), new Date());
-  
+
   if (normalizedValue > surveyDurationHours) {
     toast.warning('Interval exceeds survey duration');
     // Continue anyway - admin might extend survey later
@@ -370,6 +395,7 @@ if (endDate) {
 **Why:** Warns but doesn't block. Admin might create reminders before finalizing dates.
 
 ### 3. **Max Reminders Boundary**
+
 ```typescript
 const updateMaxReminders = (max: number) => {
   updateConfig({ maxReminders: Math.max(1, Math.min(10, max)) });
@@ -379,6 +405,7 @@ const updateMaxReminders = (max: number) => {
 **Why:** Clamps value between 1-10 to prevent abuse and ensure reasonable limits.
 
 ### 4. **Empty State Handling**
+
 ```typescript
 {localConfig.intervals.length === 0 ? (
   <Alert>
@@ -400,20 +427,21 @@ const updateMaxReminders = (max: number) => {
 
 ### Placeholders
 
-| Placeholder | Spanish | English | Example |
-|-------------|---------|---------|---------|
-| `{{nombre}}` | Nombre del empleado | Employee name | "María González" |
-| `{{name}}` | - | Employee name | "John Smith" |
-| `{{encuesta}}` | Nombre de la encuesta | - | "Satisfacción Q1 2025" |
-| `{{survey}}` | - | Survey name | "Q1 2025 Satisfaction" |
-| `{{fecha_limite}}` | Fecha límite | - | "30 de enero, 2025" |
-| `{{deadline}}` | - | Deadline date | "January 30, 2025" |
-| `{{departamento}}` | Departamento | - | "Recursos Humanos" |
-| `{{department}}` | - | Department | "Human Resources" |
+| Placeholder        | Spanish               | English       | Example                |
+| ------------------ | --------------------- | ------------- | ---------------------- |
+| `{{nombre}}`       | Nombre del empleado   | Employee name | "María González"       |
+| `{{name}}`         | -                     | Employee name | "John Smith"           |
+| `{{encuesta}}`     | Nombre de la encuesta | -             | "Satisfacción Q1 2025" |
+| `{{survey}}`       | -                     | Survey name   | "Q1 2025 Satisfaction" |
+| `{{fecha_limite}}` | Fecha límite          | -             | "30 de enero, 2025"    |
+| `{{deadline}}`     | -                     | Deadline date | "January 30, 2025"     |
+| `{{departamento}}` | Departamento          | -             | "Recursos Humanos"     |
+| `{{department}}`   | -                     | Department    | "Human Resources"      |
 
 ### Default Templates
 
 **Spanish:**
+
 ```
 Subject: Recordatorio: Completa la encuesta {{encuesta}}
 
@@ -429,6 +457,7 @@ Equipo de Recursos Humanos
 ```
 
 **English:**
+
 ```
 Subject: Reminder: Complete the {{survey}} survey
 
@@ -446,6 +475,7 @@ Human Resources Team
 ### Template Editing
 
 Users can customize templates via:
+
 - **Language Tabs:** Switch between ES/EN without losing edits
 - **Subject Line:** Single-line input
 - **Body:** Multi-line textarea (8 rows, font-mono for better readability)
@@ -456,20 +486,25 @@ Users can customize templates via:
 ## 🧪 Testing Scenarios
 
 ### Test Case 1: Enable Reminders
+
 **Steps:**
+
 1. Navigate to Step 4 (Schedule & Distribution)
 2. Toggle "Enable Reminders" switch ON
 3. Observe smooth expand animation
 4. Verify default reminder interval is added (24 hours)
 
 **Expected:**
+
 - ✅ Card expands with smooth 300ms animation
 - ✅ Default 24-hour reminder appears
 - ✅ "Add Reminder" button is visible
 - ✅ Max reminders shows default value (3)
 
 ### Test Case 2: Add Multiple Reminders
+
 **Steps:**
+
 1. Click "+ Add Reminder"
 2. Set: 48 hours before end
 3. Click "+ Add Reminder"
@@ -478,49 +513,62 @@ Users can customize templates via:
 6. Set: 1 day before end
 
 **Expected:**
+
 - ✅ All 4 reminders appear (24h, 48h, 3d, 1d)
 - ✅ Automatically sorted: [3 days, 48 hours, 24 hours, 1 day] (descending)
 - ✅ Each has remove button (X)
 - ✅ Preview schedule shows all 4 with correct dates
 
 ### Test Case 3: Duplicate Prevention
+
 **Steps:**
+
 1. Add reminder: 24 hours
 2. Try to add: 1 day (equivalent to 24 hours)
 
 **Expected:**
+
 - ❌ Error toast: "A reminder with this interval already exists"
 - ✅ Duplicate is NOT added
 - ✅ Existing 24-hour reminder remains
 
 ### Test Case 4: Survey Duration Validation
+
 **Steps:**
+
 1. Set survey end date: January 30, 2025 (3 days from now)
 2. Try to add reminder: 5 days before end
 
 **Expected:**
+
 - ⚠️ Warning toast: "Interval exceeds survey duration"
 - ✅ Reminder IS added anyway (admin flexibility)
 - ✅ Preview shows calculated date (even if in past)
 
 ### Test Case 5: Max Reminders Limit
+
 **Steps:**
+
 1. Set max reminders to 3
 2. Add 5 reminder intervals
 3. Check behavior
 
 **Expected:**
+
 - ✅ All 5 intervals can be configured
 - ℹ️ **Max reminders** controls how many are SENT per employee, not how many can be configured
 - ℹ️ System will send first 3 (furthest from end date) to each employee
 
 ### Test Case 6: Preview Schedule
+
 **Steps:**
+
 1. Set end date: January 30, 2025 9:00 AM
 2. Add reminders: 24h, 48h, 3 days
 3. Check preview panel
 
 **Expected:**
+
 - ✅ #1: "3 days before end" → January 27, 2025 at 09:00
 - ✅ #2: "48 hours before end" → January 28, 2025 at 09:00
 - ✅ #3: "24 hours before end" → January 29, 2025 at 09:00
@@ -528,7 +576,9 @@ Users can customize templates via:
 - ✅ Green checkmarks indicate valid reminders
 
 ### Test Case 7: Email Template Editing (Spanish)
+
 **Steps:**
+
 1. Click "🇪🇸 Español" tab
 2. Change subject to: "Urgente: Completa la encuesta {{encuesta}}"
 3. Change body to include: "Solo quedan {{dias}} días"
@@ -536,64 +586,80 @@ Users can customize templates via:
 5. Switch back to "🇪🇸 Español"
 
 **Expected:**
+
 - ✅ Edits are preserved when switching tabs
 - ✅ Placeholders {{encuesta}} remain intact
 - ✅ Character count doesn't limit input
 
 ### Test Case 8: Email Template Editing (English)
+
 **Steps:**
+
 1. Click "🇬🇧 English" tab
 2. Change subject to: "Final Reminder: Complete {{survey}}"
 3. Add urgency to body: "Only {{days}} days left!"
 
 **Expected:**
+
 - ✅ English template updates independently
 - ✅ Spanish template remains unchanged
 - ✅ Placeholders work correctly
 
 ### Test Case 9: Disable Reminders
+
 **Steps:**
+
 1. Configure multiple reminders
 2. Edit email templates
 3. Toggle "Enable Reminders" OFF
 4. Toggle back ON
 
 **Expected:**
+
 - ✅ Card collapses with smooth animation
 - ✅ Configuration is preserved (intervals, templates)
 - ✅ Expanding shows all previous settings intact
 
 ### Test Case 10: Remove Reminder
+
 **Steps:**
+
 1. Add 3 reminders
 2. Click "×" on middle reminder
 3. Check preview schedule
 
 **Expected:**
+
 - ✅ Reminder is removed immediately
 - ✅ Success toast: "Reminder removed"
 - ✅ Preview updates to show only 2 reminders
 - ✅ Sequence numbers re-adjust (#1, #2)
 
 ### Test Case 11: Parent State Propagation
+
 **Steps:**
+
 1. Configure reminders
 2. Navigate to Step 3
 3. Navigate back to Step 4
 
 **Expected:**
+
 - ✅ All reminder configuration is preserved
 - ✅ ScheduleData includes reminders object
 - ✅ Draft autosave captures reminder config
 
 ### Test Case 12: Multilingual Interface
+
 **Steps:**
+
 1. Switch wizard language to Spanish
 2. Check reminder component labels
 3. Switch to English
 4. Verify all text updates
 
 **Expected:**
+
 - ✅ All labels, buttons, placeholders translate
 - ✅ Placeholder help updates ({{nombre}} ↔ {{name}})
 - ✅ Toast notifications in correct language
@@ -604,6 +670,7 @@ Users can customize templates via:
 ## 📊 Performance Metrics
 
 **Component Performance:**
+
 - **Initial Render:** < 50ms (even with 10 reminders)
 - **Add Reminder:** < 10ms (instant feedback)
 - **Remove Reminder:** < 5ms
@@ -611,12 +678,14 @@ Users can customize templates via:
 - **Preview Calculation:** < 20ms (date-fns is fast)
 
 **Memory Footprint:**
+
 - **Base Component:** ~12KB (includes all translations)
 - **Per Reminder:** ~200 bytes
 - **Email Templates:** ~2KB (both languages)
 - **Total (5 reminders):** ~15KB
 
 **Bundle Impact:**
+
 - **ReminderScheduler.tsx:** +18KB gzipped
 - **Updated ScheduleConfig:** +2KB gzipped
 - **Total Bundle Increase:** ~20KB (0.004% of total bundle)
@@ -626,6 +695,7 @@ Users can customize templates via:
 ## 🚀 Future Enhancements
 
 ### Phase 1 (Immediate - 2-3 hours)
+
 1. **Rich Text Editor for Email Body:**
    - Add formatting toolbar (bold, italic, links)
    - Live preview of rendered email
@@ -637,6 +707,7 @@ Users can customize templates via:
    - Send to current user's email
 
 ### Phase 2 (Near-term - 1 week)
+
 3. **Smart Reminder Suggestions:**
    - Analyze historical completion patterns
    - Suggest optimal reminder times
@@ -648,6 +719,7 @@ Users can customize templates via:
    - Department-specific reminder schedules
 
 ### Phase 3 (Medium-term - 2 weeks)
+
 5. **Analytics Dashboard:**
    - Reminder open rates
    - Click-through rates
@@ -660,6 +732,7 @@ Users can customize templates via:
    - Blackout dates (holidays, weekends)
 
 ### Phase 4 (Long-term - 1 month)
+
 7. **AI-Powered Optimization:**
    - Analyze which reminder intervals work best
    - Suggest template improvements based on engagement
@@ -719,17 +792,17 @@ const surveyData = {
 // Cron job to process reminders:
 async function processReminders() {
   const now = new Date();
-  
+
   // Find surveys with enabled reminders
   const surveys = await Survey.find({
     'schedule.reminders.enabled': true,
     'schedule.endDate': { $gt: now },
   });
-  
+
   for (const survey of surveys) {
     for (const interval of survey.schedule.reminders.intervals) {
       const sendTime = calculateSendTime(survey.schedule.endDate, interval);
-      
+
       if (isTimeToSend(now, sendTime)) {
         await sendReminderEmails(survey, interval);
       }
@@ -743,6 +816,7 @@ async function processReminders() {
 ## 🎓 Key Learnings
 
 ### What Worked Well
+
 1. **Separate Component:** ReminderScheduler is completely self-contained
 2. **Type Safety:** Full TypeScript interfaces prevent bugs
 3. **Immutable State:** All updates use spread operators
@@ -750,6 +824,7 @@ async function processReminders() {
 5. **Smart Defaults:** Pre-filled templates reduce friction
 
 ### Design Decisions
+
 1. **Why Allow Duplicates?** (After validation warning)
    - Admin might want same interval with different templates later
    - Better to warn than block
@@ -802,6 +877,7 @@ async function processReminders() {
 ## 📈 Impact Assessment
 
 **Before (Old System):**
+
 - Simple toggle: Enable/Disable reminders
 - Fixed frequency: Daily/Weekly/Biweekly
 - Single "Days Before" setting
@@ -809,6 +885,7 @@ async function processReminders() {
 - No preview
 
 **After (New System):**
+
 - Flexible intervals: Any combination of hours/days
 - Multiple reminders: Up to 10 different intervals
 - Full email template control: Subject + Body for both languages
@@ -818,6 +895,7 @@ async function processReminders() {
 **Improvement:** **500% increase in flexibility and customization**
 
 **User Satisfaction Impact:**
+
 - Survey completion rates: +93% (with optimized reminders)
 - Time to configure: -60% (better UX, clearer interface)
 - Template errors: -95% (real-time validation)
@@ -825,6 +903,6 @@ async function processReminders() {
 
 ---
 
-*Implementation completed and tested on January 27, 2025*
-*Build Status: ✅ PASSING (0 errors, demo/microclimate-wizard: 459KB)*
-*Documentation Status: ✅ COMPLETE*
+_Implementation completed and tested on January 27, 2025_
+_Build Status: ✅ PASSING (0 errors, demo/microclimate-wizard: 459KB)_
+_Documentation Status: ✅ COMPLETE_

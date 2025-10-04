@@ -23,13 +23,13 @@ type ActiveTab = 'manager' | 'recommendations' | 'analytics';
 
 /**
  * Question Bank Production Page
- * 
+ *
  * Centralized repository for survey questions with:
  * - Question management (CRUD operations)
  * - AI-powered recommendations
  * - Question effectiveness analytics
  * - Usage tracking and optimization
- * 
+ *
  * Access: Super Admin, Company Admin only
  */
 export default function QuestionBankPage() {
@@ -125,7 +125,9 @@ export default function QuestionBankPage() {
                   <Database className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">Across all categories</p>
+              <p className="text-xs text-gray-500 mt-2">
+                Across all categories
+              </p>
             </CardContent>
           </Card>
 
@@ -212,7 +214,7 @@ export default function QuestionBankPage() {
           <CardContent className="p-6">
             {activeTab === 'manager' && (
               <div>
-                <QuestionBankManager 
+                <QuestionBankManager
                   userRole={user?.role || 'employee'}
                   companyId={user?.companyId}
                 />

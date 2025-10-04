@@ -32,7 +32,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, AlertCircle, Bell, CheckCircle2 } from 'lucide-react';
 import { ReminderScheduler, ReminderConfig } from './ReminderScheduler';
-import { DistributionTypeSelector, DistributionConfig } from './DistributionTypeSelector';
+import {
+  DistributionTypeSelector,
+  DistributionConfig,
+} from './DistributionTypeSelector';
 
 interface ScheduleConfigProps {
   onScheduleChange?: (schedule: ScheduleData) => void;

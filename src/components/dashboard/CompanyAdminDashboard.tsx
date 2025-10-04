@@ -171,49 +171,49 @@ export default function CompanyAdminDashboard() {
     name: 'Company Admin Dashboard',
     description: 'Default dashboard layout for company administrators',
     widgets: [
-      { 
-        id: 'kpis', 
-        type: 'kpi', 
-        title: 'Key Performance Indicators', 
+      {
+        id: 'kpis',
+        type: 'kpi',
+        title: 'Key Performance Indicators',
         description: 'Overview of key company metrics',
         size: 'full' as const,
         position: { x: 0, y: 0 },
-        visible: true, 
+        visible: true,
         config: {},
-        module: 'survey' as const
+        module: 'survey' as const,
       },
-      { 
-        id: 'departments', 
-        type: 'analytics', 
-        title: 'Department Analytics', 
+      {
+        id: 'departments',
+        type: 'analytics',
+        title: 'Department Analytics',
         description: 'Department-wise performance metrics',
         size: 'large' as const,
         position: { x: 0, y: 1 },
-        visible: true, 
+        visible: true,
         config: {},
-        module: 'survey' as const
+        module: 'survey' as const,
       },
-      { 
-        id: 'ai-insights', 
-        type: 'ai', 
-        title: 'AI Insights', 
+      {
+        id: 'ai-insights',
+        type: 'ai',
+        title: 'AI Insights',
         description: 'AI-powered recommendations and insights',
         size: 'medium' as const,
         position: { x: 2, y: 1 },
-        visible: true, 
+        visible: true,
         config: {},
-        module: 'ai' as const
+        module: 'ai' as const,
       },
-      { 
-        id: 'surveys', 
-        type: 'surveys', 
-        title: 'Ongoing Surveys', 
+      {
+        id: 'surveys',
+        type: 'surveys',
+        title: 'Ongoing Surveys',
         description: 'Currently active surveys and their progress',
         size: 'large' as const,
         position: { x: 0, y: 3 },
-        visible: true, 
+        visible: true,
         config: {},
-        module: 'survey' as const
+        module: 'survey' as const,
       },
     ],
     layout_type: 'grid' as const,
@@ -227,49 +227,49 @@ export default function CompanyAdminDashboard() {
 
   // Available widgets that can be added to the dashboard
   const availableWidgets = [
-    { 
-      id: 'kpis', 
-      type: 'kpi', 
-      title: 'Key Performance Indicators', 
+    {
+      id: 'kpis',
+      type: 'kpi',
+      title: 'Key Performance Indicators',
       description: 'Overview of key company metrics',
       size: 'full' as const,
       position: { x: 0, y: 0 },
-      visible: true, 
+      visible: true,
       config: {},
-      module: 'survey' as const
+      module: 'survey' as const,
     },
-    { 
-      id: 'departments', 
-      type: 'analytics', 
-      title: 'Department Analytics', 
+    {
+      id: 'departments',
+      type: 'analytics',
+      title: 'Department Analytics',
       description: 'Department-wise performance metrics',
       size: 'large' as const,
       position: { x: 0, y: 1 },
-      visible: true, 
+      visible: true,
       config: {},
-      module: 'survey' as const
+      module: 'survey' as const,
     },
-    { 
-      id: 'ai-insights', 
-      type: 'ai', 
-      title: 'AI Insights', 
+    {
+      id: 'ai-insights',
+      type: 'ai',
+      title: 'AI Insights',
       description: 'AI-powered recommendations and insights',
       size: 'medium' as const,
       position: { x: 2, y: 1 },
-      visible: true, 
+      visible: true,
       config: {},
-      module: 'ai' as const
+      module: 'ai' as const,
     },
-    { 
-      id: 'surveys', 
-      type: 'surveys', 
-      title: 'Ongoing Surveys', 
+    {
+      id: 'surveys',
+      type: 'surveys',
+      title: 'Ongoing Surveys',
       description: 'Currently active surveys and their progress',
       size: 'large' as const,
       position: { x: 0, y: 3 },
-      visible: true, 
+      visible: true,
       config: {},
-      module: 'survey' as const
+      module: 'survey' as const,
     },
     {
       id: 'past-surveys',
@@ -280,7 +280,7 @@ export default function CompanyAdminDashboard() {
       position: { x: 0, y: 4 },
       visible: false,
       config: {},
-      module: 'survey' as const
+      module: 'survey' as const,
     },
     {
       id: 'activity',
@@ -291,7 +291,7 @@ export default function CompanyAdminDashboard() {
       position: { x: 2, y: 3 },
       visible: false,
       config: {},
-      module: 'survey' as const
+      module: 'survey' as const,
     },
   ];
 
@@ -499,10 +499,13 @@ export default function CompanyAdminDashboard() {
                   </div>
                 )}
               </div>
-              
+
               {/* Dashboard Actions */}
               <div className="flex gap-2">
-                <Dialog open={showCustomization} onOpenChange={setShowCustomization}>
+                <Dialog
+                  open={showCustomization}
+                  onOpenChange={setShowCustomization}
+                >
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
@@ -530,7 +533,10 @@ export default function CompanyAdminDashboard() {
                   </DialogContent>
                 </Dialog>
 
-                <Dialog open={showExportShare} onOpenChange={setShowExportShare}>
+                <Dialog
+                  open={showExportShare}
+                  onOpenChange={setShowExportShare}
+                >
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
@@ -548,14 +554,16 @@ export default function CompanyAdminDashboard() {
                     <DashboardExportShare
                       dashboardId={user?.companyId || 'company'}
                       dashboardName="Company Dashboard"
-                      widgets={dashboardLayout.widgets.map(w => ({
+                      widgets={dashboardLayout.widgets.map((w) => ({
                         id: w.id,
                         title: w.title,
                         type: w.type,
                         module: 'dashboard',
                       }))}
                       onExport={(options) => {
-                        toast.success(`Exporting dashboard as ${options.format.toUpperCase()}...`);
+                        toast.success(
+                          `Exporting dashboard as ${options.format.toUpperCase()}...`
+                        );
                         setShowExportShare(false);
                       }}
                       onShare={(options) => {

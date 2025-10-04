@@ -3,6 +3,7 @@
 ## Current Situation (October 4, 2025)
 
 ### ✅ What's Complete
+
 - **9/9 Wizard Features Built** (100% feature complete)
   - CompanySearchableDropdown
   - Survey Type & Language selectors
@@ -17,13 +18,16 @@
 ### ❌ Current Issues
 
 #### 1. **Runtime Error: `e.filter is not a function`**
+
 **Root Cause**: Missing `/api/microclimate-templates` endpoint
 
-**Location**: 
+**Location**:
+
 - `src/components/microclimate/TemplateSelector.tsx` (line 141)
 - Called from `MicroclimateDashboard.tsx` and other components
 
 **The Problem**:
+
 ```typescript
 // TemplateSelector.tsx line 132
 setTemplates(data.templates || []); // Expects { templates: [...] }
@@ -36,8 +40,10 @@ const filteredTemplates = templates.filter(...) // CRASH if templates isn't arra
 **Fix Required**: Create the templates API endpoint
 
 #### 2. **Wizard in Demo Route Instead of Production**
+
 **Current**: `/demo/microclimate-wizard`
-**Should Be**: 
+**Should Be**:
+
 - `/microclimates/create` (new dedicated route)
 - OR integrated into existing `/microclimates` page with modal/wizard
 
@@ -48,11 +54,13 @@ const filteredTemplates = templates.filter(...) // CRASH if templates isn't arra
 ### Phase 1: Fix Runtime Error (HIGH PRIORITY - 2 hours)
 
 #### Task 1.1: Create Templates API
+
 ```bash
 Create: src/app/api/microclimate-templates/route.ts
 ```
 
 **Endpoints Needed**:
+
 ```typescript
 GET /api/microclimate-templates
   - Returns: { templates: MicroclimateTemplate[] }
@@ -61,12 +69,13 @@ GET /api/microclimate-templates
 
 GET /api/microclimate-templates/[id]
   - Returns: { template: MicroclimateTemplate }
-  
+
 POST /api/microclimate-templates (Super Admin only)
   - Create custom template
 ```
 
 **Template Structure**:
+
 ```typescript
 interface MicroclimateTemplate {
   _id: string;
@@ -90,6 +99,7 @@ interface MicroclimateTemplate {
 ```
 
 #### Task 1.2: Add Error Handling to TemplateSelector
+
 ```typescript
 // src/components/microclimate/TemplateSelector.tsx
 const fetchTemplates = async () => {
@@ -114,6 +124,7 @@ const fetchTemplates = async () => {
 ```
 
 #### Task 1.3: Similar Fix for MicroclimateDashboard
+
 Already properly initialized with `useState<Microclimate[]>([])` ✅
 
 ---
@@ -184,6 +195,7 @@ export default function CreateMicroclimatePage() {
 ```
 
 **Update Dashboard**: Add "Create New" button
+
 ```typescript
 // src/components/microclimate/MicroclimateDashboard.tsx
 <Button onClick={() => router.push('/microclimates/create')}>
@@ -193,6 +205,7 @@ export default function CreateMicroclimatePage() {
 ```
 
 #### Option B: Modal Integration
+
 Use dialog to show wizard in modal on existing `/microclimates` page
 
 ---
@@ -200,6 +213,7 @@ Use dialog to show wizard in modal on existing `/microclimates` page
 ### Phase 3: API Schema Updates (LOW PRIORITY - 2 hours)
 
 #### Update Microclimate Schema
+
 ```typescript
 // src/models/Microclimate.ts
 // Add these fields:
@@ -221,6 +235,7 @@ reminders: {
 ```
 
 #### Update POST /api/microclimates
+
 Handle new wizard data structure from distribution & reminders
 
 ---
@@ -228,18 +243,21 @@ Handle new wizard data structure from distribution & reminders
 ## Migration Checklist
 
 ### Immediate (Fix Error - Do This First!)
+
 - [ ] Create `/api/microclimate-templates/route.ts`
 - [ ] Add seed data for default templates
 - [ ] Add defensive `.filter()` error handling
 - [ ] Test that error is resolved
 
 ### Short Term (Production Integration)
+
 - [ ] Create `/microclimates/create/page.tsx`
 - [ ] Update MicroclimateDashboard with "Create" button
 - [ ] Test wizard in production route
 - [ ] Verify API integration works
 
 ### Long Term (Data Persistence)
+
 - [ ] Update Microclimate model schema
 - [ ] Update API to handle distribution config
 - [ ] Implement reminder scheduling service
@@ -251,6 +269,7 @@ Handle new wizard data structure from distribution & reminders
 ## Testing Strategy
 
 ### Unit Tests
+
 ```bash
 # Test wizard components
 npm run test -- MicroclimateWizard
@@ -259,6 +278,7 @@ npm run test -- ReminderScheduler
 ```
 
 ### Integration Tests
+
 1. **Create microclimate survey** - Full wizard flow
 2. **CSV import** - Upload departments, validate, confirm
 3. **Question library** - Browse, bulk select, add to survey
@@ -266,6 +286,7 @@ npm run test -- ReminderScheduler
 5. **Reminders** - Configure intervals, preview emails
 
 ### E2E Tests
+
 1. Login → Navigate to /microclimates/create
 2. Complete wizard (all 4 steps)
 3. Submit survey creation
@@ -278,21 +299,25 @@ npm run test -- ReminderScheduler
 ## Rollout Plan
 
 ### Week 1: Fix Critical Error
+
 - Deploy templates API
 - Add error handling
 - Verify no more crashes
 
 ### Week 2: Production Route
+
 - Create `/microclimates/create`
 - Update dashboard navigation
 - Internal testing
 
 ### Week 3: Backend Integration
+
 - Update schema
 - Test API endpoints
 - Data validation
 
 ### Week 4: Launch
+
 - User acceptance testing
 - Documentation
 - Production deployment
@@ -301,12 +326,12 @@ npm run test -- ReminderScheduler
 
 ## Risk Assessment
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Templates API missing | HIGH | Create immediately with seed data |
-| Schema migration | MEDIUM | Use optional fields, backward compatible |
-| Email service dependency | LOW | Queue for background processing |
-| User adoption | LOW | Clear UI, good documentation |
+| Risk                     | Impact | Mitigation                               |
+| ------------------------ | ------ | ---------------------------------------- |
+| Templates API missing    | HIGH   | Create immediately with seed data        |
+| Schema migration         | MEDIUM | Use optional fields, backward compatible |
+| Email service dependency | LOW    | Queue for background processing          |
+| User adoption            | LOW    | Clear UI, good documentation             |
 
 ---
 

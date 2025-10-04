@@ -111,7 +111,9 @@ export default function MicroclimateDashboard() {
         const data = await response.json();
         // DEFENSIVE: Ensure microclimates is always an array
         const microclimatesData = data?.microclimates || data || [];
-        setMicroclimates(Array.isArray(microclimatesData) ? microclimatesData : []);
+        setMicroclimates(
+          Array.isArray(microclimatesData) ? microclimatesData : []
+        );
       } else {
         console.error('Failed to fetch microclimates:', response.status);
         setMicroclimates([]); // Fallback to empty array

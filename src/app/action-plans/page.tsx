@@ -15,13 +15,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Target, 
-  AlertTriangle, 
-  Users, 
-  TrendingUp, 
-  Zap, 
-  Bell, 
+import {
+  Target,
+  AlertTriangle,
+  Users,
+  TrendingUp,
+  Zap,
+  Bell,
   CheckCircle,
   LayoutGrid,
   Calendar as CalendarIcon,
@@ -70,7 +70,9 @@ export default function ActionPlansPage() {
   const fetchInsights = async (surveyId: string) => {
     setIsLoadingInsights(true);
     try {
-      const response = await fetch(`/api/ai/analyze-responses?surveyId=${surveyId}`);
+      const response = await fetch(
+        `/api/ai/analyze-responses?surveyId=${surveyId}`
+      );
       if (response.ok) {
         const data = await response.json();
         setInsights(data.insights || []);
@@ -221,45 +223,51 @@ export default function ActionPlansPage() {
         </div>
 
         {/* Tabbed Interface */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="flex-1 overflow-hidden flex flex-col"
+        >
           <TabsList className="flex-shrink-0 w-full justify-start border-b bg-transparent h-auto p-0 space-x-6">
-            <TabsTrigger 
+            <TabsTrigger
               value="my-plans"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <Target className="w-4 h-4 mr-2" />
               My Plans
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="kanban"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <LayoutGrid className="w-4 h-4 mr-2" />
               Kanban Board
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="timeline"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <CalendarIcon className="w-4 h-4 mr-2" />
               Timeline View
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="bulk-create"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <Zap className="w-4 h-4 mr-2" />
               Bulk Create
-              <Badge variant="secondary" className="ml-2 text-xs">AI</Badge>
+              <Badge variant="secondary" className="ml-2 text-xs">
+                AI
+              </Badge>
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="alerts"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <Bell className="w-4 h-4 mr-2" />
               Alerts & Monitoring
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="commitments"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
@@ -280,7 +288,9 @@ export default function ActionPlansPage() {
             <ActionPlanKanban
               companyId={user?.companyId}
               departmentId={user?.departmentId}
-              onActionPlanClick={(plan) => router.push(`/action-plans/${plan._id}`)}
+              onActionPlanClick={(plan) =>
+                router.push(`/action-plans/${plan._id}`)
+              }
             />
           </TabsContent>
 
@@ -288,11 +298,16 @@ export default function ActionPlansPage() {
             <ActionPlanTimeline
               companyId={user?.companyId}
               departmentId={user?.departmentId}
-              onActionPlanClick={(plan) => router.push(`/action-plans/${plan._id}`)}
+              onActionPlanClick={(plan) =>
+                router.push(`/action-plans/${plan._id}`)
+              }
             />
           </TabsContent>
 
-          <TabsContent value="bulk-create" className="flex-1 overflow-auto mt-6">
+          <TabsContent
+            value="bulk-create"
+            className="flex-1 overflow-auto mt-6"
+          >
             {insights.length > 0 ? (
               <BulkActionPlanCreator
                 insights={insights}
@@ -310,7 +325,7 @@ export default function ActionPlansPage() {
                     AI-Powered Bulk Action Plan Creation
                   </h3>
                   <p className="text-gray-600 mb-6">
-                    {isLoadingInsights 
+                    {isLoadingInsights
                       ? 'Loading AI insights from your surveys...'
                       : 'No AI insights available yet. Create a survey and analyze the responses to generate action plans automatically.'}
                   </p>
@@ -330,14 +345,17 @@ export default function ActionPlansPage() {
           </TabsContent>
 
           <TabsContent value="alerts" className="flex-1 overflow-auto mt-6">
-            <AlertsPanel 
+            <AlertsPanel
               companyId={user?.companyId}
               departmentId={user?.departmentId}
             />
           </TabsContent>
 
-          <TabsContent value="commitments" className="flex-1 overflow-auto mt-6">
-            <CommitmentTracker 
+          <TabsContent
+            value="commitments"
+            className="flex-1 overflow-auto mt-6"
+          >
+            <CommitmentTracker
               companyId={user?.companyId}
               departmentId={user?.departmentId}
             />

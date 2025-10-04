@@ -7,7 +7,13 @@ export interface MicroclimateTemplate {
   _id: string;
   name: string;
   description: string;
-  category: 'engagement' | 'wellbeing' | 'leadership' | 'teamwork' | 'communication' | 'custom';
+  category:
+    | 'engagement'
+    | 'wellbeing'
+    | 'leadership'
+    | 'teamwork'
+    | 'communication'
+    | 'custom';
   tags: string[];
   questions: Array<{
     text_es: string;
@@ -70,7 +76,7 @@ const DEFAULT_TEMPLATES: MicroclimateTemplate[] = [
       },
       {
         text_es: '¿Algo más que quieras compartir?',
-        text_en: 'Anything else you\'d like to share?',
+        text_en: "Anything else you'd like to share?",
         type: 'open_ended',
         category: 'Feedback',
         required: false,
@@ -80,7 +86,8 @@ const DEFAULT_TEMPLATES: MicroclimateTemplate[] = [
   {
     _id: 'template-wellbeing-check',
     name: 'Wellbeing & Work-Life Balance',
-    description: 'Assess employee wellbeing, stress levels, and work-life balance',
+    description:
+      'Assess employee wellbeing, stress levels, and work-life balance',
     category: 'wellbeing',
     tags: ['wellbeing', 'stress', 'work-life balance', 'mental health'],
     estimated_duration: 5,
@@ -104,15 +111,18 @@ const DEFAULT_TEMPLATES: MicroclimateTemplate[] = [
         required: true,
       },
       {
-        text_es: '¿Tienes acceso a los recursos que necesitas para manejar el estrés?',
+        text_es:
+          '¿Tienes acceso a los recursos que necesitas para manejar el estrés?',
         text_en: 'Do you have access to resources you need to manage stress?',
         type: 'likert',
         category: 'Support',
         required: true,
       },
       {
-        text_es: '¿Qué tan cómodo te sientes hablando sobre tu bienestar con tu supervisor?',
-        text_en: 'How comfortable do you feel discussing wellbeing with your supervisor?',
+        text_es:
+          '¿Qué tan cómodo te sientes hablando sobre tu bienestar con tu supervisor?',
+        text_en:
+          'How comfortable do you feel discussing wellbeing with your supervisor?',
         type: 'likert',
         category: 'Communication',
         required: true,
@@ -129,7 +139,8 @@ const DEFAULT_TEMPLATES: MicroclimateTemplate[] = [
   {
     _id: 'template-leadership-feedback',
     name: 'Leadership Effectiveness',
-    description: 'Gather anonymous feedback on leadership and management effectiveness',
+    description:
+      'Gather anonymous feedback on leadership and management effectiveness',
     category: 'leadership',
     tags: ['leadership', 'management', 'feedback', 'development'],
     estimated_duration: 7,
@@ -185,7 +196,8 @@ const DEFAULT_TEMPLATES: MicroclimateTemplate[] = [
   {
     _id: 'template-team-collaboration',
     name: 'Team Collaboration Check',
-    description: 'Evaluate team dynamics, collaboration, and communication effectiveness',
+    description:
+      'Evaluate team dynamics, collaboration, and communication effectiveness',
     category: 'teamwork',
     tags: ['teamwork', 'collaboration', 'communication', 'culture'],
     estimated_duration: 6,
@@ -316,7 +328,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Sort by usage count (most popular first)
-    filteredTemplates.sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0));
+    filteredTemplates.sort(
+      (a, b) => (b.usage_count || 0) - (a.usage_count || 0)
+    );
 
     return NextResponse.json({
       templates: filteredTemplates,

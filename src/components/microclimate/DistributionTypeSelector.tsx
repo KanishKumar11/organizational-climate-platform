@@ -91,7 +91,8 @@ export function DistributionTypeSelector({
           openWarning4: 'Riesgo de respuestas duplicadas o fraudulentas',
           openWarning5: 'Menor seguridad y auditabilidad',
           securityAck: 'Comprendo y acepto los riesgos de seguridad',
-          securityAckRequired: 'Debes aceptar los riesgos para usar enlace público',
+          securityAckRequired:
+            'Debes aceptar los riesgos para usar enlace público',
           allowAnonymous: 'Permitir respuestas anónimas',
           allowAnonymousDesc: 'No recopilar información de identificación',
           generateQR: 'Generar código QR',
@@ -150,9 +151,10 @@ export function DistributionTypeSelector({
     // Warn if switching from tokenized to open
     if (localConfig.mode === 'tokenized' && mode === 'open') {
       toast.warning(t.securityRiskWarning, {
-        description: language === 'es'
-          ? 'Asegúrate de comprender los riesgos de seguridad'
-          : 'Make sure you understand the security risks',
+        description:
+          language === 'es'
+            ? 'Asegúrate de comprender los riesgos de seguridad'
+            : 'Make sure you understand the security risks',
       });
     }
 
@@ -168,7 +170,7 @@ export function DistributionTypeSelector({
   // Handle security acknowledgment
   const handleSecurityAck = (checked: boolean) => {
     updateConfig({ securityAcknowledged: checked });
-    
+
     if (checked) {
       toast.info(
         language === 'es'
@@ -179,7 +181,8 @@ export function DistributionTypeSelector({
   };
 
   // Determine if open mode is fully configured
-  const isOpenModeValid = localConfig.mode !== 'open' || localConfig.securityAcknowledged;
+  const isOpenModeValid =
+    localConfig.mode !== 'open' || localConfig.securityAcknowledged;
 
   return (
     <Card className="border-t-4 border-t-purple-500">
@@ -212,17 +215,27 @@ export function DistributionTypeSelector({
             onClick={() => handleModeChange('tokenized')}
           >
             <div className="flex items-start gap-4">
-              <RadioGroupItem value="tokenized" id="tokenized" className="mt-1" />
+              <RadioGroupItem
+                value="tokenized"
+                id="tokenized"
+                className="mt-1"
+              />
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="tokenized" className="text-base font-semibold cursor-pointer">
+                  <Label
+                    htmlFor="tokenized"
+                    className="text-base font-semibold cursor-pointer"
+                  >
                     {t.tokenized}
                   </Label>
                   <Badge variant="default" className="bg-green-600">
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                     {t.recommended}
                   </Badge>
-                  <Badge variant="outline" className="border-green-600 text-green-600">
+                  <Badge
+                    variant="outline"
+                    className="border-green-600 text-green-600"
+                  >
                     <Lock className="w-3 h-3 mr-1" />
                     {t.secure}
                   </Badge>
@@ -278,14 +291,20 @@ export function DistributionTypeSelector({
               <RadioGroupItem value="open" id="open" className="mt-1" />
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="open" className="text-base font-semibold cursor-pointer">
+                  <Label
+                    htmlFor="open"
+                    className="text-base font-semibold cursor-pointer"
+                  >
                     {t.open}
                   </Label>
                   <Badge variant="destructive">
                     <AlertTriangle className="w-3 h-3 mr-1" />
                     {t.notRecommended}
                   </Badge>
-                  <Badge variant="outline" className="border-orange-600 text-orange-600">
+                  <Badge
+                    variant="outline"
+                    className="border-orange-600 text-orange-600"
+                  >
                     <Unlock className="w-3 h-3 mr-1" />
                     {t.lessSecure}
                   </Badge>
@@ -378,10 +397,12 @@ export function DistributionTypeSelector({
         {localConfig.mode && (
           <>
             <Separator />
-            
+
             <div className="space-y-4">
               <h4 className="text-sm font-semibold">
-                {language === 'es' ? 'Opciones Adicionales' : 'Additional Options'}
+                {language === 'es'
+                  ? 'Opciones Adicionales'
+                  : 'Additional Options'}
               </h4>
 
               {/* Anonymous Responses (only for open mode) */}

@@ -42,22 +42,22 @@ import { toast } from 'sonner';
 
 /**
  * AI Insights Production Page
- * 
+ *
  * Provides AI-powered analysis of survey responses:
  * - Sentiment analysis with visual indicators
  * - Theme detection from open-ended responses
  * - Action item recommendations
  * - Department-level breakdowns
  * - Confidence scores for insights
- * 
+ *
  * Integrates with Action Plans for automated recommendations
- * 
+ *
  * Access: Super Admin, Company Admin, Leaders
  */
 export default function AIInsightsPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  
+
   const [surveys, setSurveys] = useState<any[]>([]);
   const [selectedSurvey, setSelectedSurvey] = useState<string>('');
   const [responses, setResponses] = useState<any[]>([]);
@@ -88,7 +88,7 @@ export default function AIInsightsPage() {
       if (response.ok) {
         const data = await response.json();
         setSurveys(data.surveys || []);
-        
+
         // Auto-select first survey if available
         if (data.surveys?.length > 0) {
           setSelectedSurvey(data.surveys[0]._id);
@@ -124,7 +124,7 @@ export default function AIInsightsPage() {
 
   const handleReanalyze = async () => {
     if (!selectedSurvey) return;
-    
+
     setIsAnalyzing(true);
     try {
       const response = await fetch(`/api/ai/analyze-responses`, {
@@ -155,7 +155,9 @@ export default function AIInsightsPage() {
     if (!selectedSurvey) return;
 
     try {
-      const response = await fetch(`/api/ai/analyze-responses?surveyId=${selectedSurvey}&export=true`);
+      const response = await fetch(
+        `/api/ai/analyze-responses?surveyId=${selectedSurvey}&export=true`
+      );
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -223,7 +225,7 @@ export default function AIInsightsPage() {
     );
   }
 
-  const selectedSurveyData = surveys.find(s => s._id === selectedSurvey);
+  const selectedSurveyData = surveys.find((s) => s._id === selectedSurvey);
 
   return (
     <DashboardLayout>
@@ -270,7 +272,10 @@ export default function AIInsightsPage() {
               </DialogContent>
             </Dialog>
 
-            <Dialog open={showManualReanalysis} onOpenChange={setShowManualReanalysis}>
+            <Dialog
+              open={showManualReanalysis}
+              onOpenChange={setShowManualReanalysis}
+            >
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" disabled={!selectedSurvey}>
                   <Zap className="w-4 h-4 mr-2" />
@@ -289,7 +294,9 @@ export default function AIInsightsPage() {
                     surveyId={selectedSurvey}
                     companyId={user.companyId}
                     onReanalysisComplete={(result) => {
-                      toast.success(`Analysis complete! Found ${result.new_insights.length} new insights`);
+                      toast.success(
+                        `Analysis complete! Found ${result.new_insights.length} new insights`
+                      );
                       setShowManualReanalysis(false);
                       fetchResponses(selectedSurvey);
                     }}
@@ -313,7 +320,9 @@ export default function AIInsightsPage() {
               onClick={handleReanalyze}
               disabled={!selectedSurvey || isAnalyzing}
             >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isAnalyzing ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-4 h-4 mr-2 ${isAnalyzing ? 'animate-spin' : ''}`}
+              />
               Reanalyze
             </Button>
           </div>
@@ -383,8 +392,11 @@ export default function AIInsightsPage() {
                     Action Items
                   </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                    {selectedSurveyData?.ai_insights?.reduce((acc: number, insight: any) => 
-                      acc + (insight.recommended_actions?.length || 0), 0) || 0}
+                    {selectedSurveyData?.ai_insights?.reduce(
+                      (acc: number, insight: any) =>
+                        acc + (insight.recommended_actions?.length || 0),
+                      0
+                    ) || 0}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
@@ -418,7 +430,10 @@ export default function AIInsightsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                <Select value={selectedSurvey} onValueChange={setSelectedSurvey}>
+                <Select
+                  value={selectedSurvey}
+                  onValueChange={setSelectedSurvey}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a survey..." />
                   </SelectTrigger>
@@ -446,22 +461,36 @@ export default function AIInsightsPage() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Status</p>
-                        <Badge variant={selectedSurveyData.status === 'completed' ? 'default' : 'secondary'}>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Status
+                        </p>
+                        <Badge
+                          variant={
+                            selectedSurveyData.status === 'completed'
+                              ? 'default'
+                              : 'secondary'
+                          }
+                        >
                           {selectedSurveyData.status}
                         </Badge>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Responses</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Responses
+                        </p>
                         <p className="font-medium text-gray-900 dark:text-white">
                           {selectedSurveyData.response_count || 0}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Last Analyzed</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Last Analyzed
+                        </p>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          {selectedSurveyData.last_analyzed 
-                            ? new Date(selectedSurveyData.last_analyzed).toLocaleDateString()
+                          {selectedSurveyData.last_analyzed
+                            ? new Date(
+                                selectedSurveyData.last_analyzed
+                              ).toLocaleDateString()
                             : 'Never'}
                         </p>
                       </div>

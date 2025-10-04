@@ -13,10 +13,10 @@ import BenchmarkComparison from '@/components/benchmarks/BenchmarkComparison';
 import BenchmarkCreator from '@/components/benchmarks/BenchmarkCreator';
 import GapAnalysisReport from '@/components/benchmarks/GapAnalysisReport';
 import TrendAnalysis from '@/components/benchmarks/TrendAnalysis';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Target, 
+import {
+  BarChart3,
+  TrendingUp,
+  Target,
   Award,
   Plus,
   ArrowRight,
@@ -41,7 +41,9 @@ export default function BenchmarksPage() {
       case 'manager':
         return <BenchmarkManager userRole={user.role} />;
       case 'comparison':
-        return <BenchmarkComparison onClose={() => setActiveView('dashboard')} />;
+        return (
+          <BenchmarkComparison onClose={() => setActiveView('dashboard')} />
+        );
       case 'trends':
         return <TrendAnalysis onClose={() => setActiveView('dashboard')} />;
       default:
@@ -58,11 +60,12 @@ export default function BenchmarksPage() {
             Benchmarks & Analytics
           </h1>
           <p className="text-sm sm:text-base text-gray-600 mt-1">
-            Compare your performance against industry standards and track progress over time
+            Compare your performance against industry standards and track
+            progress over time
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <Button 
+          <Button
             onClick={() => setActiveView('manager')}
             className="w-full sm:w-auto"
           >
@@ -81,7 +84,9 @@ export default function BenchmarksPage() {
                 <p className="text-xs sm:text-sm font-medium text-gray-600">
                   Active Benchmarks
                 </p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">12</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  12
+                </p>
               </div>
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <Target className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
@@ -97,7 +102,9 @@ export default function BenchmarksPage() {
                 <p className="text-xs sm:text-sm font-medium text-gray-600">
                   Above Benchmark
                 </p>
-                <p className="text-xl sm:text-2xl font-bold text-green-600">8</p>
+                <p className="text-xl sm:text-2xl font-bold text-green-600">
+                  8
+                </p>
               </div>
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <Award className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
@@ -113,7 +120,9 @@ export default function BenchmarksPage() {
                 <p className="text-xs sm:text-sm font-medium text-gray-600">
                   Improvement Areas
                 </p>
-                <p className="text-xl sm:text-2xl font-bold text-orange-600">4</p>
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">
+                  4
+                </p>
               </div>
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-orange-100 rounded-lg flex items-center justify-center">
                 <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
@@ -129,7 +138,9 @@ export default function BenchmarksPage() {
                 <p className="text-xs sm:text-sm font-medium text-gray-600">
                   Overall Score
                 </p>
-                <p className="text-xl sm:text-2xl font-bold text-blue-600">78%</p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-600">
+                  78%
+                </p>
               </div>
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
@@ -141,8 +152,10 @@ export default function BenchmarksPage() {
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow duration-200" 
-              onClick={() => setActiveView('manager')}>
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+          onClick={() => setActiveView('manager')}
+        >
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-lg">
               Benchmark Management
@@ -160,8 +173,10 @@ export default function BenchmarksPage() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow duration-200" 
-              onClick={() => setActiveView('comparison')}>
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+          onClick={() => setActiveView('comparison')}
+        >
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-lg">
               Performance Comparison
@@ -179,8 +194,10 @@ export default function BenchmarksPage() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow duration-200" 
-              onClick={() => setActiveView('trends')}>
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+          onClick={() => setActiveView('trends')}
+        >
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-lg">
               Trend Analysis
@@ -209,36 +226,47 @@ export default function BenchmarksPage() {
             {[
               {
                 action: 'Benchmark Created',
-                description: 'Technology Industry Engagement 2024 benchmark added',
+                description:
+                  'Technology Industry Engagement 2024 benchmark added',
                 time: '2 hours ago',
-                type: 'create'
+                type: 'create',
               },
               {
                 action: 'Comparison Completed',
-                description: 'Q4 Employee Survey compared against industry standards',
+                description:
+                  'Q4 Employee Survey compared against industry standards',
                 time: '1 day ago',
-                type: 'compare'
+                type: 'compare',
               },
               {
                 action: 'Trend Analysis',
                 description: 'Manager Effectiveness trend analysis generated',
                 time: '2 days ago',
-                type: 'analyze'
+                type: 'analyze',
               },
               {
                 action: 'Benchmark Validated',
-                description: 'Internal Leadership benchmark validated and activated',
+                description:
+                  'Internal Leadership benchmark validated and activated',
                 time: '3 days ago',
-                type: 'validate'
-              }
+                type: 'validate',
+              },
             ].map((activity, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
-                <div className={`h-2 w-2 rounded-full mt-2 ${
-                  activity.type === 'create' ? 'bg-green-500' :
-                  activity.type === 'compare' ? 'bg-blue-500' :
-                  activity.type === 'analyze' ? 'bg-purple-500' :
-                  'bg-orange-500'
-                }`} />
+              <div
+                key={index}
+                className="flex items-start gap-3 p-3 rounded-lg bg-gray-50"
+              >
+                <div
+                  className={`h-2 w-2 rounded-full mt-2 ${
+                    activity.type === 'create'
+                      ? 'bg-green-500'
+                      : activity.type === 'compare'
+                        ? 'bg-blue-500'
+                        : activity.type === 'analyze'
+                          ? 'bg-purple-500'
+                          : 'bg-orange-500'
+                  }`}
+                />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900">
                     {activity.action}
@@ -246,9 +274,7 @@ export default function BenchmarksPage() {
                   <p className="text-sm text-gray-600 mt-1">
                     {activity.description}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {activity.time}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
                 </div>
               </div>
             ))}
@@ -269,50 +295,55 @@ export default function BenchmarksPage() {
                 Benchmarks & Analytics
               </h1>
               <p className="text-sm sm:text-base text-gray-600 mt-1">
-                Compare your performance against industry standards and track progress over time
+                Compare your performance against industry standards and track
+                progress over time
               </p>
             </div>
           </div>
 
           {/* Tabbed Interface */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-6"
+          >
             <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 space-x-6 flex-wrap">
-              <TabsTrigger 
+              <TabsTrigger
                 value="overview"
                 className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
               >
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Overview
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="manager"
                 className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
               >
                 <Target className="w-4 h-4 mr-2" />
                 Manage
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="creator"
                 className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Create New
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="comparison"
                 className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
               >
                 <PieChart className="w-4 h-4 mr-2" />
                 Comparison
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="gap-analysis"
                 className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
               >
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Gap Analysis
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="trends"
                 className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
               >
@@ -321,16 +352,14 @@ export default function BenchmarksPage() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview">
-              {renderDashboard()}
-            </TabsContent>
+            <TabsContent value="overview">{renderDashboard()}</TabsContent>
 
             <TabsContent value="manager">
               <BenchmarkManager userRole={user.role} />
             </TabsContent>
 
             <TabsContent value="creator">
-              <BenchmarkCreator 
+              <BenchmarkCreator
                 onBenchmarkCreated={() => {
                   setActiveTab('manager');
                 }}
@@ -345,8 +374,9 @@ export default function BenchmarksPage() {
             <TabsContent value="gap-analysis">
               <Card className="p-6">
                 <p className="text-gray-600 mb-4">
-                  Gap Analysis requires selecting a specific survey and benchmark.
-                  Please go to a survey's detail page to view gap analysis.
+                  Gap Analysis requires selecting a specific survey and
+                  benchmark. Please go to a survey's detail page to view gap
+                  analysis.
                 </p>
                 <Button onClick={() => setActiveTab('manager')}>
                   View Benchmarks
