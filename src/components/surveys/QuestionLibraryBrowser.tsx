@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search,
   FolderTree,
@@ -79,13 +79,19 @@ export default function QuestionLibraryBrowser({
   const [previewQuestion, setPreviewQuestion] =
     useState<LibraryQuestion | null>(null);
 
+  // Memoize individual filter values to prevent reference changes
+  const categoryFilter = useMemo(() => selectedCategory || undefined, [selectedCategory]);
+  const searchFilter = useMemo(() => searchQuery || undefined, [searchQuery]);
+  const typeFilter = useMemo(() => selectedType !== 'all' ? selectedType : undefined, [selectedType]);
+  const tagsFilter = useMemo(() => selectedTags.length > 0 ? selectedTags : undefined, [selectedTags.join(',')]);
+
   // Use React Query hooks for data fetching with caching
   const { data: categoriesData } = useQuestionCategories();
   const { data: questionsData, isLoading } = useQuestionLibrary({
-    category_id: selectedCategory || undefined,
-    search_query: searchQuery || undefined,
-    type: selectedType !== 'all' ? selectedType : undefined,
-    tags: selectedTags.length > 0 ? selectedTags : undefined,
+    category_id: categoryFilter,
+    search_query: searchFilter,
+    type: typeFilter,
+    tags: tagsFilter,
     limit: 50,
   });
 

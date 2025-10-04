@@ -19,11 +19,21 @@ import {
   Calendar,
   QrCode,
   BookOpen,
+  Users,
+  Mail,
+  CheckCircle2,
+  Circle,
+  Lock,
+  AlertCircle,
 } from 'lucide-react';
 import SurveyBuilder from '@/components/survey/SurveyBuilder';
 import SurveyScheduler from '@/components/surveys/SurveyScheduler';
 import QRCodeGenerator from '@/components/surveys/QRCodeGenerator';
 import QuestionLibraryBrowser from '@/components/surveys/QuestionLibraryBrowser';
+import DepartmentSelector from '@/components/surveys/DepartmentSelector';
+import InvitationSettings from '@/components/surveys/InvitationSettings';
+import { SurveyProgressBar } from '@/components/surveys/SurveyProgressBar';
+import { TabNavigationFooter } from '@/components/surveys/TabNavigationFooter';
 import { IQuestion } from '@/models/Survey';
 import {
   Select,
@@ -33,6 +43,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useSurveyProgress, SurveyTab } from '@/hooks/useSurveyProgress';
+import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function CreateSurveyPage() {
   const { user, isLoading } = useAuth();
@@ -46,8 +59,17 @@ export default function CreateSurveyPage() {
   const [targetResponses, setTargetResponses] = useState<number>(50);
   const [estimatedDuration, setEstimatedDuration] = useState<number>(10);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('builder');
+  const [activeTab, setActiveTab] = useState<SurveyTab>('builder');
   const [createdSurveyId, setCreatedSurveyId] = useState<string | null>(null);
+
+  // Invitation settings state
+  const [customMessage, setCustomMessage] = useState('');
+  const [customSubject, setCustomSubject] = useState('');
+  const [includeCredentials, setIncludeCredentials] = useState(false);
+  const [sendImmediately, setSendImmediately] = useState(true);
+  const [brandingEnabled, setBrandingEnabled] = useState(true);
+  const [reminderEnabled, setReminderEnabled] = useState(true);
+  const [reminderFrequency, setReminderFrequency] = useState(3);
 
   // Scheduling state
   const [startDate, setStartDate] = useState<Date>(new Date());
@@ -55,6 +77,33 @@ export default function CreateSurveyPage() {
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   );
   const [timezone, setTimezone] = useState<string>('America/New_York');
+
+  // Get survey progress and validation state
+  const surveyProgress = useSurveyProgress({
+    title,
+    description,
+    questions,
+    targetDepartments,
+    startDate,
+    endDate,
+    customMessage,
+    customSubject,
+    createdSurveyId,
+  });
+
+  // Handle tab change with validation
+  const handleTabChange = (newTab: SurveyTab) => {
+    // Check if tab is accessible
+    if (!surveyProgress.isTabAccessible(newTab)) {
+      const warning = surveyProgress.getTabWarning(newTab);
+      if (warning) {
+        toast.warning(warning);
+      }
+      return;
+    }
+
+    setActiveTab(newTab);
+  };
 
   const handleSave = async (status: 'draft' | 'active' = 'draft') => {
     if (!title.trim()) {
@@ -83,6 +132,18 @@ export default function CreateSurveyPage() {
           randomize_questions: false,
           show_progress: true,
           auto_save: true,
+          notification_settings: {
+            send_invitations: sendImmediately,
+            send_reminders: reminderEnabled,
+            reminder_frequency_days: reminderFrequency,
+          },
+          invitation_settings: {
+            custom_message: customMessage,
+            custom_subject: customSubject,
+            include_credentials: includeCredentials,
+            send_immediately: sendImmediately,
+            branding_enabled: brandingEnabled,
+          },
         },
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString(),
@@ -183,48 +244,196 @@ export default function CreateSurveyPage() {
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
         </div>
 
+        {/* Progress Bar */}
+        <SurveyProgressBar
+          percentage={surveyProgress.progress.percentage}
+          completedRequired={surveyProgress.progress.completedRequired}
+          totalRequired={surveyProgress.progress.totalRequired}
+          completedOptional={surveyProgress.progress.completedOptional}
+          totalOptional={surveyProgress.progress.totalOptional}
+        />
+
         {/* Survey Configuration */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 space-x-6">
-            <TabsTrigger
-              value="builder"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Survey Builder
-            </TabsTrigger>
-            <TabsTrigger
-              value="library"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
-            >
-              <BookOpen className="w-4 h-4 mr-2" />
-              Question Library
-            </TabsTrigger>
-            <TabsTrigger
-              value="schedule"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              Schedule
-            </TabsTrigger>
-            <TabsTrigger
-              value="preview"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
-              disabled={questions.length === 0}
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Preview
-            </TabsTrigger>
-            {createdSurveyId && (
+        <TooltipProvider>
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
+            <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 space-x-6">
+              {/* Builder Tab */}
               <TabsTrigger
-                value="qr-code"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+                value="builder"
+                disabled={!surveyProgress.tabs.builder.unlocked}
+                className={cn(
+                  "data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative",
+                  !surveyProgress.tabs.builder.unlocked && "opacity-50 cursor-not-allowed"
+                )}
               >
-                <QrCode className="w-4 h-4 mr-2" />
-                QR Code
+                <Settings className="w-4 h-4 mr-2" />
+                Survey Builder
+                {surveyProgress.tabs.builder.required && (
+                  <span className="text-red-500 ml-1">*</span>
+                )}
+                {surveyProgress.tabs.builder.completed && (
+                  <CheckCircle2 className="w-4 h-4 ml-2 text-green-500" />
+                )}
               </TabsTrigger>
-            )}
-          </TabsList>
+
+              {/* Library Tab */}
+              <TabsTrigger
+                value="library"
+                disabled={!surveyProgress.tabs.library.unlocked}
+                className={cn(
+                  "data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative",
+                  !surveyProgress.tabs.library.unlocked && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                Question Library
+              </TabsTrigger>
+
+              {/* Targeting Tab */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value="targeting"
+                    disabled={!surveyProgress.tabs.targeting.unlocked}
+                    className={cn(
+                      "data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative",
+                      !surveyProgress.tabs.targeting.unlocked && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    {!surveyProgress.tabs.targeting.unlocked && (
+                      <Lock className="w-3 h-3 mr-1 text-gray-400" />
+                    )}
+                    <Users className="w-4 h-4 mr-2" />
+                    Targeting
+                    {surveyProgress.tabs.targeting.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                    {surveyProgress.tabs.targeting.completed && (
+                      <CheckCircle2 className="w-4 h-4 ml-2 text-green-500" />
+                    )}
+                  </TabsTrigger>
+                </TooltipTrigger>
+                {!surveyProgress.tabs.targeting.unlocked && (
+                  <TooltipContent>
+                    <p>{surveyProgress.tabs.targeting.warning}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
+              {/* Invitations Tab */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value="invitations"
+                    disabled={!surveyProgress.tabs.invitations.unlocked}
+                    className={cn(
+                      "data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative",
+                      !surveyProgress.tabs.invitations.unlocked && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    {!surveyProgress.tabs.invitations.unlocked && (
+                      <Lock className="w-3 h-3 mr-1 text-gray-400" />
+                    )}
+                    <Mail className="w-4 h-4 mr-2" />
+                    Invitations
+                    {surveyProgress.tabs.invitations.completed && (
+                      <CheckCircle2 className="w-4 h-4 ml-2 text-green-500" />
+                    )}
+                  </TabsTrigger>
+                </TooltipTrigger>
+                {!surveyProgress.tabs.invitations.unlocked && (
+                  <TooltipContent>
+                    <p>{surveyProgress.tabs.invitations.warning}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
+              {/* Schedule Tab */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value="schedule"
+                    disabled={!surveyProgress.tabs.schedule.unlocked}
+                    className={cn(
+                      "data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative",
+                      !surveyProgress.tabs.schedule.unlocked && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    {!surveyProgress.tabs.schedule.unlocked && (
+                      <Lock className="w-3 h-3 mr-1 text-gray-400" />
+                    )}
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Schedule
+                    {surveyProgress.tabs.schedule.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                    {surveyProgress.tabs.schedule.completed && (
+                      <CheckCircle2 className="w-4 h-4 ml-2 text-green-500" />
+                    )}
+                  </TabsTrigger>
+                </TooltipTrigger>
+                {!surveyProgress.tabs.schedule.unlocked && (
+                  <TooltipContent>
+                    <p>{surveyProgress.tabs.schedule.warning}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
+              {/* Preview Tab */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value="preview"
+                    disabled={!surveyProgress.tabs.preview.unlocked}
+                    className={cn(
+                      "data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative",
+                      !surveyProgress.tabs.preview.unlocked && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    {!surveyProgress.tabs.preview.unlocked && (
+                      <Lock className="w-3 h-3 mr-1 text-gray-400" />
+                    )}
+                    <Eye className="w-4 h-4 mr-2" />
+                    Preview
+                    {surveyProgress.tabs.preview.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                  </TabsTrigger>
+                </TooltipTrigger>
+                {!surveyProgress.tabs.preview.unlocked && (
+                  <TooltipContent>
+                    <p>{surveyProgress.tabs.preview.warning}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
+              {/* QR Code Tab */}
+              {createdSurveyId && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger
+                      value="qr-code"
+                      disabled={!surveyProgress.tabs['qr-code'].unlocked}
+                      className={cn(
+                        "data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative",
+                        !surveyProgress.tabs['qr-code'].unlocked && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      {!surveyProgress.tabs['qr-code'].unlocked && (
+                        <Lock className="w-3 h-3 mr-1 text-gray-400" />
+                      )}
+                      <QrCode className="w-4 h-4 mr-2" />
+                      QR Code
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  {!surveyProgress.tabs['qr-code'].unlocked && (
+                    <TooltipContent>
+                      <p>{surveyProgress.tabs['qr-code'].warning}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              )}
+            </TabsList>
 
           <TabsContent value="builder" className="mt-6 space-y-6">
             <Card>
@@ -303,6 +512,19 @@ export default function CreateSurveyPage() {
               onDescriptionChange={setDescription}
               onQuestionsChange={setQuestions}
             />
+            
+            <TabNavigationFooter
+              currentTab="builder"
+              nextTab={surveyProgress.getNextTab('builder')}
+              previousTab={surveyProgress.getPreviousTab('builder')}
+              canPublish={surveyProgress.canPublish}
+              canSaveDraft={surveyProgress.canSaveDraft}
+              onTabChange={handleTabChange}
+              onSaveDraft={() => handleSave('draft')}
+              onPublish={() => handleSave('active')}
+              saving={saving}
+              nextDisabled={!surveyProgress.tabs.builder.completed}
+            />
           </TabsContent>
 
           <TabsContent value="library" className="mt-6">
@@ -321,6 +543,71 @@ export default function CreateSurveyPage() {
                 />
               </CardContent>
             </Card>
+            
+            <TabNavigationFooter
+              currentTab="library"
+              nextTab={surveyProgress.getNextTab('library')}
+              previousTab={surveyProgress.getPreviousTab('library')}
+              canPublish={surveyProgress.canPublish}
+              canSaveDraft={surveyProgress.canSaveDraft}
+              onTabChange={handleTabChange}
+              onSaveDraft={() => handleSave('draft')}
+              onPublish={() => handleSave('active')}
+              saving={saving}
+            />
+          </TabsContent>
+
+          <TabsContent value="targeting" className="mt-6">
+            <DepartmentSelector
+              selectedDepartments={targetDepartments}
+              onChange={setTargetDepartments}
+              showEmployeeCount={true}
+              allowSelectAll={true}
+            />
+            
+            <TabNavigationFooter
+              currentTab="targeting"
+              nextTab={surveyProgress.getNextTab('targeting')}
+              previousTab={surveyProgress.getPreviousTab('targeting')}
+              canPublish={surveyProgress.canPublish}
+              canSaveDraft={surveyProgress.canSaveDraft}
+              onTabChange={handleTabChange}
+              onSaveDraft={() => handleSave('draft')}
+              onPublish={() => handleSave('active')}
+              saving={saving}
+              nextDisabled={!surveyProgress.tabs.targeting.completed}
+            />
+          </TabsContent>
+
+          <TabsContent value="invitations" className="mt-6">
+            <InvitationSettings
+              customMessage={customMessage}
+              onCustomMessageChange={setCustomMessage}
+              customSubject={customSubject}
+              onCustomSubjectChange={setCustomSubject}
+              includeCredentials={includeCredentials}
+              onIncludeCredentialsChange={setIncludeCredentials}
+              sendImmediately={sendImmediately}
+              onSendImmediatelyChange={setSendImmediately}
+              brandingEnabled={brandingEnabled}
+              onBrandingEnabledChange={setBrandingEnabled}
+              reminderEnabled={reminderEnabled}
+              onReminderEnabledChange={setReminderEnabled}
+              reminderFrequency={reminderFrequency}
+              onReminderFrequencyChange={setReminderFrequency}
+            />
+            
+            <TabNavigationFooter
+              currentTab="invitations"
+              nextTab={surveyProgress.getNextTab('invitations')}
+              previousTab={surveyProgress.getPreviousTab('invitations')}
+              canPublish={surveyProgress.canPublish}
+              canSaveDraft={surveyProgress.canSaveDraft}
+              onTabChange={handleTabChange}
+              onSaveDraft={() => handleSave('draft')}
+              onPublish={() => handleSave('active')}
+              saving={saving}
+            />
           </TabsContent>
 
           <TabsContent value="schedule" className="mt-6">
@@ -344,48 +631,179 @@ export default function CreateSurveyPage() {
                 />
               </CardContent>
             </Card>
+            
+            <TabNavigationFooter
+              currentTab="schedule"
+              nextTab={surveyProgress.getNextTab('schedule')}
+              previousTab={surveyProgress.getPreviousTab('schedule')}
+              canPublish={surveyProgress.canPublish}
+              canSaveDraft={surveyProgress.canSaveDraft}
+              onTabChange={handleTabChange}
+              onSaveDraft={() => handleSave('draft')}
+              onPublish={() => handleSave('active')}
+              saving={saving}
+              nextDisabled={!surveyProgress.tabs.schedule.completed}
+            />
           </TabsContent>
 
           <TabsContent value="preview" className="mt-6">
-            {questions.length > 0 && (
+            <div className="space-y-6">
+              {/* Survey Overview */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Eye className="h-5 w-5" />
-                    Survey Preview
+                    Survey Preview & Summary
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <h3 className="text-lg font-semibold">
-                        {title || 'Untitled Survey'}
-                      </h3>
-                      {description && (
-                        <p className="text-muted-foreground mt-1">
-                          {description}
+                <CardContent className="space-y-6">
+                  {/* Basic Info */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Title</p>
+                        <p className="font-medium">{title || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Type</p>
+                        <Badge variant="outline">{surveyType.replace('_', ' ')}</Badge>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Duration</p>
+                        <p className="font-medium">{estimatedDuration} minutes</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Target Responses</p>
+                        <p className="font-medium">{targetResponses}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Questions */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Questions ({questions.length})
+                    </h3>
+                    {questions.length > 0 ? (
+                      <div className="space-y-3">
+                        {questions.map((question, index) => (
+                          <div
+                            key={question.id}
+                            className="p-3 bg-white dark:bg-gray-800 rounded border"
+                          >
+                            <p className="font-medium">
+                              {index + 1}. {question.text || 'Question text...'}
+                            </p>
+                            <Badge variant="outline" className="mt-2 text-xs">
+                              {question.type.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No questions added yet</p>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  {/* Targeting */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Targeting</h3>
+                    <div className="p-4 bg-muted/50 rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Selected Departments
+                      </p>
+                      {targetDepartments.length > 0 ? (
+                        <Badge variant="default">
+                          {targetDepartments.length} department
+                          {targetDepartments.length !== 1 ? 's' : ''} selected
+                        </Badge>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No departments selected
                         </p>
                       )}
                     </div>
-                    <div className="space-y-3">
-                      {questions.map((question, index) => (
-                        <div
-                          key={question.id}
-                          className="p-3 bg-white rounded border"
-                        >
-                          <p className="font-medium">
-                            {index + 1}. {question.text || 'Question text...'}
-                          </p>
-                          <Badge variant="outline" className="mt-2 text-xs">
-                            {question.type.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                      ))}
+                  </div>
+
+                  <Separator />
+
+                  {/* Schedule */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Schedule</h3>
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Start Date</p>
+                        <p className="font-medium">
+                          {startDate.toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">End Date</p>
+                        <p className="font-medium">
+                          {endDate.toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-sm text-muted-foreground">Timezone</p>
+                        <p className="font-medium">{timezone}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Invitation Settings */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Invitation Settings</h3>
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Send Immediately</p>
+                        <Badge variant={sendImmediately ? 'default' : 'secondary'}>
+                          {sendImmediately ? 'Yes' : 'No'}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Include Credentials</p>
+                        <Badge variant={includeCredentials ? 'default' : 'secondary'}>
+                          {includeCredentials ? 'Yes' : 'No'}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Reminders</p>
+                        <Badge variant={reminderEnabled ? 'default' : 'secondary'}>
+                          {reminderEnabled
+                            ? `Every ${reminderFrequency} day${reminderFrequency !== 1 ? 's' : ''}`
+                            : 'Disabled'}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Branding</p>
+                        <Badge variant={brandingEnabled ? 'default' : 'secondary'}>
+                          {brandingEnabled ? 'Enabled' : 'Disabled'}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            )}
+            </div>
+            
+            <TabNavigationFooter
+              currentTab="preview"
+              nextTab={surveyProgress.getNextTab('preview')}
+              previousTab={surveyProgress.getPreviousTab('preview')}
+              canPublish={surveyProgress.canPublish}
+              canSaveDraft={surveyProgress.canSaveDraft}
+              onTabChange={handleTabChange}
+              onSaveDraft={() => handleSave('draft')}
+              onPublish={() => handleSave('active')}
+              saving={saving}
+            />
           </TabsContent>
 
           {createdSurveyId && (
@@ -395,33 +813,22 @@ export default function CreateSurveyPage() {
                 surveyTitle={title}
                 tokenType="anonymous"
               />
+              
+              <TabNavigationFooter
+                currentTab="qr-code"
+                nextTab={surveyProgress.getNextTab('qr-code')}
+                previousTab={surveyProgress.getPreviousTab('qr-code')}
+                canPublish={surveyProgress.canPublish}
+                canSaveDraft={surveyProgress.canSaveDraft}
+                onTabChange={handleTabChange}
+                onSaveDraft={() => handleSave('draft')}
+                onPublish={() => handleSave('active')}
+                saving={saving}
+              />
             </TabsContent>
           )}
         </Tabs>
-
-        {/* Bottom Actions */}
-        <div className="flex justify-end gap-2 pt-6 border-t">
-          <Button variant="outline" onClick={() => router.back()}>
-            Cancel
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => handleSave('draft')}
-            disabled={saving}
-            className="flex items-center gap-2"
-          >
-            <Save className="h-4 w-4" />
-            Save Draft
-          </Button>
-          <Button
-            onClick={() => handleSave('active')}
-            disabled={saving || !title.trim() || questions.length === 0}
-            className="flex items-center gap-2"
-          >
-            <Send className="h-4 w-4" />
-            {saving ? 'Publishing...' : 'Publish Survey'}
-          </Button>
-        </div>
+        </TooltipProvider>
       </div>
     </DashboardLayout>
   );

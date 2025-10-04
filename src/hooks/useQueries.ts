@@ -92,10 +92,20 @@ export function useQuestionLibrary(filters?: {
   page?: number;
   limit?: number;
 }) {
+  // Create a stable query key by stringifying individual values
+  const queryKey = [
+    'questionLibrary',
+    'questions',
+    filters?.category_id || '',
+    filters?.type || '',
+    filters?.search_query || '',
+    filters?.tags?.join(',') || '', // Use join to create stable string
+    filters?.page || 1,
+    filters?.limit || 20,
+  ];
+
   return useQuery({
-    queryKey: queryKeys.questionLibrary.questions(
-      JSON.stringify(filters || {})
-    ),
+    queryKey,
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters?.category_id) params.append('category', filters.category_id);
