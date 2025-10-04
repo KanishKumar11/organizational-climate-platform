@@ -99,6 +99,7 @@ export default function MicroclimateDashboard() {
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
 
   const fetchMicroclimates = useCallback(async () => {
+    setLoading(true);
     try {
       const params = new URLSearchParams();
       if (statusFilter !== 'all') params.append('status', statusFilter);
@@ -108,10 +109,16 @@ export default function MicroclimateDashboard() {
       const response = await fetch(`/api/microclimates?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
-        setMicroclimates(data.microclimates || []);
+        // DEFENSIVE: Ensure microclimates is always an array
+        const microclimatesData = data?.microclimates || data || [];
+        setMicroclimates(Array.isArray(microclimatesData) ? microclimatesData : []);
+      } else {
+        console.error('Failed to fetch microclimates:', response.status);
+        setMicroclimates([]); // Fallback to empty array
       }
     } catch (error) {
       console.error('Error fetching microclimates:', error);
+      setMicroclimates([]); // Prevent crash - always use array
     } finally {
       setLoading(false);
     }

@@ -457,9 +457,33 @@ export function MicroclimateWizard({
         title: t.step4,
         description: t.step4Desc,
         validate: async () => {
-          return (
-            !!step4Data.schedule?.startDate && !!step4Data.schedule?.endDate
-          );
+          // Check schedule dates exist
+          if (!step4Data.schedule?.startDate || !step4Data.schedule?.endDate) {
+            return false;
+          }
+
+          // Check distribution mode is selected
+          if (!step4Data.schedule?.distribution?.mode) {
+            throw new Error(
+              language === 'es'
+                ? 'Debes seleccionar un método de distribución'
+                : 'You must select a distribution method'
+            );
+          }
+
+          // If open mode, check security acknowledgment
+          if (
+            step4Data.schedule.distribution.mode === 'open' &&
+            !step4Data.schedule.distribution.securityAcknowledged
+          ) {
+            throw new Error(
+              language === 'es'
+                ? 'Debes aceptar los riesgos de seguridad para usar enlace público'
+                : 'You must accept the security risks to use public link'
+            );
+          }
+
+          return true;
         },
       },
     ],

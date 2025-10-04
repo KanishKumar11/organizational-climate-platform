@@ -52,6 +52,7 @@ export interface IQuestion {
   conditional_logic?: ConditionalLogic;
   order: number;
   category?: string;
+  config?: any; // Generic configuration from question library
 }
 
 // Emoji option interface for emoji_scale questions

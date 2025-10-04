@@ -7,8 +7,11 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BenchmarkManager from '@/components/benchmarks/BenchmarkManager';
 import BenchmarkComparison from '@/components/benchmarks/BenchmarkComparison';
+import BenchmarkCreator from '@/components/benchmarks/BenchmarkCreator';
+import GapAnalysisReport from '@/components/benchmarks/GapAnalysisReport';
 import TrendAnalysis from '@/components/benchmarks/TrendAnalysis';
 import { 
   BarChart3, 
@@ -16,7 +19,9 @@ import {
   Target, 
   Award,
   Plus,
-  ArrowRight
+  ArrowRight,
+  LineChart,
+  PieChart,
 } from 'lucide-react';
 
 type ActiveView = 'dashboard' | 'manager' | 'comparison' | 'trends';
@@ -24,6 +29,7 @@ type ActiveView = 'dashboard' | 'manager' | 'comparison' | 'trends';
 export default function BenchmarksPage() {
   const { user, canViewCompanyAnalytics } = useAuth();
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Redirect if user doesn't have permission
   if (!user || !canViewCompanyAnalytics) {
@@ -256,18 +262,102 @@ export default function BenchmarksPage() {
     <DashboardLayout>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          {activeView !== 'dashboard' && (
-            <div className="mb-6">
-              <Button 
-                variant="outline" 
-                onClick={() => setActiveView('dashboard')}
-                className="mb-4"
-              >
-                ← Back to Dashboard
-              </Button>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                Benchmarks & Analytics
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">
+                Compare your performance against industry standards and track progress over time
+              </p>
             </div>
-          )}
-          {renderActiveView()}
+          </div>
+
+          {/* Tabbed Interface */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 space-x-6 flex-wrap">
+              <TabsTrigger 
+                value="overview"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger 
+                value="manager"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+              >
+                <Target className="w-4 h-4 mr-2" />
+                Manage
+              </TabsTrigger>
+              <TabsTrigger 
+                value="creator"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create New
+              </TabsTrigger>
+              <TabsTrigger 
+                value="comparison"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+              >
+                <PieChart className="w-4 h-4 mr-2" />
+                Comparison
+              </TabsTrigger>
+              <TabsTrigger 
+                value="gap-analysis"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Gap Analysis
+              </TabsTrigger>
+              <TabsTrigger 
+                value="trends"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+              >
+                <LineChart className="w-4 h-4 mr-2" />
+                Trends
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview">
+              {renderDashboard()}
+            </TabsContent>
+
+            <TabsContent value="manager">
+              <BenchmarkManager userRole={user.role} />
+            </TabsContent>
+
+            <TabsContent value="creator">
+              <BenchmarkCreator 
+                onBenchmarkCreated={() => {
+                  setActiveTab('manager');
+                }}
+                onCancel={() => setActiveTab('overview')}
+              />
+            </TabsContent>
+
+            <TabsContent value="comparison">
+              <BenchmarkComparison onClose={() => setActiveTab('overview')} />
+            </TabsContent>
+
+            <TabsContent value="gap-analysis">
+              <Card className="p-6">
+                <p className="text-gray-600 mb-4">
+                  Gap Analysis requires selecting a specific survey and benchmark.
+                  Please go to a survey's detail page to view gap analysis.
+                </p>
+                <Button onClick={() => setActiveTab('manager')}>
+                  View Benchmarks
+                </Button>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="trends">
+              <TrendAnalysis onClose={() => setActiveTab('overview')} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </DashboardLayout>

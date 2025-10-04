@@ -1,20 +1,94 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { ActionPlanDashboard } from '@/components/action-plans/ActionPlanDashboard';
+import { ActionPlanKanban } from '@/components/action-plans/ActionPlanKanban';
+import { ActionPlanTimeline } from '@/components/action-plans/ActionPlanTimeline';
+import { BulkActionPlanCreator } from '@/components/action-plans/BulkActionPlanCreator';
+import { AlertsPanel } from '@/components/action-plans/AlertsPanel';
+import { CommitmentTracker } from '@/components/action-plans/CommitmentTracker';
 import { ActionPlanNavbar } from '@/components/layout/Navbar';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Target, AlertTriangle, Users, TrendingUp } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Target, 
+  AlertTriangle, 
+  Users, 
+  TrendingUp, 
+  Zap, 
+  Bell, 
+  CheckCircle,
+  LayoutGrid,
+  Calendar as CalendarIcon,
+} from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function ActionPlansPage() {
   const router = useRouter();
   const { user, canCreateActionPlans } = useAuth();
+  const [activeTab, setActiveTab] = useState('my-plans');
+  const [insights, setInsights] = useState<any[]>([]);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+  const [surveys, setSurveys] = useState<any[]>([]);
+  const [selectedSurvey, setSelectedSurvey] = useState<string>('');
+
+  // Load surveys for bulk creation
+  useEffect(() => {
+    if (canCreateActionPlans) {
+      fetchSurveys();
+    }
+  }, [canCreateActionPlans]);
+
+  // Load AI insights when survey is selected
+  useEffect(() => {
+    if (selectedSurvey) {
+      fetchInsights(selectedSurvey);
+    }
+  }, [selectedSurvey]);
+
+  const fetchSurveys = async () => {
+    try {
+      const response = await fetch('/api/surveys?status=completed');
+      if (response.ok) {
+        const data = await response.json();
+        setSurveys(data.surveys || []);
+        if (data.surveys?.length > 0) {
+          setSelectedSurvey(data.surveys[0]._id);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching surveys:', error);
+    }
+  };
+
+  const fetchInsights = async (surveyId: string) => {
+    setIsLoadingInsights(true);
+    try {
+      const response = await fetch(`/api/ai/analyze-responses?surveyId=${surveyId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setInsights(data.insights || []);
+      } else {
+        setInsights([]);
+      }
+    } catch (error) {
+      console.error('Error fetching insights:', error);
+      setInsights([]);
+    } finally {
+      setIsLoadingInsights(false);
+    }
+  };
+
+  const handleBulkActionPlansCreated = (actionPlans: unknown[]) => {
+    toast.success(`Successfully created ${actionPlans.length} action plans`);
+    setActiveTab('my-plans'); // Switch back to main dashboard
+  };
 
   // Redirect if user doesn't have permission
   if (!canCreateActionPlans) {
@@ -146,14 +220,129 @@ export default function ActionPlansPage() {
           </Card>
         </div>
 
-        {/* Main Dashboard */}
-        <div className="flex-1 overflow-hidden min-w-0">
-          <ActionPlanDashboard
-            companyId={user?.companyId}
-            departmentId={user?.departmentId}
-            canCreate={canCreateActionPlans}
-          />
-        </div>
+        {/* Tabbed Interface */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
+          <TabsList className="flex-shrink-0 w-full justify-start border-b bg-transparent h-auto p-0 space-x-6">
+            <TabsTrigger 
+              value="my-plans"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              My Plans
+            </TabsTrigger>
+            <TabsTrigger 
+              value="kanban"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+            >
+              <LayoutGrid className="w-4 h-4 mr-2" />
+              Kanban Board
+            </TabsTrigger>
+            <TabsTrigger 
+              value="timeline"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+            >
+              <CalendarIcon className="w-4 h-4 mr-2" />
+              Timeline View
+            </TabsTrigger>
+            <TabsTrigger 
+              value="bulk-create"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Bulk Create
+              <Badge variant="secondary" className="ml-2 text-xs">AI</Badge>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="alerts"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              Alerts & Monitoring
+            </TabsTrigger>
+            <TabsTrigger 
+              value="commitments"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Commitments
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="my-plans" className="flex-1 overflow-auto mt-6">
+            <ActionPlanDashboard
+              companyId={user?.companyId}
+              departmentId={user?.departmentId}
+              canCreate={canCreateActionPlans}
+            />
+          </TabsContent>
+
+          <TabsContent value="kanban" className="flex-1 overflow-auto mt-6">
+            <ActionPlanKanban
+              companyId={user?.companyId}
+              departmentId={user?.departmentId}
+              onActionPlanClick={(plan) => router.push(`/action-plans/${plan._id}`)}
+            />
+          </TabsContent>
+
+          <TabsContent value="timeline" className="flex-1 overflow-auto mt-6">
+            <ActionPlanTimeline
+              companyId={user?.companyId}
+              departmentId={user?.departmentId}
+              onActionPlanClick={(plan) => router.push(`/action-plans/${plan._id}`)}
+            />
+          </TabsContent>
+
+          <TabsContent value="bulk-create" className="flex-1 overflow-auto mt-6">
+            {insights.length > 0 ? (
+              <BulkActionPlanCreator
+                insights={insights}
+                surveyId={selectedSurvey}
+                onSuccess={handleBulkActionPlansCreated}
+                onCancel={() => setActiveTab('my-plans')}
+              />
+            ) : (
+              <Card className="p-12 text-center">
+                <div className="max-w-md mx-auto">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Zap className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    AI-Powered Bulk Action Plan Creation
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    {isLoadingInsights 
+                      ? 'Loading AI insights from your surveys...'
+                      : 'No AI insights available yet. Create a survey and analyze the responses to generate action plans automatically.'}
+                  </p>
+                  {!isLoadingInsights && (
+                    <div className="flex gap-3 justify-center">
+                      <Button asChild variant="outline">
+                        <Link href="/ai-insights">View AI Insights</Link>
+                      </Button>
+                      <Button asChild>
+                        <Link href="/surveys/create">Create Survey</Link>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="alerts" className="flex-1 overflow-auto mt-6">
+            <AlertsPanel 
+              companyId={user?.companyId}
+              departmentId={user?.departmentId}
+            />
+          </TabsContent>
+
+          <TabsContent value="commitments" className="flex-1 overflow-auto mt-6">
+            <CommitmentTracker 
+              companyId={user?.companyId}
+              departmentId={user?.departmentId}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

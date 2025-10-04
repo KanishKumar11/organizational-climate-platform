@@ -118,6 +118,7 @@ export default function TemplateSelector({
   }, [categoryFilter, showSystemOnly, showPopularOnly]);
 
   const fetchTemplates = async () => {
+    setLoading(true);
     try {
       const params = new URLSearchParams();
       if (categoryFilter !== 'all') params.append('category', categoryFilter);
@@ -125,14 +126,20 @@ export default function TemplateSelector({
       if (showPopularOnly) params.append('popular', 'true');
 
       const response = await fetch(
-        `/api/microclimates/templates?${params.toString()}`
+        `/api/microclimate-templates?${params.toString()}`
       );
       if (response.ok) {
         const data = await response.json();
-        setTemplates(data.templates || []);
+        // DEFENSIVE: Ensure templates is always an array to prevent .filter() errors
+        const templatesData = data?.templates || data || [];
+        setTemplates(Array.isArray(templatesData) ? templatesData : []);
+      } else {
+        console.error('Failed to fetch templates:', response.status);
+        setTemplates([]); // Fallback to empty array
       }
     } catch (error) {
       console.error('Error fetching templates:', error);
+      setTemplates([]); // Prevent crash - always use array
     } finally {
       setLoading(false);
     }

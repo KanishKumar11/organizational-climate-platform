@@ -23,6 +23,7 @@ import {
   Database,
   Briefcase,
   Activity,
+  Sparkles,
 } from 'lucide-react';
 
 interface NavItem {
@@ -143,6 +144,13 @@ export default function RoleBasedNav() {
     sections.push({
       title: 'Analytics',
       items: [
+        {
+          label: 'AI Insights',
+          href: '/ai-insights',
+          icon: Sparkles,
+          badge: 'AI',
+          description: 'AI-powered analysis and recommendations',
+        },
         {
           label: 'Reports',
           href: '/reports',

@@ -14,6 +14,16 @@ import {
   EnhancedTabsList as TabsList,
   EnhancedTabsTrigger as TabsTrigger,
 } from '@/components/ui/enhanced-tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { DashboardCustomization } from '@/components/dashboard/DashboardCustomization';
+import { DashboardLayout } from '@/components/dashboard/DashboardCustomization';
+import { DashboardExportShare } from '@/components/dashboard/DashboardExportShare';
 
 import {
   Users,
@@ -32,8 +42,12 @@ import {
   Clock,
   UserCheck,
   GitBranch,
+  Settings,
+  Download,
+  Share,
 } from 'lucide-react';
 import { KPIDisplay } from '@/components/charts/KPIDisplay';
+import { toast } from 'sonner';
 
 interface CompanyKPIs {
   totalEmployees: number;
@@ -150,6 +164,137 @@ export default function CompanyAdminDashboard() {
     demographicVersions: DemographicVersion[];
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCustomization, setShowCustomization] = useState(false);
+  const [showExportShare, setShowExportShare] = useState(false);
+  const [dashboardLayout, setDashboardLayout] = useState<DashboardLayout>({
+    id: 'default-company-admin',
+    name: 'Company Admin Dashboard',
+    description: 'Default dashboard layout for company administrators',
+    widgets: [
+      { 
+        id: 'kpis', 
+        type: 'kpi', 
+        title: 'Key Performance Indicators', 
+        description: 'Overview of key company metrics',
+        size: 'full' as const,
+        position: { x: 0, y: 0 },
+        visible: true, 
+        config: {},
+        module: 'survey' as const
+      },
+      { 
+        id: 'departments', 
+        type: 'analytics', 
+        title: 'Department Analytics', 
+        description: 'Department-wise performance metrics',
+        size: 'large' as const,
+        position: { x: 0, y: 1 },
+        visible: true, 
+        config: {},
+        module: 'survey' as const
+      },
+      { 
+        id: 'ai-insights', 
+        type: 'ai', 
+        title: 'AI Insights', 
+        description: 'AI-powered recommendations and insights',
+        size: 'medium' as const,
+        position: { x: 2, y: 1 },
+        visible: true, 
+        config: {},
+        module: 'ai' as const
+      },
+      { 
+        id: 'surveys', 
+        type: 'surveys', 
+        title: 'Ongoing Surveys', 
+        description: 'Currently active surveys and their progress',
+        size: 'large' as const,
+        position: { x: 0, y: 3 },
+        visible: true, 
+        config: {},
+        module: 'survey' as const
+      },
+    ],
+    layout_type: 'grid' as const,
+    columns: 4,
+    theme: 'default',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_default: true,
+    is_shared: false,
+  });
+
+  // Available widgets that can be added to the dashboard
+  const availableWidgets = [
+    { 
+      id: 'kpis', 
+      type: 'kpi', 
+      title: 'Key Performance Indicators', 
+      description: 'Overview of key company metrics',
+      size: 'full' as const,
+      position: { x: 0, y: 0 },
+      visible: true, 
+      config: {},
+      module: 'survey' as const
+    },
+    { 
+      id: 'departments', 
+      type: 'analytics', 
+      title: 'Department Analytics', 
+      description: 'Department-wise performance metrics',
+      size: 'large' as const,
+      position: { x: 0, y: 1 },
+      visible: true, 
+      config: {},
+      module: 'survey' as const
+    },
+    { 
+      id: 'ai-insights', 
+      type: 'ai', 
+      title: 'AI Insights', 
+      description: 'AI-powered recommendations and insights',
+      size: 'medium' as const,
+      position: { x: 2, y: 1 },
+      visible: true, 
+      config: {},
+      module: 'ai' as const
+    },
+    { 
+      id: 'surveys', 
+      type: 'surveys', 
+      title: 'Ongoing Surveys', 
+      description: 'Currently active surveys and their progress',
+      size: 'large' as const,
+      position: { x: 0, y: 3 },
+      visible: true, 
+      config: {},
+      module: 'survey' as const
+    },
+    {
+      id: 'past-surveys',
+      type: 'surveys',
+      title: 'Past Surveys',
+      description: 'Completed surveys and their results',
+      size: 'large' as const,
+      position: { x: 0, y: 4 },
+      visible: false,
+      config: {},
+      module: 'survey' as const
+    },
+    {
+      id: 'activity',
+      type: 'activity',
+      title: 'Recent Activity',
+      description: 'Latest actions and changes in the system',
+      size: 'medium' as const,
+      position: { x: 2, y: 3 },
+      visible: false,
+      config: {},
+      module: 'survey' as const
+    },
+  ];
+
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -354,6 +499,74 @@ export default function CompanyAdminDashboard() {
                   </div>
                 )}
               </div>
+              
+              {/* Dashboard Actions */}
+              <div className="flex gap-2">
+                <Dialog open={showCustomization} onOpenChange={setShowCustomization}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-12 w-12 bg-white/80 backdrop-blur shadow-sm hover:shadow-md"
+                      title="Customize Dashboard"
+                    >
+                      <Settings className="h-5 w-5" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Customize Dashboard</DialogTitle>
+                    </DialogHeader>
+                    <DashboardCustomization
+                      userRole={user?.role || 'company_admin'}
+                      currentLayout={dashboardLayout}
+                      onLayoutChange={(newLayout) => {
+                        setDashboardLayout(newLayout);
+                        toast.success('Dashboard layout updated');
+                        setShowCustomization(false);
+                      }}
+                      availableWidgets={availableWidgets}
+                    />
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={showExportShare} onOpenChange={setShowExportShare}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-12 w-12 bg-white/80 backdrop-blur shadow-sm hover:shadow-md"
+                      title="Export & Share"
+                    >
+                      <Download className="h-5 w-5" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Export & Share Dashboard</DialogTitle>
+                    </DialogHeader>
+                    <DashboardExportShare
+                      dashboardId={user?.companyId || 'company'}
+                      dashboardName="Company Dashboard"
+                      widgets={dashboardLayout.widgets.map(w => ({
+                        id: w.id,
+                        title: w.title,
+                        type: w.type,
+                        module: 'dashboard',
+                      }))}
+                      onExport={(options) => {
+                        toast.success(`Exporting dashboard as ${options.format.toUpperCase()}...`);
+                        setShowExportShare(false);
+                      }}
+                      onShare={(options) => {
+                        toast.success('Dashboard shared successfully');
+                        setShowExportShare(false);
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
+
               <Button
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 h-12 px-6 w-full md:w-auto"
                 onClick={() => router.push('/surveys/create')}

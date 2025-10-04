@@ -32,6 +32,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, AlertCircle, Bell, CheckCircle2 } from 'lucide-react';
 import { ReminderScheduler, ReminderConfig } from './ReminderScheduler';
+import { DistributionTypeSelector, DistributionConfig } from './DistributionTypeSelector';
 
 interface ScheduleConfigProps {
   onScheduleChange?: (schedule: ScheduleData) => void;
@@ -49,6 +50,7 @@ export interface ScheduleData {
   reminderDaysBefore?: number;
   autoClose: boolean;
   reminders?: ReminderConfig;
+  distribution?: DistributionConfig;
 }
 
 type QuickOption = '1week' | '2weeks' | '1month' | 'custom';
@@ -111,6 +113,12 @@ Please take a few minutes to complete it. Your feedback is very important to us.
 Thank you,
 Human Resources Team`,
     },
+  });
+  const [distribution, setDistribution] = useState<DistributionConfig>({
+    mode: 'tokenized', // Default to tokenized (most secure)
+    securityAcknowledged: true, // Auto-acknowledged for tokenized
+    allowAnonymous: false,
+    generateQRCode: true,
   });
 
   // Translations
@@ -252,6 +260,7 @@ Human Resources Team`,
       reminderDaysBefore: enableReminders ? reminderDaysBefore : undefined,
       autoClose,
       reminders,
+      distribution,
     };
 
     onScheduleChange?.(scheduleData);
@@ -266,6 +275,7 @@ Human Resources Team`,
     reminderDaysBefore,
     autoClose,
     reminders,
+    distribution,
     isValid,
     onScheduleChange,
   ]);
@@ -448,6 +458,13 @@ Human Resources Team`,
         endDate={endDate}
         config={reminders}
         onChange={setReminders}
+        language={language}
+      />
+
+      {/* Distribution Type Selector */}
+      <DistributionTypeSelector
+        config={distribution}
+        onChange={setDistribution}
         language={language}
       />
 
