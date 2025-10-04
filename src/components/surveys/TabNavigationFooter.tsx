@@ -1,6 +1,6 @@
 /**
  * TabNavigationFooter Component
- * 
+ *
  * Provides context-aware Next/Previous navigation for guided survey creation flow
  */
 
@@ -44,12 +44,12 @@ export function TabNavigationFooter({
   // Format tab label for display
   const formatTabLabel = (tab: SurveyTab): string => {
     const labels: Record<SurveyTab, string> = {
-      'builder': 'Survey Builder',
-      'library': 'Question Library',
-      'targeting': 'Targeting',
-      'invitations': 'Invitations',
-      'schedule': 'Schedule',
-      'preview': 'Preview',
+      builder: 'Survey Builder',
+      library: 'Question Library',
+      targeting: 'Targeting',
+      invitations: 'Invitations',
+      schedule: 'Schedule',
+      preview: 'Preview',
       'qr-code': 'QR Code',
     };
     return labels[tab] || tab;

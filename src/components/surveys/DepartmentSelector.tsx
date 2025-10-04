@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Check, Building2, Users, Search, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -98,7 +104,8 @@ export default function DepartmentSelector({
     filteredDepartments.length > 0 &&
     selectedDepartments.length === filteredDepartments.length;
   const someSelected =
-    selectedDepartments.length > 0 && selectedDepartments.length < filteredDepartments.length;
+    selectedDepartments.length > 0 &&
+    selectedDepartments.length < filteredDepartments.length;
 
   if (loading) {
     return (
@@ -106,7 +113,9 @@ export default function DepartmentSelector({
         <CardContent className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Loading departments...</p>
+            <p className="text-sm text-muted-foreground">
+              Loading departments...
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -148,7 +157,8 @@ export default function DepartmentSelector({
           {showEmployeeCount && selectedDepartments.length > 0 && (
             <Badge variant="secondary" className="text-sm">
               <Users className="h-3 w-3 mr-1" />
-              {totalEmployees} employee{totalEmployees !== 1 ? 's' : ''} selected
+              {totalEmployees} employee{totalEmployees !== 1 ? 's' : ''}{' '}
+              selected
             </Badge>
           )}
         </div>
@@ -239,15 +249,16 @@ export default function DepartmentSelector({
                         )}
                       </div>
                     </div>
-                    {showEmployeeCount && department.employee_count !== undefined && (
-                      <Badge
-                        variant={isSelected ? 'default' : 'secondary'}
-                        className="ml-2"
-                      >
-                        <Users className="h-3 w-3 mr-1" />
-                        {department.employee_count}
-                      </Badge>
-                    )}
+                    {showEmployeeCount &&
+                      department.employee_count !== undefined && (
+                        <Badge
+                          variant={isSelected ? 'default' : 'secondary'}
+                          className="ml-2"
+                        >
+                          <Users className="h-3 w-3 mr-1" />
+                          {department.employee_count}
+                        </Badge>
+                      )}
                   </div>
                 );
               })}

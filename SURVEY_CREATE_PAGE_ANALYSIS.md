@@ -10,6 +10,7 @@
 ## 📋 Current Implementation Overview
 
 ### Available Routes:
+
 1. **`/surveys/create`** - Tab-based builder (current analysis)
 2. **`/surveys/create-wizard`** - Step-by-step wizard alternative
 
@@ -77,6 +78,7 @@
 ## ❌ Critical Issues Identified
 
 ### **1. Missing Department Targeting UI**
+
 ```typescript
 // State exists but NO UI to set it:
 const [targetDepartments, setTargetDepartments] = useState<string[]>([]);
@@ -84,11 +86,13 @@ const [targetDepartments, setTargetDepartments] = useState<string[]>([]);
 // Sent to API but never populated by user:
 department_ids: targetDepartments, // Always empty!
 ```
+
 **Impact:** Users cannot select which departments to target for the survey.
 
 ---
 
 ### **2. Redundant Action Buttons**
+
 - **Header:** Save Draft & Publish buttons
 - **Footer:** Same Save Draft & Publish buttons
 - **Issue:** Duplicate controls create confusion and waste space
@@ -96,19 +100,22 @@ department_ids: targetDepartments, // Always empty!
 ---
 
 ### **3. No Invitation Settings**
+
 The wizard version has comprehensive invitation settings:
+
 ```typescript
 // Missing from /surveys/create:
-- custom_message
-- include_credentials
-- send_immediately
-- custom_subject
-- branding_enabled
+-custom_message -
+  include_credentials -
+  send_immediately -
+  custom_subject -
+  branding_enabled;
 ```
 
 ---
 
 ### **4. Poor Information Hierarchy**
+
 - Survey Configuration is buried inside the Builder tab
 - Basic settings (type, target responses) should be step 1
 - Questions should be step 2
@@ -117,7 +124,9 @@ The wizard version has comprehensive invitation settings:
 ---
 
 ### **5. Confusing Tab Flow**
+
 Current tab order doesn't match logical workflow:
+
 1. Builder (title + questions mixed with config)
 2. Library (add questions)
 3. Schedule (dates)
@@ -125,12 +134,15 @@ Current tab order doesn't match logical workflow:
 5. QR Code (only after publish)
 
 **Users naturally want:**
+
 1. Basic Info → 2. Questions → 3. Targeting → 4. Schedule → 5. Preview → 6. Publish
 
 ---
 
 ### **6. No Employee Invitation Workflow**
+
 After creating survey, there's no way to:
+
 - Select specific employees
 - Send invitations
 - Manage invitation list
@@ -139,6 +151,7 @@ After creating survey, there's no way to:
 ---
 
 ### **7. Configuration Card Issues**
+
 ```tsx
 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
   {/* Only 4 fields in a 2-column grid */}
@@ -194,6 +207,7 @@ ADD:
 The wizard approach (`/surveys/create-wizard`) is superior because:
 
 ✅ **Clear Sequential Steps:**
+
 ```
 Step 1: Basic Information
   → Title, Description, Type
@@ -231,11 +245,13 @@ Step 6: Review & Publish
 Keep both routes with clear purposes:
 
 **`/surveys/create`** → Quick survey creation for experts
+
 - Single-page tab interface
 - All options visible
 - Fast for power users who know what they want
 
 **`/surveys/create-wizard`** → Guided creation for most users
+
 - Step-by-step process
 - Help text and validation
 - Default route for "Create Survey" button
@@ -248,6 +264,7 @@ Keep both routes with clear purposes:
 ### **Immediate Actions (Priority 1):**
 
 1. **Add Department Targeting to Current Page:**
+
    ```tsx
    <TabsContent value="targeting" className="mt-6">
      <Card>
@@ -255,7 +272,7 @@ Keep both routes with clear purposes:
          <CardTitle>Survey Targeting</CardTitle>
        </CardHeader>
        <CardContent>
-         <DepartmentSelector 
+         <DepartmentSelector
            selectedDepartments={targetDepartments}
            onChange={setTargetDepartments}
          />
@@ -276,7 +293,7 @@ Keep both routes with clear purposes:
          <CardTitle>Invitation Settings</CardTitle>
        </CardHeader>
        <CardContent>
-         <InvitationSettings 
+         <InvitationSettings
            customMessage={customMessage}
            onMessageChange={setCustomMessage}
            includeCredentials={includeCredentials}
@@ -292,6 +309,7 @@ Keep both routes with clear purposes:
 ### **Short-term Improvements (Priority 2):**
 
 4. **Reorganize Tab Order:**
+
    ```tsx
    <TabsList>
      <TabsTrigger value="basic">Basic Info</TabsTrigger>
@@ -333,18 +351,18 @@ Keep both routes with clear purposes:
 
 ## 📊 Comparison Matrix
 
-| Feature | Current Tab Version | Wizard Version | Recommended |
-|---------|-------------------|----------------|-------------|
-| **Department Targeting** | ❌ Missing | ✅ Included | ✅ Add to both |
-| **Employee Selection** | ❌ Missing | ✅ CSV Upload | ✅ Add to both |
-| **Invitation Settings** | ❌ Missing | ✅ Complete | ✅ Add to both |
-| **User Credentials** | ❌ Missing | ✅ Included | ✅ Add to both |
-| **Progress Tracking** | ❌ No | ✅ Step indicators | ✅ Keep in wizard |
-| **Validation** | ⚠️ Basic | ✅ Per-step | ✅ Enhance both |
-| **Question Library** | ✅ Excellent | ❌ Not integrated | ✅ Add to wizard |
-| **QR Code** | ✅ Auto-generated | ❌ Missing | ✅ Add to wizard |
-| **Visual Design** | ✅ Modern gradient | ⚠️ Basic | ✅ Update wizard |
-| **User Experience** | ⚠️ Confusing | ✅ Clear flow | ✅ Use wizard |
+| Feature                  | Current Tab Version | Wizard Version     | Recommended       |
+| ------------------------ | ------------------- | ------------------ | ----------------- |
+| **Department Targeting** | ❌ Missing          | ✅ Included        | ✅ Add to both    |
+| **Employee Selection**   | ❌ Missing          | ✅ CSV Upload      | ✅ Add to both    |
+| **Invitation Settings**  | ❌ Missing          | ✅ Complete        | ✅ Add to both    |
+| **User Credentials**     | ❌ Missing          | ✅ Included        | ✅ Add to both    |
+| **Progress Tracking**    | ❌ No               | ✅ Step indicators | ✅ Keep in wizard |
+| **Validation**           | ⚠️ Basic            | ✅ Per-step        | ✅ Enhance both   |
+| **Question Library**     | ✅ Excellent        | ❌ Not integrated  | ✅ Add to wizard  |
+| **QR Code**              | ✅ Auto-generated   | ❌ Missing         | ✅ Add to wizard  |
+| **Visual Design**        | ✅ Modern gradient  | ⚠️ Basic           | ✅ Update wizard  |
+| **User Experience**      | ⚠️ Confusing        | ✅ Clear flow      | ✅ Use wizard     |
 
 ---
 
@@ -406,6 +424,7 @@ Keep both routes with clear purposes:
 4. **Week 4:** Keep tab version as "Advanced Mode" for power users
 
 **Reasoning:**
+
 - Current page has critical missing features (departments, invitations)
 - Wizard provides better UX for 80% of users
 - Tab version useful for experienced users who want speed
@@ -416,25 +435,30 @@ Keep both routes with clear purposes:
 ## 📝 Code Changes Needed
 
 ### **1. Add Department Targeting State & UI**
+
 - Create `DepartmentSelector` component
 - Add to Targeting tab
 - Integrate with company departments API
 
 ### **2. Add Invitation Settings State & UI**
+
 - Create `InvitationSettings` component
 - Add state for custom message, credentials, timing
 - Add to Invitations tab
 
 ### **3. Reorganize Tabs**
+
 - Split Basic Info from Questions
 - Reorder tabs logically
 - Add Targeting and Invitations tabs
 
 ### **4. Remove Footer Duplication**
+
 - Keep only header actions
 - Or keep only footer actions (choose one)
 
 ### **5. Enhance Preview**
+
 - Show complete summary
 - Include all settings, not just questions
 - Add edit buttons to jump back to specific tabs
@@ -444,6 +468,7 @@ Keep both routes with clear purposes:
 ## 🎯 Success Metrics
 
 After improvements, measure:
+
 - ✅ Time to create survey (should decrease)
 - ✅ Completion rate (should increase)
 - ✅ User errors (should decrease)

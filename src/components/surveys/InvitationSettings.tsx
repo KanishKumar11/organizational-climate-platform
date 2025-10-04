@@ -2,7 +2,13 @@
 
 import React, { useState } from 'react';
 import { Mail, Key, Clock, Palette, Info, Send, Calendar } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -55,7 +61,8 @@ export default function InvitationSettings({
 }: InvitationSettingsProps) {
   const [previewMode, setPreviewMode] = useState(false);
 
-  const defaultSubject = 'You\'re invited to participate in our organizational survey';
+  const defaultSubject =
+    "You're invited to participate in our organizational survey";
   const defaultMessage = `Hello,
 
 You have been invited to participate in our organizational climate survey. Your feedback is valuable and will help us improve our workplace environment.
@@ -108,7 +115,8 @@ Thank you for your participation!`;
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">
                   {customMessage.length} characters
-                  {customMessage.length > 500 && ' (keep it concise for better engagement)'}
+                  {customMessage.length > 500 &&
+                    ' (keep it concise for better engagement)'}
                 </p>
                 <button
                   type="button"
@@ -150,11 +158,15 @@ Thank you for your participation!`;
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div className="flex-1">
-                <Label htmlFor="include-credentials" className="text-sm font-medium">
+                <Label
+                  htmlFor="include-credentials"
+                  className="text-sm font-medium"
+                >
                   Include login credentials in invitation
                 </Label>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Automatically generate and send username/password for new users
+                  Automatically generate and send username/password for new
+                  users
                 </p>
               </div>
               <Switch
@@ -168,9 +180,9 @@ Thank you for your participation!`;
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription className="text-xs">
-                  <strong>Security Note:</strong> Temporary passwords will be generated and
-                  sent securely. Users will be prompted to change their password on first
-                  login.
+                  <strong>Security Note:</strong> Temporary passwords will be
+                  generated and sent securely. Users will be prompted to change
+                  their password on first login.
                 </AlertDescription>
               </Alert>
             )}
@@ -184,14 +196,15 @@ Thank you for your participation!`;
               <Send className="h-4 w-4" />
               Sending Options
             </CardTitle>
-            <CardDescription>
-              Control when invitations are sent
-            </CardDescription>
+            <CardDescription>Control when invitations are sent</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div className="flex-1">
-                <Label htmlFor="send-immediately" className="text-sm font-medium">
+                <Label
+                  htmlFor="send-immediately"
+                  className="text-sm font-medium"
+                >
                   Send invitations immediately
                 </Label>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -209,8 +222,8 @@ Thank you for your participation!`;
               <Alert>
                 <Clock className="h-4 w-4" />
                 <AlertDescription className="text-xs">
-                  Invitations will be saved as drafts. You can send them manually from the
-                  survey management page.
+                  Invitations will be saved as drafts. You can send them
+                  manually from the survey management page.
                 </AlertDescription>
               </Alert>
             )}
@@ -231,7 +244,10 @@ Thank you for your participation!`;
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div className="flex-1">
-                <Label htmlFor="reminder-enabled" className="text-sm font-medium">
+                <Label
+                  htmlFor="reminder-enabled"
+                  className="text-sm font-medium"
+                >
                   Enable automatic reminders
                 </Label>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -250,7 +266,9 @@ Thank you for your participation!`;
                 <Label htmlFor="reminder-frequency">Reminder Frequency</Label>
                 <Select
                   value={reminderFrequency.toString()}
-                  onValueChange={(value) => onReminderFrequencyChange(Number(value))}
+                  onValueChange={(value) =>
+                    onReminderFrequencyChange(Number(value))
+                  }
                 >
                   <SelectTrigger id="reminder-frequency">
                     <SelectValue />
@@ -264,8 +282,8 @@ Thank you for your participation!`;
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Reminders will be sent to non-respondents every {reminderFrequency}{' '}
-                  {reminderFrequency === 1 ? 'day' : 'days'}
+                  Reminders will be sent to non-respondents every{' '}
+                  {reminderFrequency} {reminderFrequency === 1 ? 'day' : 'days'}
                 </p>
               </div>
             )}
@@ -286,7 +304,10 @@ Thank you for your participation!`;
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div className="flex-1">
-                <Label htmlFor="branding-enabled" className="text-sm font-medium">
+                <Label
+                  htmlFor="branding-enabled"
+                  className="text-sm font-medium"
+                >
                   Use company branding
                 </Label>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -304,8 +325,8 @@ Thank you for your participation!`;
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription className="text-xs">
-                  Emails will use your company's configured branding settings (logo, colors,
-                  footer). Update these in Company Settings.
+                  Emails will use your company's configured branding settings
+                  (logo, colors, footer). Update these in Company Settings.
                 </AlertDescription>
               </Alert>
             )}

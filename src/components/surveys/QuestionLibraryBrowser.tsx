@@ -80,10 +80,19 @@ export default function QuestionLibraryBrowser({
     useState<LibraryQuestion | null>(null);
 
   // Memoize individual filter values to prevent reference changes
-  const categoryFilter = useMemo(() => selectedCategory || undefined, [selectedCategory]);
+  const categoryFilter = useMemo(
+    () => selectedCategory || undefined,
+    [selectedCategory]
+  );
   const searchFilter = useMemo(() => searchQuery || undefined, [searchQuery]);
-  const typeFilter = useMemo(() => selectedType !== 'all' ? selectedType : undefined, [selectedType]);
-  const tagsFilter = useMemo(() => selectedTags.length > 0 ? selectedTags : undefined, [selectedTags.join(',')]);
+  const typeFilter = useMemo(
+    () => (selectedType !== 'all' ? selectedType : undefined),
+    [selectedType]
+  );
+  const tagsFilter = useMemo(
+    () => (selectedTags.length > 0 ? selectedTags : undefined),
+    [selectedTags.join(',')]
+  );
 
   // Use React Query hooks for data fetching with caching
   const { data: categoriesData } = useQuestionCategories();

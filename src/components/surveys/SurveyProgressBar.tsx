@@ -1,6 +1,6 @@
 /**
  * SurveyProgressBar Component
- * 
+ *
  * Displays survey creation progress with visual indicators
  */
 
