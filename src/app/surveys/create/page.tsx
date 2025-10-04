@@ -68,7 +68,9 @@ export default function CreateSurveyPage() {
   const [createdSurveyId, setCreatedSurveyId] = useState<string | null>(null);
 
   // Question tab mode: 'build' for custom questions, 'library' for browsing templates
-  const [questionMode, setQuestionMode] = useState<'build' | 'library'>('build');
+  const [questionMode, setQuestionMode] = useState<'build' | 'library'>(
+    'build'
+  );
 
   // Invitation settings state
   const [customMessage, setCustomMessage] = useState('');
@@ -125,9 +127,11 @@ export default function CreateSurveyPage() {
     }
 
     // Validate that all questions have required fields
-    const invalidQuestions = questions.filter(q => !q.text || !q.type);
+    const invalidQuestions = questions.filter((q) => !q.text || !q.type);
     if (invalidQuestions.length > 0) {
-      toast.error('Some questions are missing required information. Please check all questions have text and type.');
+      toast.error(
+        'Some questions are missing required information. Please check all questions have text and type.'
+      );
       return;
     }
 
@@ -474,7 +478,10 @@ export default function CreateSurveyPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="survey-type">Survey Type</Label>
-                          <Select value={surveyType} onValueChange={setSurveyType}>
+                          <Select
+                            value={surveyType}
+                            onValueChange={setSurveyType}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Select survey type" />
                             </SelectTrigger>
@@ -489,7 +496,9 @@ export default function CreateSurveyPage() {
                         </div>
 
                         <div>
-                          <Label htmlFor="target-responses">Target Responses</Label>
+                          <Label htmlFor="target-responses">
+                            Target Responses
+                          </Label>
                           <Input
                             id="target-responses"
                             type="number"
@@ -727,7 +736,9 @@ export default function CreateSurveyPage() {
                                 {question.text || 'Question text...'}
                               </p>
                               <Badge variant="outline" className="mt-2 text-xs">
-                                {question.type ? question.type.replace('_', ' ') : 'Unknown type'}
+                                {question.type
+                                  ? question.type.replace('_', ' ')
+                                  : 'Unknown type'}
                               </Badge>
                             </div>
                           ))}
