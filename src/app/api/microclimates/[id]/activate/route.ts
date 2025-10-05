@@ -6,6 +6,7 @@ import Microclimate from '@/models/Microclimate';
 import User from '@/models/User';
 import { microclimateInvitationService } from '@/lib/microclimate-invitation-service';
 import { getWebSocketServer } from '@/lib/websocket';
+import { logSurveyPublished } from '@/lib/audit';
 
 // POST /api/microclimates/[id]/activate - Activate a microclimate
 export async function POST(
@@ -84,6 +85,16 @@ export async function POST(
     // Update target participant count
     microclimate.target_participant_count = inviteList.length;
     await microclimate.save();
+
+    // Log audit trail for activation (non-blocking)
+    logSurveyPublished(
+      microclimate._id.toString(),
+      session.user.id,
+      session.user.email || '',
+      session.user.name || 'Unknown',
+      microclimate.company_id.toString(),
+      request
+    ).catch((err) => console.error('Audit logging failed:', err));
 
     // Send invitations to participants
     try {

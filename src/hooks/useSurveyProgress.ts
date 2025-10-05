@@ -10,6 +10,7 @@ import { useMemo } from 'react';
 export type SurveyTab =
   | 'questions'
   | 'targeting'
+  | 'demographics'
   | 'invitations'
   | 'schedule'
   | 'preview'
@@ -34,6 +35,7 @@ export interface SurveyProgressState {
   targetType?: 'all' | 'departments' | 'users' | 'csv_import';
   targetUserIds?: string[];
   targetEmails?: string[];
+  demographicFieldIds?: string[]; // Selected demographic fields
   startDate: Date | null;
   endDate: Date | null;
   customMessage?: string;
@@ -71,6 +73,7 @@ export function useSurveyProgress(
     targetType = 'all',
     targetUserIds = [],
     targetEmails = [],
+    demographicFieldIds = [],
     startDate,
     endDate,
     customMessage,
@@ -99,6 +102,10 @@ export function useSurveyProgress(
           return false;
       }
     })();
+
+    // Demographics - Unlocks when targeting complete, optional
+    const demographicsUnlocked = targetingCompleted;
+    const demographicsCompleted = demographicFieldIds.length > 0;
 
     // Invitations - Unlocks when departments selected, optional
     const invitationsUnlocked = targetDepartments.length > 0;
@@ -148,6 +155,18 @@ export function useSurveyProgress(
             : undefined,
         order: 1,
       },
+      demographics: {
+        id: 'demographics',
+        label: 'Demographics',
+        icon: 'Filter',
+        unlocked: demographicsUnlocked,
+        required: false,
+        completed: demographicsCompleted,
+        warning: !demographicsUnlocked
+          ? 'Complete Targeting first'
+          : undefined,
+        order: 2,
+      },
       invitations: {
         id: 'invitations',
         label: 'Invitations',
@@ -158,7 +177,7 @@ export function useSurveyProgress(
         warning: !invitationsUnlocked
           ? 'Select departments first in Targeting'
           : undefined,
-        order: 2,
+        order: 3,
       },
       schedule: {
         id: 'schedule',
@@ -172,7 +191,7 @@ export function useSurveyProgress(
           : !scheduleCompleted
             ? 'Set start and end dates'
             : undefined,
-        order: 3,
+        order: 4,
       },
       preview: {
         id: 'preview',
@@ -184,7 +203,7 @@ export function useSurveyProgress(
         warning: !previewUnlocked
           ? 'Complete Questions and Targeting tabs first'
           : undefined,
-        order: 4,
+        order: 5,
       },
       'qr-code': {
         id: 'qr-code',
@@ -196,7 +215,7 @@ export function useSurveyProgress(
         warning: !qrCodeUnlocked
           ? 'Publish survey first to generate QR code'
           : undefined,
-        order: 5,
+        order: 6,
       },
     };
   }, [

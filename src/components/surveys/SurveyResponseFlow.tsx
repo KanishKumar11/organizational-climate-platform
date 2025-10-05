@@ -54,19 +54,27 @@ interface SurveyData {
     show_progress: boolean;
     allow_partial_responses: boolean;
   };
-  demographics?: any[];
+  demographic_field_ids?: string[];
+  demographicFields?: Array<{
+    _id: string;
+    field: string;
+    label: string;
+    type: string;
+  }>;
 }
 
 interface SurveyResponseFlowProps {
   surveyId: string;
   surveyData: SurveyData;
   invitationToken?: string;
+  userDemographics?: Record<string, any>;
 }
 
 export default function SurveyResponseFlow({
   surveyId,
   surveyData,
   invitationToken,
+  userDemographics = {},
 }: SurveyResponseFlowProps) {
   const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -116,12 +124,24 @@ export default function SurveyResponseFlow({
     setIsSubmitting(true);
 
     try {
+      // Auto-populate demographics from user profile
+      const demographics: Record<string, any> = {};
+      if (surveyData.demographic_field_ids && surveyData.demographic_field_ids.length > 0) {
+        surveyData.demographic_field_ids.forEach((fieldId) => {
+          const field = surveyData.demographicFields?.find((f) => f._id === fieldId);
+          if (field && userDemographics[field.field]) {
+            demographics[field.field] = userDemographics[field.field];
+          }
+        });
+      }
+
       const responseData = {
         survey_id: surveyId,
         responses: surveyData.questions.map((q) => ({
           question_id: q.id,
           response_value: responses[q.id],
         })),
+        demographics,
         is_complete: true,
         invitation_token: invitationToken,
       };

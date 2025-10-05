@@ -45,7 +45,8 @@ export function TabNavigationFooter({
   const formatTabLabel = (tab: SurveyTab): string => {
     const labels: Record<SurveyTab, string> = {
       questions: 'Targeting',
-      targeting: 'Invitations',
+      targeting: 'Demographics',
+      demographics: 'Invitations',
       invitations: 'Schedule',
       schedule: 'Preview',
       preview: 'QR Code',

@@ -10,6 +10,7 @@ import {
   validateSchedulingDateTime,
   validateDuration,
 } from '@/lib/datetime-utils';
+import { logSurveyUpdated, calculateDiff } from '@/lib/audit';
 import { z } from 'zod';
 
 // Validation schema for updating microclimates
@@ -192,6 +193,9 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = updateMicroclimateSchema.parse(body);
 
+    // Store old data for audit trail
+    const oldData = microclimate.toObject();
+
     // Validate scheduling if being updated
     if (validatedData.scheduling) {
       // Validate scheduling datetime
@@ -273,6 +277,20 @@ export async function PATCH(
     }
 
     await microclimate.save();
+
+    // Log audit trail with changes (non-blocking)
+    const updatedData = microclimate.toObject();
+    const changes = calculateDiff(oldData, updatedData);
+
+    logSurveyUpdated(
+      id,
+      session.user.id,
+      session.user.email || '',
+      session.user.name || 'Unknown',
+      changes,
+      microclimate.company_id.toString(),
+      request
+    ).catch((err) => console.error('Audit logging failed:', err));
 
     return NextResponse.json({ microclimate });
   } catch (error) {

@@ -12,6 +12,7 @@ import {
   validateDuration,
   DATETIME_ERROR_MESSAGES,
 } from '@/lib/datetime-utils';
+import { logSurveyCreated } from '@/lib/audit';
 import { z } from 'zod';
 
 // Helper function to determine microclimate status based on timing
@@ -345,6 +346,17 @@ export async function POST(request: NextRequest) {
     // Update target participant count with actual invite list
     microclimate.target_participant_count = inviteList.length;
     await microclimate.save();
+
+    // Log audit trail (non-blocking)
+    logSurveyCreated(
+      microclimate._id.toString(),
+      session.user.id,
+      session.user.email || '',
+      session.user.name || 'Unknown',
+      microclimate.toObject(),
+      user.company_id.toString(),
+      request
+    ).catch((err) => console.error('Audit logging failed:', err));
 
     return NextResponse.json(
       {

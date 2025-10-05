@@ -23,22 +23,33 @@ import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, AlertCircle, Bell, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, Bell, CheckCircle2, Globe } from 'lucide-react';
 import { ReminderScheduler, ReminderConfig } from './ReminderScheduler';
 import {
   DistributionTypeSelector,
   DistributionConfig,
 } from './DistributionTypeSelector';
+import {
+  TIMEZONE_GROUPS,
+  DEFAULT_TIMEZONE,
+  getTimezoneDisplayName,
+  formatScheduleDisplay,
+  getBrowserTimezone,
+} from '@/lib/timezone';
 
 interface ScheduleConfigProps {
   onScheduleChange?: (schedule: ScheduleData) => void;
+  defaultTimezone?: string; // Timezone from company settings
+  companyId?: string; // For fetching company timezone
   language?: 'es' | 'en';
 }
 
@@ -71,6 +82,8 @@ type QuickOption = '1week' | '2weeks' | '1month' | 'custom';
  */
 export function ScheduleConfig({
   onScheduleChange,
+  defaultTimezone,
+  companyId,
   language = 'es',
 }: ScheduleConfigProps) {
   const today = new Date();
@@ -84,7 +97,10 @@ export function ScheduleConfig({
   );
   const [startTime, setStartTime] = useState<string>('09:00');
   const [endTime, setEndTime] = useState<string>('23:59');
-  const [timezone, setTimezone] = useState<string>('America/Mexico_City');
+  const [timezone, setTimezone] = useState<string>(
+    defaultTimezone || DEFAULT_TIMEZONE
+  );
+  const [browserTimezone, setBrowserTimezone] = useState<string>('');
   const [enableReminders, setEnableReminders] = useState<boolean>(false);
   const [reminderFrequency, setReminderFrequency] = useState<
     'daily' | 'weekly' | 'biweekly'
@@ -189,21 +205,15 @@ Human Resources Team`,
           scheduled: 'Scheduled',
         };
 
-  // Timezones (common ones)
-  const timezones = [
-    { value: 'America/Mexico_City', label: 'Mexico City (GMT-6)' },
-    { value: 'America/New_York', label: 'New York (GMT-5)' },
-    { value: 'America/Los_Angeles', label: 'Los Angeles (GMT-8)' },
-    { value: 'America/Chicago', label: 'Chicago (GMT-6)' },
-    { value: 'America/Denver', label: 'Denver (GMT-7)' },
-    { value: 'America/Bogota', label: 'Bogotá (GMT-5)' },
-    { value: 'America/Lima', label: 'Lima (GMT-5)' },
-    { value: 'America/Santiago', label: 'Santiago (GMT-4)' },
-    { value: 'America/Sao_Paulo', label: 'São Paulo (GMT-3)' },
-    { value: 'Europe/Madrid', label: 'Madrid (GMT+1)' },
-    { value: 'Europe/London', label: 'London (GMT+0)' },
-    { value: 'UTC', label: 'UTC (GMT+0)' },
-  ];
+  // Detect browser timezone on mount
+  useEffect(() => {
+    try {
+      const detected = getBrowserTimezone();
+      setBrowserTimezone(detected);
+    } catch (error) {
+      console.error('Error detecting browser timezone:', error);
+    }
+  }, []);
 
   // Calculate duration
   const calculateDuration = () => {
@@ -412,19 +422,50 @@ Human Resources Team`,
 
           {/* Timezone */}
           <div className="space-y-2">
-            <Label>{t.timezone}</Label>
+            <Label className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              {t.timezone}
+            </Label>
             <Select value={timezone} onValueChange={setTimezone}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                {timezones.map((tz) => (
-                  <SelectItem key={tz.value} value={tz.value}>
-                    {tz.label}
-                  </SelectItem>
+              <SelectContent className="max-h-[300px]">
+                {/* Browser Timezone Suggestion */}
+                {browserTimezone && browserTimezone !== timezone && (
+                  <>
+                    <SelectGroup>
+                      <SelectLabel>
+                        {language === 'es' ? 'Sugerencia' : 'Suggested'}
+                      </SelectLabel>
+                      <SelectItem value={browserTimezone}>
+                        {getTimezoneDisplayName(browserTimezone)} (
+                        {language === 'es' ? 'Tu navegador' : 'Your browser'})
+                      </SelectItem>
+                    </SelectGroup>
+                  </>
+                )}
+                
+                {/* Grouped Timezones */}
+                {Object.entries(TIMEZONE_GROUPS).map(([group, timezones]) => (
+                  <SelectGroup key={group}>
+                    <SelectLabel>{group}</SelectLabel>
+                    {timezones.map((tz) => (
+                      <SelectItem key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 ))}
               </SelectContent>
             </Select>
+            {defaultTimezone && timezone !== defaultTimezone && (
+              <p className="text-xs text-amber-600">
+                {language === 'es'
+                  ? `Zona horaria de la empresa: ${getTimezoneDisplayName(defaultTimezone)}`
+                  : `Company timezone: ${getTimezoneDisplayName(defaultTimezone)}`}
+              </p>
+            )}
           </div>
 
           {/* Duration Badge */}

@@ -40,6 +40,8 @@ import {
   MappedEmployee,
 } from './ValidationPanel';
 import { AudiencePreviewCard, TargetEmployee } from './AudiencePreviewCard';
+import { AudienceFilters, type AudienceFilterValues } from './AudienceFilters';
+import { SortableQuestionList } from './SortableQuestionList';
 import { QRCodeGenerator } from './QRCodeGenerator';
 import { ScheduleConfig, ScheduleData } from './ScheduleConfig';
 import { DistributionPreview } from './DistributionPreview';
@@ -221,7 +223,12 @@ export function MicroclimateWizard({
     validationResult?: ValidationResult;
     availableDepartments?: any[];
     availableEmployees?: any[];
-    demographics?: any;
+    demographics?: {
+      locations: string[];
+      roles: string[];
+      seniority: string[];
+    };
+    activeFilters?: AudienceFilterValues;
     // Filter state
     selectedDepartments?: string[];
     selectedLocations?: string[];
@@ -231,6 +238,12 @@ export function MicroclimateWizard({
     targetEmployees: [],
     uploadMethod: 'all',
     csvUploadStage: 'upload',
+    activeFilters: {
+      departments: [],
+      locations: [],
+      roles: [],
+      seniority: [],
+    },
   });
   const [step4Data, setStep4Data] = useState<{
     schedule?: ScheduleData;
@@ -616,6 +629,46 @@ export function MicroclimateWizard({
     loadCompanyTargetData();
   }, [step1Data.companyId, language]);
 
+  // Fetch demographics for filtering when on Step 3
+  useEffect(() => {
+    if (!step1Data.companyId || wizard.currentStep !== 2) return;
+
+    const fetchDemographics = async () => {
+      try {
+        const response = await fetch(
+          `/api/companies/${step1Data.companyId}/demographics`
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch demographics');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.demographics) {
+          setStep3Data((prev) => ({
+            ...prev,
+            demographics: data.demographics,
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching demographics:', error);
+        // Silent fail - filters will just have empty options
+        toast.error(
+          language === 'es'
+            ? 'No se pudieron cargar las opciones de filtro'
+            : 'Failed to load filter options',
+          {
+            description:
+              error instanceof Error ? error.message : 'Unknown error',
+          }
+        );
+      }
+    };
+
+    fetchDemographics();
+  }, [step1Data.companyId, wizard.currentStep, language]);
+
   // Handlers
   const handleNext = async () => {
     const success = await wizard.goNext();
@@ -645,6 +698,50 @@ export function MicroclimateWizard({
 
     toast.success(t.draftSaved, {
       description: `Step ${wizard.currentStep + 1}`,
+    });
+  };
+
+  // Helper function: Apply filters to employees
+  const applyFiltersToEmployees = (
+    employees: TargetEmployee[],
+    filters: AudienceFilterValues
+  ): TargetEmployee[] => {
+    return employees.filter((emp) => {
+      // Filter by department
+      if (
+        filters.departments.length > 0 &&
+        !filters.departments.includes(emp.department || '')
+      ) {
+        return false;
+      }
+
+      // Filter by location
+      if (
+        filters.locations.length > 0 &&
+        !filters.locations.includes(emp.location || '')
+      ) {
+        return false;
+      }
+
+      // Filter by role/position
+      if (
+        filters.roles.length > 0 &&
+        !filters.roles.includes(emp.position || '')
+      ) {
+        return false;
+      }
+
+      // Filter by seniority (if available in employee data)
+      if (filters.seniority.length > 0) {
+        // Note: TargetEmployee might not have seniority field
+        // This will be a no-op unless the field exists
+        const empSeniority = (emp as any).seniority;
+        if (empSeniority && !filters.seniority.includes(empSeniority)) {
+          return false;
+        }
+      }
+
+      return true;
     });
   };
 
@@ -990,64 +1087,80 @@ export function MicroclimateWizard({
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    {/* Draggable Library Questions */}
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <SortableContext
-                        items={step2Data.questionIds}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        {step2Data.questionIds.map((id, idx) => (
-                          <SortableQuestionItem
-                            key={id}
-                            id={id}
-                            index={idx}
-                            text={`Library Question: ${id}`}
-                            onRemove={() => {
-                              setStep2Data((prev) => ({
-                                ...prev,
-                                questionIds: prev.questionIds.filter(
-                                  (qId) => qId !== id
-                                ),
-                              }));
-                            }}
-                          />
-                        ))}
-                      </SortableContext>
-                    </DndContext>
+                    {/* Questions List with Drag & Drop */}
+                    <SortableQuestionList
+                      questions={[
+                        ...step2Data.questionIds.map((id) => ({
+                          _id: id,
+                          text_es: `Pregunta ${id}`,
+                          text_en: `Question ${id}`,
+                          type: 'likert',
+                          category_name: 'general',
+                          is_required: true,
+                        })),
+                        ...step2Data.customQuestions.map((q, idx) => ({
+                          _id: `custom-${idx}`,
+                          text_es: q.text_es || '',
+                          text_en: q.text_en || '',
+                          type: q.type || 'text',
+                          category_name: (q as any).category || 'custom',
+                          is_required: (q as any).isRequired ?? true,
+                        })),
+                      ]}
+                      onReorder={(newOrder) => {
+                        // Separate library questions from custom questions
+                        const libraryQuestions = newOrder.filter(
+                          (q) => !q._id.startsWith('custom-')
+                        );
+                        const customQuestions = newOrder.filter((q) =>
+                          q._id.startsWith('custom-')
+                        );
 
-                    {/* Custom Questions (non-draggable for now) */}
-                    {step2Data.customQuestions.map((q, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
-                      >
-                        <Badge variant="outline" className="shrink-0">
-                          {step2Data.questionIds.length + idx + 1}
-                        </Badge>
-                        <span className="text-sm flex-1 min-w-0">
-                          {q.text_es || q.text_en}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setStep2Data((prev) => ({
-                              ...prev,
-                              customQuestions: prev.customQuestions.filter(
-                                (_, i) => i !== idx
-                              ),
-                            }));
-                          }}
-                          className="shrink-0"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
+                        setStep2Data({
+                          ...step2Data,
+                          questionIds: libraryQuestions.map((q) => q._id),
+                          customQuestions: customQuestions.map((q) => ({
+                            text_es: q.text_es,
+                            text_en: q.text_en,
+                            type: q.type,
+                          })),
+                        });
+
+                        // Autosave
+                        autosave.save({
+                          current_step: 2,
+                          step2_data: {
+                            questionIds: libraryQuestions.map((q) => q._id),
+                            customQuestions: customQuestions.map((q) => ({
+                              text_es: q.text_es,
+                              text_en: q.text_en,
+                              type: q.type,
+                            })),
+                          },
+                        });
+                      }}
+                      onRemove={(questionId) => {
+                        if (questionId.startsWith('custom-')) {
+                          const customIndex = parseInt(
+                            questionId.replace('custom-', '')
+                          );
+                          setStep2Data((prev) => ({
+                            ...prev,
+                            customQuestions: prev.customQuestions.filter(
+                              (_, i) => i !== customIndex
+                            ),
+                          }));
+                        } else {
+                          setStep2Data((prev) => ({
+                            ...prev,
+                            questionIds: prev.questionIds.filter(
+                              (id) => id !== questionId
+                            ),
+                          }));
+                        }
+                      }}
+                      language={language}
+                    />
                   </div>
                 )}
               </CardContent>
@@ -1088,7 +1201,7 @@ export function MicroclimateWizard({
                     <CardTitle>{t.targetAll}</CardTitle>
                     <CardDescription>{t.allEmployeesDesc}</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     <Alert>
                       <Users className="w-4 h-4" />
                       <AlertDescription>
@@ -1097,6 +1210,62 @@ export function MicroclimateWizard({
                           : 'The survey will automatically be sent to all registered employees in the company.'}
                       </AlertDescription>
                     </Alert>
+
+                    {/* Audience Filters */}
+                    {step3Data.availableEmployees &&
+                      step3Data.availableEmployees.length > 0 && (
+                        <div className="mt-6">
+                          <AudienceFilters
+                            availableDepartments={
+                              step3Data.availableDepartments || []
+                            }
+                            availableLocations={
+                              step3Data.demographics?.locations || []
+                            }
+                            availableRoles={step3Data.demographics?.roles || []}
+                            availableSeniority={
+                              step3Data.demographics?.seniority || []
+                            }
+                            onFiltersChange={(filters) => {
+                              // Apply filters to available employees
+                              const allEmployees =
+                                step3Data.availableEmployees || [];
+                              const filtered = applyFiltersToEmployees(
+                                allEmployees.map((emp: any) => ({
+                                  name: emp.name || '',
+                                  email: emp.email || '',
+                                  department: emp.department?.name || emp.department || '',
+                                  position: emp.position || emp.role || '',
+                                  location: emp.location || '',
+                                  employeeId: emp.employeeId || emp._id || '',
+                                })),
+                                filters
+                              );
+
+                              setStep3Data((prev) => ({
+                                ...prev,
+                                targetEmployees: filtered,
+                                activeFilters: filters,
+                              }));
+                            }}
+                            language={language}
+                          />
+
+                          {/* Preview filtered results */}
+                          {step3Data.activeFilters &&
+                            (step3Data.activeFilters.departments.length > 0 ||
+                              step3Data.activeFilters.locations.length > 0 ||
+                              step3Data.activeFilters.roles.length > 0 ||
+                              step3Data.activeFilters.seniority.length > 0) && (
+                              <div className="mt-4">
+                                <AudiencePreviewCard
+                                  employees={step3Data.targetEmployees}
+                                  language={language}
+                                />
+                              </div>
+                            )}
+                        </div>
+                      )}
                   </CardContent>
                 </Card>
               </TabsContent>

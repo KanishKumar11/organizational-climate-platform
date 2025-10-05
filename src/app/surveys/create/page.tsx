@@ -25,6 +25,7 @@ import {
   Circle,
   Lock,
   AlertCircle,
+  Filter,
 } from 'lucide-react';
 import SurveyBuilder from '@/components/survey/SurveyBuilder';
 import SurveyScheduler from '@/components/surveys/SurveyScheduler';
@@ -32,6 +33,7 @@ import QRCodeGenerator from '@/components/surveys/QRCodeGenerator';
 import QuestionLibraryBrowser from '@/components/surveys/QuestionLibraryBrowser';
 import DepartmentSelector from '@/components/surveys/DepartmentSelector';
 import InvitationSettings from '@/components/surveys/InvitationSettings';
+import DemographicsSelector from '@/components/surveys/DemographicsSelector';
 import { SurveyProgressBar } from '@/components/surveys/SurveyProgressBar';
 import { TabNavigationFooter } from '@/components/surveys/TabNavigationFooter';
 import { IQuestion } from '@/models/Survey';
@@ -63,6 +65,7 @@ export default function CreateSurveyPage() {
   const [targetDepartments, setTargetDepartments] = useState<string[]>([]);
   const [targetResponses, setTargetResponses] = useState<number>(50);
   const [estimatedDuration, setEstimatedDuration] = useState<number>(10);
+  const [demographicFieldIds, setDemographicFieldIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<SurveyTab>('questions');
   const [createdSurveyId, setCreatedSurveyId] = useState<string | null>(null);
@@ -94,6 +97,7 @@ export default function CreateSurveyPage() {
     description,
     questions,
     targetDepartments,
+    demographicFieldIds,
     startDate,
     endDate,
     customMessage,
@@ -168,6 +172,7 @@ export default function CreateSurveyPage() {
         end_date: endDate.toISOString(),
         timezone: timezone,
         department_ids: targetDepartments,
+        demographic_field_ids: demographicFieldIds,
       };
 
       const response = await fetch('/api/surveys', {
@@ -324,6 +329,35 @@ export default function CreateSurveyPage() {
                 {!surveyProgress.tabs.targeting.unlocked && (
                   <TooltipContent>
                     <p>{surveyProgress.tabs.targeting.warning}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
+              {/* Demographics Tab */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value="demographics"
+                    disabled={!surveyProgress.tabs.demographics.unlocked}
+                    className={cn(
+                      'data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative',
+                      !surveyProgress.tabs.demographics.unlocked &&
+                        'opacity-50 cursor-not-allowed'
+                    )}
+                  >
+                    {!surveyProgress.tabs.demographics.unlocked && (
+                      <Lock className="w-3 h-3 mr-1 text-gray-400" />
+                    )}
+                    <Filter className="w-4 h-4 mr-2" />
+                    Demographics
+                    {surveyProgress.tabs.demographics.completed && (
+                      <CheckCircle2 className="w-4 h-4 ml-2 text-green-500" />
+                    )}
+                  </TabsTrigger>
+                </TooltipTrigger>
+                {!surveyProgress.tabs.demographics.unlocked && (
+                  <TooltipContent>
+                    <p>{surveyProgress.tabs.demographics.warning}</p>
                   </TooltipContent>
                 )}
               </Tooltip>
@@ -603,6 +637,27 @@ export default function CreateSurveyPage() {
                 onPublish={() => handleSave('active')}
                 saving={saving}
                 nextDisabled={!surveyProgress.tabs.targeting.completed}
+              />
+            </TabsContent>
+
+            <TabsContent value="demographics" className="mt-6">
+              <DemographicsSelector
+                companyId={user?.companyId || ''}
+                selectedFields={demographicFieldIds}
+                onFieldsChange={setDemographicFieldIds}
+                showUpload={true}
+              />
+
+              <TabNavigationFooter
+                currentTab="demographics"
+                nextTab={surveyProgress.getNextTab('demographics')}
+                previousTab={surveyProgress.getPreviousTab('demographics')}
+                canPublish={surveyProgress.canPublish}
+                canSaveDraft={surveyProgress.canSaveDraft}
+                onTabChange={handleTabChange}
+                onSaveDraft={() => handleSave('draft')}
+                onPublish={() => handleSave('active')}
+                saving={saving}
               />
             </TabsContent>
 

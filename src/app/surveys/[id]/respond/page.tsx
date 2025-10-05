@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import Survey from '@/models/Survey';
+import User from '@/models/User';
+import DemographicField from '@/models/DemographicField';
 import SurveyResponseFlow from '@/components/surveys/SurveyResponseFlow';
 import { Loading } from '@/components/ui/Loading';
 import { Badge } from '@/components/ui/badge';
@@ -81,7 +83,7 @@ async function getSurveyData(id: string, session: any) {
     }
 
     // Create sanitized data object
-    const sanitizedData = {
+    const sanitizedData: any = {
       id: survey._id.toString(),
       title: survey.title,
       description: survey.description,
@@ -124,7 +126,46 @@ async function getSurveyData(id: string, session: any) {
       canRespond: true,
     };
 
-    return sanitizedData;
+    // Fetch user demographics if survey has demographic fields
+    let userDemographics = {};
+    let demographicFields = [];
+
+    if (survey.demographic_field_ids && survey.demographic_field_ids.length > 0) {
+      // Fetch user's demographic data
+      const user = await User.findOne({
+        email: session.user.email,
+        company_id: survey.company_id,
+      }).lean();
+
+      if (user && user.demographics) {
+        userDemographics = user.demographics;
+      }
+
+      // Fetch demographic field definitions
+      demographicFields = await DemographicField.find({
+        _id: { $in: survey.demographic_field_ids },
+        company_id: survey.company_id,
+        is_active: true,
+      })
+        .select('_id field label type')
+        .lean();
+
+      // Add demographic fields to sanitized data
+      sanitizedData.demographic_field_ids = survey.demographic_field_ids.map((id: any) =>
+        id.toString()
+      );
+      sanitizedData.demographicFields = demographicFields.map((field: any) => ({
+        _id: field._id.toString(),
+        field: field.field,
+        label: field.label,
+        type: field.type,
+      }));
+    }
+
+    return {
+      surveyData: sanitizedData,
+      userDemographics,
+    };
   } catch (error) {
     console.error('Error in getSurveyData:', error);
     return null;
@@ -150,12 +191,14 @@ export default async function SurveyResponsePage({
       notFound();
     }
 
-    const surveyData = await getSurveyData(id, session);
+    const result = await getSurveyData(id, session);
 
-    if (!surveyData) {
+    if (!result) {
       console.log('No survey data returned, calling notFound');
       notFound();
     }
+
+    const { surveyData, userDemographics } = result;
 
     console.log('Survey data retrieved successfully');
     console.log('Can respond:', surveyData.canRespond);
@@ -206,6 +249,7 @@ export default async function SurveyResponsePage({
           surveyId={id}
           surveyData={surveyData}
           invitationToken={token}
+          userDemographics={userDemographics}
         />
       </Suspense>
     );

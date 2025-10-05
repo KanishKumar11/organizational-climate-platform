@@ -3,6 +3,7 @@ import { getServerSession } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import SurveyDraft from '@/models/SurveyDraft';
 import SurveyAuditLog from '@/models/SurveyAuditLog';
+import { logDraftSaved } from '@/lib/audit';
 import { z } from 'zod';
 
 /**
@@ -151,6 +152,17 @@ export async function POST(
 
     // Save draft (pre-save hook will increment version)
     await draft.save();
+
+    // Log with new standardized audit system (non-blocking)
+    logDraftSaved(
+      id,
+      session.user.id,
+      session.user.email || '',
+      session.user.name || 'Unknown',
+      current_step,
+      draft.step1_data?.company_id || '',
+      req
+    ).catch((err) => console.error('Audit logging failed:', err));
 
     // Get request metadata
     const userAgent = req.headers.get('user-agent') || 'unknown';
