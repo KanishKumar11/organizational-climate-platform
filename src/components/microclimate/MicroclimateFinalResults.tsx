@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LiveWordCloud from './LiveWordCloud';
 import SentimentVisualization from './SentimentVisualization';
 import LiveResponseChart from './LiveResponseChart';
+import { MicroclimateExportButtons } from '@/components/exports/export-buttons';
 import {
   Activity,
   Users,
@@ -280,24 +281,10 @@ export default function MicroclimateFinalResults({
         </div>
 
         <div className="flex gap-2">
-          <Button
-            onClick={() => handleExport('csv')}
-            disabled={isExporting}
-            variant="outline"
-            size="sm"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button
-            onClick={() => handleExport('json')}
-            disabled={isExporting}
-            variant="outline"
-            size="sm"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export JSON
-          </Button>
+          <MicroclimateExportButtons
+            microclimateId={microclimateId}
+            microclimateTitle={microclimateData.title}
+          />
           <Button onClick={handleShare} variant="outline" size="sm">
             <Share2 className="w-4 h-4 mr-2" />
             Share

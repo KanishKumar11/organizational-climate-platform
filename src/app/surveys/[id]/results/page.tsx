@@ -9,6 +9,7 @@ import RealTimeTracker from '@/components/survey/RealTimeTracker';
 import { Loading } from '@/components/ui/Loading';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SurveyExportButtons } from '@/components/exports/export-buttons';
 
 interface SurveyResultsPageProps {
   params: Promise<{
@@ -67,13 +68,16 @@ export default async function SurveyResultsPage({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Survey Results
-        </h1>
-        <p className="text-gray-600">
-          Analyze responses and track performance for "{survey.title}"
-        </p>
+      <div className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Survey Results
+          </h1>
+          <p className="text-gray-600">
+            Analyze responses and track performance for "{survey.title}"
+          </p>
+        </div>
+        <SurveyExportButtons surveyId={id} surveyTitle={survey.title} />
       </div>
 
       <Tabs

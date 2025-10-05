@@ -9,6 +9,7 @@ import { Loading } from '@/components/ui/Loading';
 import { Pagination } from '@/components/ui/pagination';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { UsersExportButton } from '@/components/exports/export-buttons';
 import {
   Dialog,
   DialogContent,
@@ -1246,6 +1247,7 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
               </>
             )}
           </Button>
+          <UsersExportButton />
           <Button onClick={() => setShowAddUserModal(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add User

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { ProgressTracker } from '@/components/action-plans/ProgressTracker';
 import { ActionPlanNavbar } from '@/components/layout/Navbar';
+import { ActionPlanExportButtons } from '@/components/exports/export-buttons';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -236,6 +237,10 @@ export default function ActionPlanDetailPage() {
               </div>
             </div>
             <div className="flex gap-2">
+              <ActionPlanExportButtons
+                actionPlanId={actionPlanId}
+                actionPlanTitle={actionPlan.title}
+              />
               <Button variant="outline" size="sm">
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Plan
