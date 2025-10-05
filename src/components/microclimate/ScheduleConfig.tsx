@@ -32,7 +32,14 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, AlertCircle, Bell, CheckCircle2, Globe } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  AlertCircle,
+  Bell,
+  CheckCircle2,
+  Globe,
+} from 'lucide-react';
 import { ReminderScheduler, ReminderConfig } from './ReminderScheduler';
 import {
   DistributionTypeSelector,
@@ -445,7 +452,7 @@ Human Resources Team`,
                     </SelectGroup>
                   </>
                 )}
-                
+
                 {/* Grouped Timezones */}
                 {Object.entries(TIMEZONE_GROUPS).map(([group, timezones]) => (
                   <SelectGroup key={group}>

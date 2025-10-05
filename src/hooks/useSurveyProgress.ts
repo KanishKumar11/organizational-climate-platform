@@ -162,9 +162,7 @@ export function useSurveyProgress(
         unlocked: demographicsUnlocked,
         required: false,
         completed: demographicsCompleted,
-        warning: !demographicsUnlocked
-          ? 'Complete Targeting first'
-          : undefined,
+        warning: !demographicsUnlocked ? 'Complete Targeting first' : undefined,
         order: 2,
       },
       invitations: {

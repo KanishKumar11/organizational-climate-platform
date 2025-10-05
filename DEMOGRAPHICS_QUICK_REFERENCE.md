@@ -3,6 +3,7 @@
 ## 🚀 Quick Start
 
 ### For Admins: Create Demographic Fields
+
 1. Navigate to `/admin/demographics`
 2. Click "Add Field"
 3. Fill in:
@@ -14,6 +15,7 @@
 4. Click "Create Field"
 
 ### For Admins: Upload User Demographics via CSV
+
 1. Go to `/admin/demographics` or `/surveys/create` demographics tab
 2. Click "Download Template"
 3. Fill in user emails and demographic values
@@ -22,6 +24,7 @@
 6. Confirm upload
 
 ### For Survey Creators: Add Demographics to Survey
+
 1. Create survey at `/surveys/create`
 2. Complete Questions and Targeting tabs
 3. Click "Demographics" tab
@@ -31,9 +34,12 @@
 7. Publish survey
 
 ### For Developers: Access Demographics Data
+
 ```typescript
 // Fetch company's demographic fields
-const response = await fetch(`/api/demographics/fields?company_id=${companyId}`);
+const response = await fetch(
+  `/api/demographics/fields?company_id=${companyId}`
+);
 const { fields } = await response.json();
 
 // In survey response - demographics auto-populated
@@ -60,24 +66,24 @@ POST   /api/demographics/upload              # Upload CSV
 
 ## 🔑 Key Files
 
-| Component | Path |
-|-----------|------|
-| Admin UI | `src/app/admin/demographics/page.tsx` |
-| Selector | `src/components/surveys/DemographicsSelector.tsx` |
-| Model | `src/models/DemographicField.ts` |
-| API | `src/app/api/demographics/**` |
-| Hook | `src/hooks/useSurveyProgress.ts` |
+| Component | Path                                              |
+| --------- | ------------------------------------------------- |
+| Admin UI  | `src/app/admin/demographics/page.tsx`             |
+| Selector  | `src/components/surveys/DemographicsSelector.tsx` |
+| Model     | `src/models/DemographicField.ts`                  |
+| API       | `src/app/api/demographics/**`                     |
+| Hook      | `src/hooks/useSurveyProgress.ts`                  |
 
 ---
 
 ## ⚙️ Field Types
 
-| Type | Use Case | Example |
-|------|----------|---------|
-| `select` | Predefined options | Gender, Department |
-| `text` | Free-form text | Location, Job Title |
-| `number` | Numeric values | Years of Service |
-| `date` | Date values | Hire Date |
+| Type     | Use Case           | Example             |
+| -------- | ------------------ | ------------------- |
+| `select` | Predefined options | Gender, Department  |
+| `text`   | Free-form text     | Location, Job Title |
+| `number` | Numeric values     | Years of Service    |
+| `date`   | Date values        | Hire Date           |
 
 ---
 
@@ -89,6 +95,7 @@ user@company.com,Male,25-34,New York
 ```
 
 **Rules:**
+
 - First column MUST be `email`
 - Headers must match field keys exactly
 - Values must match options for select fields
@@ -97,13 +104,13 @@ user@company.com,Male,25-34,New York
 
 ## 🔐 Permissions
 
-| Role | Can View | Can Create | Can Edit | Can Delete |
-|------|----------|------------|----------|------------|
-| Employee | ❌ | ❌ | ❌ | ❌ |
-| Supervisor | ❌ | ❌ | ❌ | ❌ |
-| Dept Admin | ❌ | ❌ | ❌ | ❌ |
-| Company Admin | ✅ Own | ✅ | ✅ | ✅ |
-| Super Admin | ✅ All | ✅ | ✅ | ✅ |
+| Role          | Can View | Can Create | Can Edit | Can Delete |
+| ------------- | -------- | ---------- | -------- | ---------- |
+| Employee      | ❌       | ❌         | ❌       | ❌         |
+| Supervisor    | ❌       | ❌         | ❌       | ❌         |
+| Dept Admin    | ❌       | ❌         | ❌       | ❌         |
+| Company Admin | ✅ Own   | ✅         | ✅       | ✅         |
+| Super Admin   | ✅ All   | ✅         | ✅       | ✅         |
 
 ---
 
@@ -179,8 +186,8 @@ Dashboard Filters by Demographics (Future)
 // When user submits survey:
 
 const demographics = {};
-selectedDemographicFields.forEach(fieldId => {
-  const field = demographicFields.find(f => f._id === fieldId);
+selectedDemographicFields.forEach((fieldId) => {
+  const field = demographicFields.find((f) => f._id === fieldId);
   if (userDemographics[field.key]) {
     demographics[field.key] = userDemographics[field.key];
   }
@@ -190,8 +197,8 @@ selectedDemographicFields.forEach(fieldId => {
 const response = {
   survey_id,
   responses: [...answers],
-  demographics,  // ← Automatically included
-  is_complete: true
+  demographics, // ← Automatically included
+  is_complete: true,
 };
 ```
 

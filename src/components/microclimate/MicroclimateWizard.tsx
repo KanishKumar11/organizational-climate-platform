@@ -1234,7 +1234,10 @@ export function MicroclimateWizard({
                                 allEmployees.map((emp: any) => ({
                                   name: emp.name || '',
                                   email: emp.email || '',
-                                  department: emp.department?.name || emp.department || '',
+                                  department:
+                                    emp.department?.name ||
+                                    emp.department ||
+                                    '',
                                   position: emp.position || emp.role || '',
                                   location: emp.location || '',
                                   employeeId: emp.employeeId || emp._id || '',

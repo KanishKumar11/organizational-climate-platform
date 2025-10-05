@@ -2,7 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, X, RefreshCw, Users, Building, MapPin, Briefcase, Search } from 'lucide-react';
+import {
+  Filter,
+  X,
+  RefreshCw,
+  Users,
+  Building,
+  MapPin,
+  Briefcase,
+  Search,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -64,7 +73,11 @@ export interface AudienceFilterValues {
 }
 
 interface AudienceFiltersProps {
-  availableDepartments?: Array<{ _id: string; name: string; employee_count?: number }>;
+  availableDepartments?: Array<{
+    _id: string;
+    name: string;
+    employee_count?: number;
+  }>;
   availableLocations?: string[];
   availableRoles?: string[];
   availableSeniority?: string[];
@@ -165,7 +178,10 @@ export function AudienceFilters({
     filters.seniority.length;
 
   // Handle checkbox change
-  const handleToggle = (category: keyof AudienceFilterValues, value: string) => {
+  const handleToggle = (
+    category: keyof AudienceFilterValues,
+    value: string
+  ) => {
     setFilters((prev) => {
       const categoryFilters = prev[category];
       const newCategoryFilters = categoryFilters.includes(value)
@@ -221,20 +237,15 @@ export function AudienceFilters({
       roles: '',
       seniority: '',
     });
-    toast.info(
-      language === 'es' ? 'Filtros limpiados' : 'Filters cleared'
-    );
+    toast.info(language === 'es' ? 'Filtros limpiados' : 'Filters cleared');
   };
 
   // Apply filters
   const handleApplyFilters = () => {
     onFiltersChange(filters);
-    toast.success(
-      language === 'es' ? 'Filtros aplicados' : 'Filters applied',
-      {
-        description: `${activeFilterCount} ${language === 'es' ? 'filtros activos' : 'active filters'}`,
-      }
-    );
+    toast.success(language === 'es' ? 'Filtros aplicados' : 'Filters applied', {
+      description: `${activeFilterCount} ${language === 'es' ? 'filtros activos' : 'active filters'}`,
+    });
   };
 
   // Auto-apply filters when they change (optional - can be removed if manual apply is preferred)
@@ -258,11 +269,7 @@ export function AudienceFilters({
             <CardDescription>{t.description}</CardDescription>
           </div>
           {activeFilterCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearAll}
-            >
+            <Button variant="ghost" size="sm" onClick={handleClearAll}>
               <X className="w-4 h-4 mr-2" />
               {t.clearAll}
             </Button>
@@ -328,7 +335,11 @@ export function AudienceFilters({
         )}
 
         {/* Filter Accordions */}
-        <Accordion type="multiple" defaultValue={['departments']} className="w-full">
+        <Accordion
+          type="multiple"
+          defaultValue={['departments']}
+          className="w-full"
+        >
           {/* Departments Filter */}
           {availableDepartments.length > 0 && (
             <AccordionItem value="departments">
@@ -391,7 +402,9 @@ export function AudienceFilters({
                             <div className="flex items-center space-x-2">
                               <Checkbox
                                 id={`dept-${dept._id}`}
-                                checked={filters.departments.includes(dept.name)}
+                                checked={filters.departments.includes(
+                                  dept.name
+                                )}
                                 onCheckedChange={() =>
                                   handleToggle('departments', dept.name)
                                 }

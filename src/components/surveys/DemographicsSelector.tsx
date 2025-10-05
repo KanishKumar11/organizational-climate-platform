@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -47,7 +53,9 @@ export default function DemographicsSelector({
   onDemographicsUpload,
   showUpload = true,
 }: DemographicsSelectionProps) {
-  const [availableFields, setAvailableFields] = useState<DemographicField[]>([]);
+  const [availableFields, setAvailableFields] = useState<DemographicField[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -59,7 +67,9 @@ export default function DemographicsSelector({
 
   const fetchDemographicFields = async () => {
     try {
-      const response = await fetch(`/api/demographics/fields?company_id=${companyId}`);
+      const response = await fetch(
+        `/api/demographics/fields?company_id=${companyId}`
+      );
       if (response.ok) {
         const data = await response.json();
         setAvailableFields(data.fields || []);
@@ -87,7 +97,9 @@ export default function DemographicsSelector({
     }
   };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -98,7 +110,10 @@ export default function DemographicsSelector({
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ];
 
-    if (!validTypes.includes(file.type) && !file.name.match(/\.(csv|xlsx|xls)$/i)) {
+    if (
+      !validTypes.includes(file.type) &&
+      !file.name.match(/\.(csv|xlsx|xls)$/i)
+    ) {
       toast.error('Please upload a CSV or Excel file');
       return;
     }
@@ -128,7 +143,9 @@ export default function DemographicsSelector({
       toast.success(`File parsed: ${preview.totalRows} rows found`);
     } catch (error) {
       console.error('Error parsing file:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to parse file');
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to parse file'
+      );
       setUploadedFile(null);
     } finally {
       setUploading(false);
@@ -155,8 +172,10 @@ export default function DemographicsSelector({
       }
 
       const result = await response.json();
-      toast.success(`Successfully updated demographics for ${result.updatedCount} users`);
-      
+      toast.success(
+        `Successfully updated demographics for ${result.updatedCount} users`
+      );
+
       if (onDemographicsUpload) {
         onDemographicsUpload(result);
       }
@@ -165,7 +184,9 @@ export default function DemographicsSelector({
       setUploadPreview(null);
     } catch (error) {
       console.error('Error uploading demographics:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to upload demographics');
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to upload demographics'
+      );
     } finally {
       setUploading(false);
     }
@@ -174,9 +195,12 @@ export default function DemographicsSelector({
   const downloadTemplate = () => {
     // Generate CSV template with demographic field headers
     const headers = ['email', ...availableFields.map((f) => f.field)];
-    const csvContent = headers.join(',') + '\n' + 
-      'user@example.com,' + availableFields.map(() => '').join(',');
-    
+    const csvContent =
+      headers.join(',') +
+      '\n' +
+      'user@example.com,' +
+      availableFields.map(() => '').join(',');
+
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -210,11 +234,14 @@ export default function DemographicsSelector({
                 Select Demographic Fields
               </CardTitle>
               <CardDescription className="mt-1">
-                Choose which demographic information to collect for survey segmentation
+                Choose which demographic information to collect for survey
+                segmentation
               </CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={handleSelectAll}>
-              {selectedFields.length === availableFields.length ? 'Deselect All' : 'Select All'}
+              {selectedFields.length === availableFields.length
+                ? 'Deselect All'
+                : 'Select All'}
             </Button>
           </div>
         </CardHeader>
@@ -222,7 +249,9 @@ export default function DemographicsSelector({
           {availableFields.length === 0 ? (
             <div className="text-center py-8">
               <AlertCircle className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600 mb-2">No demographic fields configured</p>
+              <p className="text-gray-600 mb-2">
+                No demographic fields configured
+              </p>
               <p className="text-sm text-gray-500">
                 Contact your administrator to set up demographic fields
               </p>
@@ -278,10 +307,12 @@ export default function DemographicsSelector({
                 <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-blue-900">
-                    {selectedFields.length} field{selectedFields.length !== 1 ? 's' : ''} selected
+                    {selectedFields.length} field
+                    {selectedFields.length !== 1 ? 's' : ''} selected
                   </p>
                   <p className="text-sm text-blue-700 mt-1">
-                    Demographics will be auto-populated from user profiles during survey responses
+                    Demographics will be auto-populated from user profiles
+                    during survey responses
                   </p>
                 </div>
               </div>
@@ -299,7 +330,8 @@ export default function DemographicsSelector({
               Bulk Demographics Upload
             </CardTitle>
             <CardDescription>
-              Upload a CSV/Excel file to update user demographics in bulk (90% preferred method)
+              Upload a CSV/Excel file to update user demographics in bulk (90%
+              preferred method)
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -370,7 +402,9 @@ export default function DemographicsSelector({
                             </span>
                           </div>
                           <div>
-                            <span className="text-green-700">Fields Found:</span>
+                            <span className="text-green-700">
+                              Fields Found:
+                            </span>
                             <span className="font-medium ml-2">
                               {uploadPreview.fieldsFound?.join(', ')}
                             </span>
@@ -389,9 +423,11 @@ export default function DemographicsSelector({
                             Validation Warnings ({uploadPreview.errors.length})
                           </p>
                           <ul className="text-sm text-yellow-800 space-y-1">
-                            {uploadPreview.errors.slice(0, 5).map((error: string, idx: number) => (
-                              <li key={idx}>• {error}</li>
-                            ))}
+                            {uploadPreview.errors
+                              .slice(0, 5)
+                              .map((error: string, idx: number) => (
+                                <li key={idx}>• {error}</li>
+                              ))}
                             {uploadPreview.errors.length > 5 && (
                               <li className="font-medium">
                                 ... and {uploadPreview.errors.length - 5} more

@@ -26,14 +26,22 @@ import { formatInTimeZone } from 'date-fns-tz';
  */
 export const TIMEZONE_GROUPS = {
   'América Latina': [
-    { value: 'America/Mexico_City', label: 'Ciudad de México (GMT-6)', offset: -6 },
+    {
+      value: 'America/Mexico_City',
+      label: 'Ciudad de México (GMT-6)',
+      offset: -6,
+    },
     { value: 'America/Monterrey', label: 'Monterrey (GMT-6)', offset: -6 },
     { value: 'America/Cancun', label: 'Cancún (GMT-5)', offset: -5 },
     { value: 'America/Tijuana', label: 'Tijuana (GMT-8)', offset: -8 },
     { value: 'America/Bogota', label: 'Bogotá (GMT-5)', offset: -5 },
     { value: 'America/Lima', label: 'Lima (GMT-5)', offset: -5 },
     { value: 'America/Santiago', label: 'Santiago (GMT-3)', offset: -3 },
-    { value: 'America/Buenos_Aires', label: 'Buenos Aires (GMT-3)', offset: -3 },
+    {
+      value: 'America/Buenos_Aires',
+      label: 'Buenos Aires (GMT-3)',
+      offset: -3,
+    },
     { value: 'America/Sao_Paulo', label: 'São Paulo (GMT-3)', offset: -3 },
     { value: 'America/Caracas', label: 'Caracas (GMT-4)', offset: -4 },
   ],
@@ -245,9 +253,10 @@ export function formatScheduleDisplay(
   timezone: string,
   language: 'es' | 'en' = 'es'
 ): string {
-  const format = language === 'es'
-    ? "d 'de' MMMM yyyy 'a las' HH:mm"
-    : "MMMM d, yyyy 'at' HH:mm";
+  const format =
+    language === 'es'
+      ? "d 'de' MMMM yyyy 'a las' HH:mm"
+      : "MMMM d, yyyy 'at' HH:mm";
 
   const startFormatted = formatInTimezone(startDate, timezone, format);
   const endFormatted = formatInTimezone(endDate, timezone, format);

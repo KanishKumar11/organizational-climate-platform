@@ -48,12 +48,13 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // Get available demographic fields for the company
-    const demographicFields = await DemographicField.findActiveByCompany(company_id);
+    const demographicFields =
+      await DemographicField.findActiveByCompany(company_id);
     const validFieldKeys = demographicFields.map((f: any) => f.field);
 
     // Read and parse CSV file
     const fileText = await file.text();
-    
+
     return new Promise((resolve) => {
       Papa.parse(fileText, {
         header: true,
@@ -114,14 +115,25 @@ export async function POST(request: NextRequest) {
             let hasError = false;
             fieldsFound.forEach((field) => {
               const value = row[field];
-              const fieldConfig = demographicFields.find((f: any) => f.field === field);
+              const fieldConfig = demographicFields.find(
+                (f: any) => f.field === field
+              );
 
-              if (fieldConfig && fieldConfig.required && (!value || !value.trim())) {
+              if (
+                fieldConfig &&
+                fieldConfig.required &&
+                (!value || !value.trim())
+              ) {
                 errors.push(`Row ${rowNum}: Missing required field "${field}"`);
                 hasError = true;
               }
 
-              if (fieldConfig && fieldConfig.type === 'select' && value && value.trim()) {
+              if (
+                fieldConfig &&
+                fieldConfig.type === 'select' &&
+                value &&
+                value.trim()
+              ) {
                 if (!fieldConfig.options.includes(value.trim())) {
                   errors.push(
                     `Row ${rowNum}: Invalid value "${value}" for field "${field}". Must be one of: ${fieldConfig.options.join(', ')}`

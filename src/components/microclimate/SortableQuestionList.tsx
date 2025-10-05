@@ -19,13 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'framer-motion';
-import {
-  GripVertical,
-  Trash2,
-  Edit2,
-  Eye,
-  MoreVertical,
-} from 'lucide-react';
+import { GripVertical, Trash2, Edit2, Eye, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -167,10 +161,7 @@ function SortableQuestionItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={cn(
-        'group relative',
-        isDragging && 'opacity-50 z-50'
-      )}
+      className={cn('group relative', isDragging && 'opacity-50 z-50')}
     >
       <Card className="mb-2 hover:shadow-md transition-shadow">
         <CardContent className="p-4">
@@ -180,7 +171,9 @@ function SortableQuestionItem({
               {...attributes}
               {...listeners}
               className="touch-none cursor-grab active:cursor-grabbing mt-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-              aria-label={language === 'es' ? 'Arrastrar pregunta' : 'Drag question'}
+              aria-label={
+                language === 'es' ? 'Arrastrar pregunta' : 'Drag question'
+              }
             >
               <GripVertical className="w-5 h-5 text-gray-400" />
             </button>
@@ -191,15 +184,11 @@ function SortableQuestionItem({
                 <p className="text-sm font-medium line-clamp-2">
                   {questionText}
                 </p>
-                
+
                 {/* Actions Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                    >
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                       <MoreVertical className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -303,12 +292,12 @@ export function SortableQuestionList({
         const newIndex = items.findIndex((item) => item._id === over.id);
 
         const newItems = arrayMove(items, oldIndex, newIndex);
-        
+
         // Notify parent component
         onReorder(newItems);
-        
+
         toast.success(t.reordered);
-        
+
         return newItems;
       });
     }
@@ -316,14 +305,14 @@ export function SortableQuestionList({
 
   const handleRemove = (questionId: string) => {
     if (!onRemove) return;
-    
+
     // Remove from local state
     setItems((items) => {
       const newItems = items.filter((item) => item._id !== questionId);
       onReorder(newItems);
       return newItems;
     });
-    
+
     // Notify parent
     onRemove(questionId);
   };

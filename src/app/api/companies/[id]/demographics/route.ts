@@ -70,49 +70,50 @@ export async function GET(
 
     // Aggregate demographics from User model
     // This assumes User model has demographics fields (location, role, seniority, etc.)
-    const [locationsAgg, rolesAgg, seniorityAgg, departmentsAgg] = await Promise.all([
-      // Get unique locations
-      User.aggregate([
-        { $match: { company_id: company._id, is_active: true } },
-        { $group: { _id: '$demographics.location' } },
-        { $match: { _id: { $ne: null, $exists: true } } },
-        { $sort: { _id: 1 } },
-      ]),
+    const [locationsAgg, rolesAgg, seniorityAgg, departmentsAgg] =
+      await Promise.all([
+        // Get unique locations
+        User.aggregate([
+          { $match: { company_id: company._id, is_active: true } },
+          { $group: { _id: '$demographics.location' } },
+          { $match: { _id: { $ne: null, $exists: true } } },
+          { $sort: { _id: 1 } },
+        ]),
 
-      // Get unique roles/positions
-      User.aggregate([
-        { $match: { company_id: company._id, is_active: true } },
-        { $group: { _id: '$demographics.role' } },
-        { $match: { _id: { $ne: null, $exists: true } } },
-        { $sort: { _id: 1 } },
-      ]),
+        // Get unique roles/positions
+        User.aggregate([
+          { $match: { company_id: company._id, is_active: true } },
+          { $group: { _id: '$demographics.role' } },
+          { $match: { _id: { $ne: null, $exists: true } } },
+          { $sort: { _id: 1 } },
+        ]),
 
-      // Get unique seniority levels
-      User.aggregate([
-        { $match: { company_id: company._id, is_active: true } },
-        { $group: { _id: '$demographics.seniority' } },
-        { $match: { _id: { $ne: null, $exists: true } } },
-        { $sort: { _id: 1 } },
-      ]),
+        // Get unique seniority levels
+        User.aggregate([
+          { $match: { company_id: company._id, is_active: true } },
+          { $group: { _id: '$demographics.seniority' } },
+          { $match: { _id: { $ne: null, $exists: true } } },
+          { $sort: { _id: 1 } },
+        ]),
 
-      // Get unique departments (from direct field)
-      User.aggregate([
-        { $match: { company_id: company._id, is_active: true } },
-        { $group: { _id: '$department_id' } },
-        { $match: { _id: { $ne: null, $exists: true } } },
-        {
-          $lookup: {
-            from: 'departments',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'dept',
+        // Get unique departments (from direct field)
+        User.aggregate([
+          { $match: { company_id: company._id, is_active: true } },
+          { $group: { _id: '$department_id' } },
+          { $match: { _id: { $ne: null, $exists: true } } },
+          {
+            $lookup: {
+              from: 'departments',
+              localField: '_id',
+              foreignField: '_id',
+              as: 'dept',
+            },
           },
-        },
-        { $unwind: '$dept' },
-        { $project: { name: '$dept.name' } },
-        { $sort: { name: 1 } },
-      ]),
-    ]);
+          { $unwind: '$dept' },
+          { $project: { name: '$dept.name' } },
+          { $sort: { name: 1 } },
+        ]),
+      ]);
 
     // Extract values
     const locations = locationsAgg.map((doc) => doc._id).filter(Boolean);

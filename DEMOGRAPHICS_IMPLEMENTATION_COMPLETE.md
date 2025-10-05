@@ -1,14 +1,17 @@
 # Demographics System Implementation - Complete Guide
 
 ## Overview
+
 Comprehensive implementation of dynamic, company-specific demographics for organizational climate surveys, meeting the requirements specified in req.md Section 2.2.
 
 ## Implementation Status: 6/7 Tasks Completed ✅
 
 ### ✅ Task 1: DemographicField Model (Already Existed)
+
 **Location:** `src/models/DemographicField.ts`
 
 **Features:**
+
 - Company-specific demographic field definitions
 - Field types: select, text, number, date
 - Options for select fields
@@ -18,15 +21,18 @@ Comprehensive implementation of dynamic, company-specific demographics for organ
 - Unique compound index on (company_id, field)
 
 **Static Methods:**
+
 - `findByCompany(company_id)` - Get all fields for a company
 - `findActiveByCompany(company_id)` - Get only active fields
 
 ---
 
 ### ✅ Task 2: DemographicsSelector Component
+
 **Location:** `src/components/surveys/DemographicsSelector.tsx`
 
 **Features:**
+
 1. **Field Selection Interface:**
    - Grid layout of available demographic fields
    - Checkbox selection with visual indicators
@@ -52,6 +58,7 @@ Comprehensive implementation of dynamic, company-specific demographics for organ
    - Preview of first 5 valid rows
 
 **Props:**
+
 ```typescript
 interface DemographicsSelectionProps {
   companyId: string;
@@ -67,15 +74,18 @@ interface DemographicsSelectionProps {
 ### ✅ Task 3: Demographics API Endpoints
 
 #### 3.1 GET `/api/demographics/fields`
+
 **Location:** `src/app/api/demographics/fields/route.ts`
 
 **Features:**
+
 - Fetch active demographic fields for a company
 - Authentication required
 - Returns fields sorted by order
 - Company-specific filtering
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -96,16 +106,20 @@ interface DemographicsSelectionProps {
 ```
 
 #### 3.2 POST `/api/demographics/fields`
+
 **Features:**
+
 - Create new demographic field
 - Company admin and super admin only
 - Duplicate field validation
 - Auto-activation on creation
 
 #### 3.3 POST `/api/demographics/upload/preview`
+
 **Location:** `src/app/api/demographics/upload/preview/route.ts`
 
 **Features:**
+
 - Parse CSV/Excel files with papaparse
 - Validate email column presence
 - Check for valid demographic fields
@@ -115,6 +129,7 @@ interface DemographicsSelectionProps {
 - Return preview with errors
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -127,9 +142,11 @@ interface DemographicsSelectionProps {
 ```
 
 #### 3.4 POST `/api/demographics/upload`
+
 **Location:** `src/app/api/demographics/upload/route.ts`
 
 **Features:**
+
 - Bulk update user demographics
 - Find users by email and company
 - Merge new demographics with existing
@@ -137,6 +154,7 @@ interface DemographicsSelectionProps {
 - Return comprehensive results
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -151,9 +169,11 @@ interface DemographicsSelectionProps {
 ---
 
 ### ✅ Task 4: Survey Creation Integration
+
 **Location:** `src/app/surveys/create/page.tsx`
 
 **Changes Made:**
+
 1. **Added Demographics Tab:**
    - Position: Between Targeting and Invitations
    - Icon: Filter
@@ -171,6 +191,7 @@ interface DemographicsSelectionProps {
    - TabNavigationFooter integration
 
 **Updated Hook:** `src/hooks/useSurveyProgress.ts`
+
 - Added 'demographics' to SurveyTab type
 - Added demographicFieldIds to SurveyProgressState interface
 - Added demographics tab state calculation
@@ -181,15 +202,18 @@ interface DemographicsSelectionProps {
 ---
 
 ### ✅ Task 5: User Model Demographics (Already Existed)
+
 **Location:** `src/models/User.ts`
 
 **Features:**
+
 - `UserDemographicsSchema` with flexible Record<string, any> type
 - Allows storing any custom demographic fields
 - Pre-assigned demographics on user accounts
 - Ready for auto-population in surveys
 
 **Schema:**
+
 ```typescript
 const UserDemographicsSchema = new Schema({}, { strict: false });
 
@@ -203,13 +227,16 @@ demographics: {
 ---
 
 ### ✅ Task 6: Auto-Population in Survey Responses
+
 **Locations:**
+
 - `src/components/surveys/SurveyResponseFlow.tsx`
 - `src/app/surveys/[id]/respond/page.tsx`
 
 **Implementation:**
 
 #### 6.1 SurveyResponseFlow Component Updates:
+
 ```typescript
 interface SurveyData {
   // ... existing fields
@@ -231,6 +258,7 @@ interface SurveyResponseFlowProps {
 ```
 
 **handleSubmit() Enhancement:**
+
 ```typescript
 // Auto-populate demographics from user profile
 const demographics: Record<string, any> = {};
@@ -253,7 +281,9 @@ const responseData = {
 ```
 
 #### 6.2 Survey Respond Page Updates:
+
 **Enhanced getSurveyData() function:**
+
 1. Fetch user's demographics from User model
 2. Fetch demographic field definitions
 3. Return both survey data and user demographics
@@ -271,6 +301,7 @@ const { surveyData, userDemographics } = result;
 ```
 
 **Benefits:**
+
 - ✅ Zero user friction - demographics auto-populated
 - ✅ Data consistency - uses pre-assigned values
 - ✅ Segmentation ready - demographics attached to responses
@@ -279,9 +310,11 @@ const { surveyData, userDemographics } = result;
 ---
 
 ### ⏳ Task 7: Admin Demographics Configuration Page (Not Started)
+
 **Planned Location:** `src/app/admin/demographics/page.tsx`
 
 **Planned Features:**
+
 1. View all demographic fields for company
 2. Create new demographic fields
 3. Edit existing fields (label, type, options, required status)
@@ -295,6 +328,7 @@ const { surveyData, userDemographics } = result;
 ## CSV Upload Format
 
 ### Template Structure:
+
 ```csv
 email,gender,age_group,location,department,tenure,education
 user1@company.com,Male,25-34,New York,Engineering,3-5 years,Bachelor's
@@ -302,6 +336,7 @@ user2@company.com,Female,35-44,San Francisco,Sales,5-10 years,Master's
 ```
 
 ### Requirements:
+
 1. **Required Column:** `email` - Must be first column
 2. **Demographic Columns:** Match field keys exactly
 3. **Select Field Values:** Must match predefined options
@@ -309,6 +344,7 @@ user2@company.com,Female,35-44,San Francisco,Sales,5-10 years,Master's
 5. **Max File Size:** 10MB
 
 ### Validation Rules:
+
 - Email format validation
 - Company membership validation (users must exist in company)
 - Required field validation
@@ -320,6 +356,7 @@ user2@company.com,Female,35-44,San Francisco,Sales,5-10 years,Master's
 ## Integration Points
 
 ### Survey Creation Flow:
+
 1. **Questions Tab** → Create questions
 2. **Targeting Tab** → Select departments (required)
 3. **Demographics Tab** → Select demographic fields + upload CSV (optional)
@@ -328,6 +365,7 @@ user2@company.com,Female,35-44,San Francisco,Sales,5-10 years,Master's
 6. **Preview Tab** → Review and publish
 
 ### Survey Response Flow:
+
 1. User accesses survey via URL or invitation
 2. Page fetches user's demographics from User model
 3. Page fetches demographic field definitions for survey
@@ -337,7 +375,9 @@ user2@company.com,Female,35-44,San Francisco,Sales,5-10 years,Master's
 7. Demographics stored with SurveyResponse for segmentation
 
 ### Dashboard Filtering (Future):
+
 Demographics attached to responses enable:
+
 - Filter results by gender, age, location, etc.
 - Cross-tabulate responses by demographic groups
 - Identify patterns and trends by segment
@@ -348,6 +388,7 @@ Demographics attached to responses enable:
 ## Dependencies
 
 ### NPM Packages (Already Installed):
+
 - `papaparse` (^5.5.3) - CSV parsing
 - `@types/papaparse` (^5.3.16) - TypeScript types
 - `framer-motion` - Animations
@@ -355,6 +396,7 @@ Demographics attached to responses enable:
 - `sonner` - Toast notifications
 
 ### UI Components (shadcn/ui):
+
 - Card, CardContent, CardHeader, CardTitle
 - Button
 - Checkbox
@@ -403,12 +445,14 @@ src/
 ## Testing Checklist
 
 ### ✅ Completed Tests:
+
 - [x] TypeScript compilation passes
 - [x] No lint errors
 - [x] All imports resolved
 - [x] Components render without errors
 
 ### ⏳ Manual Tests Required:
+
 - [ ] Create demographic fields via API
 - [ ] Download CSV template from UI
 - [ ] Upload valid CSV file
@@ -426,9 +470,10 @@ src/
 ## Security Considerations
 
 ### Implemented Safeguards:
+
 1. **Authentication:** All endpoints require session
 2. **Authorization:** Company admin / super admin for management
-3. **Company Isolation:** 
+3. **Company Isolation:**
    - Demographic fields filtered by company_id
    - CSV upload only updates users in same company
    - Survey access validated by company_id
@@ -468,6 +513,7 @@ src/
 ## Future Enhancements
 
 ### High Priority:
+
 1. **Admin Demographics Page** (Task 7)
    - Full CRUD operations
    - Drag & drop reordering
@@ -487,12 +533,14 @@ src/
    - Import/export field definitions
 
 ### Medium Priority:
+
 - Excel file generation (not just CSV template)
 - Demographic field validation rules (regex, range)
 - Multi-language demographic labels
 - Demographic field dependencies
 
 ### Low Priority:
+
 - Demographic field suggestions (AI-powered)
 - Anonymous surveys with aggregated demographics
 - Demographics from external systems (LDAP, AD)
@@ -527,6 +575,7 @@ src/
 **Solution:** Ensure fields are marked as `is_active: true` for the company
 
 ### Monitoring:
+
 - Check API response times for `/api/demographics/upload`
 - Monitor CSV file sizes
 - Track demographic field usage per company
@@ -537,6 +586,7 @@ src/
 ## Success Metrics
 
 ### Achieved:
+
 ✅ 90% CSV upload preference supported
 ✅ Zero user friction in survey responses (auto-population)
 ✅ Company-specific demographic customization
@@ -545,6 +595,7 @@ src/
 ✅ Progressive disclosure in survey creation
 
 ### Pending:
+
 ⏳ Admin configuration UI
 ⏳ Dashboard filtering by demographics
 ⏳ Deep segmentation reporting
@@ -555,6 +606,7 @@ src/
 ## Conclusion
 
 The demographics system is **86% complete** (6/7 tasks) and **fully functional** for core use cases:
+
 - ✅ Companies can define custom demographic fields
 - ✅ Admins can bulk upload user demographics via CSV
 - ✅ Survey creators can select which demographics to collect
@@ -566,6 +618,7 @@ The demographics system is **86% complete** (6/7 tasks) and **fully functional**
 ---
 
 ## Documentation Version
+
 - **Created:** 2025
 - **Last Updated:** 2025
 - **Status:** Active Development

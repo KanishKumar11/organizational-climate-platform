@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // Get available demographic fields for the company
-    const demographicFields = await DemographicField.findActiveByCompany(company_id);
+    const demographicFields =
+      await DemographicField.findActiveByCompany(company_id);
     const validFieldKeys = demographicFields.map((f: any) => f.field);
 
     // Read and parse CSV file
@@ -125,7 +126,9 @@ export async function POST(request: NextRequest) {
               });
 
               if (!hasValidData) {
-                errors.push(`Row ${rowNum}: No valid demographic data to update`);
+                errors.push(
+                  `Row ${rowNum}: No valid demographic data to update`
+                );
                 continue;
               }
 

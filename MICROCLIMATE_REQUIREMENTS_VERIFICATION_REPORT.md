@@ -12,13 +12,13 @@ The microclimate survey system has **extensive scaffolding and components built*
 
 ### Overall Implementation Status
 
-| Component | Required Features | Implemented | Missing | Status |
-|-----------|------------------|-------------|---------|--------|
-| **Step 1: Basic Info** | 6 fields | 6 fields | 0 fields | ✅ **100% COMPLETE** |
-| **Step 2: Questions** | 8 features | 5 features | 3 features | 🟡 **63% COMPLETE** |
-| **Step 3: Targeting** | 9 features | 3 features | 6 features | 🔴 **33% COMPLETE** |
-| **Step 4: Scheduling** | 6 features | 3 features | 3 features | 🟡 **50% COMPLETE** |
-| **Non-Functional** | 4 requirements | 2 requirements | 2 requirements | 🟡 **50% COMPLETE** |
+| Component              | Required Features | Implemented    | Missing        | Status               |
+| ---------------------- | ----------------- | -------------- | -------------- | -------------------- |
+| **Step 1: Basic Info** | 6 fields          | 6 fields       | 0 fields       | ✅ **100% COMPLETE** |
+| **Step 2: Questions**  | 8 features        | 5 features     | 3 features     | 🟡 **63% COMPLETE**  |
+| **Step 3: Targeting**  | 9 features        | 3 features     | 6 features     | 🔴 **33% COMPLETE**  |
+| **Step 4: Scheduling** | 6 features        | 3 features     | 3 features     | 🟡 **50% COMPLETE**  |
+| **Non-Functional**     | 4 requirements    | 2 requirements | 2 requirements | 🟡 **50% COMPLETE**  |
 
 **Overall Completion:** **59%** (20 of 34 total requirements)
 
@@ -72,6 +72,7 @@ All requirements from microclimate-req.md are implemented:
 - ✅ Draft recovery after refresh/disconnect
 
 **Files:**
+
 - `src/components/microclimate/MicroclimateWizard.tsx`
 - `src/components/companies/CompanySearchableDropdown.tsx`
 
@@ -82,12 +83,14 @@ All requirements from microclimate-req.md are implemented:
 ### ✅ IMPLEMENTED (5 of 8 features)
 
 #### 1. **Quick Add** ✅
+
 - Component: `QuickAddPanel.tsx`
 - Shows frequently used questions
 - Integrated into wizard
 - Functional implementation
 
 #### 2. **Question Library** ✅
+
 - Component: `QuestionLibraryBrowser.tsx`
 - Hierarchical Categories → Questions
 - Search functionality
@@ -96,6 +99,7 @@ All requirements from microclimate-req.md are implemented:
 - Database: `QuestionLibrary.ts` model with full schema
 
 #### 3. **Bulk Add by Category** ✅
+
 - "Add All" buttons per category
 - Bulk selection with checkboxes
 - De-duplication logic
@@ -103,12 +107,14 @@ All requirements from microclimate-req.md are implemented:
 - Component: `QuestionLibraryBrowser.tsx` lines 130-180
 
 #### 4. **Multilingual Content (ES/EN)** ✅
+
 - Side-by-side editing
 - Component: `MultilingualQuestionEditor.tsx`
 - Full Spanish/English support
 - Database schema supports both languages
 
 #### 5. **Create New Questions** ✅
+
 - Custom question creation
 - Metadata support (category, dimension, scale)
 - Reverse-coding flag
@@ -117,32 +123,41 @@ All requirements from microclimate-req.md are implemented:
 ### 🔴 MISSING (3 of 8 features)
 
 #### 1. **Drag & Drop Re-ordering** ❌
+
 **Required:** Drag & drop to reorder selected questions  
 **Current Status:** Not implemented  
 **Impact:** Users cannot customize question order  
 **Solution Needed:**
+
 ```tsx
 // Need to integrate @dnd-kit/core (already installed)
 import { DndContext, closestCenter } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 // Implement in Step 2 question list
 ```
 
 #### 2. **Versioning** ❌
+
 **Required:** Track changes, author, timestamp for questions  
 **Current Status:** Database schema has version fields, but no UI/logic to create versions  
 **Impact:** Cannot track question evolution over time  
 **Solution Needed:**
+
 - Add version increment logic when editing questions
 - Store previous_version_id
 - Create version history viewer UI
 
 #### 3. **Duplicate Validation** ⚠️
+
 **Required:** Validation for duplicated items  
 **Current Status:** De-duplication exists for bulk add, but not for individual selections  
 **Impact:** Partial - users can still add same question twice if not using bulk add  
 **Solution Needed:**
+
 ```tsx
 const handleQuestionSelection = (questionId: string) => {
   if (step2Data.questionIds.includes(questionId)) {
@@ -154,6 +169,7 @@ const handleQuestionSelection = (questionId: string) => {
 ```
 
 **Files:**
+
 - `src/components/microclimate/QuestionLibraryBrowser.tsx` (needs drag-drop)
 - `src/components/microclimate/MultilingualQuestionEditor.tsx` (needs versioning UI)
 - `src/models/QuestionLibrary.ts` (schema ready for versioning)
@@ -165,27 +181,32 @@ const handleQuestionSelection = (questionId: string) => {
 ### ✅ IMPLEMENTED (3 of 9 features)
 
 #### 1. **Pre-load from Company** ✅
+
 - Auto-loads departments and employees when company selected in Step 1
 - API calls: `/api/companies/{id}/departments` and `/api/companies/{id}/users`
 - Stores in `step3Data.availableDepartments` and `availableEmployees`
 - Implementation: `MicroclimateWizard.tsx` useEffect hook
 
 #### 2. **CSV Upload Component** ✅
+
 - Component: `CSVImporter.tsx` exists
 - Can parse CSV files
 - Shows file upload UI
 
 #### 3. **All Employees Option** ✅
+
 - Radio button for "All Employees"
 - Simple selection method
 
 ### 🔴 MISSING (6 of 9 features) - CRITICAL BLOCKERS
 
 #### 1. **CSV Import with Column Mapping** ❌ CRITICAL
+
 **Required:** Import CSV/XLSX with column mapping and validation  
 **Current Status:** Components exist (`CSVImporter`, `ColumnMapper`, `ValidationPanel`) but NOT CONNECTED  
 **Impact:** Cannot import employee lists from CSV  
 **Solution Needed:**
+
 ```tsx
 // Required flow in Step 3:
 1. CSVImporter → parse file
@@ -195,20 +216,24 @@ const handleQuestionSelection = (questionId: string) => {
 ```
 
 #### 2. **Manual Add/Edit Records** ❌ HIGH PRIORITY
+
 **Required:** Manually add/edit employee records one by one  
 **Current Status:** Component may exist but not integrated into Step 3  
 **Impact:** Cannot manually add individual employees  
 **Solution Needed:**
+
 - Add "Manual" tab to Step 3
 - Form with fields: Name, Email, Employee ID, Department, Location, Role
 - Add to `step3Data.targetEmployees` array
 - Edit/remove functionality
 
 #### 3. **Filters for Sub-groups** ❌ CRITICAL
+
 **Required:** Filter by department, location, role, seniority, etc.  
 **Current Status:** No filtering UI at all  
 **Impact:** Cannot target specific sub-groups (e.g., "Engineering dept in Mexico City")  
 **Solution Needed:**
+
 ```tsx
 <Card>
   <CardHeader>Target Audience Filters</CardHeader>
@@ -223,14 +248,16 @@ const handleQuestionSelection = (questionId: string) => {
 ```
 
 #### 4. **De-duplication** ❌ MEDIUM PRIORITY
+
 **Required:** De-duplicate on Email/Employee ID  
 **Current Status:** No de-duplication logic  
 **Impact:** Risk of sending duplicate invitations  
 **Solution Needed:**
+
 ```tsx
 const deduplicateEmployees = (employees: TargetEmployee[]) => {
   const seen = new Set<string>();
-  return employees.filter(emp => {
+  return employees.filter((emp) => {
     const key = emp.email || emp.employee_id;
     if (!key || seen.has(key)) return false;
     seen.add(key);
@@ -240,19 +267,23 @@ const deduplicateEmployees = (employees: TargetEmployee[]) => {
 ```
 
 #### 5. **Demographics Loading** ❌ HIGH PRIORITY
+
 **Required:** Pre-load demographics (location, role, seniority, etc.) from company  
 **Current Status:** `step3Data.demographics` field exists but not populated  
 **Impact:** Cannot filter by demographics  
 **Solution Needed:**
+
 - Add API endpoint: `/api/companies/{id}/demographics`
 - Load demographics when company selected
 - Store in `step3Data.demographics`
 
 #### 6. **Target Audience Preview Summary** ❌ MEDIUM PRIORITY
+
 **Required:** Read-only summary card showing "8 depts, 520 employees, 3 sites"  
 **Current Status:** Basic employee list, no summary statistics  
 **Impact:** No clear overview of audience size/composition  
 **Solution Needed:**
+
 ```tsx
 <Card>
   <CardHeader>Target Audience Summary</CardHeader>
@@ -267,6 +298,7 @@ const deduplicateEmployees = (employees: TargetEmployee[]) => {
 ```
 
 **Files:**
+
 - `src/components/microclimate/CSVImporter.tsx` (exists, needs integration)
 - `src/components/microclimate/ColumnMapper.tsx` (exists, needs integration)
 - `src/components/microclimate/ValidationPanel.tsx` (exists, needs integration)
@@ -279,26 +311,31 @@ const deduplicateEmployees = (employees: TargetEmployee[]) => {
 ### ✅ IMPLEMENTED (3 of 6 features)
 
 #### 1. **Start/End Date & Time** ✅
+
 - Component: `ScheduleConfig.tsx` likely exists
 - Date/time pickers
 - Basic scheduling
 
 #### 2. **QR Code Generation** ✅
+
 - Component: `QRCodeGenerator.tsx` exists
 - Auto-generates QR code
 - Downloadable PNG/SVG
 
 #### 3. **URL Generation** ✅
+
 - Unique tokenized links
 - Basic URL creation
 
 ### 🔴 MISSING (3 of 6 features)
 
 #### 1. **Timezone Awareness** ❌ CRITICAL
+
 **Required:** Timezone-aware scheduling, defaults from Company, override per survey  
 **Current Status:** No timezone handling  
 **Impact:** Surveys may start/end at wrong times for global companies  
 **Solution Needed:**
+
 ```tsx
 import { getCompanyTimezone } from '@/lib/timezone';
 
@@ -310,14 +347,16 @@ const [timezone, setTimezone] = useState(
   <SelectItem value="America/Mexico_City">CDMX (UTC-6)</SelectItem>
   <SelectItem value="America/New_York">New York (UTC-5)</SelectItem>
   {/* All timezones */}
-</Select>
+</Select>;
 ```
 
 #### 2. **Reminders** ❌ HIGH PRIORITY
+
 **Required:** Optional reminders with cadence and channels (email; WhatsApp/SMS later)  
 **Current Status:** Not implemented  
 **Impact:** Cannot send reminder notifications  
 **Solution Needed:**
+
 ```tsx
 <Card>
   <CardHeader>Reminders</CardHeader>
@@ -329,22 +368,27 @@ const [timezone, setTimezone] = useState(
     </Select>
     <CheckboxGroup label="Channels">
       <Checkbox value="email">Email</Checkbox>
-      <Checkbox value="whatsapp" disabled>WhatsApp (Coming Soon)</Checkbox>
+      <Checkbox value="whatsapp" disabled>
+        WhatsApp (Coming Soon)
+      </Checkbox>
     </CheckboxGroup>
   </CardContent>
 </Card>
 ```
 
 #### 3. **Expired Survey Read-Only** ❌ MEDIUM PRIORITY
+
 **Required:** Expired surveys become read-only for respondents  
 **Current Status:** No expiration enforcement  
 **Impact:** Users may submit responses after end date  
 **Solution Needed:**
+
 - Check `survey.end_date` in response flow
 - Show "Survey Closed" message if expired
 - Block response submission
 
 **Files:**
+
 - Need to enhance: `src/components/microclimate/ScheduleConfig.tsx` (timezone support)
 - Need to create: `ReminderConfig.tsx`
 - Need to add: Expiration check in response flow
@@ -356,6 +400,7 @@ const [timezone, setTimezone] = useState(
 ### ✅ IMPLEMENTED (2 of 4)
 
 #### 1. **Autosave / Background Sync** ✅
+
 - Hook: `useAutosave.ts` exists and integrated
 - Auto-saves every 5-10 seconds
 - Saves on field blur
@@ -363,6 +408,7 @@ const [timezone, setTimezone] = useState(
 - No data loss
 
 #### 2. **Localization (ES/EN)** ✅
+
 - Full Spanish/English support in UI
 - Bilingual survey content
 - All components support `language` prop
@@ -370,20 +416,24 @@ const [timezone, setTimezone] = useState(
 ### 🔴 MISSING (2 of 4)
 
 #### 1. **Performance Target** ❌
+
 **Required:** < 2s for step transitions with 1k targets loaded  
 **Current Status:** Not optimized, no performance testing  
 **Impact:** May be slow with large employee lists  
 **Solution Needed:**
+
 - Implement pagination for employee lists
 - Use virtualization for large lists (react-window)
 - Add loading states
 - Optimize API queries with indexes
 
 #### 2. **Audit Trail** ❌ CRITICAL
+
 **Required:** Track who changed what and when (title, questions, audience, schedule)  
 **Current Status:** No audit logging  
 **Impact:** Cannot track survey changes for compliance/debugging  
 **Solution Needed:**
+
 ```typescript
 // Add to SurveyDraft model:
 interface AuditLog {
@@ -407,6 +457,7 @@ await logAudit({
 ```
 
 **Files:**
+
 - Need to create: `src/models/AuditLog.ts`
 - Need to create: `src/lib/audit.ts` (logging utilities)
 - Need to add: Performance monitoring
@@ -673,6 +724,7 @@ await logAudit({
    - Add drag-drop reordering
 
 **Contact:** For questions or clarifications, please review:
+
 - `microclimate-req.md` (original requirements)
 - `MICROCLIMATE_IMPLEMENTATION_GAP_ANALYSIS.md` (detailed gap analysis)
 - `MICROCLIMATE_PHASE1_COMPLETE.md` (Phase 1 completion status)

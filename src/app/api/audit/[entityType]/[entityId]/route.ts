@@ -48,10 +48,7 @@ export async function GET(
 
     const { entityType, entityId } = params;
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(
-      parseInt(searchParams.get('limit') || '50'),
-      100
-    );
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
 
     // Validate entity type
     const validEntityTypes: AuditEntityType[] = [

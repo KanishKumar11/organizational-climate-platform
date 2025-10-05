@@ -110,7 +110,9 @@ export async function logAudit(data: AuditLogData) {
       timestamp: new Date(),
     });
 
-    console.log(`[AUDIT] ${data.action} ${data.entityType} ${data.entityId} by ${data.userEmail}`);
+    console.log(
+      `[AUDIT] ${data.action} ${data.entityType} ${data.entityId} by ${data.userEmail}`
+    );
 
     return auditLog;
   } catch (error: any) {
@@ -405,7 +407,11 @@ export async function getEntityAuditTrail(
 ) {
   try {
     await dbConnect();
-    return await (AuditLog as any).getEntityHistory(entityType, entityId, limit);
+    return await (AuditLog as any).getEntityHistory(
+      entityType,
+      entityId,
+      limit
+    );
   } catch (error) {
     console.error('Error fetching audit trail:', error);
     return [];

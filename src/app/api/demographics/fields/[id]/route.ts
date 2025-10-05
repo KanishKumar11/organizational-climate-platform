@@ -9,10 +9,7 @@ interface RouteContext {
 }
 
 // GET - Fetch single demographic field
-export async function GET(
-  request: NextRequest,
-  context: RouteContext
-) {
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -51,10 +48,7 @@ export async function GET(
 }
 
 // PUT - Update demographic field
-export async function PUT(
-  request: NextRequest,
-  context: RouteContext
-) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -110,10 +104,7 @@ export async function PUT(
 }
 
 // PATCH - Partial update (for toggling active status)
-export async function PATCH(
-  request: NextRequest,
-  context: RouteContext
-) {
+export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -167,10 +158,7 @@ export async function PATCH(
 }
 
 // DELETE - Delete demographic field
-export async function DELETE(
-  request: NextRequest,
-  context: RouteContext
-) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -204,7 +192,7 @@ export async function DELETE(
     // For now, we'll soft delete by setting is_active to false
     // Uncomment the line below for hard delete
     // await DemographicField.findByIdAndDelete(id);
-    
+
     // Soft delete
     field.is_active = false;
     await field.save();

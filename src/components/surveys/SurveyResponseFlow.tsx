@@ -126,9 +126,14 @@ export default function SurveyResponseFlow({
     try {
       // Auto-populate demographics from user profile
       const demographics: Record<string, any> = {};
-      if (surveyData.demographic_field_ids && surveyData.demographic_field_ids.length > 0) {
+      if (
+        surveyData.demographic_field_ids &&
+        surveyData.demographic_field_ids.length > 0
+      ) {
         surveyData.demographic_field_ids.forEach((fieldId) => {
-          const field = surveyData.demographicFields?.find((f) => f._id === fieldId);
+          const field = surveyData.demographicFields?.find(
+            (f) => f._id === fieldId
+          );
           if (field && userDemographics[field.field]) {
             demographics[field.field] = userDemographics[field.field];
           }

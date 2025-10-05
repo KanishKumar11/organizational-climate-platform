@@ -130,7 +130,10 @@ async function getSurveyData(id: string, session: any) {
     let userDemographics = {};
     let demographicFields = [];
 
-    if (survey.demographic_field_ids && survey.demographic_field_ids.length > 0) {
+    if (
+      survey.demographic_field_ids &&
+      survey.demographic_field_ids.length > 0
+    ) {
       // Fetch user's demographic data
       const user = await User.findOne({
         email: session.user.email,
@@ -151,8 +154,8 @@ async function getSurveyData(id: string, session: any) {
         .lean();
 
       // Add demographic fields to sanitized data
-      sanitizedData.demographic_field_ids = survey.demographic_field_ids.map((id: any) =>
-        id.toString()
+      sanitizedData.demographic_field_ids = survey.demographic_field_ids.map(
+        (id: any) => id.toString()
       );
       sanitizedData.demographicFields = demographicFields.map((field: any) => ({
         _id: field._id.toString(),

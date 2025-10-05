@@ -17,6 +17,7 @@
 ## API Endpoints Created
 
 ### Field Management
+
 - ✅ `GET /api/demographics/fields` - List company fields
 - ✅ `POST /api/demographics/fields` - Create new field
 - ✅ `GET /api/demographics/fields/[id]` - Get single field
@@ -26,6 +27,7 @@
 - ✅ `POST /api/demographics/fields/reorder` - Reorder fields
 
 ### CSV Upload
+
 - ✅ `POST /api/demographics/upload/preview` - Preview CSV before upload
 - ✅ `POST /api/demographics/upload` - Bulk upload user demographics
 
@@ -34,9 +36,11 @@
 ## Testing Checklist
 
 ### 1. Admin Demographics Configuration
+
 **Page:** `/admin/demographics`
 
 #### Test Cases:
+
 - [ ] Access control - only company_admin and super_admin can access
 - [ ] View all demographic fields for company
 - [ ] Create new field (text type)
@@ -54,6 +58,7 @@
 - [ ] Empty option validation for select fields
 
 **Expected UI Elements:**
+
 - Statistics cards (Total Fields, Active, Inactive, Select Fields)
 - Add Field button
 - Fields table with:
@@ -73,6 +78,7 @@
 ### 2. CSV Upload System
 
 #### Test Template Download:
+
 ```bash
 # Navigate to /admin/demographics or survey creation demographics tab
 # Click "Download Template" button
@@ -82,6 +88,7 @@
 ```
 
 #### Test CSV Upload Preview:
+
 ```csv
 # Create test file: test_demographics.csv
 email,gender,age_group,location,department
@@ -92,14 +99,16 @@ user4@company.com,InvalidGender,25-34,Chicago,HR
 ```
 
 **Expected Results:**
+
 - Total rows: 4
 - Valid rows: 2
-- Errors: 
+- Errors:
   - Row 3: Invalid email format
   - Row 4: Invalid value for gender field
 - Fields found: gender, age_group, location, department
 
 #### Test CSV Upload Execution:
+
 - [ ] Upload valid CSV
 - [ ] Verify success message with updated count
 - [ ] Check users in database have demographics populated
@@ -117,6 +126,7 @@ user4@company.com,InvalidGender,25-34,Chicago,HR
 **Navigate to:** `/surveys/create`
 
 #### Test Demographics Tab:
+
 - [ ] Demographics tab appears between Targeting and Invitations
 - [ ] Demographics tab is locked until Targeting is completed
 - [ ] Demographics tab unlocks after selecting departments
@@ -138,11 +148,13 @@ user4@company.com,InvalidGender,25-34,Chicago,HR
 ### 4. Survey Response Auto-Population
 
 **Create test survey with demographics:**
+
 1. Create survey with 2-3 questions
 2. Select 3-4 demographic fields (gender, age_group, location)
 3. Publish survey
 
 **Test auto-population:**
+
 - [ ] Navigate to survey respond page: `/surveys/[id]/respond`
 - [ ] Verify user's demographics are fetched from User model
 - [ ] Verify demographic field definitions are fetched
@@ -154,6 +166,7 @@ user4@company.com,InvalidGender,25-34,Chicago,HR
 - [ ] Test with user who has all demographics
 
 **Expected Behavior:**
+
 - Demographics auto-populated silently (no UI shown to user)
 - User answers questions normally
 - On submit, demographics automatically included
@@ -162,6 +175,7 @@ user4@company.com,InvalidGender,25-34,Chicago,HR
 ### 5. API Testing
 
 #### Create Field API:
+
 ```bash
 POST /api/demographics/fields
 {
@@ -177,6 +191,7 @@ POST /api/demographics/fields
 **Expected:** 201 Created, field returned
 
 #### Update Field API:
+
 ```bash
 PUT /api/demographics/fields/[id]
 {
@@ -188,6 +203,7 @@ PUT /api/demographics/fields/[id]
 **Expected:** 200 OK, updated field returned
 
 #### Toggle Active API:
+
 ```bash
 PATCH /api/demographics/fields/[id]
 {
@@ -198,6 +214,7 @@ PATCH /api/demographics/fields/[id]
 **Expected:** 200 OK, field deactivated
 
 #### Reorder Fields API:
+
 ```bash
 POST /api/demographics/fields/reorder
 {
@@ -213,6 +230,7 @@ POST /api/demographics/fields/reorder
 **Expected:** 200 OK, order updated
 
 #### Upload Preview API:
+
 ```bash
 POST /api/demographics/upload/preview
 Content-Type: multipart/form-data
@@ -224,6 +242,7 @@ company_id: "..."
 **Expected:** 200 OK, preview with validation results
 
 #### Upload Execute API:
+
 ```bash
 POST /api/demographics/upload
 Content-Type: multipart/form-data
@@ -239,6 +258,7 @@ company_id: "..."
 ## Integration Testing Scenarios
 
 ### Scenario 1: Complete Flow - New Company Setup
+
 1. Company admin logs in
 2. Navigate to `/admin/demographics`
 3. Create 6 demographic fields:
@@ -260,6 +280,7 @@ company_id: "..."
 13. Check response data includes demographics
 
 ### Scenario 2: Field Management
+
 1. Create field "employee_type" (select)
 2. Add options: Full-time, Part-time, Contract
 3. Use field in survey
@@ -272,6 +293,7 @@ company_id: "..."
 10. Verify soft delete (is_active = false)
 
 ### Scenario 3: CSV Error Handling
+
 1. Upload CSV with invalid emails
 2. Verify errors listed
 3. Upload CSV with non-existent users
@@ -286,6 +308,7 @@ company_id: "..."
 12. Verify file type error
 
 ### Scenario 4: Survey Segmentation
+
 1. Create survey with demographics
 2. Collect 20 responses
 3. Navigate to survey results/dashboard
@@ -300,6 +323,7 @@ company_id: "..."
 ## Performance Testing
 
 ### Load Tests:
+
 - [ ] Create 50 demographic fields
 - [ ] Upload CSV with 10,000 users
 - [ ] Create survey with all 50 fields
@@ -307,6 +331,7 @@ company_id: "..."
 - [ ] Query/filter responses by demographics
 
 **Expected Performance:**
+
 - Field creation: < 500ms
 - CSV upload (10k users): < 30 seconds
 - Survey response submission: < 1 second
@@ -317,6 +342,7 @@ company_id: "..."
 ## Security Testing
 
 ### Authorization Tests:
+
 - [ ] Employee role cannot access `/admin/demographics`
 - [ ] Supervisor role cannot access `/admin/demographics`
 - [ ] Company admin can only see their company's fields
@@ -326,6 +352,7 @@ company_id: "..."
 - [ ] Field queries filtered by company_id
 
 ### Input Validation:
+
 - [ ] SQL injection attempts (field names, options)
 - [ ] XSS attempts in labels and options
 - [ ] Path traversal in CSV uploads
@@ -385,16 +412,19 @@ If issues arise in production:
 ## Maintenance Tasks
 
 ### Weekly:
+
 - Monitor CSV upload errors
 - Check demographic field usage
 - Review validation error patterns
 
 ### Monthly:
+
 - Audit inactive fields (candidates for deletion)
 - Review field options for updates
 - Check data completeness (users with demographics)
 
 ### Quarterly:
+
 - Performance review of demographics queries
 - User feedback on field definitions
 - Plan new field types or features
@@ -404,6 +434,7 @@ If issues arise in production:
 ## Success Metrics
 
 ### Quantitative:
+
 - ✅ 7/7 tasks completed (100%)
 - ✅ 9 API endpoints functional
 - ✅ 0 compilation errors
@@ -412,6 +443,7 @@ If issues arise in production:
 - ⏳ 100% surveys use at least 1 demographic field (target)
 
 ### Qualitative:
+
 - ✅ Zero user friction (auto-population)
 - ✅ Flexible field system (any type, any option)
 - ✅ Company-specific customization
@@ -423,6 +455,7 @@ If issues arise in production:
 ## Next Steps
 
 ### Immediate (Week 1):
+
 1. ✅ Deploy to staging
 2. ⏳ Run full test suite
 3. ⏳ Load test with sample data
@@ -430,6 +463,7 @@ If issues arise in production:
 5. ⏳ Performance profiling
 
 ### Short-term (Month 1):
+
 1. Train company admins on system
 2. Create video tutorials
 3. Build FAQ/troubleshooting guide
@@ -437,6 +471,7 @@ If issues arise in production:
 5. Add usage statistics
 
 ### Long-term (Quarter 1):
+
 1. Advanced validation rules
 2. Conditional field logic
 3. Field import/export
@@ -448,17 +483,20 @@ If issues arise in production:
 ## Support Resources
 
 ### Documentation:
+
 - [DEMOGRAPHICS_IMPLEMENTATION_COMPLETE.md](./DEMOGRAPHICS_IMPLEMENTATION_COMPLETE.md)
 - [API Documentation](#) (to be created)
 - [User Guide](#) (to be created)
 
 ### Code Locations:
+
 - Models: `src/models/DemographicField.ts`, `src/models/User.ts`
 - Components: `src/components/surveys/DemographicsSelector.tsx`
 - Admin: `src/app/admin/demographics/page.tsx`
 - APIs: `src/app/api/demographics/**`
 
 ### Common Issues:
+
 See DEMOGRAPHICS_IMPLEMENTATION_COMPLETE.md for troubleshooting
 
 ---
