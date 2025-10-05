@@ -26,7 +26,10 @@ export async function GET(
 
     // Get format parameter (long, wide, summary)
     const searchParams = request.nextUrl.searchParams;
-    const format = (searchParams.get('format') || 'long') as 'long' | 'wide' | 'summary';
+    const format = (searchParams.get('format') || 'long') as
+      | 'long'
+      | 'wide'
+      | 'summary';
 
     // Fetch survey
     const survey = await (Survey as any)
@@ -100,7 +103,10 @@ export async function GET(
   } catch (error) {
     console.error('Error exporting survey to CSV:', error);
     return NextResponse.json(
-      { error: 'Failed to export survey', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to export survey',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

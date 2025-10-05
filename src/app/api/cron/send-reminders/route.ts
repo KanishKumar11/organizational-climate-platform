@@ -9,7 +9,7 @@ import { User } from '@/models/User';
 /**
  * POST /api/cron/send-reminders
  * Cron job to process and send pending reminder notifications
- * 
+ *
  * This should be triggered by a cron service (e.g., Vercel Cron, node-cron, or external scheduler)
  * Recommended schedule: Every 15 minutes
  */
@@ -17,8 +17,9 @@ export async function POST(request: NextRequest) {
   try {
     // Verify authorization (use a secret key for cron jobs)
     const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET || 'your-cron-secret-key-change-in-production';
-    
+    const cronSecret =
+      process.env.CRON_SECRET || 'your-cron-secret-key-change-in-production';
+
     if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -42,16 +43,20 @@ export async function POST(request: NextRequest) {
       .limit(100)
       .lean();
 
-    console.log(`[CRON] Found ${pendingNotifications.length} pending email notifications to process`);
+    console.log(
+      `[CRON] Found ${pendingNotifications.length} pending email notifications to process`
+    );
 
     // Process each notification
     for (const notification of pendingNotifications) {
       processedCount++;
-      
+
       try {
         // Skip if user not found
         if (!notification.user_id) {
-          console.warn(`[CRON] Skipping notification ${notification._id}: User not found`);
+          console.warn(
+            `[CRON] Skipping notification ${notification._id}: User not found`
+          );
           await (Notification as any).findByIdAndUpdate(notification._id, {
             status: 'failed',
             error_message: 'User not found',
@@ -70,8 +75,11 @@ export async function POST(request: NextRequest) {
                 survey: notification.data.survey,
                 recipient: notification.user_id,
                 invitationLink: notification.data.link,
-                companyName: notification.data.companyName || 'Your Organization',
-                expiryDate: notification.data.expiryDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                companyName:
+                  notification.data.companyName || 'Your Organization',
+                expiryDate:
+                  notification.data.expiryDate ||
+                  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 reminderCount: notification.data.reminder_count || 1,
               });
               emailSent = true;
@@ -84,8 +92,11 @@ export async function POST(request: NextRequest) {
                 survey: notification.data.survey,
                 recipient: notification.user_id,
                 invitationLink: notification.data.link,
-                companyName: notification.data.companyName || 'Your Organization',
-                expiryDate: notification.data.expiryDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                companyName:
+                  notification.data.companyName || 'Your Organization',
+                expiryDate:
+                  notification.data.expiryDate ||
+                  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
               });
               emailSent = true;
             }
@@ -97,8 +108,11 @@ export async function POST(request: NextRequest) {
                 microclimate: notification.data.microclimate,
                 recipient: notification.user_id,
                 invitationLink: notification.data.link,
-                companyName: notification.data.companyName || 'Your Organization',
-                expiryDate: notification.data.expiryDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
+                companyName:
+                  notification.data.companyName || 'Your Organization',
+                expiryDate:
+                  notification.data.expiryDate ||
+                  new Date(Date.now() + 24 * 60 * 60 * 1000),
               });
               emailSent = true;
             }
@@ -110,8 +124,11 @@ export async function POST(request: NextRequest) {
                 microclimate: notification.data.microclimate,
                 recipient: notification.user_id,
                 invitationLink: notification.data.link,
-                companyName: notification.data.companyName || 'Your Organization',
-                expiryDate: notification.data.expiryDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
+                companyName:
+                  notification.data.companyName || 'Your Organization',
+                expiryDate:
+                  notification.data.expiryDate ||
+                  new Date(Date.now() + 24 * 60 * 60 * 1000),
                 reminderCount: notification.data.reminder_count || 1,
               });
               emailSent = true;
@@ -119,7 +136,9 @@ export async function POST(request: NextRequest) {
             break;
 
           default:
-            console.log(`[CRON] Unsupported notification type: ${notification.type}`);
+            console.log(
+              `[CRON] Unsupported notification type: ${notification.type}`
+            );
         }
 
         if (emailSent) {
@@ -129,7 +148,9 @@ export async function POST(request: NextRequest) {
             sent_at: new Date(),
           });
           successCount++;
-          console.log(`[CRON] ✅ Sent ${notification.type} to ${notification.user_id.email}`);
+          console.log(
+            `[CRON] ✅ Sent ${notification.type} to ${notification.user_id.email}`
+          );
         } else {
           // Mark as failed if email wasn't sent
           await (Notification as any).findByIdAndUpdate(notification._id, {
@@ -138,20 +159,23 @@ export async function POST(request: NextRequest) {
           });
           failureCount++;
         }
-
       } catch (error) {
-        console.error(`[CRON] ❌ Failed to send notification ${notification._id}:`, error);
-        
+        console.error(
+          `[CRON] ❌ Failed to send notification ${notification._id}:`,
+          error
+        );
+
         // Update notification with error
         await (Notification as any).findByIdAndUpdate(notification._id, {
           status: 'failed',
-          error_message: error instanceof Error ? error.message : 'Unknown error',
+          error_message:
+            error instanceof Error ? error.message : 'Unknown error',
         });
         failureCount++;
       }
 
       // Add small delay between emails to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     const duration = Date.now() - startTime;
@@ -168,14 +192,13 @@ export async function POST(request: NextRequest) {
     console.log('[CRON] Reminder processing complete:', result);
 
     return NextResponse.json(result);
-
   } catch (error) {
     console.error('[CRON] Error processing reminders:', error);
     return NextResponse.json(
-      { 
+      {
         success: false,
         error: 'Failed to process reminders',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -215,7 +238,6 @@ export async function GET(request: NextRequest) {
       cron_schedule: 'Every 15 minutes',
       timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error('Error checking cron status:', error);
     return NextResponse.json(

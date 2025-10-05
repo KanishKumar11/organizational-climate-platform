@@ -1,6 +1,7 @@
 # Export Functionality Implementation - Complete ✅
 
 ## Overview
+
 This document summarizes the complete implementation of export functionality (PDF, CSV) and email reminder system using Nodemailer for the Organizational Climate Platform.
 
 **Implementation Date:** January 2025  
@@ -10,6 +11,7 @@ This document summarizes the complete implementation of export functionality (PD
 ---
 
 ## 📋 Table of Contents
+
 1. [Features Implemented](#features-implemented)
 2. [Email Service Configuration](#email-service-configuration)
 3. [PDF Export Service](#pdf-export-service)
@@ -24,6 +26,7 @@ This document summarizes the complete implementation of export functionality (PD
 ## ✅ Features Implemented
 
 ### 1. **Email Notifications (Nodemailer)**
+
 - ✅ Gmail SMTP configured in `.env.local`
 - ✅ Email service ready: `src/lib/email-providers/brevo.ts`
 - ✅ Notification orchestration: `src/lib/notification-service.ts`
@@ -31,6 +34,7 @@ This document summarizes the complete implementation of export functionality (PD
 - ✅ Scheduled email processing (every 15 minutes)
 
 ### 2. **PDF Export Service**
+
 - ✅ Survey results PDF with charts and AI insights
 - ✅ Microclimate results PDF with word clouds
 - ✅ Action plan PDF with KPIs and progress tracking
@@ -38,6 +42,7 @@ This document summarizes the complete implementation of export functionality (PD
 - ✅ Multi-page reports with headers/footers
 
 ### 3. **CSV Export Service**
+
 - ✅ Survey responses in 3 formats (long, wide, summary)
 - ✅ Microclimate responses export
 - ✅ Action plan data export
@@ -46,6 +51,7 @@ This document summarizes the complete implementation of export functionality (PD
 - ✅ Statistics calculation (average, std dev, distributions)
 
 ### 4. **API Routes**
+
 - ✅ Survey PDF export: `GET /api/surveys/[id]/export/pdf`
 - ✅ Survey CSV export: `GET /api/surveys/[id]/export/csv?format=long|wide|summary`
 - ✅ Microclimate PDF export: `GET /api/microclimates/[id]/export/pdf`
@@ -61,6 +67,7 @@ This document summarizes the complete implementation of export functionality (PD
 ## 📧 Email Service Configuration
 
 ### Environment Variables (`.env.local`)
+
 ```env
 # Gmail SMTP Configuration
 SMTP_HOST=smtp.gmail.com
@@ -74,11 +81,13 @@ CRON_SECRET=your-cron-secret-key-change-in-production
 ```
 
 ### Email Service Files
+
 1. **`src/lib/email-providers/brevo.ts`** - Nodemailer transporter implementation
 2. **`src/lib/notification-service.ts`** - Email orchestration (500 lines)
 3. **`src/app/api/cron/send-reminders/route.ts`** - Automated reminder processing
 
 ### Supported Email Types
+
 - Survey invitations
 - Survey reminders
 - Microclimate invitations
@@ -90,6 +99,7 @@ CRON_SECRET=your-cron-secret-key-change-in-production
 ## 📄 PDF Export Service
 
 ### Installation
+
 ```bash
 npm install jspdf jspdf-autotable html2canvas
 npm install --save-dev @types/jspdf
@@ -98,6 +108,7 @@ npm install --save-dev @types/jspdf
 ### File: `src/lib/pdf-export-service.ts` (750 lines)
 
 ### Key Features
+
 ```typescript
 import { PDFExportService } from '@/lib/pdf-export-service';
 
@@ -134,6 +145,7 @@ const actionPlanPDF = await pdfService.exportActionPlanToPDF({
 ```
 
 ### PDF Includes
+
 - **Headers/Footers** - Company branding, page numbers
 - **Tables** - Response data, demographics, KPIs
 - **Charts** - Distribution charts (auto-table integration)
@@ -146,6 +158,7 @@ const actionPlanPDF = await pdfService.exportActionPlanToPDF({
 ## 📊 CSV Export Service
 
 ### Installation
+
 ```bash
 npm install papaparse
 npm install --save-dev @types/papaparse
@@ -156,24 +169,28 @@ npm install --save-dev @types/papaparse
 ### Export Formats
 
 #### 1. **Long Format** (One row per response)
+
 ```csv
 Response ID,Survey ID,User Name,User Email,Department,Q1,Q2,Q3...
 resp_001,survey_123,John Doe,john@example.com,Engineering,5,4,Satisfied
 ```
 
 #### 2. **Wide Format** (One column per question)
+
 ```csv
 Response ID,User Name,Department,Q1: Satisfaction,Q2: Engagement...
 resp_001,John Doe,Engineering,5,4
 ```
 
 #### 3. **Summary Format** (Statistics)
+
 ```csv
 Question #,Question Text,Response Count,Average Score,Min,Max,Std Dev
 1,Overall Satisfaction,150,4.2,1,5,0.85
 ```
 
 ### Usage
+
 ```typescript
 import { CSVExportService } from '@/lib/csv-export-service';
 
@@ -210,6 +227,7 @@ const csvPlans = csvService.exportActionPlans([actionPlan1, actionPlan2]);
 ```
 
 ### Utility Functions
+
 ```typescript
 // Client-side download helpers
 downloadCSV(csvContent, 'filename.csv');
@@ -221,7 +239,9 @@ downloadPDF(pdfBlob, 'filename.pdf');
 ## 🔌 API Routes
 
 ### Authentication & Authorization
+
 All export routes require:
+
 - ✅ Valid session (NextAuth)
 - ✅ Role-based access control
   - `super_admin` - Full access
@@ -231,6 +251,7 @@ All export routes require:
 ### 1. Survey Exports
 
 #### PDF Export
+
 ```http
 GET /api/surveys/[id]/export/pdf
 Authorization: Bearer <session-token>
@@ -241,6 +262,7 @@ Content-Disposition: attachment; filename="survey-{title}-{timestamp}.pdf"
 ```
 
 #### CSV Export
+
 ```http
 GET /api/surveys/[id]/export/csv?format=long
 GET /api/surveys/[id]/export/csv?format=wide
@@ -254,6 +276,7 @@ Content-Disposition: attachment; filename="survey-{title}-{format}-{timestamp}.c
 ### 2. Microclimate Exports
 
 #### PDF Export
+
 ```http
 GET /api/microclimates/[id]/export/pdf
 
@@ -262,6 +285,7 @@ Filename: microclimate-{title}-{timestamp}.pdf
 ```
 
 #### CSV Export
+
 ```http
 GET /api/microclimates/[id]/export/csv
 
@@ -272,6 +296,7 @@ Filename: microclimate-{title}-{timestamp}.csv
 ### 3. Action Plan Exports
 
 #### PDF Export
+
 ```http
 GET /api/action-plans/[id]/export/pdf
 
@@ -280,6 +305,7 @@ Filename: action-plan-{title}-{timestamp}.pdf
 ```
 
 #### CSV Export
+
 ```http
 GET /api/action-plans/[id]/export/csv
 
@@ -310,6 +336,7 @@ Filename: demographics-template.csv
 ## ⏰ Cron Job Configuration
 
 ### Vercel Cron Setup (`vercel.json`)
+
 ```json
 {
   "crons": [
@@ -326,6 +353,7 @@ Filename: demographics-template.csv
 ### Cron Endpoint
 
 #### POST `/api/cron/send-reminders`
+
 ```http
 POST /api/cron/send-reminders
 Authorization: Bearer <CRON_SECRET>
@@ -342,6 +370,7 @@ Response:
 ```
 
 #### GET `/api/cron/send-reminders` (Status Check)
+
 ```http
 GET /api/cron/send-reminders
 
@@ -356,6 +385,7 @@ Response:
 ```
 
 ### How It Works
+
 1. **Trigger:** Vercel cron calls `/api/cron/send-reminders` every 15 minutes
 2. **Fetch:** Query pending notifications scheduled for now or earlier
 3. **Process:** Send emails using Nodemailer (BrevoEmailService)
@@ -363,6 +393,7 @@ Response:
 5. **Rate Limiting:** 100ms delay between emails to avoid SMTP limits
 
 ### Notification Types Processed
+
 - `survey_reminder`
 - `survey_invitation`
 - `microclimate_invitation`
@@ -400,7 +431,7 @@ transporter.verify((err, success) => {
 const response = await fetch('/api/surveys/123/export/pdf');
 const blob = await response.blob();
 const url = URL.createObjectURL(blob);
-window.open(url);  // Open PDF in new tab
+window.open(url); // Open PDF in new tab
 ```
 
 ### 3. CSV Export Testing
@@ -429,6 +460,7 @@ curl http://localhost:3000/api/cron/send-reminders
 ### 5. End-to-End Testing
 
 #### Test Survey Export
+
 1. Create survey with responses
 2. Navigate to survey results page
 3. Click "Export PDF" button
@@ -437,19 +469,20 @@ curl http://localhost:3000/api/cron/send-reminders
 6. Verify CSV contains all responses
 
 #### Test Email Reminders
+
 1. Create notification in database:
    ```javascript
    db.notifications.insertOne({
-     user_id: ObjectId("..."),
-     type: "survey_reminder",
-     channel: "email",
-     status: "pending",
+     user_id: ObjectId('...'),
+     type: 'survey_reminder',
+     channel: 'email',
+     status: 'pending',
      scheduled_for: new Date(),
      data: {
-       survey: { title: "Test Survey" },
-       link: "https://example.com/survey/123",
-       companyName: "Test Co"
-     }
+       survey: { title: 'Test Survey' },
+       link: 'https://example.com/survey/123',
+       companyName: 'Test Co',
+     },
    });
    ```
 2. Wait for cron job (or trigger manually)
@@ -482,7 +515,7 @@ export function ExportButtons({ surveyId, surveyTitle }: ExportButtonsProps) {
     try {
       const response = await fetch(`/api/surveys/${surveyId}/export/pdf`);
       if (!response.ok) throw new Error('Export failed');
-      
+
       const blob = await response.blob();
       downloadPDF(blob, `${surveyTitle}-report.pdf`);
     } catch (error) {
@@ -496,9 +529,11 @@ export function ExportButtons({ surveyId, surveyTitle }: ExportButtonsProps) {
   const handleCSVExport = async (format: 'long' | 'wide' | 'summary') => {
     setIsExporting(true);
     try {
-      const response = await fetch(`/api/surveys/${surveyId}/export/csv?format=${format}`);
+      const response = await fetch(
+        `/api/surveys/${surveyId}/export/csv?format=${format}`
+      );
       if (!response.ok) throw new Error('Export failed');
-      
+
       const csvText = await response.text();
       downloadCSV(csvText, `${surveyTitle}-${format}.csv`);
     } catch (error) {
@@ -519,7 +554,7 @@ export function ExportButtons({ surveyId, surveyTitle }: ExportButtonsProps) {
         <FileText className="mr-2 h-4 w-4" />
         Export PDF
       </Button>
-      
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" disabled={isExporting}>
@@ -547,14 +582,16 @@ export function ExportButtons({ surveyId, surveyTitle }: ExportButtonsProps) {
 ### Integration Points
 
 #### 1. Survey Results Page
+
 ```tsx
 // src/app/admin/surveys/[id]/results/page.tsx
 import { ExportButtons } from '@/components/exports/export-buttons';
 
-<ExportButtons surveyId={survey.id} surveyTitle={survey.title} />
+<ExportButtons surveyId={survey.id} surveyTitle={survey.title} />;
 ```
 
 #### 2. Microclimate Dashboard
+
 ```tsx
 // src/app/admin/microclimates/[id]/page.tsx
 <Button onClick={() => handleExport('pdf')}>
@@ -563,6 +600,7 @@ import { ExportButtons } from '@/components/exports/export-buttons';
 ```
 
 #### 3. Action Plans
+
 ```tsx
 // src/app/admin/action-plans/[id]/page.tsx
 <Button onClick={() => handleExport('csv')}>
@@ -571,6 +609,7 @@ import { ExportButtons } from '@/components/exports/export-buttons';
 ```
 
 #### 4. Users Management
+
 ```tsx
 // src/app/admin/users/page.tsx
 <Button onClick={handleUserExport}>
@@ -584,7 +623,7 @@ import { ExportButtons } from '@/components/exports/export-buttons';
 
 ### ✅ **COMPLETED**
 
-1. **Email Infrastructure** 
+1. **Email Infrastructure**
    - Nodemailer configured with Gmail SMTP
    - Email service ready and tested
    - Automated reminder cron job (every 15 minutes)
@@ -617,6 +656,7 @@ import { ExportButtons } from '@/components/exports/export-buttons';
 ### 🎯 **READY FOR PRODUCTION**
 
 All export functionality is complete and ready for deployment:
+
 - ✅ Authentication & authorization
 - ✅ Error handling
 - ✅ TypeScript type safety

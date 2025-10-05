@@ -14,7 +14,8 @@ Jane Smith,jane.smith@example.com,Marketing,Marketing Manager,EMP002,40-49,Femal
     return new NextResponse(csvContent, {
       headers: {
         'Content-Type': 'text/csv;charset=utf-8',
-        'Content-Disposition': 'attachment; filename="demographics-template.csv"',
+        'Content-Disposition':
+          'attachment; filename="demographics-template.csv"',
         'Cache-Control': 'no-store',
       },
     });

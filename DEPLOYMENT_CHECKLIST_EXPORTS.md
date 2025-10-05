@@ -3,6 +3,7 @@
 ## Pre-Deployment Verification ✅
 
 ### 1. Dependencies Installed
+
 - [x] nodemailer & @types/nodemailer
 - [x] jspdf & @types/jspdf
 - [x] jspdf-autotable
@@ -10,11 +11,13 @@
 - [x] papaparse & @types/papaparse
 
 **Verify:**
+
 ```bash
 npm list nodemailer jspdf jspdf-autotable html2canvas papaparse
 ```
 
 ### 2. Environment Variables
+
 - [ ] `SMTP_HOST` - Gmail SMTP (smtp.gmail.com)
 - [ ] `SMTP_PORT` - Port 587
 - [ ] `SMTP_SECURE` - false (use TLS)
@@ -23,6 +26,7 @@ npm list nodemailer jspdf jspdf-autotable html2canvas papaparse
 - [ ] `CRON_SECRET` - Random secure key for cron authentication
 
 **Create `.env.local`:**
+
 ```env
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
@@ -33,6 +37,7 @@ CRON_SECRET=change-this-to-random-secure-key-in-production
 ```
 
 **How to get Gmail App Password:**
+
 1. Go to Google Account Settings
 2. Security → 2-Step Verification (enable if not already)
 3. App Passwords → Generate new app password
@@ -41,6 +46,7 @@ CRON_SECRET=change-this-to-random-secure-key-in-production
 6. Paste into SMTP_PASSWORD
 
 ### 3. File Structure Check
+
 ```
 src/
 ├── lib/
@@ -76,12 +82,15 @@ vercel.json                            ✅ (Cron configuration)
 ```
 
 ### 4. TypeScript Compilation
+
 ```bash
 npm run build
 ```
+
 Expected output: ✅ No errors
 
 ### 5. Code Quality
+
 - [x] No TypeScript errors
 - [x] All routes have authentication
 - [x] All routes have authorization (role-based)
@@ -93,6 +102,7 @@ Expected output: ✅ No errors
 ## Deployment Steps
 
 ### Step 1: Commit Changes
+
 ```bash
 git add .
 git commit -m "feat: implement PDF/CSV export and email reminder system
@@ -106,6 +116,7 @@ git commit -m "feat: implement PDF/CSV export and email reminder system
 ```
 
 ### Step 2: Push to Repository
+
 ```bash
 git push origin main
 ```
@@ -113,32 +124,36 @@ git push origin main
 ### Step 3: Deploy to Vercel
 
 #### Option A: Auto-Deploy (Recommended)
+
 1. Vercel will automatically deploy on push to main
 2. Go to Vercel Dashboard → Your Project
 3. Wait for deployment to complete
 
 #### Option B: Manual Deploy
+
 ```bash
 vercel --prod
 ```
 
 ### Step 4: Configure Environment Variables in Vercel
+
 1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
 2. Add the following variables:
 
-| Variable | Value | Environment |
-|----------|-------|-------------|
-| `SMTP_HOST` | smtp.gmail.com | Production |
-| `SMTP_PORT` | 587 | Production |
-| `SMTP_SECURE` | false | Production |
-| `SMTP_USER` | kanishkkumra@gmail.com | Production |
-| `SMTP_PASSWORD` | your-gmail-app-password | Production |
-| `CRON_SECRET` | random-secure-key-123 | Production |
+| Variable        | Value                   | Environment |
+| --------------- | ----------------------- | ----------- |
+| `SMTP_HOST`     | smtp.gmail.com          | Production  |
+| `SMTP_PORT`     | 587                     | Production  |
+| `SMTP_SECURE`   | false                   | Production  |
+| `SMTP_USER`     | kanishkkumra@gmail.com  | Production  |
+| `SMTP_PASSWORD` | your-gmail-app-password | Production  |
+| `CRON_SECRET`   | random-secure-key-123   | Production  |
 
 3. Click "Save"
 4. Redeploy the application for changes to take effect
 
 ### Step 5: Verify Cron Job
+
 1. Go to Vercel Dashboard → Your Project → Cron Jobs
 2. You should see: `/api/cron/send-reminders` scheduled for every 15 minutes
 3. Check "Last Execution" to ensure it's running
@@ -149,12 +164,14 @@ vercel --prod
 ## Testing Checklist
 
 ### 1. Email Service Test
+
 ```bash
 # Test SMTP connection
 curl -X GET https://your-domain.vercel.app/api/cron/send-reminders
 ```
 
 Expected response:
+
 ```json
 {
   "status": "active",
@@ -168,6 +185,7 @@ Expected response:
 ### 2. PDF Export Test
 
 #### Survey PDF
+
 ```bash
 curl -X GET "https://your-domain.vercel.app/api/surveys/SURVEY_ID/export/pdf" \
   -H "Cookie: next-auth.session-token=YOUR_SESSION_TOKEN" \
@@ -175,6 +193,7 @@ curl -X GET "https://your-domain.vercel.app/api/surveys/SURVEY_ID/export/pdf" \
 ```
 
 #### Microclimate PDF
+
 ```bash
 curl -X GET "https://your-domain.vercel.app/api/microclimates/MICRO_ID/export/pdf" \
   -H "Cookie: next-auth.session-token=YOUR_SESSION_TOKEN" \
@@ -182,6 +201,7 @@ curl -X GET "https://your-domain.vercel.app/api/microclimates/MICRO_ID/export/pd
 ```
 
 #### Action Plan PDF
+
 ```bash
 curl -X GET "https://your-domain.vercel.app/api/action-plans/PLAN_ID/export/pdf" \
   -H "Cookie: next-auth.session-token=YOUR_SESSION_TOKEN" \
@@ -191,6 +211,7 @@ curl -X GET "https://your-domain.vercel.app/api/action-plans/PLAN_ID/export/pdf"
 ### 3. CSV Export Test
 
 #### Survey CSV (All Formats)
+
 ```bash
 # Long format
 curl -X GET "https://your-domain.vercel.app/api/surveys/SURVEY_ID/export/csv?format=long" \
@@ -209,6 +230,7 @@ curl -X GET "https://your-domain.vercel.app/api/surveys/SURVEY_ID/export/csv?for
 ```
 
 #### Users Export (Admin Only)
+
 ```bash
 curl -X GET "https://your-domain.vercel.app/api/users/export/csv" \
   -H "Cookie: next-auth.session-token=YOUR_ADMIN_SESSION_TOKEN" \
@@ -218,12 +240,14 @@ curl -X GET "https://your-domain.vercel.app/api/users/export/csv" \
 ### 4. Cron Job Test
 
 #### Manual Trigger
+
 ```bash
 curl -X POST "https://your-domain.vercel.app/api/cron/send-reminders" \
   -H "Authorization: Bearer YOUR_CRON_SECRET"
 ```
 
 Expected response:
+
 ```json
 {
   "success": true,
@@ -236,6 +260,7 @@ Expected response:
 ```
 
 ### 5. Frontend UI Test
+
 - [ ] Survey results page has export buttons
 - [ ] PDF export button downloads correct file
 - [ ] CSV export dropdown shows 3 format options
@@ -248,7 +273,9 @@ Expected response:
 - [ ] Export works in Safari
 
 ### 6. Email Reminder Test
+
 1. Create a test notification:
+
 ```javascript
 // In MongoDB or via API
 {
@@ -278,37 +305,46 @@ Expected response:
 ## Monitoring & Maintenance
 
 ### 1. Monitor Cron Job Execution
+
 **Vercel Dashboard:**
+
 - Go to Deployments → Functions → Cron Jobs
 - Check execution history
 - Review error logs
 
 **Database Check:**
+
 ```javascript
 // Count pending notifications
-db.notifications.countDocuments({ status: "pending", channel: "email" })
+db.notifications.countDocuments({ status: 'pending', channel: 'email' });
 
 // Check recent sent notifications
-db.notifications.find({ status: "sent" }).sort({ sent_at: -1 }).limit(10)
+db.notifications.find({ status: 'sent' }).sort({ sent_at: -1 }).limit(10);
 
 // Check failed notifications
-db.notifications.find({ status: "failed" }).sort({ created_at: -1 })
+db.notifications.find({ status: 'failed' }).sort({ created_at: -1 });
 ```
 
 ### 2. Email Delivery Monitoring
+
 - Check Gmail "Sent" folder for sent emails
 - Monitor bounce rates
 - Review spam complaints
 - Check SMTP rate limits (Gmail: 500/day for free, 2000/day for Workspace)
 
 ### 3. Export Usage Analytics
+
 Track export usage with custom logging:
+
 ```typescript
 // Add to export routes
-console.log(`[EXPORT] ${format} export by user ${userId} at ${new Date().toISOString()}`);
+console.log(
+  `[EXPORT] ${format} export by user ${userId} at ${new Date().toISOString()}`
+);
 ```
 
 ### 4. Performance Monitoring
+
 - PDF generation time (should be < 5 seconds)
 - CSV generation time (should be < 2 seconds)
 - Email sending time (should be < 1 second per email)
@@ -319,33 +355,41 @@ console.log(`[EXPORT] ${format} export by user ${userId} at ${new Date().toISOSt
 ## Troubleshooting Guide
 
 ### Issue: PDF Export Returns 500 Error
+
 **Possible Causes:**
+
 1. Survey not found → Check survey ID
 2. No responses → Add test responses
 3. jsPDF dependency missing → Run `npm install`
 4. Memory limit exceeded → Reduce data size or increase Vercel function memory
 
 **Debug:**
+
 ```bash
 # Check Vercel function logs
 vercel logs --follow
 ```
 
 ### Issue: CSV Download Has Garbled Characters
+
 **Solution:**
 Ensure UTF-8 encoding:
+
 ```typescript
 const csvContent = '\uFEFF' + csvService.exportSurveyResponses(data);
 ```
 
 ### Issue: Email Not Sending
+
 **Possible Causes:**
+
 1. Wrong SMTP credentials → Verify Gmail app password
 2. 2FA not enabled → Enable 2-Step Verification
 3. "Less secure apps" blocked → Use app password instead
 4. Rate limit exceeded → Check Gmail limits (500/day free, 2000/day Workspace)
 
 **Debug:**
+
 ```bash
 # Test SMTP connection
 node -e "
@@ -363,13 +407,16 @@ transporter.verify().then(console.log).catch(console.error);
 ```
 
 ### Issue: Cron Job Not Running
+
 **Possible Causes:**
+
 1. `vercel.json` not in root → Move to project root
 2. Vercel cron not enabled → Check Vercel plan (Pro+ required)
 3. Wrong path in cron config → Verify `/api/cron/send-reminders`
 4. Authorization failing → Check `CRON_SECRET` matches
 
 **Debug:**
+
 ```bash
 # Check cron configuration
 cat vercel.json
@@ -381,8 +428,10 @@ curl -X POST https://your-domain.vercel.app/api/cron/send-reminders \
 ```
 
 ### Issue: Authentication Failed
+
 **Solution:**
 Ensure NextAuth session is valid:
+
 ```typescript
 // Check session in API route
 const session = await getServerSession(authOptions);
@@ -396,17 +445,20 @@ console.log('Session:', session);
 If deployment fails or issues occur:
 
 ### Option 1: Revert Git Commit
+
 ```bash
 git revert HEAD
 git push origin main
 ```
 
 ### Option 2: Redeploy Previous Version
+
 1. Go to Vercel Dashboard → Deployments
 2. Find last working deployment
 3. Click "..." → "Promote to Production"
 
 ### Option 3: Disable Cron Job
+
 1. Comment out cron configuration in `vercel.json`
 2. Redeploy
 
@@ -460,10 +512,12 @@ Deployment is successful when:
 ## Support Contacts
 
 **Technical Issues:**
+
 - Vercel Support: https://vercel.com/support
 - GitHub Issues: Create issue in repository
 
 **Documentation:**
+
 - Full Guide: `EXPORT_FUNCTIONALITY_COMPLETE.md`
 - Summary: `EXPORT_IMPLEMENTATION_SUMMARY.md`
 - Frontend: `src/components/exports/export-buttons.tsx`

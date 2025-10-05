@@ -10,7 +10,7 @@ import { CSVExportService } from '@/lib/csv-export-service';
 /**
  * GET /api/microclimates/[id]/export/csv
  * Export microclimate responses as CSV
- * 
+ *
  * Query params:
  * - format: 'long' (default), 'wide', or 'summary'
  */
@@ -32,7 +32,10 @@ export async function GET(
     const format = searchParams.get('format') || 'long';
 
     if (!['long', 'wide', 'summary'].includes(format)) {
-      return NextResponse.json({ error: 'Invalid format. Use: long, wide, or summary' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid format. Use: long, wide, or summary' },
+        { status: 400 }
+      );
     }
 
     // Fetch microclimate
@@ -42,7 +45,10 @@ export async function GET(
       .lean();
 
     if (!microclimate) {
-      return NextResponse.json({ error: 'Microclimate not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Microclimate not found' },
+        { status: 404 }
+      );
     }
 
     // Check permissions
@@ -110,7 +116,10 @@ export async function GET(
   } catch (error) {
     console.error('Error exporting microclimate to CSV:', error);
     return NextResponse.json(
-      { error: 'Failed to export microclimate', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to export microclimate',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

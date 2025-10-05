@@ -8,7 +8,7 @@ import { CSVExportService } from '@/lib/csv-export-service';
 /**
  * GET /api/users/export/csv
  * Export users list as CSV
- * 
+ *
  * Only accessible to super_admin and company_admin
  */
 export async function GET(request: NextRequest) {
@@ -22,7 +22,10 @@ export async function GET(request: NextRequest) {
 
     // Check permissions - only admins can export users
     const currentUser = await (User as any).findById(session.user.id);
-    if (currentUser.role !== 'super_admin' && currentUser.role !== 'company_admin') {
+    if (
+      currentUser.role !== 'super_admin' &&
+      currentUser.role !== 'company_admin'
+    ) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
@@ -35,7 +38,9 @@ export async function GET(request: NextRequest) {
     // Fetch users
     const users = await (User as any)
       .find(query)
-      .select('name email role department position employee_id phone status created_at last_login demographics')
+      .select(
+        'name email role department position employee_id phone status created_at last_login demographics'
+      )
       .lean();
 
     // Prepare CSV data
@@ -61,7 +66,9 @@ export async function GET(request: NextRequest) {
 
     // Return CSV file
     const timestamp = Date.now();
-    const companySlug = currentUser.company_id?.name?.replace(/[^a-z0-9]/gi, '-').toLowerCase() || 'users';
+    const companySlug =
+      currentUser.company_id?.name?.replace(/[^a-z0-9]/gi, '-').toLowerCase() ||
+      'users';
     const filename = `${companySlug}-users-export-${timestamp}.csv`;
 
     return new NextResponse(csvContent, {
@@ -74,7 +81,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error exporting users to CSV:', error);
     return NextResponse.json(
-      { error: 'Failed to export users', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to export users',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

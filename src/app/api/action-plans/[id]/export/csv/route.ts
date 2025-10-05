@@ -32,7 +32,10 @@ export async function GET(
       .lean();
 
     if (!actionPlan) {
-      return NextResponse.json({ error: 'Action plan not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Action plan not found' },
+        { status: 404 }
+      );
     }
 
     // Check permissions
@@ -62,7 +65,10 @@ export async function GET(
   } catch (error) {
     console.error('Error exporting action plan to CSV:', error);
     return NextResponse.json(
-      { error: 'Failed to export action plan', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to export action plan',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

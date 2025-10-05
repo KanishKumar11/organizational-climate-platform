@@ -53,7 +53,8 @@ export async function GET(
     // Calculate statistics
     const responseCount = responses.length;
     const targetCount = survey.target_users?.length || 0;
-    const completionRate = targetCount > 0 ? (responseCount / targetCount) * 100 : 0;
+    const completionRate =
+      targetCount > 0 ? (responseCount / targetCount) * 100 : 0;
 
     // Prepare question data
     const questionData = survey.questions.map((question: any) => {
@@ -71,7 +72,9 @@ export async function GET(
         .filter((s: any): s is number => typeof s === 'number');
 
       const averageScore =
-        scores.length > 0 ? scores.reduce((sum, s) => sum + s, 0) / scores.length : undefined;
+        scores.length > 0
+          ? scores.reduce((sum, s) => sum + s, 0) / scores.length
+          : undefined;
 
       // Calculate distribution
       const distribution: Record<string, number> = {};
@@ -102,7 +105,8 @@ export async function GET(
       survey.demographics.forEach((demo: any) => {
         const distribution: Record<string, number> = {};
         responses.forEach((r: any) => {
-          const demoValue = r.demographics?.[demo.field_name] || 'Not Specified';
+          const demoValue =
+            r.demographics?.[demo.field_name] || 'Not Specified';
           distribution[demoValue] = (distribution[demoValue] || 0) + 1;
         });
 
@@ -114,12 +118,13 @@ export async function GET(
     }
 
     // Prepare AI insights (if available)
-    const insights = survey.ai_insights?.map((insight: any) => ({
-      category: insight.category || 'General',
-      insight: insight.insight || insight.message,
-      confidence: insight.confidence || 0.5,
-      priority: insight.priority || 'medium',
-    })) || [];
+    const insights =
+      survey.ai_insights?.map((insight: any) => ({
+        category: insight.category || 'General',
+        insight: insight.insight || insight.message,
+        confidence: insight.confidence || 0.5,
+        priority: insight.priority || 'medium',
+      })) || [];
 
     // Prepare PDF data
     const pdfData: SurveyPDFData = {
@@ -159,7 +164,10 @@ export async function GET(
   } catch (error) {
     console.error('Error exporting survey to PDF:', error);
     return NextResponse.json(
-      { error: 'Failed to export survey', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to export survey',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

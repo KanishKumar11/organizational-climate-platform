@@ -5,7 +5,10 @@ import { connectDB } from '@/lib/db';
 import { Microclimate } from '@/models/Microclimate';
 import { Response } from '@/models/Response';
 import { User } from '@/models/User';
-import { exportMicroclimateToPDF, MicroclimatePDFData } from '@/lib/pdf-export-service';
+import {
+  exportMicroclimateToPDF,
+  MicroclimatePDFData,
+} from '@/lib/pdf-export-service';
 
 /**
  * GET /api/microclimates/[id]/export/pdf
@@ -31,7 +34,10 @@ export async function GET(
       .lean();
 
     if (!microclimate) {
-      return NextResponse.json({ error: 'Microclimate not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Microclimate not found' },
+        { status: 404 }
+      );
     }
 
     // Check permissions
@@ -88,7 +94,8 @@ export async function GET(
         response_count: microclimate.response_count || responses.length,
         participation_rate: microclimate.participation_rate || 0,
         sentiment_score: microclimate.live_results?.sentiment_score || 0,
-        engagement_level: microclimate.live_results?.engagement_level || 'medium',
+        engagement_level:
+          microclimate.live_results?.engagement_level || 'medium',
       },
       wordCloud: microclimate.live_results?.word_cloud_data || [],
       questions: questionData,
@@ -115,7 +122,10 @@ export async function GET(
   } catch (error) {
     console.error('Error exporting microclimate to PDF:', error);
     return NextResponse.json(
-      { error: 'Failed to export microclimate', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to export microclimate',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

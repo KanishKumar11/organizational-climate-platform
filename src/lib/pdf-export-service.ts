@@ -1,6 +1,6 @@
 /**
  * PDF Export Service
- * 
+ *
  * Comprehensive PDF generation for surveys, microclimates, action plans, and reports
  * Uses jsPDF with auto-table for structured data export
  */
@@ -145,9 +145,15 @@ export class PDFExportService {
     this.addKeyValue('Status', data.survey.status);
     this.addKeyValue('Start Date', this.formatDate(data.survey.start_date));
     this.addKeyValue('End Date', this.formatDate(data.survey.end_date));
-    this.addKeyValue('Responses', `${data.survey.response_count}${data.survey.target_count ? ` / ${data.survey.target_count}` : ''}`);
+    this.addKeyValue(
+      'Responses',
+      `${data.survey.response_count}${data.survey.target_count ? ` / ${data.survey.target_count}` : ''}`
+    );
     if (data.survey.completion_rate) {
-      this.addKeyValue('Completion Rate', `${data.survey.completion_rate.toFixed(1)}%`);
+      this.addKeyValue(
+        'Completion Rate',
+        `${data.survey.completion_rate.toFixed(1)}%`
+      );
     }
 
     if (data.survey.description) {
@@ -158,7 +164,7 @@ export class PDFExportService {
     // Questions Summary
     this.addPageBreak();
     this.addSection('Questions Summary');
-    
+
     const questionTableData = data.questions.map((q, index) => [
       (index + 1).toString(),
       this.truncate(q.text, 80),
@@ -183,14 +189,16 @@ export class PDFExportService {
     if (data.demographics && data.demographics.length > 0) {
       this.addPageBreak();
       this.addSection('Demographics Breakdown');
-      
+
       data.demographics.forEach((demo) => {
         this.addSubsection(demo.field);
-        const demoData = Object.entries(demo.distribution).map(([key, value]) => [
-          key,
-          value.toString(),
-          `${((value / data.survey.response_count) * 100).toFixed(1)}%`,
-        ]);
+        const demoData = Object.entries(demo.distribution).map(
+          ([key, value]) => [
+            key,
+            value.toString(),
+            `${((value / data.survey.response_count) * 100).toFixed(1)}%`,
+          ]
+        );
 
         autoTable(this.doc, {
           startY: this.currentY,
@@ -216,7 +224,11 @@ export class PDFExportService {
         this.addSpacing(3);
         this.doc.setFontSize(11);
         this.doc.setFont('helvetica', 'bold');
-        this.doc.text(`${index + 1}. ${insight.category}`, this.margin, this.currentY);
+        this.doc.text(
+          `${index + 1}. ${insight.category}`,
+          this.margin,
+          this.currentY
+        );
         this.currentY += 5;
 
         this.doc.setFont('helvetica', 'normal');
@@ -256,20 +268,28 @@ export class PDFExportService {
     this.addSection('Overview');
     this.addKeyValue('Status', data.microclimate.status);
     this.addKeyValue('Responses', data.microclimate.response_count.toString());
-    this.addKeyValue('Participation Rate', `${data.microclimate.participation_rate.toFixed(1)}%`);
-    this.addKeyValue('Sentiment Score', this.formatSentiment(data.microclimate.sentiment_score));
+    this.addKeyValue(
+      'Participation Rate',
+      `${data.microclimate.participation_rate.toFixed(1)}%`
+    );
+    this.addKeyValue(
+      'Sentiment Score',
+      this.formatSentiment(data.microclimate.sentiment_score)
+    );
     this.addKeyValue('Engagement Level', data.microclimate.engagement_level);
 
     // Word Cloud Data
     if (data.wordCloud && data.wordCloud.length > 0) {
       this.addSpacing(10);
       this.addSection('Top Themes');
-      
-      const wordCloudData = data.wordCloud.slice(0, 20).map((word, index) => [
-        (index + 1).toString(),
-        word.text,
-        word.value.toString(),
-      ]);
+
+      const wordCloudData = data.wordCloud
+        .slice(0, 20)
+        .map((word, index) => [
+          (index + 1).toString(),
+          word.text,
+          word.value.toString(),
+        ]);
 
       autoTable(this.doc, {
         startY: this.currentY,
@@ -291,7 +311,7 @@ export class PDFExportService {
 
       data.questions.forEach((q, qIndex) => {
         this.addSubsection(`Q${qIndex + 1}: ${this.truncate(q.question, 100)}`);
-        
+
         const responseData = q.responses.map((r) => [
           r.option,
           r.count.toString(),
@@ -321,13 +341,17 @@ export class PDFExportService {
 
       data.aiInsights.forEach((insight, index) => {
         this.addSpacing(3);
-        
+
         // Priority badge
         this.doc.setFillColor(...this.getPriorityColor(insight.priority));
         this.doc.rect(this.margin, this.currentY - 3, 15, 5, 'F');
         this.doc.setTextColor(255);
         this.doc.setFontSize(8);
-        this.doc.text(insight.priority.toUpperCase(), this.margin + 1, this.currentY);
+        this.doc.text(
+          insight.priority.toUpperCase(),
+          this.margin + 1,
+          this.currentY
+        );
         this.doc.setTextColor(0);
 
         // Insight text
@@ -358,7 +382,10 @@ export class PDFExportService {
     this.addKeyValue('Status', data.actionPlan.status);
     this.addKeyValue('Priority', data.actionPlan.priority);
     this.addKeyValue('Due Date', this.formatDate(data.actionPlan.due_date));
-    this.addKeyValue('Overall Progress', `${data.actionPlan.progress_percentage.toFixed(1)}%`);
+    this.addKeyValue(
+      'Overall Progress',
+      `${data.actionPlan.progress_percentage.toFixed(1)}%`
+    );
 
     if (data.actionPlan.description) {
       this.addSpacing(5);
@@ -400,16 +427,28 @@ export class PDFExportService {
         this.addSpacing(3);
         this.doc.setFontSize(11);
         this.doc.setFont('helvetica', 'bold');
-        this.doc.text(`${index + 1}. ${this.truncate(obj.description, 100)}`, this.margin, this.currentY);
+        this.doc.text(
+          `${index + 1}. ${this.truncate(obj.description, 100)}`,
+          this.margin,
+          this.currentY
+        );
         this.currentY += 5;
 
         this.doc.setFont('helvetica', 'normal');
         this.doc.setFontSize(9);
         this.doc.setTextColor(100);
-        this.doc.text(`Success Criteria: ${obj.success_criteria}`, this.margin + 5, this.currentY);
+        this.doc.text(
+          `Success Criteria: ${obj.success_criteria}`,
+          this.margin + 5,
+          this.currentY
+        );
         this.currentY += 5;
 
-        this.doc.text(`Completion: ${obj.completion_percentage.toFixed(1)}%`, this.margin + 5, this.currentY);
+        this.doc.text(
+          `Completion: ${obj.completion_percentage.toFixed(1)}%`,
+          this.margin + 5,
+          this.currentY
+        );
         this.doc.setTextColor(0);
         this.currentY += 7;
       });
@@ -451,7 +490,10 @@ export class PDFExportService {
   /**
    * Export HTML element to PDF (for charts/visualizations)
    */
-  async exportHTMLElement(elementId: string, filename: string = 'export.pdf'): Promise<Blob> {
+  async exportHTMLElement(
+    elementId: string,
+    filename: string = 'export.pdf'
+  ): Promise<Blob> {
     const element = document.getElementById(elementId);
     if (!element) {
       throw new Error(`Element with id '${elementId}' not found`);
@@ -467,7 +509,14 @@ export class PDFExportService {
     const imgWidth = this.pageWidth - 2 * this.margin;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    this.doc.addImage(imgData, 'PNG', this.margin, this.margin, imgWidth, imgHeight);
+    this.doc.addImage(
+      imgData,
+      'PNG',
+      this.margin,
+      this.margin,
+      imgWidth,
+      imgHeight
+    );
 
     return this.doc.output('blob');
   }
@@ -535,7 +584,7 @@ export class PDFExportService {
     this.doc.setFontSize(10);
     this.doc.setFont('helvetica', 'bold');
     this.doc.text(`${key}:`, this.margin, this.currentY);
-    
+
     this.doc.setFont('helvetica', 'normal');
     this.doc.text(value, this.margin + 50, this.currentY);
     this.currentY += 5;
@@ -544,7 +593,10 @@ export class PDFExportService {
   private addText(text: string, fontSize: number = 10): void {
     this.doc.setFontSize(fontSize);
     this.doc.setFont('helvetica', 'normal');
-    const lines = this.doc.splitTextToSize(text, this.pageWidth - 2 * this.margin);
+    const lines = this.doc.splitTextToSize(
+      text,
+      this.pageWidth - 2 * this.margin
+    );
     this.doc.text(lines, this.margin, this.currentY);
     this.currentY += lines.length * 5;
   }
@@ -564,14 +616,14 @@ export class PDFExportService {
 
   private addFooter(): void {
     const pageCount = (this.doc as any).internal.getNumberOfPages();
-    
+
     for (let i = 1; i <= pageCount; i++) {
       this.doc.setPage(i);
-      
+
       this.doc.setFontSize(8);
       this.doc.setTextColor(150);
       this.doc.setFont('helvetica', 'normal');
-      
+
       // Page number
       this.doc.text(
         `Page ${i} of ${pageCount}`,
@@ -579,14 +631,14 @@ export class PDFExportService {
         this.pageHeight - 10,
         { align: 'center' }
       );
-      
+
       // Generated timestamp
       this.doc.text(
         `Generated: ${new Date().toLocaleString()}`,
         this.margin,
         this.pageHeight - 10
       );
-      
+
       // Company name
       if (this.options.companyName) {
         this.doc.text(
@@ -641,7 +693,9 @@ export class PDFExportService {
   }
 
   private truncate(text: string, maxLength: number): string {
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + '...'
+      : text;
   }
 
   private getProgressBar(percentage: number): string {

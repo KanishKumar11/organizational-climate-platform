@@ -1,6 +1,6 @@
 /**
  * CSV Export Service
- * 
+ *
  * Comprehensive CSV generation for surveys, responses, users, and analytics data
  * Uses papaparse for robust CSV handling
  */
@@ -103,8 +103,8 @@ export class CSVExportService {
         'User ID': response.userId,
         'User Name': response.userName,
         'User Email': response.userEmail,
-        'Department': response.department || 'N/A',
-        'Position': response.position || 'N/A',
+        Department: response.department || 'N/A',
+        Position: response.position || 'N/A',
         'Submitted At': this.formatDate(response.submittedAt),
         'Time to Complete (min)': response.timeToComplete
           ? (response.timeToComplete / 60).toFixed(1)
@@ -156,8 +156,8 @@ export class CSVExportService {
         'Response ID': response.responseId,
         'User Name': response.userName,
         'User Email': response.userEmail,
-        'Department': response.department || 'N/A',
-        'Position': response.position || 'N/A',
+        Department: response.department || 'N/A',
+        Position: response.position || 'N/A',
         'Submitted At': this.formatDate(response.submittedAt),
       };
 
@@ -170,7 +170,9 @@ export class CSVExportService {
 
       // Add answers
       response.answers.forEach((answer) => {
-        const questionIndex = questions.findIndex((q) => q.id === answer.questionId);
+        const questionIndex = questions.findIndex(
+          (q) => q.id === answer.questionId
+        );
         const qNum = questionIndex !== -1 ? questionIndex + 1 : '?';
         row[`Q${qNum}: ${this.truncate(answer.questionText, 50)}`] =
           this.formatAnswer(answer.answer);
@@ -202,7 +204,8 @@ export class CSVExportService {
         'Question Text': a.questionText,
         'Question Type': a.questionType,
         'Response Count': allAnswers.length,
-        'Average Score': scores.length > 0 ? this.average(scores).toFixed(2) : 'N/A',
+        'Average Score':
+          scores.length > 0 ? this.average(scores).toFixed(2) : 'N/A',
         'Min Score': scores.length > 0 ? Math.min(...scores) : 'N/A',
         'Max Score': scores.length > 0 ? Math.max(...scores) : 'N/A',
         'Std Dev': scores.length > 0 ? this.stdDev(scores).toFixed(2) : 'N/A',
@@ -244,14 +247,14 @@ export class CSVExportService {
   exportUsers(data: UserCSVData): string {
     const flattenedData = data.users.map((user) => ({
       'User ID': user.id,
-      'Name': user.name,
-      'Email': user.email,
-      'Role': user.role,
-      'Department': user.department || 'N/A',
-      'Position': user.position || 'N/A',
+      Name: user.name,
+      Email: user.email,
+      Role: user.role,
+      Department: user.department || 'N/A',
+      Position: user.position || 'N/A',
       'Employee ID': user.employeeId || 'N/A',
-      'Phone': user.phone || 'N/A',
-      'Status': user.status,
+      Phone: user.phone || 'N/A',
+      Status: user.status,
       'Created At': this.formatDate(user.createdAt),
       'Last Login': user.lastLogin ? this.formatDate(user.lastLogin) : 'Never',
     }));
@@ -285,15 +288,15 @@ export class CSVExportService {
   exportActionPlans(actionPlans: Array<any>): string {
     const flattenedData = actionPlans.map((plan) => ({
       'Action Plan ID': plan.id || plan._id,
-      'Title': plan.title,
-      'Description': plan.description || 'N/A',
-      'Status': plan.status,
-      'Priority': plan.priority,
+      Title: plan.title,
+      Description: plan.description || 'N/A',
+      Status: plan.status,
+      Priority: plan.priority,
       'Due Date': this.formatDate(plan.due_date),
       'Progress %': plan.progress_percentage?.toFixed(1) || '0.0',
       'Created By': plan.created_by?.name || 'Unknown',
       'Assigned To': plan.assigned_to?.name || 'Unassigned',
-      'Department': plan.department_id?.name || 'N/A',
+      Department: plan.department_id?.name || 'N/A',
       'KPI Count': plan.kpis?.length || 0,
       'Created At': this.formatDate(plan.created_at),
       'Updated At': this.formatDate(plan.updated_at),
@@ -348,7 +351,9 @@ export class CSVExportService {
   }
 
   private truncate(text: string, maxLength: number): string {
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + '...'
+      : text;
   }
 
   private average(numbers: number[]): number {
@@ -373,7 +378,7 @@ export function exportSurveyToCSV(
   options?: CSVExportOptions
 ): string {
   const service = new CSVExportService(options);
-  
+
   switch (format) {
     case 'wide':
       return service.exportSurveyResponsesWide(data);
@@ -404,7 +409,7 @@ export function downloadCSV(csvContent: string, filename: string): void {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
-  
+
   link.setAttribute('href', url);
   link.setAttribute('download', filename);
   link.style.visibility = 'hidden';
@@ -416,7 +421,7 @@ export function downloadCSV(csvContent: string, filename: string): void {
 export function downloadPDF(blob: Blob, filename: string): void {
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
-  
+
   link.setAttribute('href', url);
   link.setAttribute('download', filename);
   link.style.visibility = 'hidden';

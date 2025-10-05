@@ -1,6 +1,6 @@
 /**
  * Frontend Export Integration Examples
- * 
+ *
  * These are ready-to-use React components for integrating export functionality
  * into your frontend pages.
  */
@@ -58,7 +58,10 @@ interface SurveyExportButtonsProps {
   surveyTitle: string;
 }
 
-export function SurveyExportButtons({ surveyId, surveyTitle }: SurveyExportButtonsProps) {
+export function SurveyExportButtons({
+  surveyId,
+  surveyTitle,
+}: SurveyExportButtonsProps) {
   const [isExporting, setIsExporting] = useState(false);
 
   const handlePDFExport = async () => {
@@ -85,7 +88,9 @@ export function SurveyExportButtons({ surveyId, surveyTitle }: SurveyExportButto
   const handleCSVExport = async (format: 'long' | 'wide' | 'summary') => {
     setIsExporting(true);
     try {
-      const response = await fetch(`/api/surveys/${surveyId}/export/csv?format=${format}`);
+      const response = await fetch(
+        `/api/surveys/${surveyId}/export/csv?format=${format}`
+      );
       if (!response.ok) {
         throw new Error(`Export failed: ${response.statusText}`);
       }
@@ -136,19 +141,25 @@ export function SurveyExportButtons({ surveyId, surveyTitle }: SurveyExportButto
           <DropdownMenuItem onClick={() => handleCSVExport('long')}>
             <div>
               <div className="font-medium">Long Format</div>
-              <div className="text-xs text-muted-foreground">One row per response</div>
+              <div className="text-xs text-muted-foreground">
+                One row per response
+              </div>
             </div>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleCSVExport('wide')}>
             <div>
               <div className="font-medium">Wide Format</div>
-              <div className="text-xs text-muted-foreground">One column per question</div>
+              <div className="text-xs text-muted-foreground">
+                One column per question
+              </div>
             </div>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleCSVExport('summary')}>
             <div>
               <div className="font-medium">Summary Statistics</div>
-              <div className="text-xs text-muted-foreground">Aggregated data only</div>
+              <div className="text-xs text-muted-foreground">
+                Aggregated data only
+              </div>
             </div>
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -175,7 +186,9 @@ export function MicroclimateExportButtons({
   const handleExport = async (format: 'pdf' | 'csv') => {
     setIsExporting(true);
     try {
-      const response = await fetch(`/api/microclimates/${microclimateId}/export/${format}`);
+      const response = await fetch(
+        `/api/microclimates/${microclimateId}/export/${format}`
+      );
       if (!response.ok) {
         throw new Error(`Export failed: ${response.statusText}`);
       }
@@ -193,7 +206,9 @@ export function MicroclimateExportButtons({
       toast.success(`${format.toUpperCase()} exported successfully`);
     } catch (error) {
       console.error(`${format.toUpperCase()} export error:`, error);
-      toast.error(`Failed to export ${format.toUpperCase()}. Please try again.`);
+      toast.error(
+        `Failed to export ${format.toUpperCase()}. Please try again.`
+      );
     } finally {
       setIsExporting(false);
     }
@@ -249,7 +264,9 @@ export function ActionPlanExportButtons({
   const handleExport = async (format: 'pdf' | 'csv') => {
     setIsExporting(true);
     try {
-      const response = await fetch(`/api/action-plans/${actionPlanId}/export/${format}`);
+      const response = await fetch(
+        `/api/action-plans/${actionPlanId}/export/${format}`
+      );
       if (!response.ok) {
         throw new Error(`Export failed: ${response.statusText}`);
       }
@@ -267,7 +284,9 @@ export function ActionPlanExportButtons({
       toast.success(`${format.toUpperCase()} exported successfully`);
     } catch (error) {
       console.error(`${format.toUpperCase()} export error:`, error);
-      toast.error(`Failed to export ${format.toUpperCase()}. Please try again.`);
+      toast.error(
+        `Failed to export ${format.toUpperCase()}. Please try again.`
+      );
     } finally {
       setIsExporting(false);
     }
@@ -334,7 +353,12 @@ export function UsersExportButton() {
   };
 
   return (
-    <Button onClick={handleExport} disabled={isExporting} variant="outline" size="sm">
+    <Button
+      onClick={handleExport}
+      disabled={isExporting}
+      variant="outline"
+      size="sm"
+    >
       {isExporting ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
@@ -373,7 +397,12 @@ export function DemographicsTemplateButton() {
   };
 
   return (
-    <Button onClick={handleDownload} disabled={isDownloading} variant="outline" size="sm">
+    <Button
+      onClick={handleDownload}
+      disabled={isDownloading}
+      variant="outline"
+      size="sm"
+    >
       {isDownloading ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
@@ -390,7 +419,7 @@ export function DemographicsTemplateButton() {
 
 /**
  * Example 1: Survey Results Page
- * 
+ *
  * File: src/app/admin/surveys/[id]/results/page.tsx
  */
 /*
@@ -413,7 +442,7 @@ export default async function SurveyResultsPage({ params }: { params: { id: stri
 
 /**
  * Example 2: Microclimate Dashboard
- * 
+ *
  * File: src/app/admin/microclimates/[id]/page.tsx
  */
 /*
@@ -439,7 +468,7 @@ export default async function MicroclimatePage({ params }: { params: { id: strin
 
 /**
  * Example 3: Action Plan Details
- * 
+ *
  * File: src/app/admin/action-plans/[id]/page.tsx
  */
 /*
@@ -465,7 +494,7 @@ export default async function ActionPlanPage({ params }: { params: { id: string 
 
 /**
  * Example 4: Users Management Page
- * 
+ *
  * File: src/app/admin/users/page.tsx
  */
 /*
@@ -486,7 +515,7 @@ export default async function UsersPage() {
 
 /**
  * Example 5: Demographics Import Page
- * 
+ *
  * File: src/app/admin/demographics/import/page.tsx
  */
 /*
