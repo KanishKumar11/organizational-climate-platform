@@ -160,6 +160,12 @@ export async function POST(request: NextRequest) {
             session.user.companyId
           );
 
+          // Populate the report with actual data
+          await ReportService.populateReportWithData(
+            report._id.toString(),
+            reportData
+          );
+
           // In a real implementation, you would generate the actual file here
           const filePath = `/reports/${report._id}.${format}`;
           const fileSize = 1024 * 1024; // Mock file size
@@ -183,5 +189,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-

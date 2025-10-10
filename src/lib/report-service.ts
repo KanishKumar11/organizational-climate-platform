@@ -198,6 +198,292 @@ export class ReportService {
   }
 
   /**
+   * Populate report with actual data from surveys and responses
+   */
+  static async populateReportWithData(
+    reportId: string,
+    reportData: IReportData
+  ): Promise<void> {
+    const Report = (await import('@/models/Report')).default;
+
+    try {
+      // Calculate metrics from responses
+      const metrics = this.calculateMetrics(reportData);
+
+      // Calculate demographics from responses
+      const demographics = this.calculateDemographics(reportData);
+
+      // Get AI insights
+      const insights = this.formatAIInsights(reportData.ai_insights);
+
+      // Generate recommendations
+      const recommendations = this.generateRecommendations(reportData, metrics);
+
+      // Calculate metadata
+      const metadata = {
+        responseCount: reportData.responses.length,
+        totalSurveys: reportData.surveys.length,
+        totalResponses: reportData.responses.length,
+        averageCompletionTime: this.calculateAverageCompletionTime(
+          reportData.responses
+        ),
+      };
+
+      // Set date range from filters or surveys
+      const dateRange = this.calculateDateRange(
+        reportData.surveys,
+        reportData.responses
+      );
+
+      // Update the report with populated data
+      await Report.findByIdAndUpdate(reportId, {
+        metrics,
+        demographics,
+        insights,
+        recommendations,
+        metadata,
+        dateRange,
+        sections: ['overview', 'demographics', 'insights', 'recommendations'],
+      });
+    } catch (error) {
+      console.error('Error populating report with data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Calculate metrics from survey responses
+   */
+  private static calculateMetrics(reportData: IReportData): any {
+    const responses = reportData.responses;
+    const surveys = reportData.surveys;
+
+    if (responses.length === 0) {
+      return {
+        engagementScore: 0,
+        responseRate: 0,
+        satisfaction: 0,
+        completionRate: 0,
+        participationRate: 0,
+      };
+    }
+
+    // Calculate response rate
+    const totalInvited = surveys.reduce(
+      (sum, survey) => sum + (survey.target_audience_count || 0),
+      0
+    );
+    const responseRate =
+      totalInvited > 0 ? (responses.length / totalInvited) * 100 : 0;
+
+    // Calculate satisfaction (average of satisfaction scores)
+    const satisfactionScores = responses
+      .map((r) => {
+        // Look for satisfaction-type responses by checking response_value ranges
+        const satisfactionResponse = r.responses?.find((resp) => {
+          const value = resp.response_value;
+          return typeof value === 'number' && value >= 1 && value <= 10;
+        });
+        return satisfactionResponse?.response_value;
+      })
+      .filter((score) => typeof score === 'number')
+      .map((score) => Number(score));
+
+    const satisfaction =
+      satisfactionScores.length > 0
+        ? satisfactionScores.reduce((sum, score) => sum + score, 0) /
+          satisfactionScores.length
+        : 0;
+
+    // Calculate engagement score (based on completion rate and response quality)
+    const completedResponses = responses.filter((r) => r.is_complete);
+    const completionRate =
+      responses.length > 0
+        ? (completedResponses.length / responses.length) * 100
+        : 0;
+
+    // Simple engagement score calculation
+    const engagementScore = Math.min(
+      100,
+      responseRate * 0.4 + completionRate * 0.3 + satisfaction * 0.3
+    );
+
+    return {
+      engagementScore: Math.round(engagementScore),
+      responseRate: Math.round(responseRate),
+      satisfaction: Math.round(satisfaction),
+      completionRate: Math.round(completionRate),
+      participationRate: Math.round(responseRate),
+    };
+  }
+
+  /**
+   * Calculate demographics from responses
+   */
+  private static calculateDemographics(reportData: IReportData): any {
+    const responses = reportData.responses;
+
+    if (responses.length === 0) {
+      return {
+        departments: [],
+        roles: [],
+        locations: [],
+      };
+    }
+
+    // Calculate department breakdown
+    const departmentCounts: { [key: string]: number } = {};
+    responses.forEach((response) => {
+      if (response.department_id) {
+        departmentCounts[response.department_id] =
+          (departmentCounts[response.department_id] || 0) + 1;
+      }
+    });
+
+    const departments = Object.entries(departmentCounts).map(
+      ([name, count]) => ({
+        name,
+        count,
+        percentage: Math.round((count / responses.length) * 100),
+      })
+    );
+
+    // Calculate role breakdown (if available in user data)
+    const roleCounts: { [key: string]: number } = {};
+    responses.forEach((response) => {
+      if (response.user_id && reportData.users) {
+        const user = reportData.users.find((u) => u._id === response.user_id);
+        if (user?.role) {
+          roleCounts[user.role] = (roleCounts[user.role] || 0) + 1;
+        }
+      }
+    });
+
+    const roles = Object.entries(roleCounts).map(([name, count]) => ({
+      name,
+      count,
+      percentage: Math.round((count / responses.length) * 100),
+    }));
+
+    return {
+      departments,
+      roles,
+      locations: [], // TODO: Add location data if available
+    };
+  }
+
+  /**
+   * Format AI insights for display
+   */
+  private static formatAIInsights(aiInsights: IAIInsight[]): any[] {
+    return aiInsights.map((insight) => ({
+      id: insight._id?.toString() || Math.random().toString(36).substr(2, 9),
+      title: insight.title || 'AI Insight',
+      description: insight.description || 'No description available',
+      priority: insight.priority || 'medium',
+      category: insight.category || 'general',
+      recommendedActions: insight.recommended_actions || [],
+      confidence: insight.confidence_score || 0.8,
+    }));
+  }
+
+  /**
+   * Generate recommendations based on data
+   */
+  private static generateRecommendations(
+    reportData: IReportData,
+    metrics: any
+  ): any[] {
+    const recommendations = [];
+
+    // Low response rate recommendation
+    if (metrics.responseRate < 30) {
+      recommendations.push({
+        title: 'Improve Survey Participation',
+        description:
+          'Response rate is below 30%. Consider sending reminders, offering incentives, or making surveys shorter.',
+        impact: 'high',
+        effort: 'medium',
+        category: 'engagement',
+      });
+    }
+
+    // Low satisfaction recommendation
+    if (metrics.satisfaction < 3) {
+      recommendations.push({
+        title: 'Address Satisfaction Concerns',
+        description:
+          'Overall satisfaction is low. Focus on identifying and addressing key pain points.',
+        impact: 'high',
+        effort: 'high',
+        category: 'satisfaction',
+      });
+    }
+
+    // High engagement recommendation
+    if (metrics.engagementScore > 80) {
+      recommendations.push({
+        title: 'Maintain High Engagement',
+        description:
+          'Great engagement levels! Continue current practices and consider expanding successful initiatives.',
+        impact: 'medium',
+        effort: 'low',
+        category: 'engagement',
+      });
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Calculate average completion time
+   */
+  private static calculateAverageCompletionTime(
+    responses: IResponse[]
+  ): number {
+    const completionTimes = responses
+      .map((r) => r.completion_time)
+      .filter((time) => time)
+      .map((time) => new Date(time).getTime());
+
+    if (completionTimes.length === 0) return 0;
+
+    const average =
+      completionTimes.reduce((sum, time) => sum + time, 0) /
+      completionTimes.length;
+    return Math.round(average / 1000 / 60); // Convert to minutes
+  }
+
+  /**
+   * Calculate date range from surveys and responses
+   */
+  private static calculateDateRange(
+    surveys: ISurvey[],
+    responses: IResponse[]
+  ): any {
+    const allDates = [
+      ...surveys.map((s) => s.start_date),
+      ...surveys.map((s) => s.end_date),
+      ...responses.map((r) => r.completion_time),
+    ].filter((date) => date);
+
+    if (allDates.length === 0) {
+      return {
+        start: new Date().toISOString().split('T')[0],
+        end: new Date().toISOString().split('T')[0],
+      };
+    }
+
+    const sortedDates = allDates.sort();
+    return {
+      start: new Date(sortedDates[0]).toISOString().split('T')[0],
+      end: new Date(sortedDates[sortedDates.length - 1])
+        .toISOString()
+        .split('T')[0],
+    };
+  }
+
+  /**
    * Generate chart data from report data
    */
   static generateChartData(

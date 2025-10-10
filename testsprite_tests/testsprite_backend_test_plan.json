@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "post apiauthregister user registration",
+    "description": "Test the user registration endpoint to ensure it correctly registers a new user with valid email, password, name, and role. Verify that invalid inputs are rejected with appropriate error messages."
+  },
+  {
+    "id": "TC002",
+    "title": "get apiadminusers list users with filters",
+    "description": "Test the user listing endpoint with pagination, search, role, and department filters to verify it returns the correct subset of users and handles edge cases like empty results."
+  },
+  {
+    "id": "TC003",
+    "title": "post apiadminusers create new user",
+    "description": "Test the user creation endpoint to ensure it creates a new user with valid name, email, role, and department_id, and returns success status."
+  },
+  {
+    "id": "TC004",
+    "title": "put apiadminusersid update user by id",
+    "description": "Test updating a user by ID to verify that user details can be modified correctly and the response confirms the update."
+  },
+  {
+    "id": "TC005",
+    "title": "delete apiadminusersid delete user by id",
+    "description": "Test deleting a user by ID to ensure the user is removed from the system and the response confirms deletion."
+  },
+  {
+    "id": "TC006",
+    "title": "get apiadmincompanies list all companies",
+    "description": "Test the endpoint to list all companies and verify it returns the complete and correct list."
+  },
+  {
+    "id": "TC007",
+    "title": "post apiadmincompanies create new company",
+    "description": "Test creating a new company with valid name, industry, and size, and verify the company is created successfully."
+  },
+  {
+    "id": "TC008",
+    "title": "get apiadmindepartments list all departments",
+    "description": "Test the endpoint to list all departments and verify it returns the complete and correct list."
+  },
+  {
+    "id": "TC009",
+    "title": "post apiadmindepartments create new department",
+    "description": "Test creating a new department with valid name, company_id, and optional parent_id, and verify the department is created successfully."
+  },
+  {
+    "id": "TC010",
+    "title": "get apidashboardcompanyadmin get company admin dashboard data",
+    "description": "Test the company admin dashboard data endpoint to verify it returns relevant surveys, participation metrics, and recent activity data for the company admin role."
+  }
+]

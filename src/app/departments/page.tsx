@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from '@/contexts/TranslationContext';
 
 import { useAuth } from '@/hooks/useAuth';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -21,6 +22,8 @@ import {
 export default function DepartmentsPage() {
   const [departmentStats, setDepartmentStats] =
     useState<DepartmentStats | null>(null);
+  const t = useTranslations('departments');
+  const common = useTranslations('common');
   const numberFormatter = useMemo(() => new Intl.NumberFormat('en-US'), []);
   const formatValue = (value: number | null | undefined) =>
     value === null || value === undefined
@@ -42,39 +45,39 @@ export default function DepartmentsPage() {
   const headerCards = [
     {
       key: 'structure',
-      label: 'Structure Overview',
+      label: t('structureOverview'),
       value: formatValue(departmentStats?.total),
       icon: Building2,
       iconBg: 'bg-blue-100',
       iconColor: 'text-blue-600',
       subtitle:
         departmentStats && activePercent !== null
-          ? `${formatValue(departmentStats.active)} active (${activePercent}%) · ${formatValue(departmentStats.inactive)} inactive`
+          ? `${formatValue(departmentStats.active)} ${t('active')} (${activePercent}%) · ${formatValue(departmentStats.inactive)} ${t('inactive')}`
           : departmentStats
-            ? `${formatValue(departmentStats.active)} active · ${formatValue(departmentStats.inactive)} inactive`
-            : 'Syncing data…',
+            ? `${formatValue(departmentStats.active)} ${t('active')} · ${formatValue(departmentStats.inactive)} ${t('inactive')}`
+            : t('syncingData'),
       footer:
         departmentStats && departmentStats.maxLevel !== undefined
-          ? `Max depth: ${formatValue(departmentStats.maxLevel)}`
+          ? `${t('maxDepth')} ${formatValue(departmentStats.maxLevel)}`
           : null,
     },
     {
       key: 'workforce',
-      label: 'People & Coverage',
+      label: t('peopleCoverage'),
       value: formatValue(departmentStats?.totalUsers),
       icon: Users,
       iconBg: 'bg-purple-100',
       iconColor: 'text-purple-600',
       subtitle:
         departmentStats && averageTeamSize !== null
-          ? `Avg ${formatValue(averageTeamSize)} per department`
-          : 'No assignments yet',
+          ? `${t('avg')} ${formatValue(averageTeamSize)} ${t('perDepartment')}`
+          : t('noAssignmentsYet'),
       footer:
         managedPercent !== null
-          ? `${managedPercent}% managed (${formatValue(
+          ? `${managedPercent}% ${t('managed')} (${formatValue(
               departmentStats?.withManagers
-            )} teams)`
-          : 'Assign managers to departments',
+            )} ${t('teams')})`
+          : t('assignManagersDepartments'),
     },
   ];
 
@@ -88,7 +91,7 @@ export default function DepartmentsPage() {
           <div className="flex flex-col items-center gap-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             <p className="text-sm text-muted-foreground">
-              Loading department management...
+              {t('loadingDepartmentManagement')}
             </p>
           </div>
         </div>
@@ -104,14 +107,13 @@ export default function DepartmentsPage() {
             <CardContent className="p-12 text-center">
               <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
               <h3 className="text-xl font-semibold text-foreground mb-3">
-                Authentication Required
+                {t('authenticationRequired')}
               </h3>
               <p className="text-muted-foreground mb-6">
-                Please log in to access department management features.
+                {t('loginAccessDepartment')}
               </p>
               <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
-                Secure access ensures proper authorization for organizational
-                data.
+                {t('secureAccess')}
               </div>
             </CardContent>
           </Card>
@@ -134,25 +136,23 @@ export default function DepartmentsPage() {
                 <AlertCircle className="h-16 w-16 text-amber-600" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">
-                Access Restricted
+                {t('accessRestricted')}
               </h3>
               <p className="text-muted-foreground mb-6">
-                You don&rsquo;t have the necessary permissions to manage
-                departments. Contact your system administrator to request
-                access.
+                {t('noPermissionsDepartments')}
               </p>
               <div className="bg-muted p-4 rounded-lg text-left">
                 <h4 className="font-medium text-sm mb-2">
-                  Required Permissions:
+                  {t('requiredPermissions')}
                 </h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Super Administrator</li>
-                  <li>• Company Administrator</li>
-                  <li>• Department Management Rights</li>
+                  <li>• {t('superAdministrator')}</li>
+                  <li>• {t('companyAdministrator')}</li>
+                  <li>• {t('departmentManagementRights')}</li>
                 </ul>
               </div>
               <div className="mt-6 text-xs text-muted-foreground">
-                Current Role:{' '}
+                {t('currentRole')}{' '}
                 <span className="font-medium capitalize">
                   {user.role.replace('_', ' ')}
                 </span>
@@ -175,7 +175,7 @@ export default function DepartmentsPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Department Management</BreadcrumbPage>
+              <BreadcrumbPage>{t('departmentManagement')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -191,10 +191,10 @@ export default function DepartmentsPage() {
                 </div>
                 <div className="space-y-2">
                   <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-                    Department Management
+                    {t('departmentManagement')}
                   </h1>
                   <p className="text-lg text-gray-600 max-w-2xl">
-                    Organize your company structure, manage hierarchies, and
+                    {t('organizeCompanyStructure')}
                     oversee departmental operations with powerful tools and
                     insights.
                   </p>
@@ -202,7 +202,7 @@ export default function DepartmentsPage() {
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Users className="h-4 w-4" />
                       <span>
-                        Role:{' '}
+                        {t('role')}{' '}
                         <span className="font-medium capitalize">
                           {user.role.replace('_', ' ')}
                         </span>
@@ -210,12 +210,12 @@ export default function DepartmentsPage() {
                     </div>
                     {user.role === 'super_admin' && (
                       <div className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                        Global Access
+                        {t('globalAccess')}
                       </div>
                     )}
                     {user.role === 'company_admin' && (
                       <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                        Company Scope
+                        {t('companyScope')}
                       </div>
                     )}
                   </div>
@@ -272,63 +272,63 @@ export default function DepartmentsPage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  Department Management Guidelines
+                  {t('departmentManagementGuidelines')}
                 </h3>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-800">
-                      Structure Best Practices
+                      {t('structureBestPractices')}
                     </h4>
                     <ul className="space-y-2 text-sm text-gray-600">
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                        Keep hierarchy levels reasonable (3-4 max)
+                        {t('keepHierarchyReasonable')}
                       </li>
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                        Use clear, descriptive department names
+                        {t('clearDescriptiveNames')}
                       </li>
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                        Assign managers to maintain accountability
+                        {t('assignManagersAccountability')}
                       </li>
                     </ul>
                   </div>
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-800">
-                      User Management
+                      {t('userManagement')}
                     </h4>
                     <ul className="space-y-2 text-sm text-gray-600">
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                        Regularly review department assignments
+                        {t('reviewAssignments')}
                       </li>
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                        Use bulk operations for efficiency
+                        {t('bulkOperations')}
                       </li>
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                        Monitor department size and balance
+                        {t('monitorDepartmentSize')}
                       </li>
                     </ul>
                   </div>
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-800">
-                      Security & Compliance
+                      {t('securityCompliance')}
                     </h4>
                     <ul className="space-y-2 text-sm text-gray-600">
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                        Maintain proper access controls
+                        {t('maintainAccessControls')}
                       </li>
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                        Document organizational changes
+                        {t('documentChanges')}
                       </li>
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                        Regular structure audits recommended
+                        {t('regularAudits')}
                       </li>
                     </ul>
                   </div>

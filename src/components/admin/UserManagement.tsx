@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslations } from '@/contexts/TranslationContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,6 +135,8 @@ const ROLE_COLORS = {
 export default function UserManagement({ onStatsChange }: UserManagementProps) {
   const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
   const { success, error } = useToast();
+  const t = useTranslations('users');
+  const common = useTranslations('common');
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1042,7 +1045,7 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-2">
-                  Name
+                  {t('name')}
                   {getSortIcon('name')}
                 </div>
               </TableHead>
@@ -1051,7 +1054,7 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
                 onClick={() => handleSort('email')}
               >
                 <div className="flex items-center gap-2">
-                  Email
+                  {t('email')}
                   {getSortIcon('email')}
                 </div>
               </TableHead>
@@ -1060,7 +1063,7 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
                 onClick={() => handleSort('role')}
               >
                 <div className="flex items-center gap-2">
-                  Role
+                  {t('role')}
                   {getSortIcon('role')}
                 </div>
               </TableHead>
@@ -1069,7 +1072,7 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
                 onClick={() => handleSort('department_name')}
               >
                 <div className="flex items-center gap-2">
-                  Department
+                  {t('department')}
                   {getSortIcon('department_name')}
                 </div>
               </TableHead>
@@ -1078,7 +1081,7 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
                 onClick={() => handleSort('is_active')}
               >
                 <div className="flex items-center gap-2">
-                  Status
+                  {t('status')}
                   {getSortIcon('is_active')}
                 </div>
               </TableHead>
@@ -1087,11 +1090,11 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
                 onClick={() => handleSort('created_at')}
               >
                 <div className="flex items-center gap-2">
-                  Created
+                  {common('created')}
                   {getSortIcon('created_at')}
                 </div>
               </TableHead>
-              <TableHead className="w-12">Actions</TableHead>
+              <TableHead className="w-12">{common('actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1223,8 +1226,8 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600">Manage users, roles, and permissions</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+          <p className="text-gray-600">{t('manageUsersDescription')}</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -1238,19 +1241,19 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
             {isExporting ? (
               <>
                 <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                Exporting...
+                {common('exporting')}
               </>
             ) : (
               <>
                 <Download className="w-4 h-4 mr-2" />
-                Export
+                {common('export')}
               </>
             )}
           </Button>
           <UsersExportButton />
           <Button onClick={() => setShowAddUserModal(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            Add User
+            {t('addUser')}
           </Button>
         </div>
       </div>
@@ -1320,9 +1323,9 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
         <CardHeader className="pb-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <CardTitle className="text-2xl">User Management</CardTitle>
+              <CardTitle className="text-2xl">{t('title')}</CardTitle>
               <p className="text-muted-foreground mt-1">
-                Manage users, roles, and permissions across your organization
+                {t('manageUsersDescription')}
               </p>
             </div>
 
@@ -1333,7 +1336,7 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
                 className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add User
+                {t('addUser')}
               </Button>
 
               <DropdownMenu>
@@ -1353,19 +1356,19 @@ export default function UserManagement({ onStatsChange }: UserManagementProps) {
                     {isExporting ? (
                       <>
                         <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                        Exporting...
+                        {common('exporting')}
                       </>
                     ) : (
                       <>
                         <Download className="h-4 w-4 mr-2" />
-                        Export Users
+                        {t('exportUsers')}
                       </>
                     )}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer">
                     <Settings className="h-4 w-4 mr-2" />
-                    Settings
+                    {common('settings')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

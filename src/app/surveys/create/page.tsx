@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslations } from '@/contexts/TranslationContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,6 +58,8 @@ import {
 export default function CreateSurveyPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const t = useTranslations('surveys');
+  const common = useTranslations('common');
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');

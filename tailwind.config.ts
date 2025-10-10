@@ -9,10 +9,11 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        body: ['var(--font-roboto)', 'system-ui', 'sans-serif'],
-        data: ['var(--font-roboto)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-montserrat)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-montserrat)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-montserrat)', 'system-ui', 'sans-serif'],
+        data: ['var(--font-montserrat)', 'system-ui', 'sans-serif'],
+        montserrat: ['var(--font-montserrat)', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         xs: ['0.75rem', { lineHeight: '1rem' }],

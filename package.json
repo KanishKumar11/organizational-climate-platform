@@ -55,7 +55,9 @@
     "test:full-system": "npm run test:integration && npm run verify:deployment",
     "seed:users": "tsx --env-file=.env.local src/scripts/user-role-permission-seeding.ts",
     "create:super-admin": "tsx --env-file=.env.local src/scripts/user-role-permission-seeding.ts create-super-admin",
-    "audit:permissions": "tsx --env-file=.env.local src/scripts/user-role-permission-seeding.ts audit"
+    "audit:permissions": "tsx --env-file=.env.local src/scripts/user-role-permission-seeding.ts audit",
+    "setup:test-user": "tsx --env-file=.env.local src/scripts/setup-test-user.ts",
+    "verify:translations": "tsx src/scripts/verify-translations.ts"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",

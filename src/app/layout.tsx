@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
-import { Inter, Roboto } from 'next/font/google';
+import { Inter, Roboto, Montserrat } from 'next/font/google';
 import './globals.css';
 import SessionProvider from '../components/providers/SessionProvider';
 import { PWAProvider } from '../components/providers/PWAProvider';
 import { QueryProvider } from '../components/providers/QueryProvider';
+import { TranslationProvider } from '../contexts/TranslationContext';
 import { Toaster } from '../components/ui/sonner';
 
 const inter = Inter({
@@ -16,6 +17,13 @@ const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
   subsets: ['latin'],
   variable: '--font-roboto',
+  display: 'swap',
+});
+
+const montserrat = Montserrat({
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-montserrat',
   display: 'swap',
 });
 
@@ -40,11 +48,15 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Climate Survey" />
       </head>
-      <body className={`${inter.variable} ${roboto.variable} font-sans`}>
+      <body
+        className={`${inter.variable} ${roboto.variable} ${montserrat.variable} font-sans`}
+      >
         <SessionProvider>
           <QueryProvider>
-            <PWAProvider>{children}</PWAProvider>
-            <Toaster />
+            <TranslationProvider>
+              <PWAProvider>{children}</PWAProvider>
+              <Toaster />
+            </TranslationProvider>
           </QueryProvider>
         </SessionProvider>
       </body>

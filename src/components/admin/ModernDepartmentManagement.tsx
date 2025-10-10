@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslations } from '@/contexts/TranslationContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -119,6 +120,8 @@ type SortOrder = 'asc' | 'desc';
 export default function ModernDepartmentManagement({
   onStatsChange,
 }: ModernDepartmentManagementProps) {
+  const t = useTranslations('departments');
+  const common = useTranslations('common');
   // State Management
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -186,11 +189,11 @@ export default function ModernDepartmentManagement({
         const firstLevelIds = hierarchicalDepartments.map((d) => d._id);
         setExpandedDepartments(new Set(firstLevelIds));
       } else {
-        setErrorMessage('Failed to load departments. Please try again.');
+        setErrorMessage(t('failedLoadDepartments'));
       }
     } catch (error) {
       console.error('Error fetching departments:', error);
-      setErrorMessage('An error occurred while loading departments.');
+      setErrorMessage(t('errorOccurredLoading'));
     } finally {
       setLoading(false);
     }
@@ -311,7 +314,7 @@ export default function ModernDepartmentManagement({
     },
     {
       key: 'active',
-      label: 'Active Departments',
+      label: t('activeDepartments'),
       value: stats.active,
       icon: CheckCircle,
       iconBg: 'bg-emerald-500/10',
@@ -326,7 +329,7 @@ export default function ModernDepartmentManagement({
     },
     {
       key: 'inactive',
-      label: 'Inactive Departments',
+      label: t('inactiveDepartments'),
       value: stats.inactive,
       icon: Clock,
       iconBg: 'bg-amber-500/10',
@@ -341,7 +344,7 @@ export default function ModernDepartmentManagement({
     },
     {
       key: 'employees',
-      label: 'Employees Assigned',
+      label: t('averageUsersPerDepartment'),
       value: stats.totalUsers,
       icon: Users,
       iconBg: 'bg-purple-500/10',
@@ -359,7 +362,7 @@ export default function ModernDepartmentManagement({
     },
     {
       key: 'levels',
-      label: 'Hierarchy Depth',
+      label: t('maxHierarchyDepth'),
       value: stats.maxLevel,
       icon: BarChart3,
       iconBg: 'bg-orange-500/10',
@@ -418,7 +421,7 @@ export default function ModernDepartmentManagement({
       });
 
       if (response.ok) {
-        setSuccessMessage('Department created successfully!');
+        setSuccessMessage(t('departmentCreated'));
         setShowCreateDialog(false);
         resetForm();
         fetchDepartments();
@@ -428,7 +431,7 @@ export default function ModernDepartmentManagement({
       }
     } catch (error) {
       console.error('Error creating department:', error);
-      setErrorMessage('An error occurred while creating the department');
+      setErrorMessage(t('failedCreateDepartment'));
     } finally {
       setIsSubmitting(false);
     }
@@ -459,7 +462,7 @@ export default function ModernDepartmentManagement({
       );
 
       if (response.ok) {
-        setSuccessMessage('Department updated successfully!');
+        setSuccessMessage(t('departmentUpdated'));
         setShowEditDialog(false);
         setEditingDepartment(null);
         resetForm();
@@ -470,7 +473,7 @@ export default function ModernDepartmentManagement({
       }
     } catch (error) {
       console.error('Error updating department:', error);
-      setErrorMessage('An error occurred while updating the department');
+      setErrorMessage(t('failedUpdateDepartment'));
     } finally {
       setIsSubmitting(false);
     }
@@ -489,7 +492,7 @@ export default function ModernDepartmentManagement({
       );
 
       if (response.ok) {
-        setSuccessMessage('Department deleted successfully!');
+        setSuccessMessage(t('departmentDeleted'));
         setShowDeleteDialog(false);
         setDeletingDepartment(null);
         fetchDepartments();
@@ -499,7 +502,7 @@ export default function ModernDepartmentManagement({
       }
     } catch (error) {
       console.error('Error deleting department:', error);
-      setErrorMessage('An error occurred while deleting the department');
+      setErrorMessage(t('failedDeleteDepartment'));
     } finally {
       setIsSubmitting(false);
     }
@@ -509,15 +512,15 @@ export default function ModernDepartmentManagement({
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      errors.name = 'Department name is required';
+      errors.name = t('departmentNameRequired');
     } else if (formData.name.length < 2) {
-      errors.name = 'Department name must be at least 2 characters';
+      errors.name = t('departmentNameMinLength');
     } else if (formData.name.length > 100) {
-      errors.name = 'Department name must be less than 100 characters';
+      errors.name = t('departmentNameMaxLength');
     }
 
     if (formData.description && formData.description.length > 500) {
-      errors.description = 'Description must be less than 500 characters';
+      errors.description = t('descriptionMaxLength');
     }
 
     setFormErrors(errors);
@@ -1264,7 +1267,7 @@ export default function ModernDepartmentManagement({
         <div className="flex flex-col items-center gap-4">
           <Loading />
           <p className="text-sm text-muted-foreground">
-            Loading departments...
+            {t('loadingDepartments')}
           </p>
         </div>
       </div>
@@ -1338,9 +1341,11 @@ export default function ModernDepartmentManagement({
         <CardHeader className="pb-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <CardTitle className="text-2xl">Department Structure</CardTitle>
+              <CardTitle className="text-2xl">
+                {t('departmentStructure')}
+              </CardTitle>
               <p className="text-muted-foreground mt-1">
-                Manage your organizational hierarchy and department settings
+                {t('manageOrganizationalHierarchy')}
               </p>
             </div>
 
@@ -1351,7 +1356,7 @@ export default function ModernDepartmentManagement({
                 className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Department
+                {t('addDepartment')}
               </Button>
 
               <DropdownMenu>
@@ -1361,20 +1366,20 @@ export default function ModernDepartmentManagement({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <Download className="h-4 w-4 mr-2" />
-                    Export Structure
+                    {t('exportStructure')}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Upload className="h-4 w-4 mr-2" />
-                    Import Departments
+                    {t('importDepartments')}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <Settings className="h-4 w-4 mr-2" />
-                    Settings
+                    {t('settings')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -1389,7 +1394,7 @@ export default function ModernDepartmentManagement({
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search departments..."
+                  placeholder={t('searchDepartments')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -1437,7 +1442,7 @@ export default function ModernDepartmentManagement({
                   className="cursor-pointer"
                 />
                 <Label htmlFor="show-inactive" className="text-sm">
-                  Show inactive
+                  {t('showInactive')}
                 </Label>
               </div>
 
@@ -1449,10 +1454,10 @@ export default function ModernDepartmentManagement({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="name">Name</SelectItem>
-                  <SelectItem value="user_count">Users</SelectItem>
-                  <SelectItem value="created_at">Created</SelectItem>
-                  <SelectItem value="level">Level</SelectItem>
+                  <SelectItem value="name">{t('name')}</SelectItem>
+                  <SelectItem value="user_count">{t('users')}</SelectItem>
+                  <SelectItem value="created_at">{t('created')}</SelectItem>
+                  <SelectItem value="level">{t('level')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1463,8 +1468,10 @@ export default function ModernDepartmentManagement({
             <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">
-                  {selectedDepartments.size} department
-                  {selectedDepartments.size !== 1 ? 's' : ''} selected
+                  {selectedDepartments.size}{' '}
+                  {selectedDepartments.size === 1
+                    ? t('departmentSelected')
+                    : t('departmentsSelected')}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -1474,15 +1481,15 @@ export default function ModernDepartmentManagement({
                   onClick={clearSelection}
                   className="cursor-pointer"
                 >
-                  Clear
+                  {t('clear')}
                 </Button>
                 <Button variant="outline" size="sm" className="cursor-pointer">
                   <Archive className="h-4 w-4 mr-2" />
-                  Archive
+                  {t('archive')}
                 </Button>
                 <Button variant="outline" size="sm" className="cursor-pointer">
                   <Move className="h-4 w-4 mr-2" />
-                  Move
+                  {t('move')}
                 </Button>
                 <Button
                   variant="destructive"
@@ -1490,7 +1497,7 @@ export default function ModernDepartmentManagement({
                   className="cursor-pointer"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  {t('delete')}
                 </Button>
               </div>
             </div>
@@ -1504,11 +1511,11 @@ export default function ModernDepartmentManagement({
                   <Building className="h-8 w-8 text-gray-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No departments found
+                  {t('noDepartmentsFound')}
                 </h3>
                 <p className="text-gray-600 mb-6 max-w-md">
                   {searchQuery
-                    ? 'No departments match your search criteria. Try adjusting your filters.'
+                    ? t('tryAdjustingFilters')
                     : 'Get started by creating your first department to organize your company structure.'}
                 </p>
                 {!searchQuery && (
@@ -1575,22 +1582,22 @@ export default function ModernDepartmentManagement({
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Create New Department</DialogTitle>
+            <DialogTitle>{t('createNewDepartment')}</DialogTitle>
             <DialogDescription>
-              Add a new department to your organizational structure.
+              {t('addNewDepartmentStructure')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Department Name *</Label>
+              <Label htmlFor="name">{t('departmentName')} *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                placeholder="Enter department name"
+                placeholder={t('enterDepartmentName')}
                 className={formErrors.name ? 'border-red-500' : ''}
               />
               {formErrors.name && (
@@ -1599,14 +1606,14 @@ export default function ModernDepartmentManagement({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('description')}</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                placeholder="Enter department description (optional)"
+                placeholder={t('enterDepartmentDescription')}
                 rows={3}
                 className={formErrors.description ? 'border-red-500' : ''}
               />
@@ -1616,7 +1623,7 @@ export default function ModernDepartmentManagement({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="parent">Parent Department</Label>
+              <Label htmlFor="parent">{t('parentDepartment')}</Label>
               <Select
                 value={formData.parent_department_id}
                 onValueChange={(value) =>
@@ -1624,10 +1631,10 @@ export default function ModernDepartmentManagement({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select parent department (optional)" />
+                  <SelectValue placeholder={t('selectParentDepartment')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="root">No Parent (Root Level)</SelectItem>
+                  <SelectItem value="root">{t('noParentRootLevel')}</SelectItem>
                   {flattenDepartments(departments).map((dept) => (
                     <SelectItem key={dept._id} value={dept._id}>
                       {'  '.repeat(dept.hierarchy.level)}
@@ -1648,7 +1655,7 @@ export default function ModernDepartmentManagement({
               }}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               onClick={handleCreateDepartment}
@@ -1658,12 +1665,12 @@ export default function ModernDepartmentManagement({
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Creating...
+                  {t('creating')}
                 </>
               ) : (
                 <>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Department
+                  {t('createDepartment')}
                 </>
               )}
             </Button>
@@ -1675,22 +1682,22 @@ export default function ModernDepartmentManagement({
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Edit Department</DialogTitle>
+            <DialogTitle>{t('editDepartment')}</DialogTitle>
             <DialogDescription>
-              Update department information and settings.
+              {t('updateDepartmentInformation')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Department Name *</Label>
+              <Label htmlFor="edit-name">{t('departmentName')} *</Label>
               <Input
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                placeholder="Enter department name"
+                placeholder={t('enterDepartmentName')}
                 className={formErrors.name ? 'border-red-500' : ''}
               />
               {formErrors.name && (
@@ -1699,14 +1706,14 @@ export default function ModernDepartmentManagement({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
+              <Label htmlFor="edit-description">{t('description')}</Label>
               <Textarea
                 id="edit-description"
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                placeholder="Enter department description (optional)"
+                placeholder={t('enterDepartmentDescription')}
                 rows={3}
                 className={formErrors.description ? 'border-red-500' : ''}
               />
@@ -1716,7 +1723,7 @@ export default function ModernDepartmentManagement({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-parent">Parent Department</Label>
+              <Label htmlFor="edit-parent">{t('parentDepartment')}</Label>
               <Select
                 value={formData.parent_department_id}
                 onValueChange={(value) =>
@@ -1724,10 +1731,10 @@ export default function ModernDepartmentManagement({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select parent department (optional)" />
+                  <SelectValue placeholder={t('selectParentDepartment')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="root">No Parent (Root Level)</SelectItem>
+                  <SelectItem value="root">{t('noParentRootLevel')}</SelectItem>
                   {flattenDepartments(departments)
                     .filter((dept) => dept._id !== editingDepartment?._id) // Prevent self-parent
                     .map((dept) => (
@@ -1751,7 +1758,7 @@ export default function ModernDepartmentManagement({
               }}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               onClick={handleEditDepartment}
@@ -1761,12 +1768,12 @@ export default function ModernDepartmentManagement({
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Updating...
+                  {t('saving')}
                 </>
               ) : (
                 <>
                   <Edit className="h-4 w-4 mr-2" />
-                  Update Department
+                  {t('saveChanges')}
                 </>
               )}
             </Button>
@@ -1780,11 +1787,10 @@ export default function ModernDepartmentManagement({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-600" />
-              Delete Department
+              {t('confirmDelete')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deletingDepartment?.name}"? This
-              action cannot be undone.
+              {t('deleteDepartmentConfirm')}
               {deletingDepartment?.children &&
                 deletingDepartment.children.length > 0 && (
                   <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -1807,7 +1813,7 @@ export default function ModernDepartmentManagement({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSubmitting}>
-              Cancel
+              {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteDepartment}
@@ -1817,12 +1823,12 @@ export default function ModernDepartmentManagement({
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Deleting...
+                  {t('deleting')}
                 </>
               ) : (
                 <>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Department
+                  {t('deleteDepartment')}
                 </>
               )}
             </AlertDialogAction>

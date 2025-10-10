@@ -45,10 +45,13 @@ export const GET = withRateLimit(
       // Build query
       const query: any = {};
 
-      // Only filter by company if user has a companyId (super_admin might not have one)
-      if (session.user.companyId) {
+      // Super admins can see all surveys, others are filtered by company
+      if (session.user.role !== 'super_admin' && session.user.companyId) {
         query.company_id = session.user.companyId;
-      } else if (session.user.role !== 'super_admin') {
+      } else if (
+        session.user.role !== 'super_admin' &&
+        !session.user.companyId
+      ) {
         // Non-super-admin users must have a company
         console.log('ERROR: Non-super-admin user without companyId');
         return NextResponse.json(

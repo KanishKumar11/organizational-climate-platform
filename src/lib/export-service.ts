@@ -36,65 +36,116 @@ export class ExportService {
     options: ExportOptions,
     executiveSummary?: ExecutiveSummary
   ): Promise<Buffer> {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    let yPosition = 20;
+    try {
+      console.log('Export service received report:', {
+        title: report.title,
+        metadata: report.metadata,
+        metrics: report.metrics,
+        demographics: report.demographics,
+        insights: report.insights,
+        recommendations: report.recommendations,
+        dateRange: report.dateRange,
+        sections: report.sections,
+      });
 
-    // Add custom branding if provided
-    if (options.customBranding?.logo) {
-      try {
-        pdf.addImage(options.customBranding.logo, 'PNG', 20, 10, 30, 15);
-        yPosition = 35;
-      } catch (error) {
-        console.warn('Failed to add logo to PDF:', error);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let yPosition = 20;
+
+      // Add custom branding if provided
+      if (options.customBranding?.logo) {
+        try {
+          pdf.addImage(options.customBranding.logo, 'PNG', 20, 10, 30, 15);
+          yPosition = 35;
+        } catch (error) {
+          console.warn('Failed to add logo to PDF:', error);
+        }
       }
-    }
 
-    // Title
-    pdf.setFontSize(20);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(report.title || 'Report', 20, yPosition);
-    yPosition += 15;
+      // Title
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(report.title || 'Report', 20, yPosition);
+      yPosition += 15;
 
-    // Report metadata
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(`Generated: ${new Date().toLocaleDateString()}`, 20, yPosition);
-    pdf.text(
-      `Period: ${report.dateRange?.start || 'N/A'} - ${report.dateRange?.end || 'N/A'}`,
-      20,
-      yPosition + 5
-    );
-    yPosition += 20;
-
-    // Executive Summary
-    if (options.includeExecutiveSummary && executiveSummary) {
-      yPosition = await this.addExecutiveSummaryToPDF(
-        pdf,
-        executiveSummary,
-        yPosition,
-        pageWidth,
-        pageHeight
+      // Report metadata
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Generated: ${new Date().toLocaleDateString()}`, 20, yPosition);
+      pdf.text(
+        `Period: ${report.dateRange?.start || 'N/A'} - ${report.dateRange?.end || 'N/A'}`,
+        20,
+        yPosition + 5
       );
-    }
+      yPosition += 20;
 
-    // Report sections
-    for (const sectionName of options.sections) {
-      const section = report.sections.find((s) => s.name === sectionName);
-      if (section) {
-        yPosition = await this.addSectionToPDF(
+      // Executive Summary
+      if (options.includeExecutiveSummary && executiveSummary) {
+        yPosition = await this.addExecutiveSummaryToPDF(
           pdf,
-          section,
+          executiveSummary,
           yPosition,
           pageWidth,
-          pageHeight,
-          options.includeCharts
+          pageHeight
         );
       }
-    }
 
-    return Buffer.from(pdf.output('arraybuffer'));
+      // Report sections
+      if (report.sections && Array.isArray(report.sections)) {
+        for (const sectionName of options.sections) {
+          const section = report.sections.find((s) => s.name === sectionName);
+          if (section) {
+            yPosition = await this.addSectionToPDF(
+              pdf,
+              section,
+              yPosition,
+              pageWidth,
+              pageHeight,
+              options.includeCharts
+            );
+          }
+        }
+      } else {
+        // Add basic report information if sections are not available
+        pdf.setFontSize(16);
+        pdf.text('Report Data', 20, yPosition);
+        yPosition += 20;
+
+        pdf.setFontSize(12);
+        pdf.text(`Title: ${report.title || 'Untitled Report'}`, 20, yPosition);
+        yPosition += 15;
+
+        if (report.metadata) {
+          pdf.text(
+            `Response Count: ${report.metadata.responseCount || 0}`,
+            20,
+            yPosition
+          );
+          yPosition += 15;
+        }
+
+        if (report.metrics) {
+          pdf.text(
+            `Engagement Score: ${report.metrics.engagementScore || 0}`,
+            20,
+            yPosition
+          );
+          yPosition += 15;
+          pdf.text(
+            `Response Rate: ${report.metrics.responseRate || 0}%`,
+            20,
+            yPosition
+          );
+          yPosition += 15;
+        }
+      }
+
+      return Buffer.from(pdf.output('arraybuffer'));
+    } catch (error) {
+      console.error('PDF export error:', error);
+      throw new Error(`Failed to generate PDF: ${error.message}`);
+    }
   }
 
   /**
@@ -105,66 +156,118 @@ export class ExportService {
     options: ExportOptions,
     executiveSummary?: ExecutiveSummary
   ): Promise<Buffer> {
-    const workbook = XLSX.utils.book_new();
+    try {
+      const workbook = XLSX.utils.book_new();
 
-    // Executive Summary sheet
-    if (options.includeExecutiveSummary && executiveSummary) {
-      const summaryData = this.formatExecutiveSummaryForExcel(executiveSummary);
-      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Executive Summary');
-    }
-
-    // Data sheets for each section
-    for (const sectionName of options.sections) {
-      const section = report.sections.find((s) => s.name === sectionName);
-      if (section && section.data) {
-        const worksheet = XLSX.utils.json_to_sheet(section.data);
+      // Executive Summary sheet
+      if (options.includeExecutiveSummary && executiveSummary) {
+        const summaryData =
+          this.formatExecutiveSummaryForExcel(executiveSummary);
+        const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
         XLSX.utils.book_append_sheet(
           workbook,
-          worksheet,
-          sectionName.substring(0, 31)
-        ); // Excel sheet name limit
+          summarySheet,
+          'Executive Summary'
+        );
       }
+
+      // Data sheets for each section
+      if (report.sections && Array.isArray(report.sections)) {
+        for (const sectionName of options.sections) {
+          const section = report.sections.find((s) => s.name === sectionName);
+          if (section && section.data) {
+            const worksheet = XLSX.utils.json_to_sheet(section.data);
+            XLSX.utils.book_append_sheet(
+              workbook,
+              worksheet,
+              sectionName.substring(0, 31)
+            ); // Excel sheet name limit
+          }
+        }
+      } else {
+        // Add basic data sheet if sections are not available
+        const basicData = [
+          ['Metric', 'Value'],
+          ['Title', report.title || 'Untitled Report'],
+          ['Response Count', report.metadata?.responseCount || 0],
+          ['Engagement Score', report.metrics?.engagementScore || 0],
+          ['Response Rate', `${report.metrics?.responseRate || 0}%`],
+          ['Satisfaction', report.metrics?.satisfaction || 0],
+        ];
+        const basicSheet = XLSX.utils.aoa_to_sheet(basicData);
+        XLSX.utils.book_append_sheet(workbook, basicSheet, 'Report Data');
+      }
+
+      // Metadata sheet
+      const metadataSheet = XLSX.utils.aoa_to_sheet([
+        ['Report Title', report.title || 'Untitled Report'],
+        ['Generated', new Date().toISOString()],
+        [
+          'Date Range',
+          `${report.dateRange?.start || 'N/A'} - ${report.dateRange?.end || 'N/A'}`,
+        ],
+        ['Company', report.company_id || 'N/A'],
+        ['Created By', report.created_by || 'N/A'],
+      ]);
+      XLSX.utils.book_append_sheet(workbook, metadataSheet, 'Metadata');
+
+      return Buffer.from(
+        XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+      );
+    } catch (error) {
+      console.error('Excel export error:', error);
+      throw new Error(`Failed to generate Excel: ${error.message}`);
     }
-
-    // Metadata sheet
-    const metadataSheet = XLSX.utils.aoa_to_sheet([
-      ['Report Title', report.title],
-      ['Generated', new Date().toISOString()],
-      ['Date Range', `${report.dateRange.start} - ${report.dateRange.end}`],
-      ['Company', report.company_id],
-      ['Created By', report.created_by],
-    ]);
-    XLSX.utils.book_append_sheet(workbook, metadataSheet, 'Metadata');
-
-    return Buffer.from(
-      XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
-    );
   }
 
   /**
    * Export report to CSV
    */
   async exportToCSV(report: IReport, options: ExportOptions): Promise<Buffer> {
-    let csvContent = '';
+    try {
+      console.log('Export service received report:', {
+        id: report._id,
+        title: report.title,
+        hasMetadata: !!report.metadata,
+        hasMetrics: !!report.metrics,
+        metadata: report.metadata,
+        metrics: report.metrics,
+      });
 
-    // Header
-    csvContent += `Report: ${report.title || 'Report'}\n`;
-    csvContent += `Generated: ${new Date().toISOString()}\n`;
-    csvContent += `Period: ${report.dateRange?.start || 'N/A'} - ${report.dateRange?.end || 'N/A'}\n\n`;
+      let csvContent = '';
 
-    // Data from each section
-    for (const sectionName of options.sections) {
-      const section = report.sections.find((s) => s.name === sectionName);
-      if (section && section.data) {
-        csvContent += `${sectionName}\n`;
-        const worksheet = XLSX.utils.json_to_sheet(section.data);
-        const csv = XLSX.utils.sheet_to_csv(worksheet);
-        csvContent += csv + '\n\n';
+      // Header
+      csvContent += `Report: ${report.title || 'Report'}\n`;
+      csvContent += `Generated: ${new Date().toISOString()}\n`;
+      csvContent += `Period: ${report.dateRange?.start || 'N/A'} - ${report.dateRange?.end || 'N/A'}\n\n`;
+
+      // Data from each section
+      if (report.sections && Array.isArray(report.sections)) {
+        for (const sectionName of options.sections) {
+          const section = report.sections.find((s) => s.name === sectionName);
+          if (section && section.data) {
+            csvContent += `${sectionName}\n`;
+            const worksheet = XLSX.utils.json_to_sheet(section.data);
+            const csv = XLSX.utils.sheet_to_csv(worksheet);
+            csvContent += csv + '\n\n';
+          }
+        }
+      } else {
+        // Add basic data if sections are not available
+        csvContent += 'Report Data\n';
+        csvContent += 'Metric,Value\n';
+        csvContent += `Title,"${report.title || 'Untitled Report'}"\n`;
+        csvContent += `Response Count,${report.metadata?.responseCount || 0}\n`;
+        csvContent += `Engagement Score,${report.metrics?.engagementScore || 0}\n`;
+        csvContent += `Response Rate,${report.metrics?.responseRate || 0}%\n`;
+        csvContent += `Satisfaction,${report.metrics?.satisfaction || 0}\n\n`;
       }
-    }
 
-    return Buffer.from(csvContent, 'utf-8');
+      return Buffer.from(csvContent, 'utf-8');
+    } catch (error) {
+      console.error('CSV export error:', error);
+      throw new Error(`Failed to generate CSV: ${error.message}`);
+    }
   }
 
   /**

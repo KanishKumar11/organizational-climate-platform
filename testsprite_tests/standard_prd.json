@@ -1,0 +1,1420 @@
+{
+  "meta": {
+    "project": "Organizational Climate Platform",
+    "date": "2025-10-04",
+    "prepared_by": "Software Development Manager"
+  },
+  "product_overview": "The Organizational Climate Platform is an AI-driven comprehensive solution that enables organizations to measure, analyze, and improve their workplace culture through adaptive surveys, real-time microclimate monitoring, AI-powered insights, and targeted action plans. Designed with role-based access and multi-language support, it offers a seamless experience for administrators, leaders, and employees to engage in continuous cultural assessment and improvement.",
+  "core_goals": [
+    "Enable comprehensive organizational climate measurement through diverse survey types.",
+    "Leverage AI to generate actionable insights and predictive analytics from survey responses and demographics.",
+    "Facilitate targeted and real-time engagement monitoring with microclimate sessions.",
+    "Provide role-based hierarchical dashboards and reporting with advanced filtering and export features.",
+    "Support dynamic demographics management and multi-channel survey distribution.",
+    "Drive organizational improvement through integrated action plan creation, tracking, and KPI monitoring.",
+    "Ensure data privacy, GDPR compliance, and secure role-based access.",
+    "Support bilingual English/Spanish interfaces and side-by-side content editing."
+  ],
+  "key_features": [
+    "Survey Management System with dynamic builder, AI-powered question library, multilingual support, conditional logic, and versioning.",
+    "Robust Targeting and Demographics system pre-loading company data, supporting CSV/XLSX imports, segmentation, and audience summaries.",
+    "Scheduling and Distribution with timezone-aware start/end times, automated reminders, unique URL and QR code distribution, and access control.",
+    "AI Analytics Engine with semantic analysis, sentiment scoring, pattern recognition, risk alerts, and adaptive question selection.",
+    "Real-Time Microclimate sessions offering live word clouds, animated charts, anonymous participation, and export capabilities.",
+    "Integrated Action Planning module featuring SMART goals, assignment, KPI tracking, kanban/timeline views, alerts, and progress reports.",
+    "Hierarchical role-based dashboards and reports with drill-down, benchmarking, comparative analysis, and export options.",
+    "Full ES/EN bilingual support with UI internationalization and content localization.",
+    "Autosave and draft recovery for uninterrupted survey creation and response submission.",
+    "Comprehensive Audit Logging, GDPR compliance features, and role-based permissions management."
+  ],
+  "user_flow_summary": [
+    "User logs in via SSO or email, selects or is assigned a role, and lands on their role-based dashboard with relevant KPIs and notifications.",
+    "Company Admin creates a survey by selecting a Company, adds questions from the AI-curated library or custom entries, targets audience based on pre-loaded demographics, schedules the survey with timezone-aware controls, and publishes it, generating URLs and QR codes.",
+    "Employees access surveys via URL or QR code, complete surveys with dynamic question flows including binary questions with conditional comments, and their responses are autosaved and submitted securely.",
+    "Department Admins launch real-time microclimate sessions, monitor live participation with visualizations, and export session data for follow-up.",
+    "AI Analytics Engine processes survey responses and demographics, generating risk alerts, trend analyses, and actionable recommendations accessible via dashboards.",
+    "Leaders and Admins create action plans from insights with assigned owners and KPIs, track progress through dashboards and receive automated alerts for overdue tasks.",
+    "Users access reports with customizable filters, export in PDF/Excel formats, and super admins perform benchmarking across companies.",
+    "System enforces role-based access controls with audit trails, manages user preferences including localization, and ensures GDPR compliance through data access and erasure workflows."
+  ],
+  "validation_criteria": [
+    "Survey creation requires mandatory Company selection; proceeding without it is blocked and displays errors.",
+    "Question Library supports hierarchical categories, duplicate prevention, and side-by-side ES/EN editing with version control.",
+    "Targeting pre-loads departments, users, and demographics on company selection; CSV/XLSX imports must map columns and detect duplicates.",
+    "Scheduling mandates valid Start and End Date/Time with timezone awareness; survey access enforces scheduling windows except for admin overrides.",
+    "Distribution produces unique, tokenized URLs and QR codes that respect scheduling and access permissions.",
+    "Autosave triggers every 5-10 seconds and on field blur; draft recovery restores inputs after disconnects or session expiration.",
+    "Performance tests confirm sub-2 second load times for steps with 1000+ targets and no UI overlaps or freezes.",
+    "Company creation validations detect domain duplicates with clear, actionable error messages.",
+    "Email domain fields accept domains only; inputs with full email addresses trigger normalization hints.",
+    "Role-based access control accurately scopes permissions per role and dynamically reflects changes without delay.",
+    "ES/EN multilingual support displays side-by-side content, supports preview, and ensures no untranslated strings in exports.",
+    "Telemetry captures user journey events for analytics panels and funnels, recording errors and abandonment rates.",
+    "Microclimate sessions allow anonymous participation, live data updates, export functions, and admin moderation.",
+    "Audit logs record all changes with user, timestamp, and change details across critical entities.",
+    "GDPR compliance features permit user data access requests, data erasure, and retention cleanup with proper logging."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "TypeScript",
+      "Next.js 15.4.6",
+      "React 19.1.0",
+      "MongoDB (Mongoose 8.17.1)",
+      "NextAuth.js 4.24.11",
+      "Tailwind CSS 4",
+      "Radix UI",
+      "TanStack React Query 5.90.2",
+      "Framer Motion 12.23.12",
+      "Socket.io 4.8.1",
+      "React Hook Form 7.62.0",
+      "Zod 4.1.11",
+      "Recharts 3.1.2",
+      "next-intl 4.3.9",
+      "Nodemailer 7.0.6",
+      "Brevo Email API 3.0.1",
+      "jsPDF 3.0.3",
+      "xlsx 0.18.5",
+      "PapaParse 5.5.3",
+      "Natural (NLP) 8.1.0",
+      "Sentiment Analysis 5.0.2",
+      "QRCode 1.5.4",
+      "date-fns 4.1.0",
+      "Jest 30.0.5",
+      "Testing Library"
+    ],
+    "features": [
+      {
+        "name": "Authentication & Authorization",
+        "description": "User authentication with NextAuth, role-based access control (super_admin, company_admin, department_admin, employee, supervisor, leader), session management, and user registration",
+        "files": [
+          "src/app/api/auth/[...nextauth]/route.ts",
+          "src/app/api/auth/register/route.ts",
+          "src/app/api/auth/validate-invitation/route.ts",
+          "src/lib/auth.ts",
+          "src/lib/permissions.ts",
+          "src/components/auth/ProtectedRoute.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/auth/register": {
+              "post": {
+                "summary": "Register a new user",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "email": {
+                            "type": "string",
+                            "format": "email"
+                          },
+                          "password": {
+                            "type": "string",
+                            "minLength": 8
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "employee",
+                              "supervisor",
+                              "leader",
+                              "department_admin",
+                              "company_admin",
+                              "super_admin"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "User registered successfully"
+                  },
+                  "400": {
+                    "description": "Invalid input"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "User Management",
+        "description": "CRUD operations for users, bulk user import via CSV/Excel, user role management, department assignment, user activation/deactivation, and user search with pagination",
+        "files": [
+          "src/app/api/admin/users/route.ts",
+          "src/app/api/admin/users/[id]/route.ts",
+          "src/app/api/admin/bulk-import/route.ts",
+          "src/components/admin/UserManagement.tsx",
+          "src/components/admin/BulkUserImport.tsx",
+          "src/components/admin/UserManagementDashboard.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/admin/users": {
+              "get": {
+                "summary": "List all users with pagination and filtering",
+                "parameters": [
+                  {
+                    "name": "page",
+                    "in": "query",
+                    "schema": {
+                      "type": "integer"
+                    }
+                  },
+                  {
+                    "name": "limit",
+                    "in": "query",
+                    "schema": {
+                      "type": "integer"
+                    }
+                  },
+                  {
+                    "name": "search",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "role",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "department_id",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "List of users"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Create a new user",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string"
+                          },
+                          "department_id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "User created"
+                  }
+                }
+              }
+            },
+            "/api/admin/users/{id}": {
+              "put": {
+                "summary": "Update user by ID",
+                "parameters": [
+                  {
+                    "name": "id",
+                    "in": "path",
+                    "required": true
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "User updated"
+                  }
+                }
+              },
+              "delete": {
+                "summary": "Delete user by ID",
+                "parameters": [
+                  {
+                    "name": "id",
+                    "in": "path",
+                    "required": true
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "User deleted"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Company Management",
+        "description": "CRUD operations for companies, company settings management, multi-tenant support, and company-specific configurations",
+        "files": [
+          "src/app/api/admin/companies/route.ts",
+          "src/app/api/admin/companies/[id]/route.ts",
+          "src/app/api/admin/company-settings/route.ts",
+          "src/components/admin/ModernCompanyManagement.tsx",
+          "src/components/admin/CompanySettings.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/admin/companies": {
+              "get": {
+                "summary": "List all companies",
+                "responses": {
+                  "200": {
+                    "description": "List of companies"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Create a new company",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "industry": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Company created"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Department Management",
+        "description": "CRUD operations for departments, hierarchical department structure, department targeting for surveys, and department-specific user assignment",
+        "files": [
+          "src/app/api/admin/departments/route.ts",
+          "src/app/api/admin/departments/[id]/route.ts",
+          "src/app/api/departments/route.ts",
+          "src/app/api/departments/for-targeting/route.ts",
+          "src/components/admin/ModernDepartmentManagement.tsx",
+          "src/components/admin/DepartmentHierarchy.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/admin/departments": {
+              "get": {
+                "summary": "List all departments",
+                "responses": {
+                  "200": {
+                    "description": "List of departments"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Create a new department",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "company_id": {
+                            "type": "string"
+                          },
+                          "parent_id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Department created"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Survey Management",
+        "description": "Full survey lifecycle: creation wizard, question selection from library/bank, draft saving, survey distribution (email, QR code, shareable links), response collection, real-time participation tracking, survey templates, and advanced targeting",
+        "files": [
+          "src/app/api/surveys/route.ts",
+          "src/app/api/surveys/[id]/route.ts",
+          "src/app/api/surveys/[id]/distribute/route.ts",
+          "src/app/api/surveys/[id]/responses/route.ts",
+          "src/app/api/surveys/drafts/route.ts",
+          "src/app/api/surveys/templates/route.ts",
+          "src/components/survey/SurveyCreationWizard.tsx",
+          "src/components/survey/SurveyBuilder.tsx",
+          "src/components/survey/SurveyInterface.tsx",
+          "src/components/dashboard/SurveyManagement.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/surveys": {
+              "get": {
+                "summary": "List surveys with filters",
+                "parameters": [
+                  {
+                    "name": "type",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "status",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "search",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "List of surveys"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Create a new survey",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "survey_type": {
+                            "type": "string"
+                          },
+                          "questions": {
+                            "type": "array"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Survey created"
+                  }
+                }
+              }
+            },
+            "/api/surveys/{id}/distribute": {
+              "post": {
+                "summary": "Distribute survey to target audience",
+                "parameters": [
+                  {
+                    "name": "id",
+                    "in": "path",
+                    "required": true
+                  }
+                ],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "targeting": {
+                            "type": "object"
+                          },
+                          "distribution_method": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Survey distributed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Microclimate Management",
+        "description": "Create and manage microclimates (focused surveys for specific teams/departments), microclimate templates, participant management, microclimate-specific analytics, and follow-up action plans",
+        "files": [
+          "src/app/api/microclimates/route.ts",
+          "src/app/api/microclimates/[id]/route.ts",
+          "src/app/api/microclimates/templates/route.ts",
+          "src/app/api/microclimates/invitations/route.ts",
+          "src/components/microclimate/MicroclimateDashboard.tsx",
+          "src/components/microclimate/MicroclimateCreationWizard.tsx",
+          "src/components/microclimate/MicroclimateParticipantManager.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/microclimates": {
+              "get": {
+                "summary": "List all microclimates",
+                "responses": {
+                  "200": {
+                    "description": "List of microclimates"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Create a new microclimate",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "survey_id": {
+                            "type": "string"
+                          },
+                          "participants": {
+                            "type": "array"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Microclimate created"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Question Bank & Library",
+        "description": "Question bank management with categorization, question library for company-specific questions, bulk question import/export, question effectiveness tracking, question recommendations, adaptive questioning, and question lifecycle management",
+        "files": [
+          "src/app/api/question-bank/route.ts",
+          "src/app/api/question-bank/[id]/route.ts",
+          "src/app/api/question-library/route.ts",
+          "src/app/api/question-library/search/route.ts",
+          "src/app/api/question-bank/analytics/route.ts",
+          "src/components/question-bank/QuestionBankManager.tsx",
+          "src/components/question-bank/QuestionAnalytics.tsx",
+          "src/components/question-bank/QuestionRecommendations.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/question-bank": {
+              "get": {
+                "summary": "List questions from the global bank",
+                "parameters": [
+                  {
+                    "name": "category",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "search",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "List of questions"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Add a new question to the bank",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "category": {
+                            "type": "string"
+                          },
+                          "options": {
+                            "type": "array"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Question created"
+                  }
+                }
+              }
+            },
+            "/api/question-library": {
+              "get": {
+                "summary": "List company-specific questions",
+                "responses": {
+                  "200": {
+                    "description": "List of library questions"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Demographics Management",
+        "description": "Dynamic company-specific demographic fields, demographic data upload via CSV/Excel, demographic assignment to users, demographic-based segmentation in reports, demographic snapshots, and demographic comparison",
+        "files": [
+          "src/app/api/admin/demographics/route.ts",
+          "src/app/api/admin/demographics/bulk-upload/route.ts",
+          "src/app/api/demographics/fields/route.ts",
+          "src/app/api/demographics/snapshots/route.ts",
+          "src/components/admin/ModernDemographicsManagement.tsx",
+          "src/components/survey/DynamicDemographicForm.tsx",
+          "src/components/demographics/DemographicComparison.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/admin/demographics": {
+              "get": {
+                "summary": "Get demographic field definitions",
+                "responses": {
+                  "200": {
+                    "description": "List of demographic fields"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Create or update demographic fields",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "fields": {
+                            "type": "array"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Demographics updated"
+                  }
+                }
+              }
+            },
+            "/api/admin/demographics/bulk-upload": {
+              "post": {
+                "summary": "Bulk upload demographic data via CSV",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "multipart/form-data": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "file": {
+                            "type": "string",
+                            "format": "binary"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Demographics uploaded"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Action Plans",
+        "description": "Action plan creation from survey insights, KPI tracking, progress monitoring, commitment tracking, bulk action plan creation, action plan templates, alerts for overdue actions, and timeline visualization",
+        "files": [
+          "src/app/api/action-plans/route.ts",
+          "src/app/api/action-plans/[id]/route.ts",
+          "src/app/api/action-plans/[id]/kpis/route.ts",
+          "src/app/api/action-plans/[id]/progress/route.ts",
+          "src/app/api/action-plans/templates/route.ts",
+          "src/components/action-plans/ActionPlanCreator.tsx",
+          "src/components/action-plans/ActionPlanDashboard.tsx",
+          "src/components/action-plans/KPIEditor.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/action-plans": {
+              "get": {
+                "summary": "List action plans",
+                "responses": {
+                  "200": {
+                    "description": "List of action plans"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Create a new action plan",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "survey_id": {
+                            "type": "string"
+                          },
+                          "kpis": {
+                            "type": "array"
+                          },
+                          "actions": {
+                            "type": "array"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Action plan created"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Reports & Analytics",
+        "description": "Comprehensive reporting with demographic segmentation, export to PDF/Excel, custom report templates, report sharing, comparative analysis, trend analysis, and advanced filtering",
+        "files": [
+          "src/app/api/reports/route.ts",
+          "src/app/api/reports/[id]/route.ts",
+          "src/app/api/reports/[id]/export/route.ts",
+          "src/app/api/reports/templates/route.ts",
+          "src/app/api/reports/comparative-analysis/route.ts",
+          "src/components/reports/ReportsDashboard.tsx",
+          "src/components/reports/ReportBuilder.tsx",
+          "src/components/reports/ExportDialog.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/reports": {
+              "get": {
+                "summary": "List reports",
+                "responses": {
+                  "200": {
+                    "description": "List of reports"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Generate a new report",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "survey_id": {
+                            "type": "string"
+                          },
+                          "filters": {
+                            "type": "object"
+                          },
+                          "segments": {
+                            "type": "array"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Report generated"
+                  }
+                }
+              }
+            },
+            "/api/reports/{id}/export": {
+              "post": {
+                "summary": "Export report to PDF or Excel",
+                "parameters": [
+                  {
+                    "name": "id",
+                    "in": "path",
+                    "required": true
+                  },
+                  {
+                    "name": "format",
+                    "in": "query",
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "pdf",
+                        "excel"
+                      ]
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Report exported"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "AI Insights & Sentiment Analysis",
+        "description": "NLP-powered sentiment analysis of open-ended responses, topic modeling, entity recognition, predictive analytics for engagement trends and turnover, AI-powered question adaptation, and manual reanalysis triggers",
+        "files": [
+          "src/app/api/ai/sentiment-analysis/route.ts",
+          "src/app/api/ai/analyze-responses/route.ts",
+          "src/app/api/ai/nlp/topic-modeling/route.ts",
+          "src/app/api/ai/nlp/entity-recognition/route.ts",
+          "src/app/api/ai/predictive-analytics/engagement-trends/route.ts",
+          "src/app/api/ai/adapt-questions/route.ts",
+          "src/components/ai/AIInsightsPanel.tsx",
+          "src/components/ai/ManualReanalysis.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/ai/sentiment-analysis": {
+              "post": {
+                "summary": "Analyze sentiment of survey responses",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "survey_id": {
+                            "type": "string"
+                          },
+                          "responses": {
+                            "type": "array"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Sentiment analysis completed"
+                  }
+                }
+              }
+            },
+            "/api/ai/predictive-analytics/engagement-trends": {
+              "get": {
+                "summary": "Get predictive engagement trends",
+                "parameters": [
+                  {
+                    "name": "company_id",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Engagement trends data"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Benchmarking",
+        "description": "Industry benchmarking, benchmark data import, benchmark comparison with company data, gap analysis, trend analysis, and benchmark recommendations",
+        "files": [
+          "src/app/api/benchmarks/route.ts",
+          "src/app/api/benchmarks/[id]/route.ts",
+          "src/app/api/benchmarks/compare/route.ts",
+          "src/app/api/benchmarks/trends/route.ts",
+          "src/components/benchmarks/BenchmarkManager.tsx",
+          "src/components/benchmarks/BenchmarkComparison.tsx",
+          "src/components/benchmarks/GapAnalysisReport.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/benchmarks": {
+              "get": {
+                "summary": "List available benchmarks",
+                "responses": {
+                  "200": {
+                    "description": "List of benchmarks"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Create or import benchmark data",
+                "responses": {
+                  "201": {
+                    "description": "Benchmark created"
+                  }
+                }
+              }
+            },
+            "/api/benchmarks/compare": {
+              "post": {
+                "summary": "Compare company data with benchmarks",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "survey_id": {
+                            "type": "string"
+                          },
+                          "benchmark_id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Comparison results"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Notifications & Reminders",
+        "description": "Email and in-app notifications, survey reminder scheduling, notification templates, engagement tracking, delivery optimization, and cron-based reminder processing",
+        "files": [
+          "src/app/api/notifications/route.ts",
+          "src/app/api/notifications/[id]/route.ts",
+          "src/app/api/notifications/process/route.ts",
+          "src/app/api/cron/send-reminders/route.ts",
+          "src/app/api/surveys/reminders/route.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/notifications": {
+              "get": {
+                "summary": "Get user notifications",
+                "responses": {
+                  "200": {
+                    "description": "List of notifications"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Create a notification",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "user_id": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Notification created"
+                  }
+                }
+              }
+            },
+            "/api/cron/send-reminders": {
+              "post": {
+                "summary": "Process and send scheduled reminders",
+                "responses": {
+                  "200": {
+                    "description": "Reminders processed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Invitations Management",
+        "description": "User invitations via email, shareable survey links, QR code generation for surveys, invitation tracking, invitation resend, and company admin invitations",
+        "files": [
+          "src/app/api/invitations/route.ts",
+          "src/app/api/invitations/[id]/route.ts",
+          "src/app/api/admin/invitations/employees/route.ts",
+          "src/app/api/admin/invitations/company-admin/route.ts",
+          "src/app/api/admin/invitations/shareable-link/route.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/invitations": {
+              "get": {
+                "summary": "List invitations",
+                "responses": {
+                  "200": {
+                    "description": "List of invitations"
+                  }
+                }
+              },
+              "post": {
+                "summary": "Create and send invitation",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "email": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string"
+                          },
+                          "survey_id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Invitation sent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "GDPR Compliance",
+        "description": "Data access requests, data erasure (right to be forgotten), compliance reporting, and retention cleanup",
+        "files": [
+          "src/app/api/gdpr/access/route.ts",
+          "src/app/api/gdpr/erasure/route.ts",
+          "src/app/api/gdpr/compliance-report/route.ts",
+          "src/app/api/gdpr/retention-cleanup/route.ts",
+          "src/components/privacy/ConsentManager.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/gdpr/access": {
+              "post": {
+                "summary": "Request user data access",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "user_id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "User data package"
+                  }
+                }
+              }
+            },
+            "/api/gdpr/erasure": {
+              "post": {
+                "summary": "Request data erasure",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "user_id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Data erased"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Audit Logs",
+        "description": "Comprehensive audit trail for all system actions, audit log export, entity-specific audit history, and audit reporting",
+        "files": [
+          "src/app/api/audit/logs/route.ts",
+          "src/app/api/audit/[entityType]/[entityId]/route.ts",
+          "src/app/api/audit/export/route.ts",
+          "src/app/api/audit/report/route.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/audit/logs": {
+              "get": {
+                "summary": "Get audit logs with filtering",
+                "parameters": [
+                  {
+                    "name": "entity_type",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "entity_id",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "action",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "List of audit logs"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Dashboard System",
+        "description": "Role-based dashboards (Super Admin, Company Admin, Department Admin, Evaluated User), dashboard customization, widget system, global search, real-time data updates, and export/share functionality",
+        "files": [
+          "src/app/api/dashboard/super-admin/route.ts",
+          "src/app/api/dashboard/company-admin/route.ts",
+          "src/app/api/dashboard/department-admin/route.ts",
+          "src/components/dashboard/SuperAdminDashboard.tsx",
+          "src/components/dashboard/CompanyAdminDashboard.tsx",
+          "src/components/dashboard/DepartmentAdminDashboard.tsx",
+          "src/components/dashboard/GlobalSearch.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/dashboard/company-admin": {
+              "get": {
+                "summary": "Get company admin dashboard data",
+                "responses": {
+                  "200": {
+                    "description": "Dashboard data including surveys, participation, recent activity"
+                  }
+                }
+              }
+            },
+            "/api/dashboard/search": {
+              "get": {
+                "summary": "Global search across platform",
+                "parameters": [
+                  {
+                    "name": "q",
+                    "in": "query",
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Search results"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "User Profile & Preferences",
+        "description": "User profile management, password change, user preferences, activity tracking, and timezone settings",
+        "files": [
+          "src/app/api/profile/route.ts",
+          "src/app/api/profile/password/route.ts",
+          "src/app/api/profile/preferences/route.ts",
+          "src/app/api/profile/activity/route.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/profile": {
+              "get": {
+                "summary": "Get user profile",
+                "responses": {
+                  "200": {
+                    "description": "User profile data"
+                  }
+                }
+              },
+              "put": {
+                "summary": "Update user profile",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Profile updated"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "System Health & Monitoring",
+        "description": "System health checks, performance monitoring, integration tests, workflow state management, and accessibility compliance",
+        "files": [
+          "src/app/api/health/route.ts",
+          "src/app/api/system/status/route.ts",
+          "src/app/api/system/performance/route.ts",
+          "src/app/api/system/integration-tests/route.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/health": {
+              "get": {
+                "summary": "System health check",
+                "responses": {
+                  "200": {
+                    "description": "System is healthy"
+                  }
+                }
+              }
+            },
+            "/api/system/status": {
+              "get": {
+                "summary": "Get detailed system status",
+                "responses": {
+                  "200": {
+                    "description": "System status including database, services, etc."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Internationalization (i18n)",
+        "description": "Bilingual support (English/Spanish) using next-intl, language switching, translated UI components, and locale-based routing",
+        "files": [
+          "src/middleware.ts",
+          "src/i18n.ts",
+          "src/lib/i18n-utils.ts",
+          "src/messages/en.json",
+          "src/messages/es.json",
+          "src/components/LanguageSwitcher.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/api/i18n/translations": {
+              "get": {
+                "summary": "Get translations for a locale",
+                "parameters": [
+                  {
+                    "name": "locale",
+                    "in": "query",
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "en",
+                        "es"
+                      ]
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Translation data"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

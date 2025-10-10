@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
+import { useTranslations } from '@/contexts/TranslationContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -53,6 +54,7 @@ export default function RoleBasedNav() {
     canManageUsers,
   } = useAuth();
 
+  const t = useTranslations('navigation');
   const pathname = usePathname();
 
   if (!user) return null;
@@ -61,13 +63,13 @@ export default function RoleBasedNav() {
 
   // Core section - always available
   sections.push({
-    title: 'Overview',
+    title: t('overview'),
     items: [
       {
-        label: 'Dashboard',
+        label: t('dashboard'),
         href: '/dashboard',
         icon: BarChart3,
-        description: 'Main overview and KPIs',
+        description: t('dashboardDesc'),
       },
     ],
   });
@@ -78,32 +80,32 @@ export default function RoleBasedNav() {
 
     if (user.role === 'employee') {
       surveyItems.push({
-        label: 'My Surveys',
+        label: t('mySurveys'),
         href: '/surveys/my',
         icon: FileText,
-        description: 'Surveys assigned to me',
+        description: t('mySurveysDesc'),
       });
     }
 
     if (canCreateSurveys) {
       surveyItems.push(
         {
-          label: 'All Surveys',
+          label: t('surveys'),
           href: '/surveys',
           icon: FileText,
-          description: 'Manage all surveys',
+          description: t('surveysDesc'),
         },
         {
-          label: 'Survey Templates',
+          label: t('surveyTemplates'),
           href: '/surveys/templates',
           icon: Briefcase,
-          description: 'Reusable survey templates',
+          description: t('surveyTemplatesDesc'),
         }
       );
     }
 
     sections.push({
-      title: 'Surveys',
+      title: t('surveyManagement'),
       items: surveyItems,
     });
   }
@@ -111,14 +113,14 @@ export default function RoleBasedNav() {
   // Microclimate section
   if (canLaunchMicroclimates) {
     sections.push({
-      title: 'Real-time Feedback',
+      title: t('realtimeFeedback'),
       items: [
         {
-          label: 'Microclimates',
+          label: t('microclimates'),
           href: '/microclimates',
           icon: Zap,
-          badge: 'Live',
-          description: 'Real-time team feedback',
+          badge: t('live'),
+          description: t('microclimatesDesc'),
         },
       ],
     });
@@ -127,13 +129,13 @@ export default function RoleBasedNav() {
   // Action plans section
   if (canCreateActionPlans) {
     sections.push({
-      title: 'Improvement',
+      title: t('improvement'),
       items: [
         {
-          label: 'Action Plans',
+          label: t('actionPlans'),
           href: '/action-plans',
           icon: Target,
-          description: 'Track improvement initiatives',
+          description: t('actionPlansDesc'),
         },
       ],
     });
@@ -142,26 +144,26 @@ export default function RoleBasedNav() {
   // Analytics section
   if (canViewCompanyAnalytics) {
     sections.push({
-      title: 'Analytics',
+      title: t('analytics'),
       items: [
         {
-          label: 'AI Insights',
+          label: t('aiInsights'),
           href: '/ai-insights',
           icon: Sparkles,
           badge: 'AI',
-          description: 'AI-powered analysis and recommendations',
+          description: t('aiInsightsDesc'),
         },
         {
-          label: 'Reports',
+          label: t('reports'),
           href: '/reports',
           icon: TrendingUp,
-          description: 'Detailed analytics and insights',
+          description: t('reportsDesc'),
         },
         {
-          label: 'Benchmarks',
+          label: t('benchmarks'),
           href: '/benchmarks',
           icon: Activity,
-          description: 'Industry comparisons',
+          description: t('benchmarksDesc'),
         },
       ],
     });
@@ -170,13 +172,13 @@ export default function RoleBasedNav() {
   // Team management section
   if (isLeader || isSupervisor) {
     sections.push({
-      title: 'Team Management',
+      title: t('teamManagement'),
       items: [
         {
-          label: 'My Team',
+          label: t('myTeam'),
           href: '/team',
           icon: Users,
-          description: 'Team overview and insights',
+          description: t('myTeamDesc'),
         },
       ],
     });
@@ -185,19 +187,19 @@ export default function RoleBasedNav() {
   // User management section
   if (canManageUsers) {
     sections.push({
-      title: 'Organization',
+      title: t('organization'),
       items: [
         {
-          label: 'Users',
+          label: t('users'),
           href: '/users',
           icon: UserCheck,
-          description: 'Manage team members',
+          description: t('usersDesc'),
         },
         {
-          label: 'Departments',
+          label: t('departments'),
           href: '/departments',
           icon: Building2,
-          description: 'Organizational structure',
+          description: t('departmentsDesc'),
         },
       ],
     });
@@ -206,13 +208,13 @@ export default function RoleBasedNav() {
   // Company admin section
   if (isCompanyAdmin) {
     sections.push({
-      title: 'Company Settings',
+      title: t('companySettings'),
       items: [
         {
-          label: 'Company Config',
+          label: t('companyConfig'),
           href: '/settings/company',
           icon: Settings,
-          description: 'Company-wide settings',
+          description: t('companyConfigDesc'),
         },
       ],
     });
@@ -221,25 +223,25 @@ export default function RoleBasedNav() {
   // Super admin section
   if (isSuperAdmin) {
     sections.push({
-      title: 'System Administration',
+      title: t('systemAdministration'),
       items: [
         {
-          label: 'Companies',
+          label: t('companies'),
           href: '/admin/companies',
           icon: Building2,
-          description: 'Manage authorized companies and domains',
+          description: t('companiesDesc'),
         },
         {
-          label: 'System Settings',
+          label: t('systemSettings'),
           href: '/admin/system-settings',
           icon: Shield,
-          description: 'System-wide configuration',
+          description: t('systemSettingsDesc'),
         },
         {
-          label: 'System Logs',
+          label: t('systemLogs'),
           href: '/logs',
           icon: Database,
-          description: 'Audit and system logs',
+          description: t('systemLogsDesc'),
         },
       ],
     });
@@ -262,7 +264,7 @@ export default function RoleBasedNav() {
           transition={{ delay: sectionIndex * 0.1 }}
           className="space-y-2"
         >
-          <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <h3 className="px-3 !text-lg font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider font-montserrat">
             {section.title}
           </h3>
 
@@ -282,27 +284,51 @@ export default function RoleBasedNav() {
                     asChild
                     variant={isActive ? 'secondary' : 'ghost'}
                     className={cn(
-                      'w-full justify-start gap-3 h-auto p-3 text-left',
-                      isActive &&
-                        'bg-secondary text-secondary-foreground font-medium'
+                      'w-full justify-start gap-3 h-auto p-3 text-left rounded-2xl transition-all duration-200 font-montserrat',
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg ring-2 ring-blue-200 dark:ring-blue-600 hover:from-blue-600 hover:to-indigo-600'
+                        : 'hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400'
                     )}
                   >
                     <Link href={item.href}>
-                      <Icon className="h-4 w-4 flex-shrink-0" />
+                      <Icon
+                        className={cn(
+                          'h-4 w-4 flex-shrink-0 transition-colors',
+                          isActive
+                            ? 'text-white'
+                            : 'text-blue-500 dark:text-blue-400'
+                        )}
+                      />
                       <div className="flex-1 text-left min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm truncate">{item.label}</span>
+                          <span
+                            className={cn(
+                              'text-sm truncate font-medium',
+                              isActive
+                                ? 'text-white'
+                                : 'text-slate-700 dark:text-slate-300'
+                            )}
+                          >
+                            {item.label}
+                          </span>
                           {item.badge && (
                             <Badge
                               variant="destructive"
-                              className="text-xs px-1.5 py-0 flex-shrink-0"
+                              className="text-xs px-1.5 py-0 flex-shrink-0 bg-gradient-to-r from-red-500 to-pink-500 text-white font-montserrat"
                             >
                               {item.badge}
                             </Badge>
                           )}
                         </div>
                         {item.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5 break-words hyphens-auto leading-tight whitespace-normal">
+                          <p
+                            className={cn(
+                              '!text-xs mt-0.5 break-words hyphens-auto leading-tight whitespace-normal font-montserrat',
+                              isActive
+                                ? 'text-white/80'
+                                : 'text-slate-500 dark:text-slate-400'
+                            )}
+                          >
                             {item.description}
                           </p>
                         )}
@@ -314,7 +340,9 @@ export default function RoleBasedNav() {
             })}
           </div>
 
-          {sectionIndex < sections.length - 1 && <Separator className="mt-4" />}
+          {sectionIndex < sections.length - 1 && (
+            <Separator className="mt-4 bg-blue-200 dark:bg-blue-600" />
+          )}
         </motion.div>
       ))}
     </nav>

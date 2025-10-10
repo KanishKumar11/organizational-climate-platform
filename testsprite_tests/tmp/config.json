@@ -1,0 +1,19 @@
+{
+  "status": "commited",
+  "type": "backend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "backendAuthType": "basic token",
+  "backendUsername": "77kanish@gmail.com",
+  "backendPassword": "kanish@7.7",
+  "executionArgs": {
+    "projectName": "organizational-climate-platform",
+    "projectPath": "K:\\2025\\climate\\organizational-climate-platform",
+    "testIds": [],
+    "additionalInstruction": "Use credentials: email=77kanish@gmail.com password=kanish@7.7 for authentication. The application runs on http://localhost:3000",
+    "envs": {
+      "API_KEY": "sk-user-7bhf7KCBjtXrxaH9Q05L6ug4MwN9Tzc7H8uAU7Mn0JWauolEZCAvvMQW0Qsm7dI3JtFhARvhzQD503DXVh4PSel_iV3JlWi7UySJTU5lJt_1M1NkZ8sCHZPsVQQJ8UVmW4s"
+    }
+  },
+  "proxy": "http://a8c33595-71f8-4717-9868-caf671080fc6:2leEtEXpetQFbRUxUxOWn9GSaKNi1IdD@tun.testsprite.com:8080"
+}

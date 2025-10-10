@@ -92,16 +92,50 @@ export interface IReport extends Document {
   sections?: any[];
   metadata?: {
     responseCount?: number;
+    totalSurveys?: number;
+    totalResponses?: number;
+    averageCompletionTime?: number;
   };
   metrics?: {
     engagementScore?: number;
     responseRate?: number;
     satisfaction?: number;
+    completionRate?: number;
+    participationRate?: number;
   };
   demographics?: {
-    departments?: any[];
+    departments?: Array<{
+      name: string;
+      count: number;
+      percentage: number;
+    }>;
+    roles?: Array<{
+      name: string;
+      count: number;
+      percentage: number;
+    }>;
+    locations?: Array<{
+      name: string;
+      count: number;
+      percentage: number;
+    }>;
   };
-  insights?: any[];
+  insights?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    priority: 'high' | 'medium' | 'low';
+    category: string;
+    recommendedActions?: string[];
+    confidence?: number;
+  }>;
+  recommendations?: Array<{
+    title: string;
+    description: string;
+    impact: 'high' | 'medium' | 'low';
+    effort: 'high' | 'medium' | 'low';
+    category: string;
+  }>;
   companyId?: string;
   // Instance methods
   markAsStarted(): void;
@@ -293,6 +327,57 @@ const ReportSchema: Schema = new Schema(
     expires_at: {
       type: Date,
     },
+    // Report data fields
+    dateRange: {
+      start: { type: String },
+      end: { type: String },
+    },
+    sections: [{ type: Schema.Types.Mixed }],
+    metadata: { type: Schema.Types.Mixed },
+    metrics: { type: Schema.Types.Mixed },
+    demographics: {
+      departments: [
+        {
+          name: { type: String },
+          count: { type: Number },
+          percentage: { type: Number },
+        },
+      ],
+      roles: [
+        {
+          name: { type: String },
+          count: { type: Number },
+          percentage: { type: Number },
+        },
+      ],
+      locations: [
+        {
+          name: { type: String },
+          count: { type: Number },
+          percentage: { type: Number },
+        },
+      ],
+    },
+    insights: [
+      {
+        id: { type: String },
+        title: { type: String },
+        description: { type: String },
+        priority: { type: String, enum: ['high', 'medium', 'low'] },
+        category: { type: String },
+        recommendedActions: [{ type: String }],
+        confidence: { type: Number },
+      },
+    ],
+    recommendations: [
+      {
+        title: { type: String },
+        description: { type: String },
+        impact: { type: String, enum: ['high', 'medium', 'low'] },
+        effort: { type: String, enum: ['high', 'medium', 'low'] },
+        category: { type: String },
+      },
+    ],
   },
   {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },

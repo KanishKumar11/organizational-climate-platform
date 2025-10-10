@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslations } from '@/contexts/TranslationContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -154,6 +155,8 @@ interface SearchResult {
 export default function CompanyAdminDashboard() {
   const { user } = useAuth();
   const router = useRouter();
+  const t = useTranslations('dashboard');
+  const common = useTranslations('common');
   const [dashboardData, setDashboardData] = useState<{
     companyKPIs: CompanyKPIs;
     departmentAnalytics: DepartmentAnalytic[];
@@ -445,10 +448,10 @@ export default function CompanyAdminDashboard() {
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                    Company Dashboard
+                    {t('companyDashboard')}
                   </h1>
                   <p className="text-lg text-gray-600">
-                    Organization-wide insights and management
+                    {t('organizationInsights')}
                   </p>
                 </div>
               </div>
@@ -457,28 +460,29 @@ export default function CompanyAdminDashboard() {
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-blue-400 rounded-full shadow-sm" />
                   <span className="font-medium">
-                    {dashboardData?.companyKPIs?.totalEmployees || 0} Employees
+                    {dashboardData?.companyKPIs?.totalEmployees || 0}{' '}
+                    {t('employees')}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-green-400 rounded-full shadow-sm" />
                   <span className="font-medium">
-                    {dashboardData?.companyKPIs?.activeSurveys || 0} Active
-                    Surveys
+                    {dashboardData?.companyKPIs?.activeSurveys || 0}{' '}
+                    {t('activeSurveys')}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-purple-400 rounded-full shadow-sm" />
                   <span className="font-medium">
                     {dashboardData?.companyKPIs?.departmentCount || 0}{' '}
-                    Departments
+                    {t('departments')}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-orange-400 rounded-full shadow-sm" />
                   <span className="font-medium">
                     {dashboardData?.companyKPIs?.completionRate || 0}%
-                    Completion
+                    {t('completion')}
                   </span>
                 </div>
               </div>
@@ -488,7 +492,7 @@ export default function CompanyAdminDashboard() {
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
-                  placeholder="Search surveys, employees, departments..."
+                  placeholder={t('searchEmployeesDepartments')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 h-12 w-full sm:w-80 text-base border-0 bg-white/80 backdrop-blur shadow-sm focus:shadow-md transition-shadow"
@@ -580,7 +584,7 @@ export default function CompanyAdminDashboard() {
                 onClick={() => router.push('/surveys/create')}
               >
                 <Plus className="h-5 w-5 mr-2" />
-                Create Survey
+                {t('createSurvey')}
               </Button>
             </div>
           </div>
@@ -596,7 +600,7 @@ export default function CompanyAdminDashboard() {
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold text-gray-900">
-              Search Results ({searchResults.total})
+              {t('searchResults')} ({searchResults.total})
             </h3>
             <Button
               variant="ghost"
@@ -698,7 +702,7 @@ export default function CompanyAdminDashboard() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Employees
+                    {t('totalEmployees')}
                   </p>
                   <p className="text-3xl font-bold text-gray-900">
                     {dashboardData.companyKPIs.totalEmployees}
@@ -707,14 +711,14 @@ export default function CompanyAdminDashboard() {
               </div>
               <div className="text-right">
                 <Badge className="bg-blue-50 text-blue-600 border-blue-200 mb-2">
-                  {dashboardData.companyKPIs.activeEmployees} active
+                  {dashboardData.companyKPIs.activeEmployees} {common('active')}
                 </Badge>
-                <p className="text-xs text-gray-500">Active employees</p>
+                <p className="text-xs text-gray-500">{t('activeEmployees')}</p>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Active Rate</span>
+                <span className="text-gray-600">{t('activeRate')}</span>
                 <span className="font-medium">
                   {dashboardData.companyKPIs.totalEmployees > 0
                     ? Math.round(
@@ -756,7 +760,7 @@ export default function CompanyAdminDashboard() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Surveys
+                    {t('activeRate')}
                   </p>
                   <p className="text-3xl font-bold text-gray-900">
                     {dashboardData.companyKPIs.totalSurveys}
@@ -765,14 +769,14 @@ export default function CompanyAdminDashboard() {
               </div>
               <div className="text-right">
                 <Badge className="bg-green-50 text-green-600 border-green-200 mb-2">
-                  {dashboardData.companyKPIs.activeSurveys} active
+                  {dashboardData.companyKPIs.activeSurveys} {common('active')}
                 </Badge>
-                <p className="text-xs text-gray-500">Currently running</p>
+                <p className="text-xs text-gray-500">{t('currentlyRunning')}</p>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Active Rate</span>
+                <span className="text-gray-600">{t('activeRate')}</span>
                 <span className="font-medium">
                   {dashboardData.companyKPIs.totalSurveys > 0
                     ? Math.round(
@@ -814,7 +818,7 @@ export default function CompanyAdminDashboard() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Completion Rate
+                    {t('completionRate')}
                   </p>
                   <p className="text-3xl font-bold text-gray-900">
                     {dashboardData.companyKPIs.completionRate}%
@@ -823,14 +827,14 @@ export default function CompanyAdminDashboard() {
               </div>
               <div className="text-right">
                 <Badge className="bg-purple-50 text-purple-600 border-purple-200 mb-2">
-                  {dashboardData.companyKPIs.totalResponses} responses
+                  {dashboardData.companyKPIs.totalResponses} {t('responses')}
                 </Badge>
-                <p className="text-xs text-gray-500">Total responses</p>
+                <p className="text-xs text-gray-500">{t('totalResponses')}</p>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Completion</span>
+                <span className="text-gray-600">{t('completion')}</span>
                 <span className="font-medium">
                   {dashboardData.companyKPIs.completionRate}%
                 </span>
@@ -856,7 +860,7 @@ export default function CompanyAdminDashboard() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Departments
+                    {t('departments')}
                   </p>
                   <p className="text-3xl font-bold text-gray-900">
                     {dashboardData.companyKPIs.departmentCount}
@@ -866,14 +870,15 @@ export default function CompanyAdminDashboard() {
               <div className="text-right">
                 <Badge className="bg-orange-50 text-orange-600 border-orange-200 mb-2">
                   {dashboardData.companyKPIs.engagementTrend > 0 ? '+' : ''}
-                  {dashboardData.companyKPIs.engagementTrend.toFixed(1)}% trend
+                  {dashboardData.companyKPIs.engagementTrend.toFixed(1)}%{' '}
+                  {t('trend')}
                 </Badge>
-                <p className="text-xs text-gray-500">Engagement trend</p>
+                <p className="text-xs text-gray-500">{t('engagementTrend')}</p>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Coverage</span>
+                <span className="text-gray-600">{t('coverage')}</span>
                 <span className="font-medium">
                   {dashboardData.companyKPIs.totalEmployees > 0
                     ? Math.round(
@@ -882,7 +887,7 @@ export default function CompanyAdminDashboard() {
                           100
                       )
                     : 0}
-                  % per dept
+                  % {t('perDept')}
                 </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
@@ -913,37 +918,37 @@ export default function CompanyAdminDashboard() {
           <TabsTrigger
             value="overview"
             icon={<BarChart3 className="h-5 w-5" />}
-            description="Company overview"
+            description={t('companyOverview')}
           >
-            Overview
+            {t('overview')}
           </TabsTrigger>
           <TabsTrigger
             value="surveys"
             icon={<FileText className="h-5 w-5" />}
-            description={`${(dashboardData?.ongoingSurveys?.length || 0) + (dashboardData?.pastSurveys?.length || 0)} total`}
+            description={`${(dashboardData?.ongoingSurveys?.length || 0) + (dashboardData?.pastSurveys?.length || 0)} ${common('total')}`}
           >
-            Surveys
+            {t('surveys')}
           </TabsTrigger>
           <TabsTrigger
             value="departments"
             icon={<Building2 className="h-5 w-5" />}
-            description={`${dashboardData?.departmentAnalytics?.length || 0} departments`}
+            description={`${dashboardData?.departmentAnalytics?.length || 0} ${t('departments')}`}
           >
-            Departments
+            {t('departments')}
           </TabsTrigger>
           <TabsTrigger
             value="insights"
             icon={<Brain className="h-5 w-5" />}
-            description="AI recommendations"
+            description={t('aiRecommendations')}
           >
-            AI Insights
+            {t('aiInsights')}
           </TabsTrigger>
           <TabsTrigger
             value="demographics"
             icon={<GitBranch className="h-5 w-5" />}
-            description={`${dashboardData?.demographicVersions?.length || 0} versions`}
+            description={`${dashboardData?.demographicVersions?.length || 0} ${t('versions')}`}
           >
-            Demographics
+            {t('demographics')}
           </TabsTrigger>
         </TabsList>
 
@@ -956,7 +961,7 @@ export default function CompanyAdminDashboard() {
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <Activity className="h-5 w-5 text-blue-600" />
                   </div>
-                  Recent Activity
+                  {t('recentActivity')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="max-h-64 md:max-h-80 overflow-y-auto scroll-smooth dashboard-scroll">
@@ -1004,7 +1009,7 @@ export default function CompanyAdminDashboard() {
                   <div className="p-2 bg-green-100 rounded-lg">
                     <Target className="h-5 w-5 text-green-600" />
                   </div>
-                  Quick Actions
+                  {t('quickActions')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1018,9 +1023,9 @@ export default function CompanyAdminDashboard() {
                       <Plus className="h-5 w-5 text-blue-600" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Create New Survey</div>
+                      <div className="font-medium">{t('createNewSurvey')}</div>
                       <div className="text-sm text-gray-500">
-                        Launch organization-wide survey
+                        {t('launchOrgSurvey')}
                       </div>
                     </div>
                   </div>
@@ -1035,9 +1040,11 @@ export default function CompanyAdminDashboard() {
                       <UserCheck className="h-5 w-5 text-purple-600" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Manage Invitations</div>
+                      <div className="font-medium">
+                        {t('manageInvitations')}
+                      </div>
                       <div className="text-sm text-gray-500">
-                        Send survey invitations
+                        {t('sendSurveyInvitations')}
                       </div>
                     </div>
                   </div>
@@ -1052,9 +1059,9 @@ export default function CompanyAdminDashboard() {
                       <BarChart3 className="h-5 w-5 text-orange-600" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Generate Report</div>
+                      <div className="font-medium">{t('generateReport')}</div>
                       <div className="text-sm text-gray-500">
-                        Analytics and insights
+                        {t('analyticsInsights')}
                       </div>
                     </div>
                   </div>
@@ -1069,9 +1076,11 @@ export default function CompanyAdminDashboard() {
                       <GitBranch className="h-5 w-5 text-green-600" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Update Demographics</div>
+                      <div className="font-medium">
+                        {t('updateDemographics')}
+                      </div>
                       <div className="text-sm text-gray-500">
-                        Department structure
+                        {t('departmentStructure')}
                       </div>
                     </div>
                   </div>
@@ -1090,7 +1099,7 @@ export default function CompanyAdminDashboard() {
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <FileText className="h-5 w-5 text-blue-600" />
                   </div>
-                  Current Ongoing Surveys
+                  {t('currentOngoingSurveys')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="max-h-64 md:max-h-84 overflow-y-auto scroll-smooth dashboard-scroll">
@@ -1101,18 +1110,17 @@ export default function CompanyAdminDashboard() {
                         <FileText className="h-8 w-8 text-blue-600" />
                       </div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        No Ongoing Surveys
+                        {t('noOngoingSurveys')}
                       </h3>
                       <p className="text-gray-500 mb-6 max-w-sm">
-                        Start gathering valuable insights by creating your first
-                        survey for your organization.
+                        {t('startGatheringInsights')}
                       </p>
                       <Button
                         onClick={() => router.push('/surveys/create')}
                         className="bg-blue-600 hover:bg-blue-700"
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        Create First Survey
+                        {t('createFirstSurvey')}
                       </Button>
                     </div>
                   ) : (
@@ -1134,7 +1142,7 @@ export default function CompanyAdminDashboard() {
                               {survey.type}
                             </p>
                             <p className="text-xs text-gray-400">
-                              Created by {survey.created_by.name}
+                              {t('createdBy')} {survey.created_by.name}
                             </p>
                           </div>
                         </div>
@@ -1143,7 +1151,9 @@ export default function CompanyAdminDashboard() {
                             <p className="font-semibold">
                               {survey.response_count || 0}
                             </p>
-                            <p className="text-gray-500">Responses</p>
+                            <p className="text-gray-500">
+                              {common('responses')}
+                            </p>
                           </div>
                           <div className="text-center">
                             <p className="font-semibold">
@@ -1176,7 +1186,7 @@ export default function CompanyAdminDashboard() {
                   <div className="p-2 bg-green-100 rounded-lg">
                     <BarChart3 className="h-5 w-5 text-green-600" />
                   </div>
-                  Past Survey Details
+                  {t('pastSurveyDetails')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="max-h-64 md:max-h-84 overflow-y-auto scroll-smooth dashboard-scroll">
@@ -1187,18 +1197,17 @@ export default function CompanyAdminDashboard() {
                         <BarChart3 className="h-8 w-8 text-green-600" />
                       </div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        No Past Surveys
+                        {t('noPastSurveys')}
                       </h3>
                       <p className="text-gray-500 mb-6 max-w-sm">
-                        Once you complete surveys, you'll see detailed results
-                        and analytics here.
+                        {t('seeSurveyResultsHere')}
                       </p>
                       <Button
                         onClick={() => router.push('/surveys')}
                         variant="outline"
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        View All Surveys
+                        {t('viewAllSurveys')}
                       </Button>
                     </div>
                   ) : (
@@ -1230,17 +1239,21 @@ export default function CompanyAdminDashboard() {
                             <p className="font-semibold">
                               {survey.response_count || 0}
                             </p>
-                            <p className="text-gray-500">Responses</p>
+                            <p className="text-gray-500">
+                              {common('responses')}
+                            </p>
                           </div>
                           <div className="text-center">
                             <p className="font-semibold">
                               {survey.completion_rate?.toFixed(1) || 0}%
                             </p>
-                            <p className="text-gray-500">Complete</p>
+                            <p className="text-gray-500">
+                              {common('complete')}
+                            </p>
                           </div>
                           <Button variant="outline" size="sm">
                             <Eye className="h-4 w-4 mr-1" />
-                            Results
+                            {common('results')}
                           </Button>
                         </div>
                       </motion.div>
@@ -1259,7 +1272,7 @@ export default function CompanyAdminDashboard() {
                 <div className="p-2 bg-purple-100 rounded-lg">
                   <Building2 className="h-5 w-5 text-purple-600" />
                 </div>
-                Department Analytics
+                {t('departmentAnalytics')}
               </CardTitle>
             </CardHeader>
             <CardContent className="max-h-64 md:max-h-84 overflow-y-auto scroll-smooth dashboard-scroll">
@@ -1270,18 +1283,17 @@ export default function CompanyAdminDashboard() {
                       <Building2 className="h-8 w-8 text-purple-600" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      No Departments Yet
+                      {t('noDepartmentsYet')}
                     </h3>
                     <p className="text-gray-500 mb-6 max-w-sm">
-                      Organize your company by creating departments to better
-                      track engagement and survey results.
+                      {t('organizeDepartments')}
                     </p>
                     <Button
                       onClick={() => router.push('/departments')}
                       className="bg-purple-600 hover:bg-purple-700"
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Add First Department
+                      {t('addFirstDepartment')}
                     </Button>
                   </div>
                 ) : (
@@ -1300,25 +1312,25 @@ export default function CompanyAdminDashboard() {
                         <div>
                           <h4 className="font-semibold">{dept.name}</h4>
                           <p className="text-sm text-gray-500">
-                            {dept.active_employees} of {dept.employee_count}{' '}
-                            active
+                            {dept.active_employees} {t('of')}{' '}
+                            {dept.employee_count} {common('active')}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-6 text-sm">
                         <div className="text-center">
                           <p className="font-semibold">{dept.survey_count}</p>
-                          <p className="text-gray-500">Surveys</p>
+                          <p className="text-gray-500">{common('surveys')}</p>
                         </div>
                         <div className="text-center">
                           <p className="font-semibold">{dept.active_surveys}</p>
-                          <p className="text-gray-500">Active</p>
+                          <p className="text-gray-500">{common('active')}</p>
                         </div>
                         <div className="text-center">
                           <p className="font-semibold">
                             {dept.engagement_score.toFixed(1)}
                           </p>
-                          <p className="text-gray-500">Engagement</p>
+                          <p className="text-gray-500">{t('engagement')}</p>
                         </div>
                         <Button variant="outline" size="sm">
                           <Eye className="h-4 w-4 mr-1" />
@@ -1340,7 +1352,7 @@ export default function CompanyAdminDashboard() {
                 <div className="p-2 bg-orange-100 rounded-lg">
                   <Brain className="h-5 w-5 text-orange-600" />
                 </div>
-                AI Insights & Recommendations
+                {t('aiInsightsRecommendations')}
               </CardTitle>
             </CardHeader>
             <CardContent className="max-h-64 md:max-h-84 overflow-y-auto scroll-smooth dashboard-scroll">
@@ -1364,7 +1376,7 @@ export default function CompanyAdminDashboard() {
                             </Badge>
                             <span className="text-xs text-gray-500">
                               {(insight.confidence * 100).toFixed(0)}%
-                              confidence
+                              {t('confidence')}
                             </span>
                           </div>
                         </div>
@@ -1373,7 +1385,7 @@ export default function CompanyAdminDashboard() {
                         </p>
                         <div className="mb-3">
                           <p className="text-xs font-medium text-gray-700 mb-1">
-                            Affected Departments:
+                            {t('affectedDepartments')}
                           </p>
                           <div className="flex gap-1">
                             {insight.affected_departments.map((dept, i) => (
@@ -1389,7 +1401,7 @@ export default function CompanyAdminDashboard() {
                         </div>
                         <div>
                           <p className="text-xs font-medium text-gray-700 mb-2">
-                            Recommendations:
+                            {t('recommendations')}
                           </p>
                           <ul className="text-xs text-gray-600 space-y-1">
                             {insight.recommendations.map((rec, i) => (
@@ -1416,7 +1428,7 @@ export default function CompanyAdminDashboard() {
                 <div className="p-2 bg-indigo-100 rounded-lg">
                   <GitBranch className="h-5 w-5 text-indigo-600" />
                 </div>
-                Demographic Versioning
+                {t('demographicVersioning')}
               </CardTitle>
             </CardHeader>
             <CardContent className="max-h-64 md:max-h-84 overflow-y-auto scroll-smooth dashboard-scroll">
@@ -1438,7 +1450,7 @@ export default function CompanyAdminDashboard() {
                           Version {version.version}
                         </h4>
                         <p className="text-sm text-gray-500">
-                          Created by {version.created_by} on{' '}
+                          {t('createdBy')} {version.created_by} {t('on')}{' '}
                           {new Date(version.created_at).toLocaleDateString()}
                         </p>
                         <div className="mt-1">
@@ -1455,11 +1467,11 @@ export default function CompanyAdminDashboard() {
                         <p className="font-semibold">
                           {version.surveys_affected}
                         </p>
-                        <p className="text-gray-500">Surveys Affected</p>
+                        <p className="text-gray-500">{t('surveysAffected')}</p>
                       </div>
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4 mr-1" />
-                        View Changes
+                        {t('viewChanges')}
                       </Button>
                     </div>
                   </motion.div>

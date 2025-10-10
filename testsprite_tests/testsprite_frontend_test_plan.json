@@ -1,0 +1,530 @@
+[
+  {
+    "id": "TC001",
+    "title": "Survey Creation Mandatory Company Selection Validation",
+    "description": "Ensure that survey creation is blocked if no company is selected and the appropriate error message is displayed.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the survey creation page"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to proceed without selecting a company"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that survey creation cannot proceed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that a clear error message indicating company selection requirement is displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Question Library Side-by-Side ES/EN Editing and Version Control",
+    "description": "Validate question library supports side-by-side Spanish and English content editing, versioning, and prevents duplication.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the question library management interface"
+      },
+      {
+        "type": "action",
+        "description": "Create a new question with Spanish and English text side-by-side"
+      },
+      {
+        "type": "action",
+        "description": "Save the question and verify versioning is tracked"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to add a duplicate question text"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify duplicate addition is prevented with an appropriate notification"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Targeting Pre-Load and CSV/XLSX Import Validations",
+    "description": "Test pre-loading of departments, users, demographics upon company selection and import of CSV/XLSX with correct column mapping and duplicate detection.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Select a company in the targeting section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify departments, users, and demographics are pre-loaded accurately"
+      },
+      {
+        "type": "action",
+        "description": "Import a demographic CSV/XLSX file with correct mapping"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify data is imported successfully and duplicates are detected and reported"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Survey Scheduling Timezone-Aware Validation",
+    "description": "Ensure survey scheduling enforces valid start/end date and time with timezone awareness and restricts access outside these windows except for admin override.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Set survey start and end date/time with timezones"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify scheduling rejects invalid ranges"
+      },
+      {
+        "type": "action",
+        "description": "Access survey before start time as an employee"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied"
+      },
+      {
+        "type": "action",
+        "description": "Access survey before start time as admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is permitted due to override"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Distribution Generates Unique Tokenized URLs and QR Codes with Access Control",
+    "description": "Verify survey distribution generates unique URLs and QR codes which respect scheduling windows and role-based access permissions.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Distribute a scheduled survey via generated URL and QR code"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL and QR code are unique and valid"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access the survey outside the schedule window"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied for unauthorized roles"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Autosave and Draft Recovery for Survey Creation and Response Submission",
+    "description": "Validate that survey forms autosave every 5-10 seconds and on field blur, and that drafts are recoverable after session expiration or disconnect.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Begin creating or responding to a survey"
+      },
+      {
+        "type": "action",
+        "description": "Modify input and wait for autosave interval"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify data is saved automatically"
+      },
+      {
+        "type": "action",
+        "description": "Simulate session disconnect or expiration"
+      },
+      {
+        "type": "action",
+        "description": "Reload or re-enter survey page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify autosaved draft is recovered correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Company Creation Validations Against Domain Duplicates",
+    "description": "Test company creation rejects domain duplicates and displays clear, actionable errors.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to create a new company with an existing domain"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify creation is blocked and clear error message is shown"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Email Domain Field Validation and Normalization Hint",
+    "description": "Ensure email domain fields accept only domains and provide normalization hints for full email inputs.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Input a full email into the email domain field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify normalization hint is displayed instructing to enter domain only"
+      },
+      {
+        "type": "action",
+        "description": "Input a proper domain and submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify domain is accepted successfully"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Role-Based Access Control Strict Enforcement and Dynamic Updates",
+    "description": "Verify role-based permissions are strictly enforced on UI and APIs, and dynamic role changes reflect immediately without delay.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as each role and verify access scopes on UI and API calls"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm access is limited to allowed resources only"
+      },
+      {
+        "type": "action",
+        "description": "Change role of a user during session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify permission changes apply dynamically without logout/login"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Multilingual ES/EN Content Display with Preview and Export Without Missing Translations",
+    "description": "Test bilingual UI displaying side-by-side English and Spanish content, including preview and exporting with no untranslated strings.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Switch between English and Spanish in UI"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all UI components and content toggle correctly with side-by-side editing"
+      },
+      {
+        "type": "action",
+        "description": "Export content to PDF/Excel"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no missing translations or untranslated placeholders present in exports"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Telemetry Captures User Events and Error Tracking",
+    "description": "Validate that user journey events, errors, and abandonment rates are captured correctly in telemetry for analytics.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform a defined user flow with typical interactions"
+      },
+      {
+        "type": "action",
+        "description": "Simulate errors and abandonment points"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify telemetry logs events, errors, and abandonment data accurately"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Microclimate Session Anonymous Participation and Live Data Visualization",
+    "description": "Ensure microclimate sessions permit anonymous participation, display live word clouds and animated charts, and support data export.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Launch a microclimate session as an admin"
+      },
+      {
+        "type": "action",
+        "description": "Access session as anonymous participant"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify participation is allowed without login"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm live word clouds and animated charts update in real-time"
+      },
+      {
+        "type": "action",
+        "description": "Export session data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify export files generate correctly with all participation data"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Audit Logs Record Changes with User ID, Timestamp and Details",
+    "description": "Verify audit trail logging captures all system changes with accurate user identification, timestamps, and detailed change records.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform various create, update, and delete actions on critical entities (users, surveys, companies, roles)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify audit logs record each action with user ID, timestamp, entity affected, and change details"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "GDPR Compliance: Data Access and Erasure Requests",
+    "description": "Test that GDPR compliance features correctly process user data access requests and data erasure with proper logging.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Submit user data access request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user data package is generated and delivered correctly"
+      },
+      {
+        "type": "action",
+        "description": "Submit data erasure (right to be forgotten) request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify personal data is erased and operation is logged with timestamp and user ID"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Performance Test for Large Target Sets in Survey Steps",
+    "description": "Ensure that survey creation and participant selection UI remains responsive with over 1000 targets, loads under 2 seconds, and has no UI overlaps or freezes.",
+    "category": "performance",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Load targeting step with 1000+ users and demographic targets"
+      },
+      {
+        "type": "assertion",
+        "description": "Measure load time and confirm it is less than 2 seconds"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI elements do not overlap and remain fully interactive"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Authentication Success and Failure with Multiple Methods",
+    "description": "Test user login via SSO and email/password flows including valid and invalid credentials scenarios.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to login page"
+      },
+      {
+        "type": "action",
+        "description": "Login using valid email and password"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm successful login and landing on role-based dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Attempt login using invalid credentials"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm login failure with proper error message"
+      },
+      {
+        "type": "action",
+        "description": "Login using configured SSO provider"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm successful SSO login and role assignment"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Real-Time Dashboard Data Update and Export",
+    "description": "Verify that role-based dashboards update data in real-time and support export/share functionality without errors.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as various roles including super_admin, company_admin, department_admin, and employee"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify role-specific data and KPIs displayed on dashboards"
+      },
+      {
+        "type": "action",
+        "description": "Trigger data changes (e.g., survey responses) and observe dashboard updates"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify real-time data refresh without manual reload"
+      },
+      {
+        "type": "action",
+        "description": "Export dashboard data reports to PDF/Excel"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm exports complete successfully and data integrity is maintained"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Action Plan Creation, KPI Tracking, and Alerts Workflow",
+    "description": "Validate creation of action plans from survey insights, assignment of owners, KPI tracking, progress updates, and overdue alerts.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create an action plan from survey insight data"
+      },
+      {
+        "type": "action",
+        "description": "Assign action owners and define SMART KPIs"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify action plan and KPIs are saved and displayed on dashboards"
+      },
+      {
+        "type": "action",
+        "description": "Simulate progress updates and overdue status"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify alerts and notifications are generated accurately"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "AI Analytics Semantic Analysis, Sentiment Scoring and Adaptive Question Selection",
+    "description": "Test AI analytics engine processes survey responses with semantic and sentiment analysis accurately and adapts question flow based on results.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Submit survey responses with varied sentiment and semantic content"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify AI generates correct sentiment scores and identifies semantic patterns"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify adaptive questions appear based on AI insights"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Internationalization: Locale Routing and Language Switching Consistency",
+    "description": "Validate bilingual English and Spanish UI with correct locale-based routing, language switching, and message translations consistency.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access platform with English locale URL and then switch to Spanish"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL routing updates to Spanish locale path"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all visible text content switches language accordingly"
+      },
+      {
+        "type": "action",
+        "description": "Access platform directly via Spanish locale URL"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI loads in Spanish with no fallback to English strings"
+      }
+    ]
+  }
+]

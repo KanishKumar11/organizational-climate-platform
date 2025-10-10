@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from '@/contexts/TranslationContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,6 +92,8 @@ const ENGAGEMENT_COLORS = {
 
 export default function MicroclimateDashboard() {
   const router = useRouter();
+  const t = useTranslations('microclimates');
+  const common = useTranslations('common');
   const [microclimates, setMicroclimates] = useState<Microclimate[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -281,9 +284,9 @@ export default function MicroclimateDashboard() {
         <div className="relative z-10">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Microclimates</h1>
+              <h1 className="text-3xl font-bold mb-2">{t('title')}</h1>
               <p className="text-teal-100 text-lg">
-                Manage real-time feedback sessions and pulse surveys
+                {t('manageFeedbackSessions')}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -293,14 +296,14 @@ export default function MicroclimateDashboard() {
                 className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
               >
                 <BarChart3 className="h-4 w-4 mr-2" />
-                Analytics
+                {common('analytics')}
               </Button>
               <Button
                 onClick={() => router.push('/microclimates/create')}
                 className="bg-white text-teal-600 hover:bg-teal-50 shadow-lg"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Microclimate
+                {t('createMicroclimate')}
               </Button>
             </div>
           </div>
@@ -317,7 +320,7 @@ export default function MicroclimateDashboard() {
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
-                placeholder="Search microclimates by title, description..."
+                placeholder={t('searchMicroclimates')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 h-12 w-full sm:w-80 text-base border-0 bg-white/80 backdrop-blur shadow-sm focus:shadow-md transition-shadow"
@@ -328,15 +331,21 @@ export default function MicroclimateDashboard() {
               <Filter className="w-5 h-5 text-gray-500" />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40 h-12 border-gray-200 bg-white/80 backdrop-blur">
-                  <SelectValue placeholder="All Status" />
+                  <SelectValue placeholder={t('allStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="all">{t('allStatus')}</SelectItem>
+                  <SelectItem value="draft">{common('draft')}</SelectItem>
+                  <SelectItem value="scheduled">
+                    {common('scheduled')}
+                  </SelectItem>
+                  <SelectItem value="active">{common('active')}</SelectItem>
+                  <SelectItem value="completed">
+                    {common('completed')}
+                  </SelectItem>
+                  <SelectItem value="cancelled">
+                    {common('cancelled')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -345,10 +354,10 @@ export default function MicroclimateDashboard() {
                 onValueChange={setDepartmentFilter}
               >
                 <SelectTrigger className="w-40 h-12 border-gray-200 bg-white/80 backdrop-blur">
-                  <SelectValue placeholder="All Departments" />
+                  <SelectValue placeholder={t('allDepartments')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="all">{t('allDepartments')}</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept._id} value={dept._id}>
                       {dept.name}

@@ -12,18 +12,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Loader2,
   CheckCircle,
   AlertCircle,
   Shield,
-  Info,
   UserPlus,
   Building2,
+  Mail,
+  User,
 } from 'lucide-react';
-import { ConsentManager } from '@/components/privacy/ConsentManager';
 import { PrivacyPolicyModal } from '@/components/legal/PrivacyPolicyModal';
 import { signIn } from 'next-auth/react';
 
@@ -171,18 +170,18 @@ function RegisterForm() {
   // Show loading state while validating invitation
   if (isValidatingInvitation) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
-        <div className="relative overflow-hidden max-w-4xl w-full">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-cyan-50 to-emerald-50 rounded-3xl" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20 flex items-center justify-center p-4">
+        <div className="relative overflow-hidden max-w-2xl w-full">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-3xl" />
           <div className="absolute inset-0 bg-grid-pattern opacity-5" />
           <div className="relative p-8 lg:p-12">
-            <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur">
+            <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur">
               <CardContent className="p-8 text-center">
-                <div className="p-4 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-2xl shadow-lg w-fit mx-auto mb-6">
+                <div className="p-4 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 rounded-2xl shadow-lg w-fit mx-auto mb-6">
                   <UserPlus className="h-8 w-8 text-white" />
                 </div>
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-                <p className="text-gray-600 text-lg">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600 dark:text-blue-400" />
+                <p className="text-gray-600 dark:text-gray-300 text-lg font-montserrat">
                   Validating invitation...
                 </p>
               </CardContent>
@@ -196,27 +195,27 @@ function RegisterForm() {
   // Show error if invitation is invalid
   if (invitationData && !invitationData.valid) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
-        <div className="relative overflow-hidden max-w-4xl w-full">
-          <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-orange-50 to-red-50 rounded-3xl" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50/30 to-orange-50/30 dark:from-slate-900 dark:via-red-900/20 dark:to-orange-900/20 flex items-center justify-center p-4">
+        <div className="relative overflow-hidden max-w-2xl w-full">
+          <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-orange-50 to-red-50 dark:from-red-900/20 dark:via-orange-900/20 dark:to-red-900/20 rounded-3xl" />
           <div className="absolute inset-0 bg-grid-pattern opacity-5" />
           <div className="relative p-8 lg:p-12">
-            <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur">
+            <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur">
               <CardHeader className="text-center">
-                <div className="p-4 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl shadow-lg w-fit mx-auto mb-6">
+                <div className="p-4 bg-gradient-to-br from-red-500 via-orange-500 to-red-500 rounded-2xl shadow-lg w-fit mx-auto mb-6">
                   <AlertCircle className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-2xl font-bold text-red-600">
+                <CardTitle className="text-2xl font-bold text-red-600 dark:text-red-400 font-montserrat">
                   Invalid Invitation
                 </CardTitle>
-                <CardDescription className="text-gray-600">
+                <CardDescription className="text-gray-600 dark:text-gray-300 font-montserrat">
                   {invitationData.error}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button
                   onClick={() => router.push('/auth/signin')}
-                  className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700"
+                  className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl font-montserrat"
                 >
                   Go to Sign In
                 </Button>
@@ -229,118 +228,128 @@ function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header Section - Simplified */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6 relative z-10">
+        <div className="max-w-lg mx-auto">
+          {/* Compact Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-sm mb-6">
-              <UserPlus className="h-8 w-8 text-white" />
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="p-3 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 rounded-2xl shadow-lg">
+                <UserPlus className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-montserrat">
+                {invitationData?.invitation
+                  ? 'Join Your Team'
+                  : 'Create Account'}
+              </h1>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {invitationData?.invitation ? 'Join Your Team' : 'Create Account'}
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              {invitationData?.invitation ? (
-                <>
-                  Complete your registration to join{' '}
-                  <span className="font-semibold text-blue-600">
-                    {invitationData.invitation.company_name}
-                  </span>{' '}
-                  as a{' '}
-                  <span className="font-semibold text-indigo-600">
-                    {formatRole(invitationData.invitation.role)}
-                  </span>
-                </>
-              ) : (
-                'Get started with organizational climate insights and surveys.'
-              )}
-            </p>
+
             {invitationData?.invitation && (
-              <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-                <div className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-200">
-                  <Building2 className="h-4 w-4 inline mr-1" />
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium font-montserrat">
+                  <Building2 className="h-3 w-3" />
                   {invitationData.invitation.company_name}
                 </div>
-                <div className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium border border-indigo-200">
+                <div className="flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-medium font-montserrat">
+                  <User className="h-3 w-3" />
                   {formatRole(invitationData.invitation.role)}
                 </div>
               </div>
             )}
+
+            <p className="text-sm text-gray-600 dark:text-gray-300 font-montserrat">
+              {invitationData?.invitation ? (
+                <>Complete your registration to join your team</>
+              ) : (
+                'Get started with organizational climate insights'
+              )}
+            </p>
           </div>
 
-          {/* Main Registration Card */}
-          <Card className="border border-slate-200/60 bg-white/95 backdrop-blur shadow-sm">
-            <CardContent className="p-8">
-              {invitationData?.invitation && (
-                <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50 rounded-lg">
-                  <div className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <div className="text-sm">
-                      <p className="font-semibold text-blue-800 mb-1">
-                        Invitation Details
-                      </p>
-                      <div className="space-y-1 text-blue-700">
-                        <p>From: {invitationData.invitation.inviter_name}</p>
-                        <p>
-                          Role: {formatRole(invitationData.invitation.role)}
-                        </p>
-                        <p>Company: {invitationData.invitation.company_name}</p>
-                      </div>
-                    </div>
+          {/* Main Registration Form */}
+          <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl shadow-2xl p-6">
+            {invitationData?.invitation && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-green-50/80 to-emerald-50/80 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg">
+                    <CheckCircle className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="text-sm text-green-700 dark:text-green-300 font-montserrat">
+                    <span className="font-semibold">Invited by:</span>{' '}
+                    {invitationData.invitation.inviter_name}
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {error && (
-                <Alert className="mb-6 border-red-200 bg-red-50/80">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-700">
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {success && (
-                <Alert className="mb-6 border-green-200 bg-green-50/80">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-700">
-                    {success}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Form Fields Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="name"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Full Name *
-                    </Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      required
-                      disabled={isSubmitting}
-                      className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Enter your full name"
-                    />
+            {error && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-red-50/80 to-pink-50/80 dark:from-red-900/30 dark:to-pink-900/30 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg">
+                    <AlertCircle className="h-4 w-4 text-white" />
                   </div>
+                  <div className="text-sm text-red-700 dark:text-red-300 font-montserrat font-medium">
+                    {error}
+                  </div>
+                </div>
+              </div>
+            )}
 
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="email"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Email Address *
-                    </Label>
+            {success && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-green-50/80 to-emerald-50/80 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg">
+                    <CheckCircle className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="text-sm text-green-700 dark:text-green-300 font-montserrat font-medium">
+                    {success}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Form Fields Grid */}
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="name"
+                    className="text-sm font-semibold text-gray-700 dark:text-gray-300 font-montserrat"
+                  >
+                    Full Name *
+                  </Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    required
+                    disabled={isSubmitting}
+                    className="h-12 px-4 border border-gray-200/50 dark:border-gray-600/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white/80 dark:bg-slate-800/80 rounded-xl font-montserrat shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="email"
+                    className="text-sm font-semibold text-gray-700 dark:text-gray-300 font-montserrat"
+                  >
+                    Email Address *
+                  </Label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                      <Mail />
+                    </div>
                     <Input
                       id="email"
                       type="email"
@@ -354,136 +363,132 @@ function RegisterForm() {
                         invitationData?.invitation?.invitation_type !==
                           'employee_self_signup'
                       }
-                      className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="h-12 pl-12 pr-4 border border-gray-200/50 dark:border-gray-600/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white/80 dark:bg-slate-800/80 rounded-xl font-montserrat shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm"
                       placeholder="Enter your email address"
                     />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="job_title"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Job Title
-                    </Label>
-                    <Input
-                      id="job_title"
-                      type="text"
-                      value={formData.job_title}
-                      onChange={(e) =>
-                        setFormData({ ...formData, job_title: e.target.value })
-                      }
-                      disabled={isSubmitting}
-                      className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Enter your job title"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="password"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Password *
-                    </Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) =>
-                        setFormData({ ...formData, password: e.target.value })
-                      }
-                      required
-                      disabled={isSubmitting}
-                      minLength={8}
-                      className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Create a strong password"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Must be at least 8 characters long
-                    </p>
-                  </div>
                 </div>
 
-                {/* Privacy Consent Section */}
-                <div className="space-y-4 pt-6 border-t border-gray-200">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg">
-                      <Shield className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Privacy & Consent
-                    </h3>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-start space-x-3 p-4 bg-gray-50/50 rounded-lg border border-gray-100">
-                      <Checkbox
-                        id="privacy-consent"
-                        checked={privacyConsent}
-                        onCheckedChange={(checked) =>
-                          setPrivacyConsent(checked === true)
-                        }
-                        className="mt-1"
-                      />
-                      <div className="flex-1">
-                        <Label
-                          htmlFor="privacy-consent"
-                          className="text-sm font-medium cursor-pointer text-gray-900"
-                        >
-                          I agree to the Privacy Policy and Terms of Service
-                          <span className="text-red-500 ml-1">*</span>
-                        </Label>
-                        <p className="text-xs text-gray-600 mt-1">
-                          Required to create an account and use the platform.{' '}
-                          <button
-                            type="button"
-                            onClick={() => setShowPrivacyPolicy(true)}
-                            className="text-blue-600 hover:text-blue-700 underline font-medium"
-                          >
-                            Read Privacy Policy
-                          </button>
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start space-x-3 p-4 bg-gray-50/50 rounded-lg border border-gray-100">
-                      <Checkbox
-                        id="marketing-consent"
-                        checked={marketingConsent}
-                        onCheckedChange={(checked) =>
-                          setMarketingConsent(checked === true)
-                        }
-                        className="mt-1"
-                      />
-                      <div className="flex-1">
-                        <Label
-                          htmlFor="marketing-consent"
-                          className="text-sm font-medium cursor-pointer text-gray-900"
-                        >
-                          I would like to receive updates and insights
-                        </Label>
-                        <p className="text-xs text-gray-600 mt-1">
-                          Optional. Receive organizational insights, platform
-                          updates, and best practices.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Alert className="bg-blue-50/50 border-blue-200">
-                    <Info className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-blue-700 text-sm">
-                      Your privacy is important to us. We collect only the data
-                      necessary to provide our services and never share personal
-                      information with third parties without your consent.
-                    </AlertDescription>
-                  </Alert>
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="job_title"
+                    className="text-sm font-semibold text-gray-700 dark:text-gray-300 font-montserrat"
+                  >
+                    Job Title
+                  </Label>
+                  <Input
+                    id="job_title"
+                    type="text"
+                    value={formData.job_title}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        job_title: e.target.value,
+                      })
+                    }
+                    disabled={isSubmitting}
+                    className="h-12 px-4 border border-gray-200/50 dark:border-gray-600/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white/80 dark:bg-slate-800/80 rounded-xl font-montserrat shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm"
+                    placeholder="Enter your job title"
+                  />
                 </div>
 
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="password"
+                    className="text-sm font-semibold text-gray-700 dark:text-gray-300 font-montserrat"
+                  >
+                    Password *
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                    required
+                    disabled={isSubmitting}
+                    minLength={8}
+                    className="h-12 px-4 border border-gray-200/50 dark:border-gray-600/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white/80 dark:bg-slate-800/80 rounded-xl font-montserrat shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm"
+                    placeholder="Create a strong password"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-montserrat flex items-center gap-1">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    Must be at least 8 characters long
+                  </p>
+                </div>
+              </div>
+
+              {/* Privacy Consent Section */}
+              <div className="space-y-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 rounded-lg">
+                    <Shield className="h-4 w-4 text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white font-montserrat">
+                    Privacy & Consent
+                  </h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3 p-4 bg-gradient-to-r from-gray-50/80 to-blue-50/80 dark:from-slate-700/50 dark:to-blue-900/20 rounded-xl">
+                    <Checkbox
+                      id="privacy-consent"
+                      checked={privacyConsent}
+                      onCheckedChange={(checked) =>
+                        setPrivacyConsent(checked === true)
+                      }
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <Label
+                        htmlFor="privacy-consent"
+                        className="text-sm font-semibold cursor-pointer text-gray-900 dark:text-white font-montserrat"
+                      >
+                        I agree to the Privacy Policy and Terms of Service
+                        <span className="text-red-500 ml-1">*</span>
+                      </Label>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 font-montserrat">
+                        Required to create an account.{' '}
+                        <button
+                          type="button"
+                          onClick={() => setShowPrivacyPolicy(true)}
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline font-medium transition-colors"
+                        >
+                          Read Privacy Policy
+                        </button>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3 p-4 bg-gradient-to-r from-gray-50/80 to-indigo-50/80 dark:from-slate-700/50 dark:to-indigo-900/20 rounded-xl">
+                    <Checkbox
+                      id="marketing-consent"
+                      checked={marketingConsent}
+                      onCheckedChange={(checked) =>
+                        setMarketingConsent(checked === true)
+                      }
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <Label
+                        htmlFor="marketing-consent"
+                        className="text-sm font-semibold cursor-pointer text-gray-900 dark:text-white font-montserrat"
+                      >
+                        I would like to receive updates and insights
+                      </Label>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 font-montserrat">
+                        Optional. Receive organizational insights and updates.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-lg shadow-sm hover:shadow-md transition-all"
+                  className="w-full h-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold text-base shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl font-montserrat"
                   disabled={isSubmitting || !privacyConsent}
                 >
                   {isSubmitting ? (
@@ -492,33 +497,24 @@ function RegisterForm() {
                       Creating Account...
                     </>
                   ) : (
-                    'Create Account'
+                    <>
+                      <UserPlus className="mr-2 h-5 w-5" />
+                      Create Account
+                    </>
                   )}
                 </Button>
-              </form>
-
-              {/* Privacy Policy Modal */}
-              <PrivacyPolicyModal
-                open={showPrivacyPolicy}
-                onOpenChange={setShowPrivacyPolicy}
-                companyName={
-                  invitationData?.invitation?.company_name || 'Our Organization'
-                }
-              />
-
-              <div className="mt-8 text-center">
-                <p className="text-sm text-gray-600">
-                  Already have an account?{' '}
-                  <button
-                    onClick={() => router.push('/auth/signin')}
-                    className="font-semibold text-blue-600 hover:text-blue-700 underline transition-colors"
-                  >
-                    Sign in
-                  </button>
-                </p>
               </div>
-            </CardContent>
-          </Card>
+            </form>
+
+            {/* Privacy Policy Modal */}
+            <PrivacyPolicyModal
+              open={showPrivacyPolicy}
+              onOpenChange={setShowPrivacyPolicy}
+              companyName={
+                invitationData?.invitation?.company_name || 'Our Organization'
+              }
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -529,18 +525,18 @@ export default function RegisterPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
-          <div className="relative overflow-hidden max-w-4xl w-full">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-cyan-50 to-emerald-50 rounded-3xl" />
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20 flex items-center justify-center p-4">
+          <div className="relative overflow-hidden max-w-2xl w-full">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-3xl" />
             <div className="absolute inset-0 bg-grid-pattern opacity-5" />
             <div className="relative p-8 lg:p-12">
-              <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur">
+              <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur">
                 <CardContent className="p-8 text-center">
-                  <div className="p-4 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-2xl shadow-lg w-fit mx-auto mb-6">
+                  <div className="p-4 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 rounded-2xl shadow-lg w-fit mx-auto mb-6">
                     <UserPlus className="h-8 w-8 text-white" />
                   </div>
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-                  <p className="text-gray-600 text-lg">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600 dark:text-blue-400" />
+                  <p className="text-gray-600 dark:text-gray-300 text-lg font-montserrat">
                     Loading registration form...
                   </p>
                 </CardContent>

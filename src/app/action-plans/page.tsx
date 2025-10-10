@@ -11,6 +11,7 @@ import { AlertsPanel } from '@/components/action-plans/AlertsPanel';
 import { CommitmentTracker } from '@/components/action-plans/CommitmentTracker';
 import { ActionPlanNavbar } from '@/components/layout/Navbar';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslations } from '@/contexts/TranslationContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +33,8 @@ import { toast } from 'sonner';
 export default function ActionPlansPage() {
   const router = useRouter();
   const { user, canCreateActionPlans } = useAuth();
+  const t = useTranslations('actionPlans');
+  const common = useTranslations('common');
   const [activeTab, setActiveTab] = useState('my-plans');
   const [insights, setInsights] = useState<any[]>([]);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
@@ -88,7 +91,9 @@ export default function ActionPlansPage() {
   };
 
   const handleBulkActionPlansCreated = (actionPlans: unknown[]) => {
-    toast.success(`Successfully created ${actionPlans.length} action plans`);
+    toast.success(
+      t('actionPlansCreatedSuccess', { count: actionPlans.length })
+    );
     setActiveTab('my-plans'); // Switch back to main dashboard
   };
 
@@ -101,19 +106,18 @@ export default function ActionPlansPage() {
             <AlertTriangle className="w-8 h-8 text-red-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Access Restricted
+            {t('accessRestricted')}
           </h2>
           <p className="text-gray-600 mb-6 max-w-md">
-            You don't have permission to access action plans. Contact your
-            administrator if you need access to create and manage action plans.
+            {t('noPermissionMessage')}
           </p>
           <div className="flex gap-3">
             <Button asChild variant="outline">
-              <Link href="/dashboard">Return to Dashboard</Link>
+              <Link href="/dashboard">{t('returnToDashboard')}</Link>
             </Button>
             {user?.role === 'employee' && (
               <Button asChild>
-                <Link href="/surveys/my">View My Surveys</Link>
+                <Link href="/surveys/my">{t('viewMySurveys')}</Link>
               </Button>
             )}
           </div>
@@ -128,7 +132,7 @@ export default function ActionPlansPage() {
         {/* Header with navigation */}
         <div className="mb-6 flex-shrink-0">
           <ActionPlanNavbar
-            title="Action Plans"
+            title={t('actionPlans')}
             onCreateActionPlan={() => {
               router.push('/action-plans/create');
             }}
@@ -141,7 +145,7 @@ export default function ActionPlansPage() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600 mb-1">
-                  Active Plans
+                  {t('activePlans')}
                 </p>
                 <p className="text-3xl font-bold text-gray-900 leading-none">
                   12
@@ -153,7 +157,7 @@ export default function ActionPlansPage() {
             </div>
             <div className="mt-3">
               <Badge variant="secondary" className="text-xs">
-                +2 this week
+                {t('thisWeek', { count: 2 })}
               </Badge>
             </div>
           </Card>
@@ -162,7 +166,7 @@ export default function ActionPlansPage() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600 mb-1">
-                  Overdue
+                  {t('overdue')}
                 </p>
                 <p className="text-3xl font-bold text-red-600 leading-none">
                   3
@@ -174,7 +178,7 @@ export default function ActionPlansPage() {
             </div>
             <div className="mt-3">
               <Badge variant="destructive" className="text-xs">
-                Needs attention
+                {t('needsAttention')}
               </Badge>
             </div>
           </Card>
@@ -183,7 +187,7 @@ export default function ActionPlansPage() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600 mb-1">
-                  Team Members
+                  {t('teamMembers')}
                 </p>
                 <p className="text-3xl font-bold text-gray-900 leading-none">
                   28
@@ -195,7 +199,7 @@ export default function ActionPlansPage() {
             </div>
             <div className="mt-3">
               <Badge variant="outline" className="text-xs">
-                Across 5 departments
+                {t('acrossDepartments', { count: 5 })}
               </Badge>
             </div>
           </Card>
@@ -204,7 +208,7 @@ export default function ActionPlansPage() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600 mb-1">
-                  Completion Rate
+                  {t('completionRate')}
                 </p>
                 <p className="text-3xl font-bold text-green-600 leading-none">
                   78%
@@ -216,7 +220,7 @@ export default function ActionPlansPage() {
             </div>
             <div className="mt-3">
               <Badge variant="secondary" className="text-xs">
-                +5% vs last month
+                {t('vsLastMonth', { percentage: 5 })}
               </Badge>
             </div>
           </Card>
@@ -234,30 +238,30 @@ export default function ActionPlansPage() {
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <Target className="w-4 h-4 mr-2" />
-              My Plans
+              {t('myPlans')}
             </TabsTrigger>
             <TabsTrigger
               value="kanban"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <LayoutGrid className="w-4 h-4 mr-2" />
-              Kanban Board
+              {t('kanbanBoard')}
             </TabsTrigger>
             <TabsTrigger
               value="timeline"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <CalendarIcon className="w-4 h-4 mr-2" />
-              Timeline View
+              {t('timeline')} View
             </TabsTrigger>
             <TabsTrigger
               value="bulk-create"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <Zap className="w-4 h-4 mr-2" />
-              Bulk Create
+              {t('bulkCreate')}
               <Badge variant="secondary" className="ml-2 text-xs">
-                AI
+                {t('ai')}
               </Badge>
             </TabsTrigger>
             <TabsTrigger
@@ -265,14 +269,14 @@ export default function ActionPlansPage() {
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <Bell className="w-4 h-4 mr-2" />
-              Alerts & Monitoring
+              {t('alertsMonitoring')}
             </TabsTrigger>
             <TabsTrigger
               value="commitments"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
-              Commitments
+              {t('commitments')}
             </TabsTrigger>
           </TabsList>
 
@@ -322,20 +326,20 @@ export default function ActionPlansPage() {
                     <Zap className="w-8 h-8 text-purple-600" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    AI-Powered Bulk Action Plan Creation
+                    {t('aiPoweredBulkCreation')}
                   </h3>
                   <p className="text-gray-600 mb-6">
                     {isLoadingInsights
-                      ? 'Loading AI insights from your surveys...'
-                      : 'No AI insights available yet. Create a survey and analyze the responses to generate action plans automatically.'}
+                      ? t('loadingAiInsights')
+                      : t('noAiInsightsYet')}
                   </p>
                   {!isLoadingInsights && (
                     <div className="flex gap-3 justify-center">
                       <Button asChild variant="outline">
-                        <Link href="/ai-insights">View AI Insights</Link>
+                        <Link href="/ai-insights">{t('viewAiInsights')}</Link>
                       </Button>
                       <Button asChild>
-                        <Link href="/surveys/create">Create Survey</Link>
+                        <Link href="/surveys/create">{t('createSurvey')}</Link>
                       </Button>
                     </div>
                   )}

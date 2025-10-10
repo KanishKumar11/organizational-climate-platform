@@ -48,8 +48,16 @@ export async function POST(
       );
     }
 
-    // Get the report
-    const report = await reportService.getReport(id, session.user.id);
+    // Get the report with proper access control
+    const Report = (await import('@/models/Report')).default;
+    const report = await Report.findOne({
+      _id: id,
+      $or: [
+        { created_by: session.user.id },
+        { company_id: session.user.companyId },
+      ],
+    }).lean();
+
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
@@ -57,15 +65,21 @@ export async function POST(
     // Get AI insights for executive summary
     let executiveSummary;
     if (exportOptions.includeExecutiveSummary) {
-      const insights = await AIInsight.find({
-        surveyId: { $in: report.filters.survey_ids || [] },
-        companyId: session.user.companyId,
-      }).lean();
+      try {
+        const insights = await AIInsight.find({
+          surveyId: { $in: report.filters?.survey_ids || [] },
+          companyId: session.user.companyId,
+        }).lean();
 
-      executiveSummary = await exportService.generateExecutiveSummary(
-        report,
-        insights
-      );
+        executiveSummary = await exportService.generateExecutiveSummary(
+          report,
+          insights
+        );
+      } catch (error) {
+        console.warn('Failed to generate executive summary:', error);
+        // Continue without executive summary rather than failing the entire export
+        executiveSummary = null;
+      }
     }
 
     // Generate export based on format
@@ -81,7 +95,7 @@ export async function POST(
           executiveSummary
         );
         contentType = 'application/pdf';
-        filename = `${report.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+        filename = `${(report.title || 'report').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
         break;
 
       case 'excel':
@@ -92,13 +106,13 @@ export async function POST(
         );
         contentType =
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-        filename = `${report.title.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`;
+        filename = `${(report.title || 'report').replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`;
         break;
 
       case 'csv':
         exportBuffer = await exportService.exportToCSV(report, exportOptions);
         contentType = 'text/csv';
-        filename = `${report.title.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+        filename = `${(report.title || 'report').replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
         break;
 
       default:
@@ -109,15 +123,20 @@ export async function POST(
     }
 
     // Log the export activity
-    await reportService.logActivity({
-      reportId: id,
-      userId: session.user.id,
-      action: 'export',
-      details: {
-        format: exportOptions.format,
-        sections: exportOptions.sections,
-      },
-    });
+    try {
+      await reportService.logActivity({
+        reportId: id,
+        userId: session.user.id,
+        action: 'export',
+        details: {
+          format: exportOptions.format,
+          sections: exportOptions.sections,
+        },
+      });
+    } catch (error) {
+      console.warn('Failed to log export activity:', error);
+      // Continue with export even if logging fails
+    }
 
     // Return the file
     return new NextResponse(exportBuffer as any, {
@@ -130,8 +149,15 @@ export async function POST(
     });
   } catch (error) {
     console.error('Export error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+    });
     return NextResponse.json(
-      { error: 'Failed to export report' },
+      {
+        error: `Failed to export report: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      },
       { status: 500 }
     );
   }
@@ -151,7 +177,15 @@ export async function GET(
     const { id } = await params;
 
     // Get export options and formats available for this report
-    const report = await reportService.getReport(id, session.user.id);
+    const Report = (await import('@/models/Report')).default;
+    const report = await Report.findOne({
+      _id: id,
+      $or: [
+        { created_by: session.user.id },
+        { company_id: session.user.companyId },
+      ],
+    }).lean();
+
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
