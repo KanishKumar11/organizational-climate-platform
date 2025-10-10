@@ -50,14 +50,16 @@ export async function POST(request: NextRequest) {
       const fileText = await file.text();
 
       // Parse CSV using Papa Parse with Promise
-      const parseResult = await new Promise<Papa.ParseResult<any>>((resolve, reject) => {
-        Papa.parse(fileText, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => resolve(results),
-          error: (error) => reject(error),
-        });
-      });
+      const parseResult = await new Promise<Papa.ParseResult<any>>(
+        (resolve, reject) => {
+          Papa.parse(fileText, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => resolve(results),
+            error: (error) => reject(error),
+          });
+        }
+      );
 
       const data = parseResult.data as ParsedRow[];
       const errors: string[] = [];
@@ -85,77 +87,75 @@ export async function POST(request: NextRequest) {
         );
       }
 
-    // Process each row
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      const rowNum = i + 2;
+      // Process each row
+      for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        const rowNum = i + 2;
 
-      // Validate email
-      if (!row.email || !row.email.trim()) {
-        errors.push(`Row ${rowNum}: Missing email`);
-        continue;
-      }
-
-      const email = row.email.trim().toLowerCase();
-
-      // Find user by email and company
-      const user = await User.findOne({
-        email,
-        company_id,
-      });
-
-      if (!user) {
-        notFoundCount++;
-        errors.push(
-          `Row ${rowNum}: User not found with email "${email}" in this company`
-        );
-        continue;
-      }
-
-      // Build demographics object
-      const demographics: Record<string, string> = {};
-      let hasValidData = false;
-
-      fieldsFound.forEach((field) => {
-        const value = row[field];
-        if (value && value.trim()) {
-          demographics[field] = value.trim();
-          hasValidData = true;
+        // Validate email
+        if (!row.email || !row.email.trim()) {
+          errors.push(`Row ${rowNum}: Missing email`);
+          continue;
         }
-      });
 
-      if (!hasValidData) {
-        errors.push(
-          `Row ${rowNum}: No valid demographic data to update`
-        );
-        continue;
+        const email = row.email.trim().toLowerCase();
+
+        // Find user by email and company
+        const user = await User.findOne({
+          email,
+          company_id,
+        });
+
+        if (!user) {
+          notFoundCount++;
+          errors.push(
+            `Row ${rowNum}: User not found with email "${email}" in this company`
+          );
+          continue;
+        }
+
+        // Build demographics object
+        const demographics: Record<string, string> = {};
+        let hasValidData = false;
+
+        fieldsFound.forEach((field) => {
+          const value = row[field];
+          if (value && value.trim()) {
+            demographics[field] = value.trim();
+            hasValidData = true;
+          }
+        });
+
+        if (!hasValidData) {
+          errors.push(`Row ${rowNum}: No valid demographic data to update`);
+          continue;
+        }
+
+        // Update user demographics
+        user.demographics = {
+          ...user.demographics,
+          ...demographics,
+        };
+
+        await user.save();
+        updatedCount++;
       }
 
-      // Update user demographics
-      user.demographics = {
-        ...user.demographics,
-        ...demographics,
-      };
-
-      await user.save();
-      updatedCount++;
+      return NextResponse.json({
+        success: true,
+        updatedCount,
+        notFoundCount,
+        totalProcessed: data.length,
+        fieldsUpdated: fieldsFound,
+        errors: errors.slice(0, 50), // Limit to first 50 errors
+      });
+    } catch (error) {
+      console.error('Error uploading demographics:', error);
+      return NextResponse.json(
+        { error: 'Failed to upload demographics' },
+        { status: 500 }
+      );
     }
-
-    return NextResponse.json({
-      success: true,
-      updatedCount,
-      notFoundCount,
-      totalProcessed: data.length,
-      fieldsUpdated: fieldsFound,
-      errors: errors.slice(0, 50), // Limit to first 50 errors
-    });
-  } catch (error) {
-    console.error('Error uploading demographics:', error);
-    return NextResponse.json(
-      { error: 'Failed to upload demographics' },
-      { status: 500 }
-    );
-  }
   } catch (error) {
     console.error('Error uploading demographics:', error);
     return NextResponse.json(

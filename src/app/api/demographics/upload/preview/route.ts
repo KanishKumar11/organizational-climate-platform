@@ -57,14 +57,16 @@ export async function POST(request: NextRequest) {
       const fileText = await file.text();
 
       // Parse CSV using Papa Parse with Promise
-      const parseResult = await new Promise<Papa.ParseResult<any>>((resolve, reject) => {
-        Papa.parse(fileText, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => resolve(results),
-          error: (error) => reject(error),
-        });
-      });
+      const parseResult = await new Promise<Papa.ParseResult<any>>(
+        (resolve, reject) => {
+          Papa.parse(fileText, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => resolve(results),
+            error: (error) => reject(error),
+          });
+        }
+      );
 
       const data = parseResult.data as ParsedRow[];
       const errors: string[] = [];
