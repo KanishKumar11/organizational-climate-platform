@@ -31,7 +31,7 @@ import Company from '@/models/Company';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Authenticate user
@@ -46,10 +46,10 @@ export async function GET(
     // Connect to database
     await dbConnect();
 
-    const companyId = params.id;
+    const { id } = await params;
 
     // Verify company exists
-    const company = await Company.findById(companyId);
+    const company = await Company.findById(id);
     if (!company) {
       return NextResponse.json(
         { success: false, error: 'Company not found' },
@@ -60,7 +60,7 @@ export async function GET(
     // Access control - only super admin or company admin can access
     if (
       session.user.role !== 'super_admin' &&
-      session.user.companyId?.toString() !== companyId
+      session.user.companyId?.toString() !== id
     ) {
       return NextResponse.json(
         { success: false, error: 'Access denied' },
@@ -169,7 +169,7 @@ export async function GET(
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -179,13 +179,13 @@ export async function POST(
 
     await dbConnect();
 
-    const companyId = params.id;
+    const { id } = await params;
     const body = await req.json();
     const { filterBy } = body; // e.g., { departments: ['Engineering'] }
 
     // Build filter query
     const filter: any = {
-      company_id: companyId,
+      company_id: id,
       is_active: true,
     };
 
