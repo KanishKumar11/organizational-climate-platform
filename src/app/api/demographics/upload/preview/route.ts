@@ -47,129 +47,123 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    // Get available demographic fields for the company
-    const demographicFields =
-      await DemographicField.findActiveByCompany(company_id);
-    const validFieldKeys = demographicFields.map((f: any) => f.field);
+    try {
+      // Get available demographic fields for the company
+      const demographicFields =
+        await DemographicField.findActiveByCompany(company_id);
+      const validFieldKeys = demographicFields.map((f: any) => f.field);
 
-    // Read and parse CSV file
-    const fileText = await file.text();
+      // Read and parse CSV file
+      const fileText = await file.text();
 
-    return new Promise((resolve) => {
-      Papa.parse(fileText, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          const data = results.data as ParsedRow[];
-          const errors: string[] = [];
-          const validRows: ParsedRow[] = [];
-          const fieldsFound = new Set<string>();
-
-          // Validate headers
-          const headers = results.meta.fields || [];
-          if (!headers.includes('email')) {
-            resolve(
-              NextResponse.json(
-                { error: 'CSV must contain an "email" column' },
-                { status: 400 }
-              )
-            );
-            return;
-          }
-
-          // Track which demographic fields are present
-          headers.forEach((header) => {
-            if (header !== 'email' && validFieldKeys.includes(header)) {
-              fieldsFound.add(header);
-            }
-          });
-
-          if (fieldsFound.size === 0) {
-            resolve(
-              NextResponse.json(
-                { error: 'No valid demographic fields found in CSV' },
-                { status: 400 }
-              )
-            );
-            return;
-          }
-
-          // Validate rows
-          data.forEach((row, index) => {
-            const rowNum = index + 2; // +2 for header and 1-based indexing
-
-            // Check for email
-            if (!row.email || !row.email.trim()) {
-              errors.push(`Row ${rowNum}: Missing email`);
-              return;
-            }
-
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(row.email.trim())) {
-              errors.push(`Row ${rowNum}: Invalid email format`);
-              return;
-            }
-
-            // Validate demographic field values
-            let hasError = false;
-            fieldsFound.forEach((field) => {
-              const value = row[field];
-              const fieldConfig = demographicFields.find(
-                (f: any) => f.field === field
-              );
-
-              if (
-                fieldConfig &&
-                fieldConfig.required &&
-                (!value || !value.trim())
-              ) {
-                errors.push(`Row ${rowNum}: Missing required field "${field}"`);
-                hasError = true;
-              }
-
-              if (
-                fieldConfig &&
-                fieldConfig.type === 'select' &&
-                value &&
-                value.trim()
-              ) {
-                if (!fieldConfig.options.includes(value.trim())) {
-                  errors.push(
-                    `Row ${rowNum}: Invalid value "${value}" for field "${field}". Must be one of: ${fieldConfig.options.join(', ')}`
-                  );
-                  hasError = true;
-                }
-              }
-            });
-
-            if (!hasError) {
-              validRows.push(row);
-            }
-          });
-
-          // Return preview
-          resolve(
-            NextResponse.json({
-              success: true,
-              totalRows: data.length,
-              validRows: validRows.length,
-              fieldsFound: Array.from(fieldsFound),
-              errors: errors.slice(0, 50), // Limit to first 50 errors
-              preview: validRows.slice(0, 5), // Show first 5 valid rows
-            })
-          );
-        },
-        error: (error) => {
-          resolve(
-            NextResponse.json(
-              { error: `Failed to parse CSV: ${error.message}` },
-              { status: 400 }
-            )
-          );
-        },
+      // Parse CSV using Papa Parse with Promise
+      const parseResult = await new Promise<Papa.ParseResult<any>>((resolve, reject) => {
+        Papa.parse(fileText, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => resolve(results),
+          error: (error) => reject(error),
+        });
       });
-    });
+
+      const data = parseResult.data as ParsedRow[];
+      const errors: string[] = [];
+      const validRows: ParsedRow[] = [];
+      const fieldsFound = new Set<string>();
+
+      // Validate headers
+      const headers = parseResult.meta.fields || [];
+      if (!headers.includes('email')) {
+        return NextResponse.json(
+          { error: 'CSV must contain an "email" column' },
+          { status: 400 }
+        );
+      }
+
+      // Track which demographic fields are present
+      headers.forEach((header) => {
+        if (header !== 'email' && validFieldKeys.includes(header)) {
+          fieldsFound.add(header);
+        }
+      });
+
+      if (fieldsFound.size === 0) {
+        return NextResponse.json(
+          { error: 'No valid demographic fields found in CSV' },
+          { status: 400 }
+        );
+      }
+
+      // Validate rows
+      data.forEach((row, index) => {
+        const rowNum = index + 2; // +2 for header and 1-based indexing
+
+        // Check for email
+        if (!row.email || !row.email.trim()) {
+          errors.push(`Row ${rowNum}: Missing email`);
+          return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(row.email.trim())) {
+          errors.push(`Row ${rowNum}: Invalid email format`);
+          return;
+        }
+
+        // Validate demographic field values
+        let hasError = false;
+        fieldsFound.forEach((field) => {
+          const value = row[field];
+          const fieldConfig = demographicFields.find(
+            (f: any) => f.field === field
+          );
+
+          if (
+            fieldConfig &&
+            fieldConfig.required &&
+            (!value || !value.trim())
+          ) {
+            errors.push(`Row ${rowNum}: Missing required field "${field}"`);
+            hasError = true;
+          }
+
+          if (
+            fieldConfig &&
+            fieldConfig.type === 'select' &&
+            value &&
+            value.trim()
+          ) {
+            if (!fieldConfig.options.includes(value.trim())) {
+              errors.push(
+                `Row ${rowNum}: Invalid value "${value}" for field "${field}". Must be one of: ${fieldConfig.options.join(', ')}`
+              );
+              hasError = true;
+            }
+          }
+        });
+
+        if (!hasError) {
+          validRows.push(row);
+        }
+      });
+
+      // Return preview
+      return NextResponse.json({
+        success: true,
+        totalRows: data.length,
+        validRows: validRows.length,
+        fieldsFound: Array.from(fieldsFound),
+        errors: errors.slice(0, 50), // Limit to first 50 errors
+        preview: validRows.slice(0, 5), // Show first 5 valid rows
+      });
+    } catch (error) {
+      console.error('Error previewing demographics upload:', error);
+      return NextResponse.json(
+        { error: 'Failed to preview demographics upload' },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error('Error previewing demographics upload:', error);
     return NextResponse.json(
