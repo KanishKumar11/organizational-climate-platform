@@ -23,7 +23,7 @@ import { getEntityAuditTrail, AuditEntityType } from '@/lib/audit';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { entityType: string; entityId: string } }
+  { params }: { params: Promise<{ entityType: string; entityId: string }> }
 ) {
   try {
     // Authenticate
@@ -46,7 +46,7 @@ export async function GET(
       );
     }
 
-    const { entityType, entityId } = params;
+    const { entityType, entityId } = await params;
     const { searchParams } = new URL(req.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
 
