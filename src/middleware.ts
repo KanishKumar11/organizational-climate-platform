@@ -2,25 +2,29 @@ import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 
 // Simple cache for middleware to avoid database calls on every request
-let maintenanceCache: { enabled: boolean; loginEnabled: boolean; expiry: number } | null = null;
+let maintenanceCache: {
+  enabled: boolean;
+  loginEnabled: boolean;
+  expiry: number;
+} | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Simplified system settings check for middleware (Edge Runtime compatible)
 async function getSystemStatus() {
   const now = Date.now();
-  
+
   // Return cached values if still valid
   if (maintenanceCache && now < maintenanceCache.expiry) {
     return {
       maintenanceMode: maintenanceCache.enabled,
-      loginEnabled: maintenanceCache.loginEnabled
+      loginEnabled: maintenanceCache.loginEnabled,
     };
   }
 
   // Default values (fail-safe)
   const defaultValues = {
     maintenanceMode: false,
-    loginEnabled: true
+    loginEnabled: true,
   };
 
   try {
@@ -28,12 +32,15 @@ async function getSystemStatus() {
     maintenanceCache = {
       enabled: false,
       loginEnabled: true,
-      expiry: now + CACHE_DURATION
+      expiry: now + CACHE_DURATION,
     };
-    
+
     return defaultValues;
   } catch (error) {
-    console.warn('Middleware system status check failed, using defaults:', error);
+    console.warn(
+      'Middleware system status check failed, using defaults:',
+      error
+    );
     return defaultValues;
   }
 }
@@ -46,13 +53,17 @@ export default withAuth(
     const isApiRoute = req.nextUrl.pathname.startsWith('/api');
     const isPublicRoute =
       req.nextUrl.pathname === '/' ||
-      req.nextUrl.pathname.startsWith('/public');
+      req.nextUrl.pathname.startsWith('/public') ||
+      req.nextUrl.pathname.match(/^\/surveys\/[^\/]+\/respond$/) || // Allow survey response pages
+      req.nextUrl.pathname.match(/^\/microclimates\/[^\/]+\/respond$/); // Allow microclimate response pages
     const isMaintenancePage = req.nextUrl.pathname === '/maintenance';
-    const isAdminRoute = req.nextUrl.pathname.startsWith('/admin') || req.nextUrl.pathname.startsWith('/api/admin');
+    const isAdminRoute =
+      req.nextUrl.pathname.startsWith('/admin') ||
+      req.nextUrl.pathname.startsWith('/api/admin');
 
     // Check system status
     const systemStatus = await getSystemStatus();
-    
+
     // Check system maintenance mode first
     if (systemStatus.maintenanceMode && !isMaintenancePage && !isAdminRoute) {
       // Allow super admins to bypass maintenance mode
@@ -63,7 +74,10 @@ export default withAuth(
 
     // Check if login is enabled (except for super admins and maintenance page)
     if (!isMaintenancePage && !isAdminRoute) {
-      if (!systemStatus.loginEnabled && (!isAuth || token?.role !== 'super_admin')) {
+      if (
+        !systemStatus.loginEnabled &&
+        (!isAuth || token?.role !== 'super_admin')
+      ) {
         return NextResponse.redirect(new URL('/maintenance', req.url));
       }
     }
@@ -119,5 +133,3 @@ export const config = {
     '/((?!api/auth|_next/static|_next/image|favicon.ico|public).*)',
   ],
 };
-
-

@@ -751,11 +751,7 @@ export default function SurveyDetailPage() {
             {editing ? (
               <div className="bg-gray-50 rounded-2xl p-8">
                 <SurveyBuilder
-                  title={editTitle}
-                  description={editDescription}
                   questions={editQuestions}
-                  onTitleChange={setEditTitle}
-                  onDescriptionChange={setEditDescription}
                   onQuestionsChange={setEditQuestions}
                 />
               </div>

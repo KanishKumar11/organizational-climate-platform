@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
@@ -14,7 +14,11 @@ interface PageProps {
   searchParams: Promise<{ token?: string }>;
 }
 
-async function getMicroclimateData(id: string, session: any) {
+async function getMicroclimateData(
+  id: string,
+  session: any,
+  invitationToken?: string
+) {
   try {
     await connectDB();
 
@@ -26,11 +30,21 @@ async function getMicroclimateData(id: string, session: any) {
     }
 
     // Check access permissions
-    if (
-      microclimate.company_id !== session.user.companyId &&
-      session.user.role !== 'super_admin'
-    ) {
-      return null;
+    const isAnonymousMicroclimate =
+      microclimate.real_time_settings?.anonymous_responses;
+    const hasInvitationToken = !!invitationToken;
+    const isAuthenticated = !!session?.user;
+
+    // For anonymous microclimates or invitation tokens, skip company validation
+    if (!isAnonymousMicroclimate && !hasInvitationToken) {
+      // Only check company access for authenticated users
+      if (
+        isAuthenticated &&
+        microclimate.company_id !== session.user.companyId &&
+        session.user.role !== 'super_admin'
+      ) {
+        return null;
+      }
     }
 
     // Check if microclimate can accept responses
@@ -125,11 +139,28 @@ export default async function MicroclimateResponsePage({
     const { id } = await params;
     const { token } = await searchParams;
 
-    if (!session?.user) {
+    // Get microclimate data first to check if it's anonymous
+    await connectDB();
+    const microclimate = await Microclimate.findById(id).lean();
+
+    if (!microclimate) {
       notFound();
     }
 
-    const microclimateData = await getMicroclimateData(id, session);
+    // Allow anonymous access if:
+    // 1. Microclimate is anonymous, OR
+    // 2. User has invitation token, OR
+    // 3. User is authenticated
+    const isAnonymousMicroclimate =
+      microclimate.real_time_settings?.anonymous_responses;
+    const hasInvitationToken = !!token;
+    const isAuthenticated = !!session?.user;
+
+    if (!isAnonymousMicroclimate && !hasInvitationToken && !isAuthenticated) {
+      redirect('/auth/signin');
+    }
+
+    const microclimateData = await getMicroclimateData(id, session, token);
 
     if (!microclimateData) {
       notFound();

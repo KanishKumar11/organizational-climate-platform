@@ -44,12 +44,13 @@ export function TabNavigationFooter({
   // Format tab label for display
   const formatTabLabel = (tab: SurveyTab): string => {
     const labels: Record<SurveyTab, string> = {
-      questions: 'Targeting',
-      targeting: 'Demographics',
-      demographics: 'Invitations',
-      invitations: 'Schedule',
-      schedule: 'Preview',
-      preview: 'QR Code',
+      basic: 'Basic Info',
+      questions: 'Questions',
+      targeting: 'Targeting',
+      demographics: 'Demographics',
+      invitations: 'Invitations',
+      schedule: 'Schedule',
+      preview: 'Preview',
       'qr-code': 'QR Code',
     };
     return labels[tab] || tab;

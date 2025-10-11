@@ -30,20 +30,12 @@ import QuestionEditor from './QuestionEditor';
 import { cn } from '@/lib/utils';
 
 interface SurveyBuilderProps {
-  title: string;
-  description: string;
   questions: IQuestion[];
-  onTitleChange: (title: string) => void;
-  onDescriptionChange: (description: string) => void;
   onQuestionsChange: (questions: IQuestion[]) => void;
 }
 
 export default function SurveyBuilder({
-  title,
-  description,
   questions,
-  onTitleChange,
-  onDescriptionChange,
   onQuestionsChange,
 }: SurveyBuilderProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -192,63 +184,6 @@ export default function SurveyBuilder({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Survey Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card className="border border-gray-200 bg-white">
-          <CardHeader className="pb-4 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center">
-                <FileText className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <CardTitle className="text-xl text-gray-900">
-                  Survey Details
-                </CardTitle>
-                <p className="text-sm text-gray-600">
-                  Configure your survey information
-                </p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-6">
-            <div className="space-y-3">
-              <Label
-                htmlFor="survey-title"
-                className="text-sm font-medium text-gray-700"
-              >
-                Survey Title
-              </Label>
-              <Input
-                id="survey-title"
-                value={title}
-                onChange={(e) => onTitleChange(e.target.value)}
-                placeholder="Enter a compelling survey title..."
-                className="text-lg font-medium border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 bg-white"
-              />
-            </div>
-            <div className="space-y-3">
-              <Label
-                htmlFor="survey-description"
-                className="text-sm font-medium text-gray-700"
-              >
-                Description
-              </Label>
-              <textarea
-                id="survey-description"
-                value={description}
-                onChange={(e) => onDescriptionChange(e.target.value)}
-                placeholder="Describe the purpose and context of your survey..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
-                rows={3}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
       {/* Questions Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">

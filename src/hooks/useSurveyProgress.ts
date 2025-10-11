@@ -8,6 +8,7 @@
 import { useMemo } from 'react';
 
 export type SurveyTab =
+  | 'basic'
   | 'questions'
   | 'targeting'
   | 'demographics'
@@ -83,8 +84,12 @@ export function useSurveyProgress(
 
   // Calculate tab states
   const tabs = useMemo<Record<SurveyTab, TabState>>(() => {
-    // Questions - Always unlocked, required (combines builder + library)
-    const questionsCompleted = title.trim() !== '' && questions.length > 0;
+    // Basic Info - Always unlocked, required
+    const basicCompleted = title.trim() !== '';
+
+    // Questions - Unlocks when basic info complete, required
+    const questionsUnlocked = basicCompleted;
+    const questionsCompleted = questions.length > 0;
 
     // Targeting - Unlocks when questions exist, required
     const targetingUnlocked = questions.length > 0;
@@ -129,17 +134,29 @@ export function useSurveyProgress(
     const qrCodeCompleted = false; // Not a completion step
 
     return {
+      basic: {
+        id: 'basic',
+        label: 'Basic Info',
+        icon: 'FileText',
+        unlocked: true,
+        required: true,
+        completed: basicCompleted,
+        warning: !basicCompleted ? 'Enter a survey title' : undefined,
+        order: 0,
+      },
       questions: {
         id: 'questions',
         label: 'Questions',
         icon: 'HelpCircle',
-        unlocked: true,
+        unlocked: questionsUnlocked,
         required: true,
         completed: questionsCompleted,
-        warning: !questionsCompleted
-          ? 'Add a title and at least one question'
-          : undefined,
-        order: 0,
+        warning: !questionsUnlocked
+          ? 'Complete Basic Info first'
+          : !questionsCompleted
+            ? 'Add at least one question'
+            : undefined,
+        order: 1,
       },
       targeting: {
         id: 'targeting',
@@ -153,7 +170,7 @@ export function useSurveyProgress(
           : !targetingCompleted
             ? 'Select at least one department'
             : undefined,
-        order: 1,
+        order: 2,
       },
       demographics: {
         id: 'demographics',
@@ -163,7 +180,7 @@ export function useSurveyProgress(
         required: false,
         completed: demographicsCompleted,
         warning: !demographicsUnlocked ? 'Complete Targeting first' : undefined,
-        order: 2,
+        order: 3,
       },
       invitations: {
         id: 'invitations',
@@ -175,7 +192,7 @@ export function useSurveyProgress(
         warning: !invitationsUnlocked
           ? 'Select departments first in Targeting'
           : undefined,
-        order: 3,
+        order: 4,
       },
       schedule: {
         id: 'schedule',
@@ -189,7 +206,7 @@ export function useSurveyProgress(
           : !scheduleCompleted
             ? 'Set start and end dates'
             : undefined,
-        order: 4,
+        order: 5,
       },
       preview: {
         id: 'preview',
@@ -201,7 +218,7 @@ export function useSurveyProgress(
         warning: !previewUnlocked
           ? 'Complete Questions and Targeting tabs first'
           : undefined,
-        order: 5,
+        order: 6,
       },
       'qr-code': {
         id: 'qr-code',
@@ -213,7 +230,7 @@ export function useSurveyProgress(
         warning: !qrCodeUnlocked
           ? 'Publish survey first to generate QR code'
           : undefined,
-        order: 6,
+        order: 7,
       },
     };
   }, [

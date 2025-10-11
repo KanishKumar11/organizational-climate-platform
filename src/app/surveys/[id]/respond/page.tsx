@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
@@ -16,13 +16,18 @@ interface PageProps {
   searchParams: Promise<{ token?: string }>;
 }
 
-async function getSurveyData(id: string, session: any) {
+async function getSurveyData(
+  id: string,
+  session: any,
+  invitationToken?: string
+) {
   try {
     await connectDB();
 
     console.log('=== getSurveyData Debug ===');
     console.log('Survey ID:', id);
     console.log('Session user:', session?.user);
+    console.log('Invitation token:', invitationToken);
 
     // Use .lean() for better performance
     const survey = await Survey.findById(id).lean();
@@ -34,16 +39,26 @@ async function getSurveyData(id: string, session: any) {
     }
 
     console.log('Survey company_id:', survey.company_id);
-    console.log('Session user companyId:', session.user.companyId);
-    console.log('Session user role:', session.user.role);
+    console.log('Survey anonymous:', survey.settings?.anonymous);
+    console.log('Session user companyId:', session?.user?.companyId);
+    console.log('Session user role:', session?.user?.role);
 
     // Check access permissions
-    if (
-      survey.company_id.toString() !== session.user.companyId.toString() &&
-      session.user.role !== 'super_admin'
-    ) {
-      console.log('Access denied: company mismatch');
-      return null;
+    const isAnonymousSurvey = survey.settings?.anonymous;
+    const hasInvitationToken = !!invitationToken;
+    const isAuthenticated = !!session?.user;
+
+    // For anonymous surveys or invitation tokens, skip company validation
+    if (!isAnonymousSurvey && !hasInvitationToken) {
+      // Only check company access for authenticated users
+      if (
+        isAuthenticated &&
+        survey.company_id.toString() !== session.user.companyId.toString() &&
+        session.user.role !== 'super_admin'
+      ) {
+        console.log('Access denied: company mismatch');
+        return null;
+      }
     }
 
     // Check if survey can accept responses
@@ -134,14 +149,16 @@ async function getSurveyData(id: string, session: any) {
       survey.demographic_field_ids &&
       survey.demographic_field_ids.length > 0
     ) {
-      // Fetch user's demographic data
-      const user = await User.findOne({
-        email: session.user.email,
-        company_id: survey.company_id,
-      }).lean();
+      // Only fetch user demographics if user is authenticated
+      if (isAuthenticated) {
+        const user = await User.findOne({
+          email: session.user.email,
+          company_id: survey.company_id,
+        }).lean();
 
-      if (user && user.demographics) {
-        userDemographics = user.demographics;
+        if (user && user.demographics) {
+          userDemographics = user.demographics;
+        }
       }
 
       // Fetch demographic field definitions
@@ -189,12 +206,35 @@ export default async function SurveyResponsePage({
     console.log('Token:', token);
     console.log('Has session:', !!session?.user);
 
-    if (!session?.user) {
-      console.log('No session, returning notFound');
+    // Get survey data first to check if it's anonymous
+    await connectDB();
+    const survey = await Survey.findById(id).lean();
+
+    if (!survey) {
+      console.log('Survey not found, calling notFound');
       notFound();
     }
 
-    const result = await getSurveyData(id, session);
+    // Allow anonymous access if:
+    // 1. Survey is anonymous, OR
+    // 2. User has invitation token, OR
+    // 3. User is authenticated
+    const isAnonymousSurvey = survey.settings?.anonymous;
+    const hasInvitationToken = !!token;
+    const isAuthenticated = !!session?.user;
+
+    console.log('Survey anonymous:', isAnonymousSurvey);
+    console.log('Has invitation token:', hasInvitationToken);
+    console.log('Is authenticated:', isAuthenticated);
+
+    if (!isAnonymousSurvey && !hasInvitationToken && !isAuthenticated) {
+      console.log(
+        'Redirecting to login for non-anonymous survey without token'
+      );
+      redirect('/auth/signin');
+    }
+
+    const result = await getSurveyData(id, session, token);
 
     if (!result) {
       console.log('No survey data returned, calling notFound');

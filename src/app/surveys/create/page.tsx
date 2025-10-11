@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,6 +28,7 @@ import {
   Lock,
   AlertCircle,
   Filter,
+  FileText,
 } from 'lucide-react';
 import SurveyBuilder from '@/components/survey/SurveyBuilder';
 import SurveyScheduler from '@/components/surveys/SurveyScheduler';
@@ -70,7 +72,7 @@ export default function CreateSurveyPage() {
   const [estimatedDuration, setEstimatedDuration] = useState<number>(10);
   const [demographicFieldIds, setDemographicFieldIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<SurveyTab>('questions');
+  const [activeTab, setActiveTab] = useState<SurveyTab>('basic');
   const [createdSurveyId, setCreatedSurveyId] = useState<string | null>(null);
 
   // Question tab mode: 'build' for custom questions, 'library' for browsing templates
@@ -284,6 +286,35 @@ export default function CreateSurveyPage() {
         <TooltipProvider>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="w-full justify-start border-b bg-transparent h-auto p-0 space-x-6">
+              {/* Basic Info Tab */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value="basic"
+                    disabled={!surveyProgress.tabs.basic.unlocked}
+                    className={cn(
+                      'data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none pb-3 relative',
+                      !surveyProgress.tabs.basic.unlocked &&
+                        'opacity-50 cursor-not-allowed'
+                    )}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Basic Info
+                    {surveyProgress.tabs.basic.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                    {surveyProgress.tabs.basic.completed && (
+                      <CheckCircle2 className="w-4 h-4 ml-2 text-green-500" />
+                    )}
+                  </TabsTrigger>
+                </TooltipTrigger>
+                {!surveyProgress.tabs.basic.unlocked && (
+                  <TooltipContent>
+                    <p>{surveyProgress.tabs.basic.warning}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
               {/* Questions Tab */}
               <TabsTrigger
                 value="questions"
@@ -295,7 +326,7 @@ export default function CreateSurveyPage() {
                 )}
               >
                 <Settings className="w-4 h-4 mr-2" />
-                Survey Builder
+                Questions
                 {surveyProgress.tabs.questions.required && (
                   <span className="text-red-500 ml-1">*</span>
                 )}
@@ -484,118 +515,159 @@ export default function CreateSurveyPage() {
               )}
             </TabsList>
 
+            <TabsContent value="basic" className="mt-6 space-y-6">
+              <Card className="border-0 shadow-sm bg-gradient-to-br from-white to-blue-50/30">
+                <CardHeader className="pb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                      <FileText className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-semibold text-gray-900">
+                        Basic Information
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Provide the essential details for your survey
+                      </p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="survey-title"
+                      className="text-sm font-medium text-gray-700 flex items-center gap-2"
+                    >
+                      Survey Title
+                      <span className="text-red-500 text-xs">*</span>
+                    </Label>
+                    <Input
+                      id="survey-title"
+                      placeholder="Enter a compelling survey title..."
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="text-lg font-medium h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 bg-white shadow-sm"
+                    />
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      Choose a clear, descriptive title that explains your
+                      survey's purpose
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="survey-description"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Description
+                    </Label>
+                    <Textarea
+                      id="survey-description"
+                      placeholder="Describe the purpose and scope of this survey..."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="min-h-[120px] border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 bg-white shadow-sm resize-none"
+                      rows={4}
+                    />
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      Optional: Provide context about what this survey aims to
+                      measure
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="survey-type"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Survey Type
+                    </Label>
+                    <Select value={surveyType} onValueChange={setSurveyType}>
+                      <SelectTrigger className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 bg-white shadow-sm">
+                        <SelectValue placeholder="Select survey type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {surveyTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                              {type.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      Choose the category that best fits your survey's purpose
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <TabNavigationFooter
+                currentTab="basic"
+                nextTab={surveyProgress.getNextTab('basic')}
+                previousTab={surveyProgress.getPreviousTab('basic')}
+                canPublish={surveyProgress.canPublish}
+                canSaveDraft={surveyProgress.canSaveDraft}
+                onTabChange={handleTabChange}
+                onSaveDraft={() => handleSave('draft')}
+                onPublish={() => handleSave('active')}
+                saving={saving}
+                nextDisabled={!surveyProgress.tabs.basic.completed}
+              />
+            </TabsContent>
+
             <TabsContent value="questions" className="mt-6 space-y-6">
               {/* Question Mode Toggle */}
               <div className="flex items-center gap-4 mb-6">
-                <Button
-                  variant={questionMode === 'build' ? 'default' : 'outline'}
-                  onClick={() => setQuestionMode('build')}
-                  className="gap-2"
-                >
-                  <Settings className="w-4 h-4" />
-                  Survey Builder
-                </Button>
-                <Button
-                  variant={questionMode === 'library' ? 'default' : 'outline'}
-                  onClick={() => setQuestionMode('library')}
-                  className="gap-2"
-                >
-                  <BookOpen className="w-4 h-4" />
-                  Question Library
-                </Button>
+                <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
+                  <Button
+                    variant={questionMode === 'build' ? 'default' : 'ghost'}
+                    onClick={() => setQuestionMode('build')}
+                    className="gap-2 rounded-md"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Build Custom
+                  </Button>
+                  <Button
+                    variant={questionMode === 'library' ? 'default' : 'ghost'}
+                    onClick={() => setQuestionMode('library')}
+                    className="gap-2 rounded-md"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    Question Library
+                  </Button>
+                </div>
               </div>
 
               {questionMode === 'build' ? (
                 <>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Survey Configuration</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="survey-type">Survey Type</Label>
-                          <Select
-                            value={surveyType}
-                            onValueChange={setSurveyType}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select survey type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {surveyTypes.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="target-responses">
-                            Target Responses
-                          </Label>
-                          <Input
-                            id="target-responses"
-                            type="number"
-                            value={targetResponses}
-                            onChange={(e) =>
-                              setTargetResponses(Number(e.target.value))
-                            }
-                            min="1"
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="estimated-duration">
-                            Estimated Duration (minutes)
-                          </Label>
-                          <Input
-                            id="estimated-duration"
-                            type="number"
-                            value={estimatedDuration}
-                            onChange={(e) =>
-                              setEstimatedDuration(Number(e.target.value))
-                            }
-                            min="1"
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label>Survey Status</Label>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="secondary">Draft</Badge>
-                            <span className="text-sm text-muted-foreground">
-                              Will be saved as draft until published
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Separator />
-
                   {/* Survey Builder */}
                   <SurveyBuilder
-                    title={title}
-                    description={description}
                     questions={questions}
-                    onTitleChange={setTitle}
-                    onDescriptionChange={setDescription}
                     onQuestionsChange={setQuestions}
                   />
                 </>
               ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Question Library</CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Browse and add pre-built questions from the library
-                    </p>
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-white to-green-50/30">
+                  <CardHeader className="pb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                        <BookOpen className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl font-semibold text-gray-900">
+                          Question Library
+                        </CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Browse and add pre-built questions from the library
+                        </p>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <QuestionLibraryBrowser
@@ -696,26 +768,16 @@ export default function CreateSurveyPage() {
             </TabsContent>
 
             <TabsContent value="schedule" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Survey Schedule</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Set start and end dates with timezone support
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <SurveyScheduler
-                    startDate={startDate}
-                    endDate={endDate}
-                    timezone={timezone}
-                    onChange={(data) => {
-                      setStartDate(data.startDate);
-                      setEndDate(data.endDate);
-                      setTimezone(data.timezone);
-                    }}
-                  />
-                </CardContent>
-              </Card>
+              <SurveyScheduler
+                startDate={startDate}
+                endDate={endDate}
+                timezone={timezone}
+                onChange={(data) => {
+                  setStartDate(data.startDate);
+                  setEndDate(data.endDate);
+                  setTimezone(data.timezone);
+                }}
+              />
 
               <TabNavigationFooter
                 currentTab="schedule"

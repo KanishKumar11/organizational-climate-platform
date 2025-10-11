@@ -214,11 +214,7 @@ export default function CreateTemplatePage() {
           </CardHeader>
           <CardContent>
             <SurveyBuilder
-              title={name}
-              description={description}
               questions={questions}
-              onTitleChange={setName}
-              onDescriptionChange={setDescription}
               onQuestionsChange={setQuestions}
             />
           </CardContent>

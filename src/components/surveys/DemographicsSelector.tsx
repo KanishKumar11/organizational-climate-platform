@@ -24,8 +24,10 @@ import {
   Users,
   Filter,
   Info,
+  Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DemographicField {
   _id: string;
@@ -53,6 +55,7 @@ export default function DemographicsSelector({
   onDemographicsUpload,
   showUpload = true,
 }: DemographicsSelectionProps) {
+  const { user } = useAuth();
   const [availableFields, setAvailableFields] = useState<DemographicField[]>(
     []
   );
@@ -60,6 +63,68 @@ export default function DemographicsSelector({
   const [uploading, setUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadPreview, setUploadPreview] = useState<any>(null);
+
+  // Default demographic fields for super admins
+  const defaultFields: DemographicField[] = [
+    {
+      _id: 'default-gender',
+      field: 'gender',
+      label: 'Gender',
+      type: 'select',
+      options: ['male', 'female', 'non_binary', 'prefer_not_to_say'],
+      required: false,
+      order: 1,
+      is_active: true,
+    },
+    {
+      _id: 'default-age_range',
+      field: 'age_range',
+      label: 'Age Range',
+      type: 'select',
+      options: ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'],
+      required: false,
+      order: 2,
+      is_active: true,
+    },
+    {
+      _id: 'default-education_level',
+      field: 'education_level',
+      label: 'Education Level',
+      type: 'select',
+      options: ['high_school', 'bachelor', 'master', 'phd', 'other'],
+      required: false,
+      order: 3,
+      is_active: true,
+    },
+    {
+      _id: 'default-job_title',
+      field: 'job_title',
+      label: 'Job Title',
+      type: 'text',
+      required: false,
+      order: 4,
+      is_active: true,
+    },
+    {
+      _id: 'default-tenure_months',
+      field: 'tenure_months',
+      label: 'Tenure (Months)',
+      type: 'number',
+      required: false,
+      order: 5,
+      is_active: true,
+    },
+    {
+      _id: 'default-work_location',
+      field: 'work_location',
+      label: 'Work Location',
+      type: 'select',
+      options: ['office', 'remote', 'hybrid'],
+      required: false,
+      order: 6,
+      is_active: true,
+    },
+  ];
 
   useEffect(() => {
     fetchDemographicFields();
@@ -72,11 +137,22 @@ export default function DemographicsSelector({
       );
       if (response.ok) {
         const data = await response.json();
-        setAvailableFields(data.fields || []);
+        const fields = data.fields || [];
+        
+        // If no fields found, use default fields for all users
+        if (fields.length === 0) {
+          setAvailableFields(defaultFields);
+        } else {
+          setAvailableFields(fields);
+        }
+      } else if (response.status === 401) {
+        // If unauthorized, use default fields for all users
+        setAvailableFields(defaultFields);
       }
     } catch (error) {
       console.error('Error fetching demographic fields:', error);
-      toast.error('Failed to load demographic fields');
+      // If error, use default fields for all users
+      setAvailableFields(defaultFields);
     } finally {
       setLoading(false);
     }
@@ -252,9 +328,18 @@ export default function DemographicsSelector({
               <p className="text-gray-600 mb-2">
                 No demographic fields configured
               </p>
-              <p className="text-sm text-gray-500">
-                Contact your administrator to set up demographic fields
+              <p className="text-sm text-gray-500 mb-4">
+                Default demographic fields are available for selection below.
               </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAvailableFields(defaultFields)}
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Use Default Fields
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -51,7 +51,7 @@ export async function POST(
     let departmentId: string | undefined;
     let isAnonymous = survey.settings.anonymous;
 
-    // Handle invitation token or authenticated user
+    // Handle anonymous surveys, invitation token, or authenticated user
     if (invitation_token) {
       const invitation = await SurveyInvitation.findOne({ invitation_token });
       if (!invitation || invitation.survey_id !== surveyId) {
@@ -80,6 +80,10 @@ export async function POST(
       userId = session.user.id;
       companyId = session.user.companyId;
       departmentId = session.user.departmentId;
+    } else if (isAnonymous) {
+      // Allow anonymous responses for anonymous surveys
+      userId = undefined;
+      companyId = survey.company_id;
     } else {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
