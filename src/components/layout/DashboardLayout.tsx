@@ -105,8 +105,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
-        <Sidebar className="border-r bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
-          <SidebarHeader className="border-b border-blue-200 dark:border-blue-700 px-6 py-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-b-2xl">
+        <Sidebar className="border-r !border-blue-200  bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
+          <SidebarHeader className="border-b !border-blue-200 dark:border-blue-700 px-6 py-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-b-2xl">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-white to-blue-100 rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-white/20">
                 <span className="text-blue-600 font-bold text-sm font-montserrat">
@@ -131,7 +131,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <RoleBasedNav />
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-blue-200 dark:border-blue-700 p-4 bg-gradient-to-r from-slate-100 to-blue-100 dark:from-slate-800 dark:to-blue-800 rounded-t-2xl">
+          <SidebarFooter className="border-t !border-blue-200 dark:border-blue-700 p-4 bg-gradient-to-r from-slate-100 to-blue-100 dark:from-slate-800 dark:to-blue-800 rounded-t-2xl">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -195,7 +195,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="border-b border-blue-200 dark:border-blue-700 bg-gradient-to-r from-white/95 via-blue-50/95 to-indigo-50/95 dark:from-slate-900/95 dark:via-blue-900/95 dark:to-indigo-900/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60">
+          <header className="border-b !border-blue-200 dark:border-blue-700 bg-gradient-to-r from-white/95 via-blue-50/95 to-indigo-50/95 dark:from-slate-900/95 dark:via-blue-900/95 dark:to-indigo-900/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60">
             <div className="flex h-16 items-center px-6 gap-4">
               <SidebarTrigger className="md:hidden bg-blue-100 dark:bg-blue-800 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-xl transition-colors" />
 

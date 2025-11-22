@@ -69,6 +69,30 @@ export async function POST(
       );
     }
 
+    // Validate that all targeted departments still exist
+    const Department = (await import('@/models/Department')).default;
+    const departments = await Department.find({
+      _id: { $in: microclimate.targeting.department_ids },
+      company_id: microclimate.company_id,
+    });
+
+    if (departments.length !== microclimate.targeting.department_ids.length) {
+      const foundDepartmentIds = departments.map((dept) => dept._id.toString());
+      const missingDepartmentIds = microclimate.targeting.department_ids.filter(
+        (id) => !foundDepartmentIds.includes(id)
+      );
+
+      return NextResponse.json(
+        {
+          error: 'One or more departments not found',
+          details: `The following department IDs no longer exist: ${missingDepartmentIds.join(', ')}`,
+          suggestion:
+            'Please edit the microclimate to update the department targeting before activating.',
+        },
+        { status: 400 }
+      );
+    }
+
     // Update status and start time if needed
     microclimate.status = 'active';
 

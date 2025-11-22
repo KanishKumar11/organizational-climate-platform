@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useTranslations } from '@/contexts/TranslationContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +31,7 @@ import {
 
 interface LiveMicroclimateDashboardProps {
   microclimateId: string;
-  initialData?: any;
+  initialData?: MicroclimateData;
 }
 
 interface MicroclimateData {
@@ -76,8 +78,10 @@ export default function LiveMicroclimateDashboard({
   microclimateId,
   initialData,
 }: LiveMicroclimateDashboardProps) {
+  const t = useTranslations('microclimates');
+  const common = useTranslations('common');
   const [microclimateData, setMicroclimateData] =
-    useState<MicroclimateData | null>(initialData || null);
+    useState<MicroclimateData | null>(initialData ?? null);
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
@@ -205,14 +209,14 @@ export default function LiveMicroclimateDashboard({
         setMicroclimateData((prev) =>
           prev ? { ...prev, status: 'paused' } : null
         );
-        toast.success('Microclimate paused successfully', {
-          description: 'Data collection has been temporarily stopped.',
+        toast.success(t('microclimatePausedSuccessfully'), {
+          description: t('dataCollectionStopped'),
         });
       }
     } catch (error) {
       console.error('Error pausing microclimate:', error);
-      toast.error('Failed to pause microclimate', {
-        description: 'Please check your connection and try again.',
+      toast.error(t('failedToPauseMicroclimate'), {
+        description: t('checkConnectionAndTryAgain'),
       });
     }
   };
@@ -229,24 +233,20 @@ export default function LiveMicroclimateDashboard({
         setMicroclimateData((prev) =>
           prev ? { ...prev, status: 'active' } : null
         );
-        toast.success('Microclimate resumed successfully', {
-          description: 'Data collection has been restarted.',
+        toast.success(t('microclimateResumedSuccessfully'), {
+          description: t('dataCollectionRestarted'),
         });
       }
     } catch (error) {
       console.error('Error resuming microclimate:', error);
-      toast.error('Failed to resume microclimate', {
-        description: 'Please check your connection and try again.',
+      toast.error(t('failedToResumeMicroclimate'), {
+        description: t('checkConnectionAndTryAgain'),
       });
     }
   };
 
   const handleEndMicroclimate = async () => {
-    if (
-      !confirm(
-        'Are you sure you want to end this microclimate? This action cannot be undone.'
-      )
-    ) {
+    if (!confirm(t('confirmEndMicroclimate'))) {
       return;
     }
 
@@ -261,15 +261,14 @@ export default function LiveMicroclimateDashboard({
         setMicroclimateData((prev) =>
           prev ? { ...prev, status: 'completed' } : null
         );
-        toast.success('Microclimate ended successfully', {
-          description:
-            'Data collection has been completed and results are final.',
+        toast.success(t('microclimateEndedSuccessfully'), {
+          description: t('dataCollectionCompleted'),
         });
       }
     } catch (error) {
       console.error('Error ending microclimate:', error);
-      toast.error('Failed to end microclimate', {
-        description: 'Please check your connection and try again.',
+      toast.error(t('failedToEndMicroclimate'), {
+        description: t('checkConnectionAndTryAgain'),
       });
     }
   };
@@ -295,15 +294,17 @@ export default function LiveMicroclimateDashboard({
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        toast.success('Data exported successfully!', {
-          description: `Downloaded ${microclimateData.title} data as CSV file.`,
+        toast.success(t('dataExportedSuccessfully'), {
+          description: t('downloadedDataAsCSV', {
+            title: microclimateData.title,
+          }),
         });
       } else {
-        toast.error('Failed to export data. Please try again.');
+        toast.error(t('failedToExportData'));
       }
     } catch (error) {
       console.error('Error exporting data:', error);
-      toast.error('Export failed. Please check your connection and try again.');
+      toast.error(t('exportFailedCheckConnection'));
     }
   };
 
@@ -316,14 +317,14 @@ export default function LiveMicroclimateDashboard({
 
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
-      toast.success('Shareable link copied to clipboard!', {
-        description: 'You can now paste the link to share this microclimate.',
+      toast.success(t('shareableLinkCopied'), {
+        description: t('canPasteLinkToShare'),
       });
     } catch (error) {
       console.error('Error sharing microclimate:', error);
       // Fallback for browsers that don't support clipboard API
       const shareUrl = `${window.location.origin}/microclimates/${microclimateId}/results`;
-      toast.info('Copy this link to share:', {
+      toast.info(t('copyLinkToShare'), {
         description: shareUrl,
         duration: 10000, // Show longer for manual copying
       });
@@ -371,14 +372,14 @@ export default function LiveMicroclimateDashboard({
       <div className="text-center py-12">
         <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Error Loading Microclimate
+          {t('errorLoadingMicroclimate')}
         </h3>
         <p className="text-gray-600 mb-4">
-          {error || 'Microclimate not found'}
+          {error || t('microclimateNotFound')}
         </p>
         <Button onClick={fetchMicroclimateData} variant="outline">
           <RefreshCw className="w-4 h-4 mr-2" />
-          Try Again
+          {common('retry')}
         </Button>
       </div>
     );
@@ -416,7 +417,7 @@ export default function LiveMicroclimateDashboard({
                       }`}
                     />
                     <span className="font-medium">
-                      {connected ? 'Live Updates Active' : 'Connection Lost'}
+                      {connected ? t('liveUpdatesActive') : t('connectionLost')}
                     </span>
                   </div>
                 </div>
@@ -437,7 +438,7 @@ export default function LiveMicroclimateDashboard({
                 aria-label="Pause microclimate session"
               >
                 <Pause className="w-4 h-4 mr-2" aria-hidden="true" />
-                Pause
+                {t('pause')}
               </Button>
             )}
 
@@ -449,7 +450,7 @@ export default function LiveMicroclimateDashboard({
                 aria-label="Resume microclimate session"
               >
                 <Play className="w-4 h-4 mr-2" aria-hidden="true" />
-                Resume
+                {t('resume')}
               </Button>
             )}
 
@@ -462,7 +463,7 @@ export default function LiveMicroclimateDashboard({
                 aria-label="End microclimate session permanently"
               >
                 <Square className="w-4 h-4 mr-2" aria-hidden="true" />
-                End
+                {t('end')}
               </Button>
             )}
 
@@ -473,7 +474,7 @@ export default function LiveMicroclimateDashboard({
               aria-label="Export microclimate data as CSV file"
             >
               <Download className="w-4 h-4 mr-2" aria-hidden="true" />
-              Export
+              {common('export')}
             </Button>
 
             <Button
@@ -483,7 +484,7 @@ export default function LiveMicroclimateDashboard({
               aria-label="Share microclimate results via link"
             >
               <Share2 className="w-4 h-4 mr-2" aria-hidden="true" />
-              Share
+              {t('share')}
             </Button>
           </div>
         </div>
@@ -499,7 +500,7 @@ export default function LiveMicroclimateDashboard({
           <div className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-yellow-600" />
             <p className="text-sm text-yellow-800">
-              {wsError || 'Connection lost. Data may not be real-time.'}
+              {wsError || t('connectionLostNotRealTime')}
             </p>
           </div>
         </motion.div>
@@ -518,16 +519,15 @@ export default function LiveMicroclimateDashboard({
                 <Clock className="w-8 h-8 text-purple-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Microclimate Scheduled
+                {t('microclimateScheduled')}
               </h3>
               <p className="text-gray-600 mb-6">
-                This microclimate is scheduled to start soon. The live dashboard
-                will be available once it becomes active.
+                {t('scheduledMicroclimateDescription')}
               </p>
               {microclimateData.start_time && (
                 <div className="bg-purple-50 rounded-lg p-4 mb-4">
                   <p className="text-sm text-purple-800 font-medium">
-                    Scheduled Start Time
+                    {t('scheduledStartTime')}
                   </p>
                   <p className="text-purple-900">
                     {new Date(microclimateData.start_time).toLocaleString()}
@@ -539,7 +539,7 @@ export default function LiveMicroclimateDashboard({
                 className="bg-purple-600 hover:bg-purple-700"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh Status
+                {t('refreshStatus')}
               </Button>
             </CardContent>
           </Card>
@@ -556,7 +556,7 @@ export default function LiveMicroclimateDashboard({
                 <div className="p-2 bg-green-100 rounded-lg">
                   <Users className="w-5 h-5 text-green-600" />
                 </div>
-                Live Participation
+                {t('liveParticipation')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -583,7 +583,7 @@ export default function LiveMicroclimateDashboard({
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <MessageSquare className="w-5 h-5 text-purple-600" />
                   </div>
-                  Live Word Cloud
+                  {t('liveWordCloud')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -600,7 +600,7 @@ export default function LiveMicroclimateDashboard({
                   <div className="p-2 bg-orange-100 rounded-lg">
                     <Activity className="w-5 h-5 text-orange-600" />
                   </div>
-                  Sentiment Analysis
+                  {t('sentimentAnalysis')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -629,7 +629,7 @@ export default function LiveMicroclimateDashboard({
                     <div className="p-2 bg-blue-100 rounded-lg">
                       <BarChart3 className="w-5 h-5 text-blue-600" />
                     </div>
-                    Live Response Data
+                    {t('liveResponseData')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -646,7 +646,7 @@ export default function LiveMicroclimateDashboard({
                   <div className="p-2 bg-violet-100 rounded-lg">
                     <AlertCircle className="w-5 h-5 text-violet-600" />
                   </div>
-                  Live AI Insights
+                  {t('liveAiInsights')}
                 </CardTitle>
               </CardHeader>
               <CardContent>

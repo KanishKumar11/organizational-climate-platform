@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from '@/contexts/TranslationContext';
+import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import {
   Plus,
@@ -24,7 +34,6 @@ import {
   Calendar,
   Users,
   Play,
-  Pause,
   MoreHorizontal,
   Eye,
   Edit,
@@ -35,6 +44,7 @@ import {
   Activity,
   BarChart3,
   MessageSquare,
+  CircleAlertIcon,
 } from 'lucide-react';
 import { formatUTCDateForDisplay, getUserTimezone } from '@/lib/datetime-utils';
 import {
@@ -77,17 +87,17 @@ interface Department {
 }
 
 const STATUS_COLORS = {
-  draft: 'bg-gray-100 text-gray-800',
-  scheduled: 'bg-blue-100 text-blue-800',
-  active: 'bg-green-100 text-green-800',
-  completed: 'bg-purple-100 text-purple-800',
-  cancelled: 'bg-red-100 text-red-800',
+  draft: 'bg-gray-50 text-gray-600 border border-gray-100',
+  scheduled: 'bg-blue-50 text-blue-600 border border-blue-100',
+  active: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
+  completed: 'bg-purple-50 text-purple-600 border border-purple-100',
+  cancelled: 'bg-red-50 text-red-600 border border-red-100',
 };
 
 const ENGAGEMENT_COLORS = {
-  low: 'text-red-600',
-  medium: 'text-yellow-600',
-  high: 'text-green-600',
+  low: 'text-red-600 bg-red-50 border border-red-100',
+  medium: 'text-amber-600 bg-amber-50 border border-amber-100',
+  high: 'text-emerald-600 bg-emerald-50 border border-emerald-100',
 };
 
 export default function MicroclimateDashboard() {
@@ -97,12 +107,28 @@ export default function MicroclimateDashboard() {
   const [microclimates, setMicroclimates] = useState<Microclimate[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterLoading, setFilterLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [microclimateToDelete, setMicroclimateToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [deleteConfirmationInput, setDeleteConfirmationInput] = useState('');
+  const deleteInputId = useId();
 
   const fetchMicroclimates = useCallback(async () => {
-    setLoading(true);
+    // Show main loading only on initial load, filter loading for subsequent filter changes
+    if (isInitialLoad) {
+      setLoading(true);
+    } else {
+      setFilterLoading(true);
+    }
+
     try {
       const params = new URLSearchParams();
       if (statusFilter !== 'all') params.append('status', statusFilter);
@@ -125,9 +151,14 @@ export default function MicroclimateDashboard() {
       console.error('Error fetching microclimates:', error);
       setMicroclimates([]); // Prevent crash - always use array
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setLoading(false);
+        setIsInitialLoad(false);
+      } else {
+        setFilterLoading(false);
+      }
     }
-  }, [statusFilter, departmentFilter]);
+  }, [statusFilter, departmentFilter, isInitialLoad]);
 
   const fetchDepartments = useCallback(async () => {
     try {
@@ -140,6 +171,15 @@ export default function MicroclimateDashboard() {
       console.error('Error fetching departments:', error);
     }
   }, []);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchMicroclimates();
@@ -157,29 +197,54 @@ export default function MicroclimateDashboard() {
 
       if (response.ok) {
         fetchMicroclimates(); // Refresh the list
+        toast.success(t('microclimateActivatedSuccessfully'));
         router.push(`/microclimates/${microclimateId}/live`);
       } else {
         const error = await response.json();
         console.error('Error activating microclimate:', error);
-        // TODO: Show error message to user
+
+        if (error.error === 'One or more departments not found') {
+          toast.error(t('departmentsNotFoundError'), {
+            description: t('departmentsNotFoundDescription'),
+            duration: 8000,
+          });
+        } else {
+          toast.error(t('failedToActivateMicroclimate'), {
+            description:
+              error.details || error.error || t('checkConnectionAndTryAgain'),
+          });
+        }
       }
     } catch (error) {
       console.error('Error activating microclimate:', error);
+      toast.error(t('failedToActivateMicroclimate'), {
+        description: t('checkConnectionAndTryAgain'),
+      });
     }
   };
 
-  const handleDelete = async (microclimateId: string) => {
-    if (!confirm('Are you sure you want to delete this microclimate?')) {
-      return;
-    }
+  const handleDelete = (microclimateId: string, microclimateTitle: string) => {
+    setMicroclimateToDelete({ id: microclimateId, title: microclimateTitle });
+    setDeleteConfirmationInput('');
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!microclimateToDelete) return;
 
     try {
-      const response = await fetch(`/api/microclimates/${microclimateId}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/microclimates/${microclimateToDelete.id}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (response.ok) {
         fetchMicroclimates(); // Refresh the list
+        setDeleteDialogOpen(false);
+        setMicroclimateToDelete(null);
+        setDeleteConfirmationInput('');
       } else {
         const error = await response.json();
         console.error('Error deleting microclimate:', error);
@@ -194,7 +259,11 @@ export default function MicroclimateDashboard() {
     router.push(`/microclimates/${microclimateId}/analytics`);
   };
 
-  const handleMenuAction = (microclimateId: string, action: string) => {
+  const handleMenuAction = (
+    microclimateId: string,
+    action: string,
+    microclimateTitle?: string
+  ) => {
     switch (action) {
       case 'view':
         router.push(`/microclimates/${microclimateId}`);
@@ -210,7 +279,7 @@ export default function MicroclimateDashboard() {
         console.log('Duplicate microclimate:', microclimateId);
         break;
       case 'delete':
-        handleDelete(microclimateId);
+        handleDelete(microclimateId, microclimateTitle || 'Unknown');
         break;
       default:
         console.log('Unknown action:', action);
@@ -219,8 +288,12 @@ export default function MicroclimateDashboard() {
 
   const filteredMicroclimates = microclimates.filter(
     (microclimate) =>
-      microclimate.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      microclimate.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      microclimate.title
+        .toLowerCase()
+        .includes(debouncedSearchTerm.toLowerCase()) ||
+      microclimate.description
+        ?.toLowerCase()
+        .includes(debouncedSearchTerm.toLowerCase())
   );
 
   const getStatusBadge = (status: string) => (
@@ -235,12 +308,10 @@ export default function MicroclimateDashboard() {
     const { engagement_level } = microclimate.live_results;
     return (
       <div
-        className={`flex items-center space-x-1 ${ENGAGEMENT_COLORS[engagement_level]}`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${ENGAGEMENT_COLORS[engagement_level]}`}
       >
-        <TrendingUp className="w-4 h-4" />
-        <span className="text-sm font-medium capitalize">
-          {engagement_level}
-        </span>
+        <TrendingUp className="w-3 h-3" />
+        <span className="capitalize">{engagement_level} engagement</span>
       </div>
     );
   };
@@ -269,7 +340,7 @@ export default function MicroclimateDashboard() {
     }
   };
 
-  if (loading) {
+  if (loading && isInitialLoad) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loading size="lg" />
@@ -278,14 +349,14 @@ export default function MicroclimateDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Modern Gradient Header */}
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 p-8 text-white shadow-lg">
+    <div className="space-y-6 min-h-screen bg-gradient-to-br from-slate-50/50 via-white to-emerald-50/30">
+      {/* Modern Clean Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-8 text-white">
         <div className="relative z-10">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{t('title')}</h1>
-              <p className="text-teal-100 text-lg">
+              <h1 className="text-3xl font-bold mb-2">{t('dashboardTitle')}</h1>
+              <p className="text-emerald-100 text-lg">
                 {t('manageFeedbackSessions')}
               </p>
             </div>
@@ -293,14 +364,14 @@ export default function MicroclimateDashboard() {
               <Button
                 variant="outline"
                 onClick={() => router.push('/microclimates/analytics')}
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm transition-all duration-200"
               >
                 <BarChart3 className="h-4 w-4 mr-2" />
                 {common('analytics')}
               </Button>
               <Button
                 onClick={() => router.push('/microclimates/create')}
-                className="bg-white text-teal-600 hover:bg-teal-50 shadow-lg"
+                className="bg-white text-emerald-600 hover:bg-emerald-50 transition-all duration-200"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {t('createMicroclimate')}
@@ -308,13 +379,13 @@ export default function MicroclimateDashboard() {
             </div>
           </div>
         </div>
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+        {/* Subtle background decoration */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
       </div>
 
-      {/* Enhanced Search and Filters */}
-      <Card className="border-0 shadow-sm">
+      {/* Clean Search and Filters */}
+      <Card className="!border-none shadow-none bg-white/70 backdrop-blur-sm rounded-xl">
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
@@ -323,14 +394,18 @@ export default function MicroclimateDashboard() {
                 placeholder={t('searchMicroclimates')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 w-full sm:w-80 text-base border-0 bg-white/80 backdrop-blur shadow-sm focus:shadow-md transition-shadow"
+                className="pl-12 h-12 w-full sm:w-[500px] text-base !border-none bg-white/90 focus:bg-white focus:ring-2 focus:ring-emerald-100 transition-all duration-200 rounded-lg"
               />
             </div>
 
             <div className="flex items-center gap-3">
-              <Filter className="w-5 h-5 text-gray-500" />
+              {filterLoading ? (
+                <div className="animate-spin w-5 h-5 border-2 border-gray-300 border-t-emerald-500 rounded-full" />
+              ) : (
+                <Filter className="w-5 h-5 text-gray-500" />
+              )}
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40 h-12 border-gray-200 bg-white/80 backdrop-blur">
+                <SelectTrigger className="w-40 h-12 border !border-gray-300 bg-white focus:border-emerald-200 focus:ring-2 focus:ring-emerald-50">
                   <SelectValue placeholder={t('allStatus')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -353,7 +428,7 @@ export default function MicroclimateDashboard() {
                 value={departmentFilter}
                 onValueChange={setDepartmentFilter}
               >
-                <SelectTrigger className="w-40 h-12 border-gray-200 bg-white/80 backdrop-blur">
+                <SelectTrigger className="w-60 h-12 border !border-gray-300 bg-white focus:border-emerald-200 focus:ring-2 focus:ring-emerald-50">
                   <SelectValue placeholder={t('allDepartments')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -372,36 +447,38 @@ export default function MicroclimateDashboard() {
 
       {/* Microclimates Grid */}
       {filteredMicroclimates.length === 0 ? (
-        <Card className="p-12 text-center border-0 shadow-sm bg-gradient-to-br from-gray-50 to-white">
+        <Card className="p-12 text-center border shadow-none !border-gray-200 bg-gradient-to-br from-gray-50/50 to-white">
           <div className="max-w-md mx-auto">
-            <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-              <Target className="w-10 h-10 text-gray-400" />
+            <div className="p-4 bg-emerald-50 rounded-2xl w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+              <Target className="w-10 h-10 text-emerald-500" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              No microclimates found
+              {t('noMicroclimates')}
             </h3>
             <p className="text-gray-600 mb-6 leading-relaxed">
-              {searchTerm ||
+              {debouncedSearchTerm ||
               statusFilter !== 'all' ||
               departmentFilter !== 'all'
-                ? "Try adjusting your search or filters to find what you're looking for"
-                : 'Create your first microclimate to start gathering real-time feedback from your team'}
+                ? t('tryAdjustingFilters')
+                : t('createFirstMicroclimate')}
             </p>
-            {!searchTerm &&
+            {!debouncedSearchTerm &&
               statusFilter === 'all' &&
               departmentFilter === 'all' && (
                 <Button
                   onClick={() => router.push('/microclimates/create')}
-                  className="bg-teal-600 hover:bg-teal-700 h-12 px-8 shadow-sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 h-12 px-8 transition-all duration-200"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Your First Microclimate
+                  {t('createYourFirstMicroclimate')}
                 </Button>
               )}
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-200 ${filterLoading ? 'opacity-60' : 'opacity-100'}`}
+        >
           {filteredMicroclimates.map((microclimate) => (
             <motion.div
               key={microclimate._id}
@@ -409,26 +486,29 @@ export default function MicroclimateDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <Card className="p-6 hover:shadow-lg transition-all duration-200 border-0 shadow-sm bg-white">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-lg">
-                      {microclimate.title}
-                    </h3>
-                    {microclimate.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                        {microclimate.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {getStatusBadge(microclimate.status)}
+              <Card className="group relative border shadow-none overflow-hidden border !border-gray-200 bg-white hover:border-emerald-100 hover:bg-emerald-50/20 transition-all duration-300">
+                <CardContent className="p-6">
+                  {/* Header Section */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-gray-900 text-lg line-clamp-1">
+                          {microclimate.title}
+                        </h3>
+                        {getStatusBadge(microclimate.status)}
+                      </div>
+                      {microclimate.description && (
+                        <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                          {microclimate.description}
+                        </p>
+                      )}
+                    </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="hover:bg-gray-100"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-100"
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
@@ -440,7 +520,7 @@ export default function MicroclimateDashboard() {
                           }
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          View Details
+                          {t('viewDetails')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() =>
@@ -448,7 +528,7 @@ export default function MicroclimateDashboard() {
                           }
                         >
                           <BarChart3 className="h-4 w-4 mr-2" />
-                          Analytics
+                          {t('analytics')}
                         </DropdownMenuItem>
                         {microclimate.status === 'draft' && (
                           <DropdownMenuItem
@@ -457,7 +537,7 @@ export default function MicroclimateDashboard() {
                             }
                           >
                             <Edit className="h-4 w-4 mr-2" />
-                            Edit
+                            {t('edit')}
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
@@ -467,75 +547,92 @@ export default function MicroclimateDashboard() {
                           }
                         >
                           <Activity className="h-4 w-4 mr-2" />
-                          Duplicate
+                          {t('duplicate')}
                         </DropdownMenuItem>
                         {(microclimate.status === 'draft' ||
                           microclimate.status === 'completed') && (
                           <DropdownMenuItem
                             onClick={() =>
-                              handleMenuAction(microclimate._id, 'delete')
+                              handleMenuAction(
+                                microclimate._id,
+                                'delete',
+                                microclimate.title
+                              )
                             }
                             className="text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
+                            {t('delete')}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                </div>
 
-                <div className="space-y-3">
-                  {/* Timing Info */}
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      {formatDateTime(microclimate.scheduling.start_time)}
-                    </span>
-                  </div>
-
-                  {microclimate.status === 'active' && (
-                    <div className="flex items-center space-x-2 text-sm text-green-600">
-                      <Clock className="w-4 h-4" />
-                      <span>
-                        {getTimeRemaining(
-                          microclimate.scheduling.start_time,
-                          microclimate.scheduling.duration_minutes
-                        )}
+                  {/* Info Section */}
+                  <div className="space-y-3 mb-4">
+                    {/* Timing Info */}
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="p-1.5 bg-gray-100 rounded-lg">
+                        <Calendar className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="font-medium">
+                        {formatDateTime(microclimate.scheduling.start_time)}
                       </span>
                     </div>
-                  )}
 
-                  {/* Participation Info */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Users className="w-4 h-4" />
-                      <span>
-                        {microclimate.response_count}/
-                        {microclimate.target_participant_count} responses
-                      </span>
-                    </div>
-                    {microclimate.participation_rate > 0 && (
-                      <span className="text-sm font-medium text-green-600">
-                        {microclimate.participation_rate}%
-                      </span>
+                    {microclimate.status === 'active' && (
+                      <div className="flex items-center gap-2 text-sm text-emerald-600">
+                        <div className="p-1.5 bg-emerald-100 rounded-lg">
+                          <Clock className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="font-medium">
+                          {getTimeRemaining(
+                            microclimate.scheduling.start_time,
+                            microclimate.scheduling.duration_minutes
+                          )}
+                        </span>
+                      </div>
                     )}
+
+                    {/* Participation Info */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="p-1.5 bg-blue-100 rounded-lg">
+                          <Users className="w-3.5 h-3.5 text-blue-600" />
+                        </div>
+                        <span className="font-medium">
+                          {microclimate.response_count}/
+                          {microclimate.target_participant_count}
+                        </span>
+                      </div>
+                      {microclimate.participation_rate > 0 && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm font-semibold text-emerald-600">
+                            {microclimate.participation_rate}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Engagement Level */}
+                    {getEngagementIndicator(microclimate)}
+
+                    {/* Progress Bar */}
+                    <div className="space-y-2">
+                      <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${microclimate.participation_rate}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Engagement Level */}
-                  {getEngagementIndicator(microclimate)}
-
-                  {/* Progress Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${microclimate.participation_rate}%` }}
-                    />
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center space-x-2 pt-2">
+                  {/* Actions Section */}
+                  <div className="flex items-center gap-2 pt-3 border-t !border-gray-200">
                     {microclimate.status === 'draft' && (
                       <>
                         <Button
@@ -546,18 +643,18 @@ export default function MicroclimateDashboard() {
                             )
                           }
                           variant="outline"
-                          className="flex-1"
+                          className="flex-1 border-gray-50 hover:border-emerald-200 hover:bg-emerald-50"
                         >
                           <Edit className="w-4 h-4 mr-1" />
-                          Edit
+                          {t('edit')}
                         </Button>
                         <Button
                           size="sm"
                           onClick={() => handleActivate(microclimate._id)}
-                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                         >
                           <Play className="w-4 h-4 mr-1" />
-                          Launch
+                          {t('launch')}
                         </Button>
                       </>
                     )}
@@ -570,18 +667,18 @@ export default function MicroclimateDashboard() {
                             router.push(`/microclimates/${microclimate._id}`)
                           }
                           variant="outline"
-                          className="flex-1"
+                          className="flex-1 border-gray-50 hover:border-emerald-200 hover:bg-emerald-50"
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          View
+                          {common('view')}
                         </Button>
                         <Button
                           size="sm"
                           onClick={() => handleActivate(microclimate._id)}
-                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                         >
                           <Play className="w-4 h-4 mr-1" />
-                          Start Now
+                          {t('startNow')}
                         </Button>
                       </>
                     )}
@@ -595,10 +692,10 @@ export default function MicroclimateDashboard() {
                               `/microclimates/${microclimate._id}/live`
                             )
                           }
-                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          View Live
+                          {t('viewLive')}
                         </Button>
                         <Button
                           size="sm"
@@ -608,10 +705,10 @@ export default function MicroclimateDashboard() {
                             )
                           }
                           variant="outline"
-                          className="flex-1"
+                          className="flex-1 border-gray-50 hover:border-emerald-200 hover:bg-emerald-50"
                         >
                           <MessageSquare className="w-4 h-4 mr-1" />
-                          Respond
+                          {t('respond')}
                         </Button>
                       </>
                     )}
@@ -627,36 +724,99 @@ export default function MicroclimateDashboard() {
                             )
                           }
                           variant="outline"
-                          className="flex-1"
+                          className="flex-1 border-gray-50 hover:border-emerald-200 hover:bg-emerald-50"
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          Results
+                          {t('results')}
                         </Button>
                         <Button
                           size="sm"
-                          onClick={() => handleDelete(microclimate._id)}
+                          onClick={() =>
+                            handleDelete(microclimate._id, microclimate.title)
+                          }
                           variant="outline"
-                          className="text-red-600 hover:text-red-700"
+                          className="border-red-100 text-red-600 hover:border-red-200 hover:bg-red-50"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </>
                     )}
                   </div>
-                </div>
 
-                {/* Creator Info */}
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500">
-                    Created by {microclimate.created_by.name} •{' '}
-                    {new Date(microclimate.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+                  {/* Footer */}
+                  <div className="mt-4 pt-3 border-t !border-gray-200">
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <span className="font-medium">{t('createdBy')}</span>
+                      <span>{microclimate.created_by.name}</span>
+                      <span>•</span>
+                      <span>
+                        {new Date(microclimate.created_at).toLocaleDateString()}
+                      </span>
+                    </p>
+                  </div>
+                </CardContent>
               </Card>
             </motion.div>
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <div className="flex flex-col items-center gap-2">
+            <div
+              className="flex size-9 shrink-0 items-center justify-center rounded-full border"
+              aria-hidden="true"
+            >
+              <CircleAlertIcon className="opacity-80" size={16} />
+            </div>
+            <DialogHeader>
+              <DialogTitle className="sm:text-center">
+                {t('finalConfirmation')}
+              </DialogTitle>
+              <DialogDescription className="sm:text-center">
+                {t('deleteConfirmationMessage')}{' '}
+                <span className="text-foreground font-medium">
+                  {microclimateToDelete?.title}
+                </span>
+                .
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+            <div className="*:not-first:mt-2">
+              <Label htmlFor={deleteInputId}>{t('microclimateTitle')}</Label>
+              <Input
+                id={deleteInputId}
+                type="text"
+                placeholder={t('typeToConfirm', {
+                  title: microclimateToDelete?.title || '',
+                })}
+                value={deleteConfirmationInput}
+                onChange={(e) => setDeleteConfirmationInput(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline" className="flex-1">
+                  {common('cancel')}
+                </Button>
+              </DialogClose>
+              <Button
+                type="button"
+                className="flex-1 bg-red-600 hover:bg-red-700"
+                disabled={
+                  deleteConfirmationInput !== microclimateToDelete?.title
+                }
+                onClick={confirmDelete}
+              >
+                {common('delete')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

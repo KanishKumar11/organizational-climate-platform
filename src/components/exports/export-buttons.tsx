@@ -9,6 +9,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/contexts/TranslationContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +63,7 @@ export function SurveyExportButtons({
   surveyId,
   surveyTitle,
 }: SurveyExportButtonsProps) {
+  const t = useTranslations('export');
   const [isExporting, setIsExporting] = useState(false);
 
   const handlePDFExport = async () => {
@@ -76,10 +78,10 @@ export function SurveyExportButtons({
       const filename = `survey-${surveyTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${Date.now()}.pdf`;
       downloadPDF(blob, filename);
 
-      toast.success('PDF exported successfully');
+      toast.success(t('pdfExportedSuccessfully'));
     } catch (error) {
       console.error('PDF export error:', error);
-      toast.error('Failed to export PDF. Please try again.');
+      toast.error(t('failedToExportPdf'));
     } finally {
       setIsExporting(false);
     }
@@ -99,10 +101,10 @@ export function SurveyExportButtons({
       const filename = `survey-${surveyTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${format}-${Date.now()}.csv`;
       downloadCSV(csvText, filename);
 
-      toast.success(`CSV (${format}) exported successfully`);
+      toast.success(t('csvExportedSuccessfully', { format }));
     } catch (error) {
       console.error('CSV export error:', error);
-      toast.error('Failed to export CSV. Please try again.');
+      toast.error(t('failedToExportCsv'));
     } finally {
       setIsExporting(false);
     }
@@ -122,7 +124,7 @@ export function SurveyExportButtons({
         ) : (
           <FileText className="mr-2 h-4 w-4" />
         )}
-        Export PDF
+        {t('exportPDF')}
       </Button>
 
       {/* CSV Export Dropdown */}
@@ -134,31 +136,31 @@ export function SurveyExportButtons({
             ) : (
               <Table className="mr-2 h-4 w-4" />
             )}
-            Export CSV
+            {t('exportCSV')}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => handleCSVExport('long')}>
             <div>
-              <div className="font-medium">Long Format</div>
+              <div className="font-medium">{t('longFormat')}</div>
               <div className="text-xs text-muted-foreground">
-                One row per response
+                {t('oneRowPerResponse')}
               </div>
             </div>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleCSVExport('wide')}>
             <div>
-              <div className="font-medium">Wide Format</div>
+              <div className="font-medium">{t('wideFormat')}</div>
               <div className="text-xs text-muted-foreground">
-                One column per question
+                {t('oneColumnPerQuestion')}
               </div>
             </div>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleCSVExport('summary')}>
             <div>
-              <div className="font-medium">Summary Statistics</div>
+              <div className="font-medium">{t('summaryFormat')}</div>
               <div className="text-xs text-muted-foreground">
-                Aggregated data only
+                {t('aggregatedData')}
               </div>
             </div>
           </DropdownMenuItem>
